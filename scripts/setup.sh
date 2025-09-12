@@ -14,6 +14,21 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Try to load environment variables from .env file
+if [ -f .env ]; then
+    echo "📄 Loading configuration from .env file..."
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Set default domain values if not in environment
+DOMAIN=${DOMAIN:-"yourdomain.com"}
+SUBDOMAIN=${SUBDOMAIN:-"headlessx"}
+FULL_DOMAIN="$SUBDOMAIN.$DOMAIN"
+
+echo -e "${GREEN}✅ Configuration loaded:${NC}"
+echo -e "   Domain: ${YELLOW}$FULL_DOMAIN${NC}"
+echo ""
+
 # Check if running as root and warn (but allow)
 if [[ $EUID -eq 0 ]]; then
    echo -e "${YELLOW}⚠️ Warning: Running as root user${NC}"
@@ -109,7 +124,7 @@ $SUDO_CMD ln -sf /etc/nginx/sites-available/headlessx /etc/nginx/sites-enabled/
 $SUDO_CMD rm -f /etc/nginx/sites-enabled/default
 $SUDO_CMD nginx -t
 $SUDO_CMD systemctl reload nginx
-print_status "Nginx configured for headlessx.domain.com"
+print_status "Nginx configured for $FULL_DOMAIN"
 
 # Create website directory
 $SUDO_CMD mkdir -p /var/www/headlessx
@@ -154,12 +169,12 @@ echo ""
 echo "📋 Next steps:"
 echo ""
 echo "1. Update your domain DNS:"
-echo "   - Point headlessx.domain.com to your server IP"
+echo "   - Point $FULL_DOMAIN to your server IP"
 echo "   - Wait for DNS propagation (1-24 hours)"
 echo ""
 echo "2. Configure SSL certificate:"
 echo "   ${SUDO_CMD} apt install certbot python3-certbot-nginx"
-echo "   ${SUDO_CMD} certbot --nginx -d headlessx.domain.com"
+echo "   ${SUDO_CMD} certbot --nginx -d $FULL_DOMAIN"
 echo ""
 echo "3. Update the TOKEN in .env file:"
 echo "   nano .env"
@@ -170,9 +185,9 @@ echo "   pm2 save"
 echo "   pm2 startup"
 echo ""
 echo "5. Test your setup:"
-echo "   🌐 Website: http://headlessx.domain.com"
-echo "   🔧 API Health: http://headlessx.domain.com/api/health"
-echo "   📊 API Status: http://headlessx.domain.com/api/status"
+echo "   🌐 Website: http://$FULL_DOMAIN"
+echo "   🔧 API Health: http://$FULL_DOMAIN/api/health"
+echo "   📊 API Status: http://$FULL_DOMAIN/api/status"
 echo ""
 echo "📚 Visit https://github.com/SaifyXPRO/HeadlessX for documentation"
 echo ""

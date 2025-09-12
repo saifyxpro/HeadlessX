@@ -224,7 +224,7 @@ HeadlessX is perfect for Make.com (formerly Integromat) automation workflows:
 ### Option 1: Raw HTML (Recommended)
 ```
 Method: POST
-URL: https://headlessx.domain.com/api/html?token=YOUR_TOKEN
+URL: https://your-subdomain.yourdomain.com/api/html?token=YOUR_TOKEN
 Headers: Content-Type: application/json
 Body: {
   "url": "{{dynamic_url}}",
@@ -237,21 +237,21 @@ Body: {
 ### Option 2: Clean Text Content
 ```
 Method: GET
-URL: https://headlessx.domain.com/api/content?token=YOUR_TOKEN&url={{encoded_url}}
+URL: https://your-subdomain.yourdomain.com/api/content?token=YOUR_TOKEN&url={{encoded_url}}
 ```
 **Returns:** Clean text content only
 
 ### Option 3: Screenshot
 ```
 Method: GET
-URL: https://headlessx.domain.com/api/screenshot?token=YOUR_TOKEN&url={{encoded_url}}&fullPage=true
+URL: https://your-subdomain.yourdomain.com/api/screenshot?token=YOUR_TOKEN&url={{encoded_url}}&fullPage=true
 ```
 **Returns:** PNG/JPEG image data
 
 ### Option 4: JSON Response
 ```
 Method: POST
-URL: https://headlessx.domain.com/api/render?token=YOUR_TOKEN
+URL: https://your-subdomain.yourdomain.com/api/render?token=YOUR_TOKEN
 Body: {"url": "{{dynamic_url}}"}
 ```
 **Returns:** JSON with html, title, timestamp, etc.
@@ -299,7 +299,7 @@ limit_req_zone $binary_remote_addr zone=api:10m rate=30r/m;
 
 server {
     listen 80;
-    server_name headlessx.domain.com;
+    server_name your-subdomain.yourdomain.com;
 
     # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -315,7 +315,7 @@ server {
         # Rate limiting
         limit_req zone=api burst=50 nodelay;
         
-        proxy_pass http://headlessx.domain.com;
+        proxy_pass http://your-subdomain.yourdomain.com;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -345,7 +345,7 @@ sudo nginx -t
 sudo systemctl reload nginx
 
 # Install SSL certificate
-sudo certbot --nginx -d headlessx.domain.com
+sudo certbot --nginx -d your-subdomain.yourdomain.com
 ```
 
 ## 🔒 Security & Production Setup
@@ -414,13 +414,13 @@ sudo swapon /swapfile
 **4. Authentication Issues**
 ```bash
 # Test token
-curl -H "X-Token: YOUR_TOKEN" https://headlessx.domain.com/health
+curl -H "X-Token: YOUR_TOKEN" https://your-subdomain.yourdomain.com/health
 ```
 
 ### Health Check Commands
 ```bash
 # Local health check
-curl http://headlessx.domain.com/health
+curl http://your-subdomain.yourdomain.com/health
 
 # Remote health check
 curl https://playwright.yourdomain.com/health
@@ -652,12 +652,12 @@ MIT License - Feel free to use in commercial projects.
 
 3. **Test your HeadlessX instance:**
    ```bash
-   curl http://headlessx.domain.com/health
+   curl http://your-subdomain.yourdomain.com/health
    ```
 
 4. **Start scraping with human-like behavior:**
    ```bash
-   curl -X POST "http://headlessx.domain.com/html?token=SaifyXPRO@112255" \
+   curl -X POST "http://your-subdomain.yourdomain.com/html?token=YOUR_TOKEN" \
      -H "Content-Type: application/json" \
      -d '{"url": "https://example.com"}'
    ```

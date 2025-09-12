@@ -69,7 +69,7 @@ TTL: 300 (5 minutes)
 ```
 
 **Examples:**
-- Subdomain: `headlessx.domain.com` → Points to your server
+- Subdomain: `your-subdomain.yourdomain.com` → Points to your server
 - Main domain: `yourdomain.com` → Points to your server
 
 ### 3. Nginx Installation & Configuration
@@ -90,7 +90,7 @@ sudo nano /etc/nginx/sites-available/headlessx
 ```nginx
 server {
     listen 80;
-    server_name headlessx.domain.com;  # Replace with your domain
+    server_name your-subdomain.yourdomain.com;  # Replace with your domain
     
     # Security headers
     add_header X-Frame-Options DENY;
@@ -156,7 +156,7 @@ sudo systemctl status nginx
 sudo apt install certbot python3-certbot-nginx -y
 
 # Get SSL certificate (replace with your domain)
-sudo certbot --nginx -d headlessx.domain.com
+sudo certbot --nginx -d your-subdomain.yourdomain.com
 
 # Test automatic renewal
 sudo certbot renew --dry-run
@@ -177,13 +177,13 @@ sudo ufw status
 Test your domain setup:
 ```bash
 # Test HTTP (should redirect to HTTPS after SSL)
-curl -I http://headlessx.domain.com/health
+curl -I http://your-subdomain.yourdomain.com/health
 
 # Test HTTPS
-curl -I https://headlessx.domain.com/health
+curl -I https://your-subdomain.yourdomain.com/health
 
 # Test API endpoint
-curl -X POST "https://headlessx.domain.com/html?token=YOUR_TOKEN" \
+curl -X POST "https://your-subdomain.yourdomain.com/html?token=YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://example.com"}'
 ```
@@ -192,7 +192,7 @@ curl -X POST "https://headlessx.domain.com/html?token=YOUR_TOKEN" \
 
 ```bash
 # Health check
-curl http://headlessx.domain.com/health
+curl http://your-subdomain.yourdomain.com/health
 
 # Test rendering
 curl -X POST "http://headlessx.domain.com/render?token=SaifyXPRO@112255" \

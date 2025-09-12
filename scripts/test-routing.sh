@@ -13,15 +13,33 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}🌐 HeadlessX v1.1.0 Domain Routing Test${NC}"
 echo "============================================="
 
-# Check if running locally or on server
-if [ -z "$1" ]; then
-    echo "Usage: $0 [localhost|domain.com]"
-    echo "Example: $0 localhost"
-    echo "Example: $0 headlessx.domain.com"
-    exit 1
+# Try to load environment variables from .env file
+if [ -f .env ]; then
+    echo "📄 Loading configuration from .env file..."
+    export $(grep -v '^#' .env | xargs)
 fi
 
-DOMAIN=$1
+# Check if running locally or on server
+if [ -z "$1" ]; then
+    # If no argument provided, try to use environment variables
+    if [ ! -z "$SUBDOMAIN" ] && [ ! -z "$DOMAIN" ]; then
+        FULL_DOMAIN="$SUBDOMAIN.$DOMAIN"
+        echo -e "${GREEN}✅ Using domain from environment: ${YELLOW}$FULL_DOMAIN${NC}"
+        DOMAIN="$FULL_DOMAIN"
+    else
+        echo "Usage: $0 [localhost|domain.com]"
+        echo "Example: $0 localhost"
+        echo "Example: $0 headlessx.yourdomain.com"
+        echo ""
+        echo "Or set DOMAIN and SUBDOMAIN in .env file:"
+        echo "  DOMAIN=yourdomain.com"
+        echo "  SUBDOMAIN=headlessx"
+        exit 1
+    fi
+else
+    DOMAIN=$1
+fi
+
 echo -e "${BLUE}Testing domain: ${YELLOW}$DOMAIN${NC}"
 echo ""
 

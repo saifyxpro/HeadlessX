@@ -1,7 +1,25 @@
 #!/bin/bash
 
-# HeadlessX Domain Verification Script v1.1.0
-# This script helps verify that your custom domain is properly configured
+# HeadlessX Domain Verification Script# Test 0: Website Homepage
+echo -e "${BLUE}0. Testing website homepage...${NC}"
+HOMEPAGE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://$FULL_DOMAIN/ 2>/dev/null)
+if [ "$HOMEPAGE_STATUS" = "200" ]; then
+    echo -e "${GREEN}✅ Website homepage accessible${NC}"
+    echo -e "   URL: ${YELLOW}http://$FULL_DOMAIN/${NC}"
+else
+    echo -e "${RED}❌ Website homepage failed (Status: $HOMEPAGE_STATUS)${NC}"
+fi
+echo ""
+
+# Test 1: DNS Resolution
+echo -e "${BLUE}1. Testing DNS resolution...${NC}"
+if nslookup $FULL_DOMAIN > /dev/null 2>&1; then
+    echo -e "${GREEN}✅ DNS resolution successful${NC}"
+    IP=$(nslookup $FULL_DOMAIN | grep "Address:" | tail -n1 | awk '{print $2}')
+    echo -e "   Resolved to: ${YELLOW}$IP${NC}"
+else
+    echo -e "${RED}❌ DNS resolution failed${NC}"
+fit helps verify that your custom domain is properly configured
 
 # Colors for output
 RED='\033[0;31m'
@@ -13,17 +31,39 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}🌐 HeadlessX v1.1.0 Domain Verification Tool${NC}"
 echo "================================================="
 
-# Get domain from user
-read -p "Enter your domain (e.g., headlessx.domain.com): " DOMAIN
-read -p "Enter your API token: " TOKEN
+# Try to load environment variables from .env file
+if [ -f .env ]; then
+    echo "📄 Loading configuration from .env file..."
+    export $(grep -v '^#' .env | xargs)
+fi
 
-if [ -z "$DOMAIN" ] || [ -z "$TOKEN" ]; then
+# Build domain from environment variables if available
+if [ ! -z "$SUBDOMAIN" ] && [ ! -z "$DOMAIN" ]; then
+    AUTO_DOMAIN="$SUBDOMAIN.$DOMAIN"
+    echo -e "${GREEN}✅ Found domain configuration: ${YELLOW}$AUTO_DOMAIN${NC}"
+    read -p "Use this domain? (y/n, default: y): " USE_AUTO
+    if [ -z "$USE_AUTO" ] || [ "$USE_AUTO" = "y" ] || [ "$USE_AUTO" = "Y" ]; then
+        FULL_DOMAIN="$AUTO_DOMAIN"
+    fi
+fi
+
+# Get domain from user if not set automatically
+if [ -z "$FULL_DOMAIN" ]; then
+    read -p "Enter your domain (e.g., headlessx.yourdomain.com): " FULL_DOMAIN
+fi
+
+# Get token from environment or user
+if [ -z "$TOKEN" ]; then
+    read -p "Enter your API token: " TOKEN
+fi
+
+if [ -z "$FULL_DOMAIN" ] || [ -z "$TOKEN" ]; then
     echo -e "${RED}❌ Domain and token are required${NC}"
     exit 1
 fi
 
 echo ""
-echo -e "${BLUE}Testing domain: ${YELLOW}$DOMAIN${NC}"
+echo -e "${BLUE}Testing domain: ${YELLOW}$FULL_DOMAIN${NC}"
 echo -e "${BLUE}Using token: ${YELLOW}${TOKEN:0:10}...${NC}"
 echo ""
 
@@ -52,10 +92,10 @@ echo ""
 
 # Test 2: API Health Check
 echo -e "${BLUE}2. Testing API health endpoint...${NC}"
-HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://$DOMAIN/api/health 2>/dev/null)
+HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://$FULL_DOMAIN/api/health 2>/dev/null)
 if [ "$HEALTH_STATUS" = "200" ]; then
     echo -e "${GREEN}✅ API health check successful${NC}"
-    echo -e "   URL: ${YELLOW}http://$DOMAIN/api/health${NC}"
+    echo -e "   URL: ${YELLOW}http://$FULL_DOMAIN/api/health${NC}"
 else
     echo -e "${RED}❌ API health check failed (Status: $HEALTH_STATUS)${NC}"
 fi
@@ -66,7 +106,7 @@ echo ""
 
 # Test 3: HTTPS Connection
 echo -e "${BLUE}3. Testing HTTPS connection...${NC}"
-HTTPS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://$DOMAIN/health 2>/dev/null)
+HTTPS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://$FULL_DOMAIN/health 2>/dev/null)
 if [ "$HTTPS_STATUS" = "200" ]; then
     echo -e "${GREEN}✅ HTTPS connection successful${NC}"
 else
@@ -77,7 +117,7 @@ echo ""
 
 # Test 4: SSL Certificate
 echo -e "${BLUE}4. Testing SSL certificate...${NC}"
-SSL_INFO=$(echo | openssl s_client -servername $DOMAIN -connect $DOMAIN:443 2>/dev/null | openssl x509 -noout -dates 2>/dev/null)
+SSL_INFO=$(echo | openssl s_client -servername $FULL_DOMAIN -connect $FULL_DOMAIN:443 2>/dev/null | openssl x509 -noout -dates 2>/dev/null)
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ SSL certificate is valid${NC}"
     echo "$SSL_INFO" | while IFS= read -r line; do
@@ -90,7 +130,7 @@ echo ""
 
 # Test 5: Health Check
 echo -e "${BLUE}5. Testing HeadlessX health endpoint...${NC}"
-HEALTH_RESPONSE=$(curl -s https://$DOMAIN/health 2>/dev/null)
+HEALTH_RESPONSE=$(curl -s https://$FULL_DOMAIN/health 2>/dev/null)
 if [[ $HEALTH_RESPONSE == *"HeadlessX"* ]] || [[ $HEALTH_RESPONSE == *"healthy"* ]]; then
     echo -e "${GREEN}✅ HeadlessX health check passed${NC}"
     echo -e "   Response: ${YELLOW}$HEALTH_RESPONSE${NC}"
@@ -102,7 +142,7 @@ echo ""
 
 # Test 6: API Endpoint
 echo -e "${BLUE}6. Testing API endpoint with authentication...${NC}"
-API_RESPONSE=$(curl -s -X POST "https://$DOMAIN/html?token=$TOKEN" \
+API_RESPONSE=$(curl -s -X POST "https://$FULL_DOMAIN/html?token=$TOKEN" \
     -H "Content-Type: application/json" \
     -d '{"url":"https://httpbin.org/html"}' 2>/dev/null)
 
@@ -122,7 +162,7 @@ echo ""
 echo -e "${BLUE}7. Testing rate limiting...${NC}"
 RATE_LIMIT_COUNT=0
 for i in {1..5}; do
-    STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://$DOMAIN/health 2>/dev/null)
+    STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://$FULL_DOMAIN/health 2>/dev/null)
     if [ "$STATUS" = "200" ]; then
         ((RATE_LIMIT_COUNT++))
     fi
@@ -158,9 +198,9 @@ if [ $PASSED_TESTS -ge 3 ]; then
     echo -e "   $PASSED_TESTS critical tests passed"
     echo ""
     echo -e "${GREEN}✅ Ready for production use${NC}"
-    echo -e "   API URL: ${YELLOW}https://$DOMAIN${NC}"
-    echo -e "   Health: ${YELLOW}https://$DOMAIN/health${NC}"
-    echo -e "   Status: ${YELLOW}https://$DOMAIN/status?token=$TOKEN${NC}"
+    echo -e "   API URL: ${YELLOW}https://$FULL_DOMAIN${NC}"
+    echo -e "   Health: ${YELLOW}https://$FULL_DOMAIN/health${NC}"
+    echo -e "   Status: ${YELLOW}https://$FULL_DOMAIN/status?token=$TOKEN${NC}"
 else
     echo -e "${RED}⚠️ Some issues detected with your domain setup${NC}"
     echo -e "   Only $PASSED_TESTS/$TOTAL_TESTS critical tests passed"

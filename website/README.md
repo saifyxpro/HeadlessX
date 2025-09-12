@@ -70,7 +70,7 @@ npm run build
 
 ### Domain Configuration
 
-1. Point your domain `headless.domain.com` to your web server
+1. Point your domain `your-subdomain.yourdomain.com` to your web server
 2. Upload the built files to your server's web directory
 3. Configure nginx or your web server to serve the static files
 
@@ -79,7 +79,7 @@ npm run build
 ```nginx
 server {
     listen 80;
-    server_name headless.domain.com;
+    server_name your-subdomain.yourdomain.com;
     
     root /var/www/headlessx-website;
     index index.html;
