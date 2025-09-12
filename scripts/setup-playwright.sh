@@ -40,8 +40,8 @@ print_success "Detected OS version: $OS_VERSION"
 echo "🔧 Installing system dependencies..."
 sudo apt update
 
-if [ "$OS_VERSION" = "24.04" ]; then
-    # Ubuntu 24.04 specific packages
+if [[ "$OS_VERSION" =~ ^2[4-9]\. ]] || [[ "$OS_VERSION" =~ ^[3-9][0-9]\. ]]; then
+    # Ubuntu 24.04+ (including 25.04) - use t64 packages
     sudo apt install -y \
         libgtk-3-0t64 libpangocairo-1.0-0 libcairo-gobject2 \
         libgdk-pixbuf-2.0-0 libdrm2 libxss1 libxcomposite1 \
@@ -50,7 +50,7 @@ if [ "$OS_VERSION" = "24.04" ]; then
         xdg-utils wget ca-certificates curl libatk1.0-0t64 \
         libatk-bridge2.0-0t64 libcups2t64 libatspi2.0-0t64
 else
-    # Fallback for other Ubuntu versions
+    # Fallback for older Ubuntu versions
     sudo apt install -y \
         libgtk-3-0 libpangocairo-1.0-0 libcairo-gobject2 \
         libgdk-pixbuf2.0-0 libdrm2 libxss1 libxcomposite1 \

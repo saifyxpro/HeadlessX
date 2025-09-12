@@ -8,7 +8,7 @@
 
 > 🎯 **Unified Solution**: Website + API on a single domain  
 > 🧠 **Human-like Behavior**: 40+ anti-detection techniques  
-> � **Deploy Anywhere**: Docker, Node.js+PM2, or Development
+> 🚀 **Deploy Anywhere**: Docker, Node.js+PM2, or Development
 
 ---
 
@@ -16,7 +16,7 @@
 
 - **🌐 Unified Architecture**: Website and API on one domain
 - **🧠 Human-like Intelligence**: Natural mouse movements, smart scrolling, behavioral randomization
-- **� Multiple Formats**: HTML, text, screenshots, PDFs
+- **📊 Multiple Formats**: HTML, text, screenshots, PDFs
 - **⚡ Batch Processing**: Handle multiple URLs efficiently
 - **🔒 Production Ready**: Docker, PM2, Nginx, SSL support
 - **🛡️ Anti-Detection**: 40+ stealth techniques for reliable scraping
@@ -131,6 +131,11 @@ npm start  # Access at http://localhost:3000
 ```
 
 ---
+
+## 🌐 API Routes & Structure
+
+```
+HeadlessX Routes:
 ├── /favicon.ico         → Favicon
 ├── /robots.txt          → SEO robots file
 ├── /api/health         → Health check (no auth required)
@@ -285,7 +290,7 @@ Visit your HeadlessX website for full API documentation with examples, or check:
 
 ---
 
-## � Monitoring & Troubleshooting
+## 📊 Monitoring & Troubleshooting
 
 ### 🔍 **Health Checks**
 ```bash
