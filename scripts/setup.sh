@@ -86,8 +86,14 @@ print_status "System dependencies installed"
 
 # Install project dependencies
 echo "📦 Installing project dependencies..."
-npm ci --production
-print_status "NPM dependencies installed"
+if [ -f "package-lock.json" ]; then
+    npm ci --omit=dev
+    print_status "NPM dependencies installed (using ci)"
+else
+    print_warning "package-lock.json not found, using npm install"
+    npm install --production
+    print_status "NPM dependencies installed (using install)"
+fi
 
 # Build website
 echo "🌐 Building website..."
@@ -105,7 +111,14 @@ EOF
     print_status "Website environment configured"
 fi
 
-npm ci
+if [ -f "package-lock.json" ]; then
+    npm ci
+    print_status "Website dependencies installed (using ci)"
+else
+    print_warning "package-lock.json not found, using npm install"
+    npm install
+    print_status "Website dependencies installed (using install)"
+fi
 npm run build
 cd ..
 print_status "Website built successfully"

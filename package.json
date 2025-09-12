@@ -10,6 +10,8 @@
     "build:full": "npm install && npm run build",
     "setup": "bash scripts/setup.sh",
     "deploy": "npm run build:full && npm run setup",
+    "generate-locks": "bash scripts/generate-lockfiles.sh",
+    "validate": "bash scripts/validate-setup.sh",
     "pm2:start": "pm2 start config/ecosystem.config.js",
     "pm2:stop": "pm2 stop headlessx",
     "pm2:restart": "pm2 restart headlessx",

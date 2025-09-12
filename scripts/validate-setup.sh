@@ -58,7 +58,13 @@ fi
 if [ -d "node_modules" ] && [ -f "node_modules/express/package.json" ]; then
     print_success "Dependencies installed"
 else
-    print_warning "Dependencies not installed - run: npm install"
+    print_warning "Dependencies not installed"
+    if [ -f "package-lock.json" ]; then
+        print_warning "Run: npm ci --omit=dev"
+    else
+        print_warning "Run: npm install --production"
+        print_warning "Note: package-lock.json missing - consider running 'npm install' first to generate it"
+    fi
 fi
 
 # Check .env file

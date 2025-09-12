@@ -34,7 +34,12 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install production dependencies
-RUN npm ci --only=production && npm cache clean --force
+# If package-lock.json exists, use npm ci, otherwise use npm install
+RUN if [ -f "package-lock.json" ]; then \
+        npm ci --only=production; \
+    else \
+        npm install --production; \
+    fi && npm cache clean --force
 
 # Copy application source
 COPY src/ ./src/
