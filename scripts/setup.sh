@@ -83,7 +83,7 @@ $SUDO_CMD apt install -y \
     libcairo2 libpango-1.0-0 libasound2t64 fonts-liberation \
     libnss3 xdg-utils wget ca-certificates curl \
     libgtk-3-0t64 libpangocairo-1.0-0 libcairo-gobject2 libgdk-pixbuf-2.0-0 \
-    libdrm2 libxss1 libgconf-2-4 libxrandr2 libasound2t64 libpangocairo-1.0-0 \
+    libdrm2 libxss1 libpangocairo-1.0-0 \
     libatk1.0-0t64 libcairo-gobject2 libgtk-3-0t64 libgdk-pixbuf2.0-0 \
     libicu-dev libjpeg-dev libopenjp2-7-dev libpng-dev libtiff-dev libwebp-dev
 print_status "System dependencies installed"
