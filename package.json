@@ -9,6 +9,7 @@
     "build": "cd website && npm install && npm run build",
     "build:full": "npm install && npm run build",
     "setup": "bash scripts/setup.sh",
+    "quick-setup": "bash scripts/quick-setup.sh",
     "deploy": "npm run build:full && npm run setup",
     "generate-locks": "bash scripts/generate-lockfiles.sh",
     "validate": "bash scripts/validate-setup.sh",

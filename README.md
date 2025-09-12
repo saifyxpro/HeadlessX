@@ -29,8 +29,10 @@
 # 1. Clone and configure
 git clone https://github.com/SaifyXPRO/HeadlessX.git
 cd HeadlessX
-cp .env.example .env
-nano .env  # Update DOMAIN, SUBDOMAIN, and TOKEN
+
+# Quick setup (makes scripts executable + creates .env)
+chmod +x scripts/quick-setup.sh && ./scripts/quick-setup.sh
+# Then edit: nano .env  # Update DOMAIN, SUBDOMAIN, and TOKEN
 ```
 
 **Choose your deployment:**
@@ -38,7 +40,7 @@ nano .env  # Update DOMAIN, SUBDOMAIN, and TOKEN
 | Method | Command | Best For |
 |--------|---------|----------|
 | 🐳 **Docker** | `docker-compose up -d` | Production, easy deployment |
-| 🔧 **Auto Setup** | `sudo ./scripts/setup.sh` | VPS/Server with full control |
+| 🔧 **Auto Setup** | `chmod +x scripts/setup.sh && sudo ./scripts/setup.sh` | VPS/Server with full control |
 | 💻 **Development** | `npm install && npm start` | Local development, testing |
 
 **Access your HeadlessX:**
@@ -89,6 +91,7 @@ git clone https://github.com/SaifyXPRO/HeadlessX.git
 cd HeadlessX
 cp .env.example .env
 nano .env  # Configure environment
+chmod +x scripts/setup.sh
 sudo ./scripts/setup.sh  # Installs dependencies, builds website, starts PM2
 
 # Manual setup
@@ -115,6 +118,9 @@ git clone https://github.com/SaifyXPRO/HeadlessX.git
 cd HeadlessX
 cp .env.example .env
 nano .env  # Set TOKEN, DOMAIN=localhost, SUBDOMAIN=headlessx
+
+# Make scripts executable
+chmod +x scripts/*.sh
 
 # Install dependencies
 npm install
@@ -313,7 +319,8 @@ docker-compose restart  # Docker
 
 **"npm ci" Error (missing package-lock.json):**
 ```bash
-npm run generate-locks  # Generate lock files
+chmod +x scripts/generate-lockfiles.sh
+./scripts/generate-lockfiles.sh  # Generate lock files
 # OR
 npm install --production  # Use install instead
 ```
@@ -333,8 +340,18 @@ sudo apt update && sudo apt install -y \
 **PM2 not starting:**
 ```bash
 sudo npm install -g pm2
+chmod +x scripts/setup.sh  # Make script executable
 pm2 start config/ecosystem.config.js
 pm2 logs headlessx  # Check errors
+```
+
+**Script permission errors:**
+```bash
+# Make all scripts executable
+chmod +x scripts/*.sh
+
+# Or use the quick setup
+chmod +x scripts/quick-setup.sh && ./scripts/quick-setup.sh
 ```
 
 ---
