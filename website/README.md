@@ -54,7 +54,20 @@ npm start
 
 ### Environment Variables
 
-No environment variables required for basic setup.
+The website supports build-time environment variables for domain configuration:
+
+**Required for custom domains:**
+- `NEXT_PUBLIC_DOMAIN` - Your domain (e.g., "yourdomain.com")
+- `NEXT_PUBLIC_SUBDOMAIN` - Your subdomain (e.g., "headlessx")
+
+**Optional:**
+- `NEXT_PUBLIC_API_URL` - Full API URL (auto-generated if not provided)
+- `NEXT_PUBLIC_SITE_URL` - Full site URL (auto-generated if not provided)
+
+**Setup:**
+1. Copy environment template: `cp .env.example .env.local`
+2. Update `.env.local` with your domain configuration
+3. Build the website: `npm run build`
 
 ## 🌐 Deployment
 
@@ -71,8 +84,10 @@ npm run build
 ### Domain Configuration
 
 1. Point your domain `your-subdomain.yourdomain.com` to your web server
-2. Upload the built files to your server's web directory
-3. Configure nginx or your web server to serve the static files
+2. Configure environment variables in `.env.local` (see Environment Variables section)
+3. Build the website with domain configuration: `npm run build`
+4. Upload the built files to your server's web directory
+5. Configure nginx or your web server to serve the static files
 
 ### Example Nginx Configuration
 

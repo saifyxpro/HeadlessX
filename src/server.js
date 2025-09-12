@@ -1129,6 +1129,25 @@ async function extractCleanText(htmlContent) {
     }
 }
 
+// Special routes that should be handled before the API routes
+// Favicon
+app.get('/favicon.ico', (req, res) => {
+    const websitePath = path.join(__dirname, '..', 'website', 'out');
+    const faviconPath = path.join(websitePath, 'favicon.ico');
+    
+    if (fs.existsSync(faviconPath)) {
+        res.sendFile(faviconPath);
+    } else {
+        res.status(204).end(); // No content
+    }
+});
+
+// Robots.txt
+app.get('/robots.txt', (req, res) => {
+    res.set('Content-Type', 'text/plain');
+    res.send('User-agent: *\nDisallow: /api/\nAllow: /\n');
+});
+
 // Health check endpoint with detailed status
 app.get('/api/health', (req, res) => {
     const uptime = Math.floor((Date.now() - serverStartTime.getTime()) / 1000);
@@ -1713,8 +1732,62 @@ app.post('/api/batch', async (req, res) => {
     }
 });
 
-// 404 handler with helpful information
-app.use((req, res) => {
+// Serve static website files
+// This should be after all API routes but before the 404 handler
+const websitePath = path.join(__dirname, '..', 'website', 'out');
+
+// Check if website build exists
+if (fs.existsSync(websitePath)) {
+    // Serve static files from the website build
+    app.use(express.static(websitePath, {
+        index: 'index.html',
+        setHeaders: (res, path) => {
+            // Cache static assets
+            if (path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+                res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
+            } else {
+                res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour for HTML
+            }
+        }
+    }));
+    
+    // Handle client-side routing - serve index.html for all non-API routes
+    app.get('*', (req, res) => {
+        // Skip API routes
+        if (req.path.startsWith('/api/')) {
+            return res.status(404).json({
+                error: 'API endpoint not found',
+                message: 'Check available API endpoints at /api/status'
+            });
+        }
+        
+        // Serve index.html for all other routes (SPA routing)
+        res.sendFile(path.join(websitePath, 'index.html'));
+    });
+    
+    console.log(`🌐 Website served from: ${websitePath}`);
+} else {
+    console.log(`⚠️ Website build not found at: ${websitePath}`);
+    console.log(`   Run 'npm run build' in the website directory to build the website`);
+    
+    // Fallback route for when website is not built
+    app.get('/', (req, res) => {
+        res.json({
+            message: 'HeadlessX v1.1.0 - Advanced Browserless Web Scraping API',
+            status: 'Website not built',
+            instructions: 'Run "npm run build" in the website directory to build the website',
+            api: {
+                health: '/api/health',
+                status: '/api/status',
+                documentation: 'See README.md for API endpoints'
+            },
+            timestamp: new Date().toISOString()
+        });
+    });
+}
+
+// 404 handler with helpful information (only for API routes now)
+app.use('/api/*', (req, res) => {
     res.status(404).json({
         error: 'Endpoint not found',
         availableEndpoints: [
@@ -1765,9 +1838,11 @@ process.on('unhandledRejection', (reason, promise) => {
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 HeadlessX v1.1.0 - Advanced Browserless Web Scraping API running on port ${PORT}`);
+    console.log(`🌐 Website: http://localhost:${PORT}/`);
     console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
     console.log(`📊 Status: http://localhost:${PORT}/api/status`);
     console.log(`🔐 Auth token: ${AUTH_TOKEN}`);
     console.log(`✨ Features: Human-like behavior, anti-detection, advanced timeout handling`);
-    console.log(`🎯 Endpoints: /api/render, /api/html, /api/content, /api/screenshot, /api/pdf, /api/batch`);
+    console.log(`🎯 API Endpoints: /api/render, /api/html, /api/content, /api/screenshot, /api/pdf, /api/batch`);
+    console.log(`📖 Documentation: Visit the website for full API documentation`);
 });

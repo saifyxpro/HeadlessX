@@ -61,8 +61,15 @@ print_status "System updated"
 # Install Node.js 20 LTS
 echo "📥 Installing Node.js 20 LTS..."
 if ! command -v node &> /dev/null; then
-    curl -fsSL https://deb.nodesource.com/setup_20.x | $SUDO_CMD -E bash -
-    $SUDO_CMD apt install -y nodejs build-essential
+    if [[ $EUID -eq 0 ]]; then
+        # Running as root
+        curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+        apt install -y nodejs build-essential
+    else
+        # Running as regular user
+        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+        sudo apt install -y nodejs build-essential
+    fi
     print_status "Node.js installed: $(node -v)"
 else
     print_status "Node.js already installed: $(node -v)"
@@ -85,6 +92,19 @@ print_status "NPM dependencies installed"
 # Build website
 echo "🌐 Building website..."
 cd website
+
+# Create .env.local with domain configuration for build
+if [ ! -z "$DOMAIN" ] && [ ! -z "$SUBDOMAIN" ]; then
+    echo "📝 Configuring website with domain: $FULL_DOMAIN"
+    cat > .env.local << EOF
+NEXT_PUBLIC_DOMAIN=$DOMAIN
+NEXT_PUBLIC_SUBDOMAIN=$SUBDOMAIN
+NEXT_PUBLIC_API_URL=https://$FULL_DOMAIN
+NEXT_PUBLIC_SITE_URL=https://$FULL_DOMAIN
+EOF
+    print_status "Website environment configured"
+fi
+
 npm install
 npm run build
 cd ..
@@ -126,11 +146,9 @@ $SUDO_CMD nginx -t
 $SUDO_CMD systemctl reload nginx
 print_status "Nginx configured for $FULL_DOMAIN"
 
-# Create website directory
-$SUDO_CMD mkdir -p /var/www/headlessx
-$SUDO_CMD cp -r website/out/* /var/www/headlessx/
-$SUDO_CMD chown -R www-data:www-data /var/www/headlessx
-print_status "Website files deployed"
+# Note: Website files are served directly by Node.js server
+# No need to copy to /var/www since nginx proxies everything to Node.js
+print_status "Website integrated with Node.js server"
 
 # Configure firewall
 echo "🔥 Configuring firewall..."

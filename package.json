@@ -1,15 +1,18 @@
 {
   "name": "headlessx",
   "version": "1.1.0",
-  "description": "HeadlessX - Advanced Browserless Web Scraping API with human-like behavior simulation and comprehensive anti-detection",
+  "description": "HeadlessX v1.1.0 - Advanced Browserless Web Scraping API with integrated website, human-like behavior simulation, and comprehensive anti-detection features",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node src/server.js",
     "build": "cd website && npm install && npm run build",
-    "deploy": "npm run build && bash scripts/setup.sh",
-    "verify": "bash scripts/verify-domain.sh",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:full": "npm install && npm run build",
+    "setup": "bash scripts/setup.sh",
+    "deploy": "npm run build:full && npm run setup",
+    "test": "bash scripts/test-integration.sh",
+    "test:domain": "bash scripts/verify-domain.sh",
+    "test:routing": "bash scripts/test-routing.sh"
   },
   "keywords": [
     "headlessx",
@@ -21,11 +24,17 @@
     "automation",
     "api",
     "server",
+    "website",
+    "nextjs",
+    "integrated",
     "screenshot",
     "pdf",
     "batch-processing",
     "anti-detection",
-    "human-behavior"
+    "human-behavior",
+    "stealth",
+    "unified",
+    "all-in-one"
   ],
   "author": "SaifyXPRO",
   "license": "MIT",

@@ -1,209 +1,467 @@
-# 🚀 HeadlessX Quick Deployment Guide
+# 🚀 HeadlessX Deployment Guide
 
-## For Ubuntu VPS
+Complete guide for deploying HeadlessX v1.1.0 with integrated website and API server.
 
-### 1. One-Command Setup
-```bash
-# Download and run setup script
-curl -fsSL https://raw.githubusercontent.com/SaifyXPRO/headlessx/main/setup.sh | bash
+## 🏗️ Architecture Overview
+
+HeadlessX v1.1.0 uses a **unified architecture** where a single Node.js server handles both the website and API:
+
+```
+Internet → Nginx → Node.js Server (Port 3000)
+                   ├── / → Website (Next.js)
+                   └── /api/* → API Endpoints
 ```
 
-### 2. Manual Setup
+**Benefits:**
+- ✅ Single domain for everything
+- ✅ Simplified deployment and maintenance  
+- ✅ Better performance (no separate static file serving)
+- ✅ Integrated monitoring and logging
+
+---
+
+## 🎯 Prerequisites
+
+### Server Requirements
+- **OS**: Ubuntu 20.04+ LTS (recommended)
+- **Memory**: 2GB+ RAM
+- **Storage**: 5GB+ free space
+- **Network**: Public IP address
+
+### Domain Requirements
+- **Domain Name**: e.g., `yourdomain.com`
+- **Subdomain**: e.g., `headlessx.yourdomain.com`
+- **DNS Access**: Ability to create A records
+
+---
+
+## 🚀 Quick Deployment
+
+### Method 1: Automated Setup (Recommended)
+
 ```bash
-# Clone repository
-git clone https://github.com/SaifyXPRO/headlessx.git
-cd headlessx
+# 1. Clone repository
+git clone https://github.com/SaifyXPRO/HeadlessX.git
+cd HeadlessX
 
-# Run setup script
-chmod +x setup.sh
-./setup.sh
+# 2. Configure environment
+cp .env.example .env
+nano .env  # Set DOMAIN, SUBDOMAIN, and TOKEN
 
-# Update environment
-nano .env  # Change TOKEN value
+# 3. Run automated setup
+chmod +x scripts/setup.sh
+sudo ./scripts/setup.sh
 
-# Start with PM2
-pm2 start ecosystem.config.js
-pm2 save
-pm2 startup
+# 4. Configure SSL (included in setup)
+sudo certbot --nginx -d your-subdomain.yourdomain.com
 ```
 
-### 3. Docker Deployment
-```bash
-# Clone and build
-git clone https://github.com/SaifyXPRO/headlessx.git
-cd headlessx
+### Method 2: Docker Deployment
 
-# Start with docker-compose
+```bash
+# 1. Clone and configure
+git clone https://github.com/SaifyXPRO/HeadlessX.git
+cd HeadlessX
+cp .env.example .env
+nano .env
+
+# 2. Deploy with Docker
 docker-compose up -d
 
-# Check status
-docker-compose logs -f
-```
-
-## Custom Domain Setup
-
-### 1. Domain Prerequisites
-Before setting up your custom domain, ensure you have:
-- A registered domain name (e.g., `yourdomain.com`)
-- Access to your domain's DNS management panel
-- A VPS/server with a public IP address
-- Root or sudo access to your server
-
-### 2. DNS Configuration
-Configure your domain's DNS records:
-
-**For subdomain setup (recommended):**
-```
-Type: A Record
-Name: headlessx (or api, scraper, etc.)
-Value: YOUR_SERVER_IP_ADDRESS
-TTL: 300 (5 minutes)
-```
-
-**For main domain setup:**
-```
-Type: A Record
-Name: @ (or leave blank)
-Value: YOUR_SERVER_IP_ADDRESS
-TTL: 300 (5 minutes)
-```
-
-**Examples:**
-- Subdomain: `your-subdomain.yourdomain.com` → Points to your server
-- Main domain: `yourdomain.com` → Points to your server
-
-### 3. Nginx Installation & Configuration
-```bash
-# Install Nginx
-sudo apt update
-sudo apt install nginx -y
-
-# Start and enable Nginx
-sudo systemctl start nginx
-sudo systemctl enable nginx
-
-# Create HeadlessX configuration
-sudo nano /etc/nginx/sites-available/headlessx
-```
-
-**Nginx Configuration File:**
-```nginx
-server {
-    listen 80;
-    server_name your-subdomain.yourdomain.com;  # Replace with your domain
-    
-    # Security headers
-    add_header X-Frame-Options DENY;
-    add_header X-Content-Type-Options nosniff;
-    add_header X-XSS-Protection "1; mode=block";
-    
-    # Rate limiting
-    limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
-    
-    location / {
-        limit_req zone=api burst=20 nodelay;
-        
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-        
-        # Timeout settings for large requests
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-        
-        # Buffer settings
-        proxy_buffering off;
-        proxy_buffer_size 128k;
-        proxy_buffers 100 128k;
-    }
-    
-    # Health check endpoint (no rate limit)
-    location /health {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### 4. Enable Site & Test Configuration
-```bash
-# Enable the site
+# 3. Configure nginx on host
+sudo cp nginx/headlessx.conf /etc/nginx/sites-available/
 sudo ln -s /etc/nginx/sites-available/headlessx /etc/nginx/sites-enabled/
-
-# Test Nginx configuration
-sudo nginx -t
-
-# If test passes, reload Nginx
-sudo systemctl reload nginx
-
-# Check Nginx status
-sudo systemctl status nginx
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
-### 5. SSL Certificate Installation
-```bash
-# Install Certbot
-sudo apt install certbot python3-certbot-nginx -y
+---
 
-# Get SSL certificate (replace with your domain)
+## ⚙️ Environment Configuration
+
+### Required Variables
+```env
+# Domain Configuration
+DOMAIN=yourdomain.com           # Your root domain
+SUBDOMAIN=headlessx             # Your subdomain
+
+# Security
+TOKEN=your_secure_random_token  # Generate with: openssl rand -hex 32
+
+# Server Configuration
+PORT=3000                       # Internal port (nginx proxies to this)
+NODE_ENV=production            # Production mode
+```
+
+### Generate Secure Token
+```bash
+# Method 1: OpenSSL
+openssl rand -hex 32
+
+# Method 2: Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# Method 3: Python
+python3 -c "import secrets; print(secrets.token_hex(32))"
+```
+
+---
+
+## 🌐 DNS Configuration
+
+### 1. Create A Record
+```
+Type: A
+Name: your-subdomain (e.g., headlessx)
+Value: YOUR_SERVER_IP
+TTL: 300 (5 minutes)
+```
+
+### 2. Verify DNS Propagation
+```bash
+# Check DNS resolution
+dig your-subdomain.yourdomain.com
+
+# Test with nslookup
+nslookup your-subdomain.yourdomain.com
+
+# Online tools
+# https://dnschecker.org
+```
+
+---
+
+## 🔧 Manual Installation Steps
+
+### 1. System Preparation
+```bash
+# Update system
+sudo apt update && sudo apt upgrade -y
+
+# Install required packages
+sudo apt install -y curl wget git nginx certbot python3-certbot-nginx ufw
+```
+
+### 2. Node.js Installation
+```bash
+# Install Node.js 20 LTS
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs build-essential
+```
+
+### 3. Project Setup
+```bash
+# Clone repository
+git clone https://github.com/SaifyXPRO/HeadlessX.git
+cd HeadlessX
+
+# Install server dependencies
+npm install
+
+# Build website
+cd website
+npm install
+npm run build
+cd ..
+```
+
+### 4. Environment Configuration
+```bash
+# Configure environment
+cp .env.example .env
+nano .env
+
+# Example configuration:
+echo "DOMAIN=yourdomain.com" >> .env
+echo "SUBDOMAIN=headlessx" >> .env
+echo "TOKEN=$(openssl rand -hex 32)" >> .env
+echo "PORT=3000" >> .env
+echo "NODE_ENV=production" >> .env
+```
+
+### 5. Process Manager Setup
+```bash
+# Install PM2
+sudo npm install -g pm2
+
+# Start HeadlessX
+pm2 start config/ecosystem.config.js
+
+# Save PM2 configuration
+pm2 save
+
+# Enable PM2 startup
+pm2 startup
+# Run the command PM2 outputs
+```
+
+### 6. Nginx Configuration
+```bash
+# Copy nginx configuration
+sudo cp nginx/headlessx.conf /etc/nginx/sites-available/headlessx
+
+# Update domain in config (if needed)
+sudo sed -i 's/SUBDOMAIN.DOMAIN.COM/your-subdomain.yourdomain.com/g' /etc/nginx/sites-available/headlessx
+
+# Enable site
+sudo ln -sf /etc/nginx/sites-available/headlessx /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Test and reload
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 7. SSL Certificate
+```bash
+# Install SSL certificate
 sudo certbot --nginx -d your-subdomain.yourdomain.com
 
 # Test automatic renewal
 sudo certbot renew --dry-run
 ```
 
-### 6. Firewall Configuration
+### 8. Firewall Setup
 ```bash
-# Allow HTTP and HTTPS traffic
-sudo ufw allow 'Nginx Full'
-sudo ufw allow ssh
-sudo ufw enable
+# Configure UFW firewall
+sudo ufw allow 22     # SSH
+sudo ufw allow 80     # HTTP
+sudo ufw allow 443    # HTTPS
+sudo ufw --force enable
+```
 
-# Check firewall status
+---
+
+## 🧪 Testing Deployment
+
+### 1. Basic Health Check
+```bash
+# Test without SSL
+curl http://your-subdomain.yourdomain.com/api/health
+
+# Test with SSL
+curl https://your-subdomain.yourdomain.com/api/health
+```
+
+### 2. Website Test
+```bash
+# Check website loads
+curl -I https://your-subdomain.yourdomain.com/
+
+# Check specific routes
+curl https://your-subdomain.yourdomain.com/robots.txt
+curl https://your-subdomain.yourdomain.com/favicon.ico
+```
+
+### 3. API Test
+```bash
+# Test authenticated endpoint
+curl "https://your-subdomain.yourdomain.com/api/status?token=YOUR_TOKEN"
+
+# Test HTML extraction
+curl -X POST "https://your-subdomain.yourdomain.com/api/html?token=YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://httpbin.org/html"}'
+```
+
+### 4. Integration Test Script
+```bash
+# Run comprehensive test
+bash scripts/verify-domain.sh
+```
+
+---
+
+## 📊 Monitoring & Maintenance
+
+### Process Monitoring
+```bash
+# Check PM2 status
+pm2 status
+pm2 logs headlessx
+pm2 monit
+
+# Restart if needed
+pm2 restart headlessx
+```
+
+### Nginx Monitoring
+```bash
+# Check nginx status
+sudo systemctl status nginx
+
+# View logs
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log
+
+# Test configuration
+sudo nginx -t
+```
+
+### System Resources
+```bash
+# Check memory usage
+free -h
+
+# Check disk usage
+df -h
+
+# Check processes
+top
+htop
+```
+
+---
+
+## 🔄 Updates & Maintenance
+
+### Updating HeadlessX
+```bash
+# Pull latest changes
+git pull origin main
+
+# Update server dependencies
+npm install
+
+# Rebuild website
+cd website
+npm install
+npm run build
+cd ..
+
+# Restart application
+pm2 restart headlessx
+```
+
+### SSL Certificate Renewal
+```bash
+# Certificates auto-renew, but to test:
+sudo certbot renew --dry-run
+
+# Force renewal if needed
+sudo certbot renew --force-renewal -d your-subdomain.yourdomain.com
+```
+
+### Log Rotation
+```bash
+# PM2 logs are automatically rotated
+pm2 install pm2-logrotate
+
+# Configure nginx log rotation (usually pre-configured)
+sudo logrotate /etc/logrotate.d/nginx
+```
+
+---
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+#### 1. Website Not Loading
+```bash
+# Check if server is running
+pm2 status
+
+# Check nginx is proxying correctly
+sudo nginx -t
+curl http://localhost:3000/api/health
+
+# Check firewall
 sudo ufw status
 ```
 
-### 7. Domain Verification
-Test your domain setup:
+#### 2. API 401 Unauthorized
 ```bash
-# Test HTTP (should redirect to HTTPS after SSL)
-curl -I http://your-subdomain.yourdomain.com/health
+# Verify token in .env file
+cat .env | grep TOKEN
 
-# Test HTTPS
-curl -I https://your-subdomain.yourdomain.com/health
-
-# Test API endpoint
-curl -X POST "https://your-subdomain.yourdomain.com/html?token=YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com"}'
+# Test with correct token
+curl "https://your-subdomain.yourdomain.com/api/status?token=YOUR_ACTUAL_TOKEN"
 ```
 
-## Testing
-
+#### 3. SSL Issues
 ```bash
-# Health check
-curl http://your-subdomain.yourdomain.com/health
+# Check certificate status
+sudo certbot certificates
 
-# Test rendering
-curl -X POST "http://headlessx.domain.com/render?token=SaifyXPRO@112255" \
-  -H "Content-Type: application/json" \
-  -d '{"url":"https://example.com"}'
+# Test SSL configuration
+openssl s_client -connect your-subdomain.yourdomain.com:443
 ```
 
-## Make.com Integration
+#### 4. High Memory Usage
+```bash
+# Check memory usage
+pm2 monit
 
-**URL**: `https://headlessx.domain.com/html?token=YOUR_TOKEN`
-**Method**: POST
-**Body**: `{"url": "{{dynamic_url}}"}`
+# Restart to clear memory
+pm2 restart headlessx
 
-Done! 🎉
+# Adjust PM2 configuration in config/ecosystem.config.js
+```
+
+### Getting Help
+
+1. **Check logs**: `pm2 logs headlessx`
+2. **Test components**: Use the verification script
+3. **GitHub Issues**: Report problems with full logs
+4. **Documentation**: Visit your deployed website for API docs
+
+---
+
+## 🎯 Production Checklist
+
+- [ ] Domain DNS configured and propagated
+- [ ] Environment variables set correctly
+- [ ] Secure token generated and configured
+- [ ] Server dependencies installed
+- [ ] Website built successfully
+- [ ] PM2 process running
+- [ ] Nginx configured and running
+- [ ] SSL certificate installed and working
+- [ ] Firewall configured properly
+- [ ] Health checks passing
+- [ ] API endpoints responding
+- [ ] Website loading correctly
+- [ ] Monitoring and logs working
+
+---
+
+## 📈 Performance Optimization
+
+### Server Optimization
+```bash
+# Enable nginx gzip compression
+# Add to nginx config:
+gzip on;
+gzip_types text/plain text/css application/json application/javascript;
+
+# Increase file upload limits for large requests
+client_max_body_size 10M;
+```
+
+### PM2 Optimization
+```javascript
+// In config/ecosystem.config.js
+module.exports = {
+  apps: [{
+    name: 'headlessx',
+    script: './src/server.js',
+    instances: 'max',  // Use all CPU cores
+    exec_mode: 'cluster',
+    max_memory_restart: '1G',  // Restart if memory exceeds 1GB
+    node_args: '--max-old-space-size=2048'  // Increase Node.js heap
+  }]
+};
+```
+
+### Monitoring Setup
+```bash
+# Install monitoring tools
+sudo npm install -g pm2-web-dashboard
+
+# Start monitoring dashboard
+pm2-web-dashboard start
+```
+
+---
+
+*HeadlessX v1.1.0 - Deploy once, scale everywhere.* 🚀

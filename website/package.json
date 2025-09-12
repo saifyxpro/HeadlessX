@@ -9,7 +9,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "export": "next export"
+    "export": "next export",
+    "build:prod": "NODE_ENV=production npm run build",
+    "build:with-env": "npm run build && echo 'Build completed with environment configuration'"
   },
   "dependencies": {
     "next": "^14.0.0",
