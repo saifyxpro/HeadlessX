@@ -165,6 +165,16 @@ fi
 $SUDO_CMD cp nginx/headlessx.conf /etc/nginx/sites-available/headlessx
 $SUDO_CMD ln -sf /etc/nginx/sites-available/headlessx /etc/nginx/sites-enabled/
 $SUDO_CMD rm -f /etc/nginx/sites-enabled/default
+
+# Add rate limiting zones to main nginx config if not already present
+if ! grep -q "limit_req_zone.*zone=api" /etc/nginx/nginx.conf; then
+    echo "📝 Adding rate limiting zones to nginx.conf..."
+    $SUDO_CMD sed -i '/http {/a\\n    # HeadlessX Rate Limiting Zones\n    limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;\n    limit_req_zone $binary_remote_addr zone=burst:10m rate=50r/s;\n    limit_req_zone $binary_remote_addr zone=health:10m rate=100r/s;\n    limit_req_zone $binary_remote_addr zone=website:10m rate=30r/s;' /etc/nginx/nginx.conf
+    print_status "Rate limiting zones added to nginx.conf"
+else
+    print_status "Rate limiting zones already configured"
+fi
+
 $SUDO_CMD nginx -t
 $SUDO_CMD systemctl reload nginx
 print_status "Nginx configured for $FULL_DOMAIN"
