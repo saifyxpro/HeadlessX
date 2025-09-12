@@ -78,15 +78,15 @@ fi
 # Install system dependencies for Playwright
 echo "🔧 Installing system dependencies..."
 $SUDO_CMD apt install -y \
-    libatk1.0-0 libatk-bridge2.0-0 libcups2 libatspi2.0-0 \
+    libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libatspi2.0-0t64 \
     libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 \
-    libcairo2 libpango-1.0-0 libasound2 fonts-liberation \
+    libcairo2 libpango-1.0-0 libasound2t64 fonts-liberation \
     libnss3 xdg-utils wget ca-certificates curl
 print_status "System dependencies installed"
 
 # Install project dependencies
 echo "📦 Installing project dependencies..."
-npm install
+npm ci --production
 print_status "NPM dependencies installed"
 
 # Build website
@@ -105,7 +105,7 @@ EOF
     print_status "Website environment configured"
 fi
 
-npm install
+npm ci
 npm run build
 cd ..
 print_status "Website built successfully"
@@ -167,6 +167,20 @@ else
     print_status ".env file already exists"
 fi
 
+# Validate dependencies before starting server
+echo "🔍 Validating installation..."
+if [ ! -d "node_modules" ] || [ ! -f "node_modules/express/package.json" ]; then
+    print_error "Dependencies not properly installed. Installing again..."
+    npm install
+fi
+
+if [ ! -d "website/out" ]; then
+    print_error "Website not built. Building again..."
+    cd website && npm run build && cd ..
+fi
+
+print_status "Installation validated"
+
 # Test the server
 echo "🧪 Testing server startup..."
 timeout 10s node src/server.js &
@@ -177,12 +191,34 @@ if kill -0 $SERVER_PID 2>/dev/null; then
     print_status "Server test successful"
     kill $SERVER_PID
 else
-    print_error "Server test failed - but continuing..."
+    print_warning "Server test failed - this might be due to missing TOKEN in .env"
 fi
+
+# Start with PM2
+echo "🚀 Starting HeadlessX with PM2..."
+pm2 start config/ecosystem.config.js
+pm2 save
+print_status "HeadlessX started with PM2"
+
+# Setup PM2 startup script
+echo "⚙️ Configuring PM2 startup..."
+if [[ $EUID -eq 0 ]]; then
+    # Running as root
+    pm2 startup systemd
+    pm2 save
+else
+    # Running as regular user
+    sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $USER --hp $HOME
+    pm2 save
+fi
+print_status "PM2 startup configured"
 
 echo ""
 echo "🎉 HeadlessX v1.1.0 Setup completed successfully!"
 echo "==============================================="
+echo ""
+echo -e "${GREEN}✅ Server Status:${NC}"
+echo "   $(pm2 status headlessx)"
 echo ""
 echo "📋 Next steps:"
 echo ""
@@ -196,16 +232,17 @@ echo "   ${SUDO_CMD} certbot --nginx -d $FULL_DOMAIN"
 echo ""
 echo "3. Update the TOKEN in .env file:"
 echo "   nano .env"
+echo "   pm2 restart headlessx  # Restart after updating .env"
 echo ""
-echo "4. Start the HeadlessX API server:"
-echo "   pm2 start ecosystem.config.js"
-echo "   pm2 save"
-echo "   pm2 startup"
+echo "4. Test your setup:"
+echo "   🌐 Website: https://$FULL_DOMAIN"
+echo "   🔧 API Health: https://$FULL_DOMAIN/api/health"
+echo "   📊 API Status: https://$FULL_DOMAIN/api/status?token=YOUR_TOKEN"
 echo ""
-echo "5. Test your setup:"
-echo "   🌐 Website: http://$FULL_DOMAIN"
-echo "   🔧 API Health: http://$FULL_DOMAIN/api/health"
-echo "   📊 API Status: http://$FULL_DOMAIN/api/status"
+echo "5. Monitor your server:"
+echo "   pm2 status           # Check process status"
+echo "   pm2 logs headlessx   # View logs"
+echo "   pm2 monit           # Real-time monitoring"
 echo ""
 echo "📚 Visit https://github.com/SaifyXPRO/HeadlessX for documentation"
 echo ""

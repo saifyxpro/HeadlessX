@@ -1,7 +1,7 @@
 module.exports = {
   apps: [{
     name: 'headlessx',
-    script: '../src/server.js',
+    script: './src/server.js',
     instances: 1,
     exec_mode: 'fork',
     env: {
@@ -14,9 +14,9 @@ module.exports = {
       PORT: process.env.PORT || 3000,
       TOKEN: process.env.TOKEN // REQUIRED: Set this in your environment
     },
-    error_file: '../logs/err.log',
-    out_file: '../logs/out.log',
-    log_file: '../logs/combined.log',
+    error_file: './logs/err.log',
+    out_file: './logs/out.log',
+    log_file: './logs/combined.log',
     time: true,
     max_memory_restart: '2G',
     watch: false,
