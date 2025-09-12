@@ -93,8 +93,29 @@ cp .env.example .env
 nano .env  # Configure environment
 chmod +x scripts/setup.sh
 sudo ./scripts/setup.sh  # Installs dependencies, builds website, starts PM2
+```
 
-# Manual setup
+**🌐 Nginx Configuration (Auto-handled by setup script):**
+
+The setup script automatically configures nginx, but if you need to manually configure:
+
+```bash
+# Copy and configure nginx site
+sudo cp nginx/headlessx.conf /etc/nginx/sites-available/headlessx
+
+# Replace placeholders with your actual domain
+sudo sed -i 's/SUBDOMAIN.DOMAIN.COM/your-subdomain.yourdomain.com/g' /etc/nginx/sites-available/headlessx
+
+# Enable the site
+sudo ln -sf /etc/nginx/sites-available/headlessx /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Test and reload nginx
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+**Manual setup (if not using setup script):**
+```bash
 sudo apt update && sudo apt upgrade -y
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs build-essential
@@ -259,6 +280,65 @@ bash scripts/test-routing.sh localhost
 # Test with environment variables
 bash scripts/verify-domain.sh
 ```
+
+---
+
+## ⚙️ Configuration
+
+### 🌐 **Environment Variables (.env)**
+
+Create your `.env` file from the template:
+```bash
+cp .env.example .env
+nano .env
+```
+
+**Required configuration:**
+```bash
+# Security Token (Generate a secure random string)
+TOKEN=your_secure_token_here
+
+# Domain Configuration  
+DOMAIN=yourdomain.com
+SUBDOMAIN=headlessx
+
+# Optional: Browser Settings
+BROWSER_TIMEOUT=60000
+MAX_CONCURRENT_BROWSERS=5
+
+# Optional: Server Settings
+PORT=3000
+NODE_ENV=production
+```
+
+### 🌐 **Nginx Domain Setup**
+
+**Option 1: Automatic (Recommended)**
+```bash
+# The setup script automatically replaces domain placeholders
+sudo ./scripts/setup.sh
+```
+
+**Option 2: Manual Configuration**
+```bash
+# Copy nginx configuration
+sudo cp nginx/headlessx.conf /etc/nginx/sites-available/headlessx
+
+# Replace domain placeholders (replace with your actual domain)
+sudo sed -i 's/SUBDOMAIN.DOMAIN.COM/headlessx.yourdomain.com/g' /etc/nginx/sites-available/headlessx
+
+# Example: If your domain is "api.example.com"
+sudo sed -i 's/SUBDOMAIN.DOMAIN.COM/api.example.com/g' /etc/nginx/sites-available/headlessx
+
+# Enable site and reload nginx
+sudo ln -sf /etc/nginx/sites-available/headlessx /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+**Your final URLs will be:**
+- Website: `https://your-subdomain.yourdomain.com`
+- API Health: `https://your-subdomain.yourdomain.com/api/health`
+- API Endpoints: `https://your-subdomain.yourdomain.com/api/*`
 
 ---
 
