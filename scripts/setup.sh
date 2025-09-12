@@ -81,7 +81,11 @@ $SUDO_CMD apt install -y \
     libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 libatspi2.0-0t64 \
     libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 \
     libcairo2 libpango-1.0-0 libasound2t64 fonts-liberation \
-    libnss3 xdg-utils wget ca-certificates curl
+    libnss3 xdg-utils wget ca-certificates curl \
+    libgtk-3-0t64 libpangocairo-1.0-0 libcairo-gobject2 libgdk-pixbuf-2.0-0 \
+    libdrm2 libxss1 libgconf-2-4 libxrandr2 libasound2t64 libpangocairo-1.0-0 \
+    libatk1.0-0t64 libcairo-gobject2 libgtk-3-0t64 libgdk-pixbuf2.0-0 \
+    libicu-dev libjpeg-dev libopenjp2-7-dev libpng-dev libtiff-dev libwebp-dev
 print_status "System dependencies installed"
 
 # Install project dependencies
@@ -125,9 +129,16 @@ print_status "Website built successfully"
 
 # Install Playwright browsers
 echo "🌐 Installing Playwright browsers..."
-npx playwright install
-npx playwright install-deps
-print_status "Playwright browsers installed"
+if [ -f "scripts/setup-playwright.sh" ]; then
+    chmod +x scripts/setup-playwright.sh
+    bash scripts/setup-playwright.sh
+    print_status "Playwright setup completed"
+else
+    # Fallback method
+    export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
+    npx playwright install chromium
+    print_status "Playwright Chromium browser installed"
+fi
 
 # Create logs directory
 mkdir -p logs

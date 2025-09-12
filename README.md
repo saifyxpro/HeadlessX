@@ -354,6 +354,25 @@ chmod +x scripts/*.sh
 chmod +x scripts/quick-setup.sh && ./scripts/quick-setup.sh
 ```
 
+**Playwright browser installation errors:**
+```bash
+# Use dedicated Playwright setup script
+chmod +x scripts/setup-playwright.sh
+./scripts/setup-playwright.sh
+
+# Or install manually:
+sudo apt update && sudo apt install -y \
+  libgtk-3-0t64 libpangocairo-1.0-0 libcairo-gobject2 \
+  libgdk-pixbuf-2.0-0 libdrm2 libxss1 libxrandr2 \
+  libasound2t64 libatk1.0-0t64 libnss3
+
+# Install only Chromium (most stable)
+npx playwright install chromium
+
+# Alternative: Use Docker (avoids dependency issues)
+docker-compose up -d
+```
+
 ---
 
 ## 🔐 Security Features
