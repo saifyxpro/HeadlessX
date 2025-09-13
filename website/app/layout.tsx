@@ -11,6 +11,11 @@ export const metadata: Metadata = {
   authors: [{ name: 'SaifyXPRO' }],
   viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   openGraph: {
     title: 'HeadlessX v1.1.0 - Advanced Browserless Web Scraping API',
     description: 'Professional browserless web scraping API with human-like behavior simulation and anti-detection techniques.',

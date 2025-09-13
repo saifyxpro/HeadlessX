@@ -48,3 +48,16 @@ body {
   overflow-x: auto;
   font-family: 'Fira Code', 'Courier New', monospace;
 }
+
+/* Mobile-first helpers */
+@media (max-width: 640px) {
+  .feature-card { padding: 1rem; }
+}
+
+/* Soft pulse animation used in background blobs */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+.animate-pulse-slow { animation: pulse-slow 6s ease-in-out infinite; }
