@@ -1180,36 +1180,51 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// Status endpoint with server information
+// Status endpoint with server information (requires authentication)
 app.get('/api/status', (req, res) => {
-    const uptime = Math.floor((Date.now() - serverStartTime.getTime()) / 1000);
-    
-    res.json({
-        server: {
-            name: 'HeadlessX - Advanced Browserless Web Scraping API',
-            version: '1.1.0',
-            uptime: uptime,
-            startTime: serverStartTime.toISOString()
-        },
-        browser: {
-            connected: browserInstance ? browserInstance.isConnected() : false,
-            type: 'Chromium'
-        },
-        endpoints: [
-            'GET /api/health - Server health check',
-            'GET /api/status - Detailed server status',
-            'POST /api/render - Full page rendering with JSON response',
-            'POST /api/html - Raw HTML extraction',
-            'GET /api/html - Raw HTML extraction (GET)',
-            'POST /api/content - Clean text extraction',
-            'GET /api/content - Clean text extraction (GET)',
-            'GET /api/screenshot - Screenshot generation',
-            'GET /api/pdf - PDF generation',
-            'POST /api/batch - Batch URL processing'
-        ],
-        memory: process.memoryUsage(),
-        timestamp: new Date().toISOString()
-    });
+    try {
+        // Check authentication
+        const token = req.query.token || req.headers['x-token'] || req.headers['authorization']?.replace('Bearer ', '');
+        if (token !== AUTH_TOKEN) {
+            return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+        }
+
+        const uptime = Math.floor((Date.now() - serverStartTime.getTime()) / 1000);
+        
+        res.json({
+            server: {
+                name: 'HeadlessX - Advanced Browserless Web Scraping API',
+                version: '1.1.0',
+                uptime: uptime,
+                startTime: serverStartTime.toISOString()
+            },
+            browser: {
+                connected: browserInstance ? browserInstance.isConnected() : false,
+                type: 'Chromium'
+            },
+            endpoints: [
+                'GET /api/health - Server health check (no auth required)',
+                'GET /api/status - Detailed server status (auth required)',
+                'POST /api/render - Full page rendering with JSON response (auth required)',
+                'POST /api/html - Raw HTML extraction (auth required)',
+                'GET /api/html - Raw HTML extraction (GET) (auth required)',
+                'POST /api/content - Clean text extraction (auth required)',
+                'GET /api/content - Clean text extraction (GET) (auth required)',
+                'GET /api/screenshot - Screenshot generation (auth required)',
+                'GET /api/pdf - PDF generation (auth required)',
+                'POST /api/batch - Batch URL processing (auth required)'
+            ],
+            memory: process.memoryUsage(),
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('❌ Status endpoint error:', error);
+        res.status(500).json({ 
+            error: 'Failed to get server status', 
+            details: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
 });
 
 // Main rendering endpoint (JSON response) with enhanced timeout handling
