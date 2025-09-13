@@ -97,31 +97,33 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-3">
-              {/* Mobile square icon */}
-              <div className="h-10 w-10 rounded-lg overflow-hidden bg-black/20 ring-1 ring-white/10 md:hidden">
-                <Image src="/logo.svg" alt="HeadlessX Logo" width={40} height={40} priority />
+              {/* Mobile: square icon + text */}
+              <div className="flex items-center space-x-3 md:hidden">
+                <div className="h-10 w-10 rounded-lg overflow-hidden bg-black/20 ring-1 ring-white/10">
+                  <Image src="/logo.svg" alt="HeadlessX Logo" width={40} height={40} priority />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-white">HeadlessX</h1>
+                  <p className="text-xs text-gray-300">v1.1.0</p>
+                </div>
               </div>
-              {/* Desktop horizontal logo */}
+              {/* Desktop: horizontal logo only (contains wordmark) */}
               <div className="hidden md:block">
-                <Image src="/logo-horizontal.svg" alt="HeadlessX Logo" width={200} height={40} priority />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">HeadlessX</h1>
-                <p className="text-xs text-gray-300">v1.1.0</p>
+                <Image src="/logo-horizontal.svg" alt="HeadlessX v1.1.0" width={200} height={40} priority />
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <a href="#docs" className="text-gray-300 hover:text-white transition-colors">
+              <a href="#docs" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                 Documentation
               </a>
-              <a href="#api" className="text-gray-300 hover:text-white transition-colors">
+              <a href="#api" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
                 API
               </a>
-              <a href="https://github.com/SaifyXPRO/HeadlessX" className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center gap-2">
+              <a href="https://github.com/SaifyXPRO/HeadlessX" className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg transition-colors flex items-center gap-2 text-sm md:text-base">
                 <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                 </svg>
-                GitHub
+                <span className="hidden sm:inline">GitHub</span>
               </a>
             </div>
           </div>
@@ -129,23 +131,23 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative pt-20 pb-32">
+      <section className="relative pt-16 md:pt-20 pb-24 md:pb-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-4 md:mb-6">
               Advanced
               <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                 {" "}Browserless{" "}
               </span>
               Web Scraping
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-6 md:mb-8 max-w-4xl mx-auto">
               Open source browserless web scraping API with human-like behavior simulation, 40+ anti-detection techniques, 
               and comprehensive automation features. Built for scale and reliability.
             </p>
             
             {/* Quick Start Code */}
-            <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-6 max-w-3xl mx-auto mb-8">
+            <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-4 md:p-6 max-w-3xl mx-auto mb-6 md:mb-8">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-green-400 text-sm font-mono">$ Quick Start</span>
                 <button 
@@ -155,20 +157,20 @@ export default function HomePage() {
                   {copied ? <CheckCircle className="h-4 w-4" /> : <Download className="h-4 w-4" />}
                 </button>
               </div>
-              <code className="text-blue-300 font-mono text-sm md:text-base break-all">
+              <code className="text-blue-300 font-mono text-xs sm:text-sm md:text-base break-all">
                 curl -X GET &quot;https://headless.saify.me/api/html?token=YOUR_TOKEN&url=https://example.com&quot;
               </code>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="https://github.com/SaifyXPRO/HeadlessX" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all transform hover:scale-105">
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+              <a href="https://github.com/SaifyXPRO/HeadlessX" className="bg-blue-600 hover:bg-blue-700 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all transform hover:scale-105 text-sm md:text-base">
+                <svg className="h-4 md:h-5 w-4 md:w-5" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                 </svg>
                 View on GitHub
               </a>
-              <a href="#api" className="border border-white/20 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors">
-                <Code className="h-5 w-5" />
+              <a href="#api" className="border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors text-sm md:text-base">
+                <Code className="h-4 md:h-5 w-4 md:w-5" />
                 View Documentation
               </a>
             </div>

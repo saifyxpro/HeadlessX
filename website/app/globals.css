@@ -51,7 +51,26 @@ body {
 
 /* Mobile-first helpers */
 @media (max-width: 640px) {
-  .feature-card { padding: 1rem; }
+  .feature-card { 
+    padding: 1rem; 
+    margin-bottom: 1rem;
+  }
+  
+  /* Better text scaling on mobile */
+  h1 { line-height: 1.1; }
+  h2 { line-height: 1.2; }
+  
+  /* Improve touch targets */
+  button, a { min-height: 44px; }
+  
+  /* Better mobile spacing */
+  .max-w-7xl { padding-left: 1rem; padding-right: 1rem; }
+}
+
+@media (max-width: 480px) {
+  /* Extra small screens */
+  .text-4xl { font-size: 2rem; }
+  .text-5xl { font-size: 2.5rem; }
 }
 
 /* Soft pulse animation used in background blobs */
