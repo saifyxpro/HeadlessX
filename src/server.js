@@ -1,5 +1,5 @@
 /**
- * HeadlessX v1.1.0 - Advanced Browserless Web Scraping API with Human-like Behavior
+ * HeadlessX v1.2.0 - Advanced Browserless Web Scraping API with Human-like Behavior
  * 
  * Features:
  * - Realistic Windows user agent rotation (Chrome, Edge, Firefox)
@@ -23,7 +23,7 @@
  * - Variable scroll speeds with easing animations
  * 
  * Author: SaifyXPRO
- * Updated: September 12, 2025
+ * Updated: September 15, 2025
  */
 
 const express = require('express');
@@ -552,6 +552,38 @@ async function renderPageAdvanced(options) {
             recordHar: undefined
         });
 
+        // Pre-seed Google consent cookie to bypass consent page for EU/UK
+        try {
+            if (url.includes('google.')) {
+                const host = new URL(url).hostname.replace(/^www\./, '');
+                const cookieDomain = '.' + host; // e.g., .google.com or .google.co.uk
+                await context.addCookies([
+                    {
+                        name: 'CONSENT',
+                        value: 'YES+CB.en+V14',
+                        domain: cookieDomain,
+                        path: '/',
+                        httpOnly: false,
+                        secure: true,
+                        sameSite: 'None',
+                        expires: Math.floor(Date.now() / 1000) + 3600 * 24 * 365
+                    },
+                    {
+                        name: 'SOCS',
+                        value: 'CAI',
+                        domain: cookieDomain,
+                        path: '/',
+                        httpOnly: false,
+                        secure: true,
+                        sameSite: 'None',
+                        expires: Math.floor(Date.now() / 1000) + 3600 * 24 * 365
+                    }
+                ]);
+            }
+        } catch (cookieErr) {
+            console.log('⚠️ Failed to set Google consent cookies (continuing):', cookieErr.message);
+        }
+
         // Add cookies if provided
         if (cookies.length > 0) {
             await context.addCookies(cookies);
@@ -1076,23 +1108,82 @@ async function renderPageAdvanced(options) {
 
         console.log(`🌐 Navigating to: ${url}`);
 
+        // Helper: Try to accept Google consent if visible (supports iframe)
+        async function tryAcceptGoogleConsent(page) {
+            try {
+                // Try top-level consent buttons
+                const selectors = [
+                    'button[aria-label="Accept all"]',
+                    'button:has-text("I agree")',
+                    'button:has-text("Accept all")',
+                    '#introAgreeButton',
+                ];
+                for (const sel of selectors) {
+                    const el = await page.$(sel);
+                    if (el) {
+                        await el.click({ timeout: 2000 });
+                        await page.waitForTimeout(500);
+                        console.log('✅ Accepted consent (top-level)');
+                        return true;
+                    }
+                }
+                // Try inside iframes (Google often wraps consent in an iframe)
+                for (const frame of page.frames()) {
+                    for (const sel of selectors) {
+                        const el = await frame.$(sel);
+                        if (el) {
+                            await el.click({ timeout: 2000 });
+                            await page.waitForTimeout(500);
+                            console.log('✅ Accepted consent (iframe)');
+                            return true;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log('⚠️ Consent accept attempt failed (continuing)');
+            }
+            return false;
+        }
+
         // Enhanced navigation with better error handling and fallbacks
         await withTimeoutFallback(
             async () => {
+                // Google-specific pre-check: avoid waiting forever on bot pages
+                const isGoogle = url.includes('google.');
                 try {
-                    // Try 'networkidle' first (best for complete loading)
-                    await page.goto(url, { 
-                        waitUntil: 'networkidle', 
-                        timeout: Math.min(timeout * 0.7, 30000) // Use 70% of timeout or max 30s
-                    });
-                    console.log('📄 Page navigation completed (networkidle)');
+                    // For Google, use faster strategy and consent handling
+                    if (isGoogle) {
+                        // Faster initial load
+                        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: Math.min(timeout * 0.5, 15000) });
+                        // Early detection: unusual traffic / bot checks
+                        const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 2000));
+                        if (/unusual traffic|automated queries|are you a robot/i.test(bodyText)) {
+                            throw new HeadlessXError('Google anti-bot page detected', 'ANTI_BOT_DETECTED', false);
+                        }
+                        // Attempt to accept consent if present
+                        await tryAcceptGoogleConsent(page);
+                        // Then wait briefly for resources
+                        await page.waitForTimeout(1000);
+                        console.log('📄 Page navigation completed (google/domcontentloaded)');
+                    } else {
+                        // Try 'networkidle' first (best for complete loading)
+                        await page.goto(url, { 
+                            waitUntil: 'networkidle', 
+                            timeout: Math.min(timeout * 0.7, 30000) // Use 70% of timeout or max 30s
+                        });
+                        console.log('📄 Page navigation completed (networkidle)');
+                    }
                 } catch (navError) {
-                    console.log('⚠️ NetworkIdle failed, trying domcontentloaded...');
+                    console.log('⚠️ Primary navigation failed, trying domcontentloaded...');
                     // Fallback to faster domcontentloaded
                     await page.goto(url, { 
                         waitUntil: 'domcontentloaded', 
                         timeout: Math.min(timeout * 0.5, 20000) // Use 50% of timeout or max 20s
                     });
+                    // Attempt consent acceptance post-fallback for Google
+                    if (isGoogle) {
+                        await tryAcceptGoogleConsent(page);
+                    }
                     console.log('📄 Page navigation completed (domcontentloaded)');
                 }
                 
@@ -2753,7 +2844,7 @@ if (fs.existsSync(websitePath)) {
     // Fallback route for when website is not built
     app.get('/', (req, res) => {
         res.json({
-            message: 'HeadlessX v1.1.0 - Advanced Browserless Web Scraping API',
+            message: 'HeadlessX v1.2.0 - Advanced Browserless Web Scraping API',
             status: 'Website not built',
             instructions: 'Run "npm run build" in the website directory to build the website',
             api: {
@@ -2819,7 +2910,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 HeadlessX v1.1.0 - Advanced Browserless Web Scraping API running on port ${PORT}`);
+    console.log(`🚀 HeadlessX v1.2.0 - Advanced Browserless Web Scraping API running on port ${PORT}`);
     console.log(`🌐 Website: http://localhost:${PORT}/`);
     console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
     console.log(`📊 Status: http://localhost:${PORT}/api/status`);
