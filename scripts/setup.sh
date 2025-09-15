@@ -125,17 +125,17 @@ fi
 if [ -f "package-lock.json" ]; then
     # Check if package-lock.json is in sync with package.json
     if npm ci --dry-run > /dev/null 2>&1; then
-        npm ci
+        npm ci  # Install all dependencies including devDependencies for build
         print_status "Website dependencies installed (using ci)"
     else
         print_warning "Website package-lock.json out of sync, regenerating..."
         rm -f package-lock.json
-        npm install
+        npm install  # Install all dependencies including devDependencies
         print_status "Website dependencies installed (regenerated lock file)"
     fi
 else
     print_warning "package-lock.json not found, using npm install"
-    npm install
+    npm install  # Install all dependencies including devDependencies
     print_status "Website dependencies installed (using install)"
 fi
 npm run build
