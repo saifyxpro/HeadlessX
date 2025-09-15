@@ -1,5 +1,5 @@
-# HeadlessX v1.1.0 - Unified Web Scraping API with Website
-# Multi-stage build for optimized production image
+# HeadlessX v1.2.0 - Modular Browserless Web Scraping API
+# Multi-stage build for optimized production image with modular architecture
 
 # Stage 1: Build website
 FROM node:20-slim AS website-builder
@@ -41,9 +41,11 @@ RUN if [ -f "package-lock.json" ]; then \
         npm install --production; \
     fi && npm cache clean --force
 
-# Copy application source
+# Copy modular application source
 COPY src/ ./src/
-COPY config/ ./config/
+
+# Copy PM2 ecosystem configuration (now in root)
+COPY ecosystem.config.js ./
 
 # Copy built website from previous stage
 COPY --from=website-builder /app/website/out/ ./website/out/
@@ -61,25 +63,25 @@ RUN chown -R headlessx:headlessx /app
 # Environment variables (override with docker-compose or runtime)
 ENV NODE_ENV=production
 ENV PORT=3000
-ENV TOKEN=""
+ENV AUTH_TOKEN=""
 ENV DOMAIN=localhost
 ENV SUBDOMAIN=headlessx
 
-# Create startup script for unified architecture
+# Create startup script for modular architecture
 RUN echo '#!/bin/bash\n\
 # Configure nginx to proxy to Node.js\n\
 sed -i "s/SUBDOMAIN.DOMAIN.COM/$SUBDOMAIN.$DOMAIN/g" /etc/nginx/sites-available/default\n\
 service nginx start\n\
 \n\
-# Start HeadlessX unified server\n\
-exec su headlessx -c "node src/server.js"' > /start.sh && chmod +x /start.sh
+# Start HeadlessX modular server\n\
+exec su headlessx -c "node src/app.js"' > /start.sh && chmod +x /start.sh
 
 # Expose ports
 EXPOSE 80 3000
 
-# Health check for unified server
+# Health check for modular server
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
   CMD curl -f http://localhost/api/health || exit 1
 
-# Start unified server with nginx proxy
+# Start modular server with nginx proxy
 CMD ["/start.sh"]

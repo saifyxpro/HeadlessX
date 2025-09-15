@@ -1,13 +1,15 @@
 # GET Endpoints Documentation
 
-This document provides detailed information about all GET endpoints available in HeadlessX v1.1.0.
+This document provides detailed information about all GET endpoints available in HeadlessX v1.2.0 (Modular Architecture).
 
 ## Authentication
 
-All API endpoints require authentication via the `token` parameter:
+All API endpoints (except health check) require authentication via the `token` parameter:
 ```
-?token=YOUR_SECURE_TOKEN
+?token=YOUR_SECURE_AUTH_TOKEN
 ```
+
+> **Note**: Environment variable changed from `TOKEN` to `AUTH_TOKEN` in v1.2.0
 
 ## Core GET Endpoints
 

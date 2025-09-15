@@ -2,10 +2,11 @@
   "name": "headlessx",
   "version": "1.2.0",
   "description": "HeadlessX v1.2.0 - Open Source Browserless Web Scraping API by Saify with integrated website, human-like behavior simulation, and comprehensive anti-detection features",
-  "main": "src/server.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node src/server.js",
+    "start": "node src/app.js",
+    "dev": "node src/app.js",
+    "server": "node src/server.js",
     "build": "cd website && npm install && npm run build",
     "build:full": "npm install && npm run build",
     "setup": "bash scripts/setup.sh",
@@ -14,15 +15,22 @@
     "deploy": "npm run build:full && npm run setup",
     "generate-locks": "bash scripts/generate-lockfiles.sh",
     "validate": "bash scripts/validate-setup.sh",
-    "pm2:start": "pm2 start config/ecosystem.config.js",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:start:prod": "pm2 start ecosystem.config.js --env production",
+    "pm2:start:dev": "pm2 start ecosystem.config.js --env development",
+    "pm2:start:staging": "pm2 start ecosystem.config.js --env staging",
     "pm2:stop": "pm2 stop headlessx",
     "pm2:restart": "pm2 restart headlessx",
+    "pm2:reload": "pm2 reload headlessx",
     "pm2:delete": "pm2 delete headlessx",
     "pm2:logs": "pm2 logs headlessx",
+    "pm2:logs:error": "pm2 logs headlessx --err",
+    "pm2:logs:out": "pm2 logs headlessx --out",
     "pm2:status": "pm2 status",
     "pm2:monit": "pm2 monit",
     "pm2:save": "pm2 save",
     "pm2:startup": "pm2 startup",
+    "pm2:scale": "pm2 scale headlessx",
     "test": "bash scripts/test-integration.sh",
     "test:domain": "bash scripts/verify-domain.sh",
     "test:routing": "bash scripts/test-routing.sh"
@@ -54,7 +62,12 @@
   "dependencies": {
     "express": "^4.18.2",
     "body-parser": "^1.20.2",
-    "playwright": "^1.40.0"
+    "playwright": "^1.40.0",
+    "dotenv": "^16.3.1",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   },
   "engines": {
     "node": ">=18.0.0",

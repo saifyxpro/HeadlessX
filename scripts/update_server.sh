@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# HeadlessX Server Update Script v1.1.0
+# HeadlessX Server Update Script v1.2.0
 # Updates server with latest changes and restarts services
 # Run with: bash scripts/update_server.sh
 
 set -e
 
-echo "🔄 HeadlessX Server Update Script v1.1.0"
+echo "🔄 HeadlessX Server Update Script v1.2.0"
 echo "========================================"
 
 # Colors for output
@@ -58,7 +58,7 @@ print_status "Backup created at $BACKUP_DIR"
 
 # 2. Stop current server
 echo "🛑 Stopping current HeadlessX server..."
-pm2 stop headlessx-server 2>/dev/null || print_warning "Server was not running"
+pm2 stop headlessx 2>/dev/null || print_warning "Server was not running"
 print_status "Server stopped"
 
 # 3. Update dependencies if package.json changed
@@ -77,13 +77,18 @@ export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 npx playwright install chromium --with-deps 2>/dev/null || print_warning "Browser update skipped"
 print_status "Playwright browsers updated"
 
-# 5. Validate new server files
-echo "🔍 Validating server files..."
+# 5. Validate new modular server files
+echo "🔍 Validating modular server files..."
 REQUIRED_FILES=(
+    "src/app.js"
     "src/server.js"
     "src/rate-limiter.js"
-    "src/content-optimizer.js"
-    "src/improved-renderer.js"
+    "src/config/index.js"
+    "src/services/browser.js"
+    "src/middleware/auth.js"
+    "src/controllers/system.js"
+    "src/routes/api.js"
+    "ecosystem.config.js"
 )
 
 for file in "${REQUIRED_FILES[@]}"; do
@@ -93,9 +98,9 @@ for file in "${REQUIRED_FILES[@]}"; do
     fi
 done
 
-# Check syntax by running a quick test
-if node -c src/server.js && node -c src/rate-limiter.js && node -c src/content-optimizer.js && node -c src/improved-renderer.js; then
-    print_status "All server files syntax validated"
+# Check syntax by running a quick test on main files
+if node -c src/app.js && node -c src/server.js && node -c src/rate-limiter.js && node -c ecosystem.config.js; then
+    print_status "All main server files syntax validated"
 else
     print_error "Syntax validation failed"
     exit 1
@@ -117,16 +122,17 @@ else
 fi
 cd ..
 
-# 7. Update PM2 ecosystem configuration
-echo "⚙️ Updating PM2 configuration..."
-if [ -f "config/ecosystem.config.js" ]; then
-    cp config/ecosystem.config.js ecosystem.config.js
-    print_status "PM2 configuration updated"
+# 7. Update PM2 ecosystem configuration (already in root)
+echo "⚙️ PM2 configuration ready..."
+if [ -f "ecosystem.config.js" ]; then
+    print_status "PM2 configuration validated"
+else
+    print_warning "ecosystem.config.js not found in root directory"
 fi
 
 # 8. Start server with new code
 echo "🚀 Starting updated HeadlessX server..."
-pm2 start ecosystem.config.js 2>/dev/null || pm2 start src/server.js --name headlessx-server
+pm2 start ecosystem.config.js 2>/dev/null || pm2 start src/server.js --name headlessx
 
 # Wait a moment for startup
 sleep 3
@@ -152,16 +158,16 @@ echo ""
 
 # 11. Show server logs
 echo "📋 Recent server logs:"
-pm2 logs headlessx-server --lines 10 --nostream 2>/dev/null || echo "No logs available"
+pm2 logs headlessx --lines 10 --nostream 2>/dev/null || echo "No logs available"
 
 # 12. Update summary
 echo ""
 echo "🎉 Update Summary:"
 echo "=================="
-print_status "Server successfully updated to latest version"
-print_status "New features: Enhanced error handling, rate limiting, content optimization"
+print_status "Server successfully updated to latest modular version v1.2.0"
+print_status "New features: Modular architecture, enhanced error handling, improved rate limiting"
 print_status "Backup available at: $BACKUP_DIR"
-print_info "Monitor logs with: pm2 logs headlessx-server"
+print_info "Monitor logs with: pm2 logs headlessx"
 print_info "Check status with: pm2 status"
 print_info "View detailed status: curl http://localhost:3000/api/health"
 

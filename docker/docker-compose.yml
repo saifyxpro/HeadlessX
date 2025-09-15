@@ -10,9 +10,9 @@ services:
       - "80:80"        # Nginx proxy to unified Node.js server
       - "3000:3000"    # Direct access to Node.js server (optional)
     environment:
-      - TOKEN=${TOKEN:-}                    # REQUIRED: Set in .env file
-      - DOMAIN=${DOMAIN:-localhost}         # Your domain
-      - SUBDOMAIN=${SUBDOMAIN:-headlessx}   # Your subdomain
+      - AUTH_TOKEN=${AUTH_TOKEN:-}             # REQUIRED: Set in .env file
+      - DOMAIN=${DOMAIN:-localhost}            # Your domain
+      - SUBDOMAIN=${SUBDOMAIN:-headlessx}      # Your subdomain
       - PORT=3000
       - NODE_ENV=production
       - UV_THREADPOOL_SIZE=128

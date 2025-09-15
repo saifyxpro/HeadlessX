@@ -54,6 +54,42 @@ chmod +x scripts/quick-setup.sh && ./scripts/quick-setup.sh
 
 ---
 
+## 🏗️ New Modular Architecture v1.2.0
+
+HeadlessX v1.2.0 introduces a completely refactored modular architecture for better maintainability, scalability, and development experience.
+
+### Key Improvements:
+- **🔧 Separation of Concerns**: Distinct modules for configuration, services, controllers, and middleware
+- **🚀 Better Performance**: Optimized browser management and resource usage
+- **🛠️ Developer Experience**: Clear module boundaries and dependency injection
+- **📦 Production Ready**: Enhanced error handling and logging with correlation IDs
+- **🔒 Security**: Improved authentication and rate limiting
+- **📊 Monitoring**: Structured logging and health monitoring
+
+### Architecture Overview:
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Routes        │───▶│   Controllers   │───▶│   Services      │
+│   (api.js)      │    │   (rendering.js)│    │   (browser.js)  │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Middleware    │    │   Utils         │    │   Config        │
+│   (auth.js)     │    │   (logger.js)   │    │   (index.js)    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+**Quick Migration from v1.1.0:**
+- The original `src/server.js` (3079 lines) has been broken down into 20+ focused modules
+- Environment variable `TOKEN` is now `AUTH_TOKEN` 
+- PM2 config moved from `config/ecosystem.config.js` to `ecosystem.config.js`
+- All functionality preserved with improved performance and maintainability
+
+📖 **Detailed Documentation**: [MODULAR_ARCHITECTURE.md](MODULAR_ARCHITECTURE.md)
+
+---
+
 ## 🚀 Deployment Guide
 
 ### 🐳 **Docker Deployment (Recommended)**
@@ -140,7 +176,7 @@ npm run pm2:stop       # Stop server
 git clone https://github.com/SaifyXPRO/HeadlessX.git
 cd HeadlessX
 cp .env.example .env
-nano .env  # Set TOKEN, DOMAIN=localhost, SUBDOMAIN=headlessx
+nano .env  # Set AUTH_TOKEN, DOMAIN=localhost, SUBDOMAIN=headlessx
 
 # Make scripts executable
 chmod +x scripts/*.sh
@@ -358,33 +394,54 @@ curl -X POST "https://your-subdomain.yourdomain.com/api/batch?token=YOUR_TOKEN" 
 ## 📁 Project Structure
 
 ```
-HeadlessX/
-├── 📂 src/
-│   └── server.js                   # Main server (API + Website serving)
-├── 📂 website/                     # Next.js website
+HeadlessX v1.2.0 - Modular Architecture/
+├── 📂 src/                         # Modular application source
+│   ├── 📂 config/                  # Configuration management
+│   │   ├── index.js               # Main configuration loader
+│   │   └── browser.js             # Browser-specific settings
+│   ├── 📂 utils/                   # Utility functions
+│   │   ├── errors.js              # Error handling & categorization
+│   │   ├── logger.js              # Structured logging
+│   │   └── helpers.js             # Common utilities
+│   ├── 📂 services/                # Business logic services
+│   │   ├── browser.js             # Browser lifecycle management
+│   │   ├── stealth.js             # Anti-detection techniques
+│   │   ├── interaction.js         # Human-like behavior
+│   │   └── rendering.js           # Core rendering logic
+│   ├── 📂 middleware/              # Express middleware
+│   │   ├── auth.js                # Authentication
+│   │   └── error.js               # Error handling
+│   ├── 📂 controllers/             # Request handlers
+│   │   ├── system.js              # Health & status endpoints
+│   │   ├── rendering.js           # Main rendering endpoints
+│   │   ├── batch.js               # Batch processing
+│   │   └── get.js                 # GET endpoints & docs
+│   ├── 📂 routes/                  # Route definitions
+│   │   ├── api.js                 # API route mappings
+│   │   └── static.js              # Static file serving
+│   ├── app.js                     # Main application setup
+│   ├── server.js                  # Entry point for PM2
+│   └── rate-limiter.js            # Rate limiting implementation
+├── 📂 website/                     # Next.js website (unchanged)
 │   ├── app/                        # Next.js 13+ app directory
 │   ├── components/                 # React components
 │   ├── .env.example               # Website environment template
 │   ├── next.config.js             # Next.js configuration
 │   └── package.json               # Website dependencies
-├── 📂 scripts/
-│   ├── setup.sh                   # Automated installation
+├── 📂 scripts/                     # Deployment & management scripts
+│   ├── setup.sh                   # Automated installation (updated)
+│   ├── update_server.sh           # Server update script (updated)
 │   ├── verify-domain.sh           # Domain verification
 │   └── test-routing.sh            # Integration testing
-├── 📂 nginx/
-│   └── headlessx.conf             # Nginx configuration
-├── 📂 docker/
+├── 📂 nginx/                       # Nginx configuration
+│   └── headlessx.conf             # Nginx proxy config
+├── 📂 docker/                      # Docker deployment (updated)
 │   ├── Dockerfile                 # Container definition
 │   └── docker-compose.yml         # Docker Compose setup
-├── 📂 config/
-│   └── ecosystem.config.js        # PM2 configuration
-├── 📂 docs/                       # API Documentation
-│   ├── GET_ENDPOINTS.md           # GET API reference
-│   ├── POST_ENDPOINTS.md          # POST API reference
-│   ├── DOMAIN_SETUP.md            # Domain configuration
-│   └── HUMAN_BEHAVIOR_UPDATE.md   # Behavior simulation docs
-├── .env.example                   # Environment template
-├── package.json                   # Server dependencies
+├── ecosystem.config.js            # PM2 configuration (moved to root)
+├── .env.example                   # Environment template (updated)
+├── package.json                   # Server dependencies (updated)
+├── MODULAR_ARCHITECTURE.md        # Architecture documentation
 └── README.md                      # This file
 ```
 
@@ -404,12 +461,12 @@ npm run build
 cd ..
 
 # 3. Set environment variables
-export TOKEN="development_token_123"
+export AUTH_TOKEN="development_token_123"
 export DOMAIN="localhost"
 export SUBDOMAIN="headlessx"
 
 # 4. Start server
-node src/server.js
+npm start  # Uses src/app.js
 
 # 5. Access locally
 # Website: http://localhost:3000
@@ -440,7 +497,7 @@ nano .env
 **Required configuration:**
 ```bash
 # Security Token (Generate a secure random string)
-TOKEN=your_secure_token_here
+AUTH_TOKEN=your_secure_token_here
 
 # Domain Configuration  
 DOMAIN=yourdomain.com

@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🚀 Setting up HeadlessX v1.1.0 - Open Source Browserless Web Scraping API"
+echo "🚀 Setting up HeadlessX v1.2.0 - Open Source Browserless Web Scraping API"
 echo "=========================================================================="
 
 # Colors for output
@@ -212,13 +212,30 @@ if [ ! -d "website/out" ]; then
     cd website && npm run build && cd ..
 fi
 
-# Validate new server files
-echo "🔍 Validating server files..."
+# Validate new modular server files
+echo "🔍 Validating modular server files..."
 REQUIRED_FILES=(
+    "src/app.js"
     "src/server.js"
     "src/rate-limiter.js"
-    "src/content-optimizer.js"
-    "src/improved-renderer.js"
+    "src/config/index.js"
+    "src/config/browser.js"
+    "src/utils/errors.js"
+    "src/utils/logger.js"
+    "src/utils/helpers.js"
+    "src/services/browser.js"
+    "src/services/stealth.js"
+    "src/services/interaction.js"
+    "src/services/rendering.js"
+    "src/middleware/auth.js"
+    "src/middleware/error.js"
+    "src/controllers/system.js"
+    "src/controllers/rendering.js"
+    "src/controllers/batch.js"
+    "src/controllers/get.js"
+    "src/routes/api.js"
+    "src/routes/static.js"
+    "ecosystem.config.js"
 )
 
 for file in "${REQUIRED_FILES[@]}"; do
@@ -228,9 +245,9 @@ for file in "${REQUIRED_FILES[@]}"; do
     fi
 done
 
-# Check syntax by running a quick validation
-if node -c src/server.js && node -c src/rate-limiter.js && node -c src/content-optimizer.js && node -c src/improved-renderer.js; then
-    print_status "All server files syntax validated"
+# Check syntax by running a quick validation on main files
+if node -c src/app.js && node -c src/server.js && node -c src/rate-limiter.js && node -c ecosystem.config.js; then
+    print_status "All main server files syntax validated"
 else
     print_error "Syntax validation failed"
     exit 1
@@ -238,14 +255,14 @@ fi
 
 print_status "Installation validated"
 
-# Test the server
-echo "🧪 Testing server startup..."
-timeout 10s node src/server.js &
+# Test the modular server
+echo "🧪 Testing modular server startup..."
+timeout 10s node src/app.js &
 SERVER_PID=$!
 sleep 5
 
 if kill -0 $SERVER_PID 2>/dev/null; then
-    print_status "Server test successful"
+    print_status "Modular server test successful"
     kill $SERVER_PID
 else
     print_warning "Server test failed - this might be due to missing TOKEN in .env"
@@ -253,7 +270,7 @@ fi
 
 # Start with PM2
 echo "🚀 Starting HeadlessX with PM2..."
-pm2 start config/ecosystem.config.js
+pm2 start ecosystem.config.js
 pm2 save
 print_status "HeadlessX started with PM2"
 

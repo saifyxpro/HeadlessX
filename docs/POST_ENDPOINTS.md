@@ -1,13 +1,23 @@
 # POST Endpoints Documentation
 
-This document provides detailed information about all POST endpoints available in HeadlessX v1.1.0.
+This document provides detailed information about all POST endpoints available in HeadlessX v1.2.0 (Modular Architecture).
 
 ## Authentication
 
 All API endpoints require authentication via one of these methods:
-- Query parameter: `?token=YOUR_SECURE_TOKEN`
-- Header: `X-Token: YOUR_SECURE_TOKEN`
-- Header: `Authorization: Bearer YOUR_SECURE_TOKEN`
+- Query parameter: `?token=YOUR_SECURE_AUTH_TOKEN`
+- Header: `X-Token: YOUR_SECURE_AUTH_TOKEN`
+- Header: `Authorization: Bearer YOUR_SECURE_AUTH_TOKEN`
+
+> **Note**: Environment variable changed from `TOKEN` to `AUTH_TOKEN` in v1.2.0
+
+## Modular Architecture Benefits
+
+HeadlessX v1.2.0 features a completely refactored modular architecture:
+- **Enhanced Performance**: Optimized browser management and resource usage
+- **Better Error Handling**: Structured error responses with correlation IDs
+- **Improved Logging**: Request tracing and structured logging
+- **Rate Limiting**: Built-in protection against abuse
 
 ## Core POST Endpoints
 

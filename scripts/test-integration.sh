@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# HeadlessX v1.1.0 Integration Test Script
-# Tests the unified website + API server integration
+# HeadlessX v1.2.0 Integration Test Script
+# Tests the modular website + API server integration
 
-echo "🧪 HeadlessX v1.1.0 Integration Test"
-echo "====================================="
+echo "🧪 HeadlessX v1.2.0 Modular Integration Test"
+echo "============================================="
 
 # Colors for output
 RED='\033[0;31m'
@@ -81,8 +81,8 @@ fi
 
 # Test 4: API Status endpoint (if token available)
 echo -e "${BLUE}4. Testing API status endpoint (/api/status)...${NC}"
-if [ ! -z "$TOKEN" ]; then
-    STATUS_RESPONSE=$(curl -s -w "%{http_code}" "$PROTOCOL://$TEST_DOMAIN/api/status?token=$TOKEN" -o /tmp/status_response 2>/dev/null)
+if [ ! -z "$AUTH_TOKEN" ]; then
+    STATUS_RESPONSE=$(curl -s -w "%{http_code}" "$PROTOCOL://$TEST_DOMAIN/api/status?token=$AUTH_TOKEN" -o /tmp/status_response 2>/dev/null)
     if [ "$STATUS_RESPONSE" = "200" ]; then
         STATUS_CONTENT=$(cat /tmp/status_response)
         if [[ $STATUS_CONTENT == *"HeadlessX"* ]]; then
@@ -95,8 +95,8 @@ if [ ! -z "$TOKEN" ]; then
     fi
     rm -f /tmp/status_response
 else
-    echo -e "${YELLOW}   ⚠️ No TOKEN set - skipping authenticated status test${NC}"
-    echo -e "${YELLOW}   Set TOKEN in .env file to test authenticated endpoints${NC}"
+    echo -e "${YELLOW}   ⚠️ No AUTH_TOKEN set - skipping authenticated status test${NC}"
+    echo -e "${YELLOW}   Set AUTH_TOKEN in .env file to test authenticated endpoints${NC}"
 fi
 
 # Test 5: Special routes
@@ -124,11 +124,11 @@ else
 fi
 
 # Test 6: API functionality (if token available)
-if [ ! -z "$TOKEN" ]; then
+if [ ! -z "$AUTH_TOKEN" ]; then
     echo -e "${BLUE}6. Testing API functionality...${NC}"
     
     # Test HTML extraction with a simple page
-    API_TEST=$(curl -s -w "%{http_code}" -X POST "$PROTOCOL://$TEST_DOMAIN/api/html?token=$TOKEN" \
+    API_TEST=$(curl -s -w "%{http_code}" -X POST "$PROTOCOL://$TEST_DOMAIN/api/html?token=$AUTH_TOKEN" \
         -H "Content-Type: application/json" \
         -d '{"url": "https://httpbin.org/html", "timeout": 10000}' \
         -o /tmp/api_response 2>/dev/null)
@@ -156,17 +156,17 @@ echo ""
 echo -e "${BLUE}📋 Test Summary:${NC}"
 echo -e "   🌐 Website: $PROTOCOL://$TEST_DOMAIN/"
 echo -e "   🔧 API Health: $PROTOCOL://$TEST_DOMAIN/api/health"
-if [ ! -z "$TOKEN" ]; then
-    echo -e "   📊 API Status: $PROTOCOL://$TEST_DOMAIN/api/status?token=YOUR_TOKEN"
+if [ ! -z "$AUTH_TOKEN" ]; then
+    echo -e "   📊 API Status: $PROTOCOL://$TEST_DOMAIN/api/status?token=YOUR_AUTH_TOKEN"
 else
-    echo -e "   📊 API Status: Set TOKEN in .env to test"
+    echo -e "   📊 API Status: Set AUTH_TOKEN in .env to test"
 fi
 echo -e "   🤖 Robots: $PROTOCOL://$TEST_DOMAIN/robots.txt"
 echo ""
 
 # Architecture info
-echo -e "${BLUE}🏗️ Architecture Verified:${NC}"
-echo -e "   ✅ Single Node.js server handling both website and API"
+echo -e "${BLUE}🏗️ Architecture Verified (v1.2.0 Modular):${NC}"
+echo -e "   ✅ Modular Node.js server with separation of concerns"
 echo -e "   ✅ Website served at root path (/)"
 echo -e "   ✅ API endpoints available at /api/*"
 echo -e "   ✅ Special routes (favicon, robots) working"
