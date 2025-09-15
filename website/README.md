@@ -1,6 +1,6 @@
 # HeadlessX Website
 
-Official landing page for HeadlessX v1.1.0 - Advanced Browserless Web Scraping API
+Official landing page for HeadlessX v1.2.0 - Advanced Browserless Web Scraping API
 
 ## 🚀 Features
 
@@ -208,4 +208,4 @@ For technical support or customization requests, contact SaifyXPRO.
 
 ---
 
-*Built with ❤️ for HeadlessX v1.1.0*
+*Built with ❤️ for HeadlessX v1.2.0*

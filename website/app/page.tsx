@@ -1,28 +1,40 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Image from 'next/image'
+import React, { useState, useEffect } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { useInView } from 'react-intersection-observer'
 import { 
   Globe, 
   Zap, 
   Shield, 
-  MousePointer, 
-  Eye, 
-  Download,
-  CheckCircle,
+  Code, 
+  Server, 
+  Download, 
+  Play, 
+  ChevronRight, 
+  Star, 
+  GitBranch,
+  Package,
+  Workflow,
+  Eye,
+  Image,
+  Settings,
+  CheckCircle2,
   ArrowRight,
-  Play,
-  Code,
-  Server,
+  ExternalLink,
+  Copy,
+  Sparkles,
+  Activity,
+  Users,
   Gauge,
-  Lock,
-  Layers,
-  Bot
+  Crown
 } from 'lucide-react'
 
 export default function HomePage() {
-  const [activeFeature, setActiveFeature] = useState(0)
   const [copied, setCopied] = useState(false)
+  const { scrollY } = useScroll()
+  const y1 = useTransform(scrollY, [0, 300], [0, 200])
+  const y2 = useTransform(scrollY, [0, 300], [0, -100])
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -30,311 +42,694 @@ export default function HomePage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const stats = [
+    { label: 'API Requests', value: '1M+', icon: Activity },
+    { label: 'Active Users', value: '5K+', icon: Users },
+    { label: 'Uptime', value: '99.9%', icon: Gauge },
+    { label: 'n8n Workflows', value: '500+', icon: Workflow }
+  ]
+
   const features = [
     {
-      icon: <MousePointer className="h-8 w-8" />,
-      title: "Human-like Behavior",
-      description: "Natural mouse movements, realistic scrolling patterns, and human-like interactions"
+      icon: Globe,
+      title: 'Universal Web Scraping',
+      description: 'Extract data from any website with enterprise-grade browser automation',
+      gradient: 'from-blue-500 to-cyan-500'
     },
     {
-      icon: <Shield className="h-8 w-8" />,
-      title: "40+ Anti-Detection",
-      description: "Advanced stealth techniques to bypass bot detection systems"
+      icon: Zap,
+      title: 'Lightning Fast',
+      description: 'Sub-second response times with optimized Playwright engine',
+      gradient: 'from-yellow-500 to-orange-500'
     },
     {
-      icon: <Globe className="h-8 w-8" />,
-      title: "User Agent Rotation",
-      description: "9 realistic Windows browsers with proper headers and fingerprints"
+      icon: Shield,
+      title: 'Stealth Technology',
+      description: 'Bypass detection with Google-level Chrome spoofing techniques',
+      gradient: 'from-green-500 to-emerald-500'
     },
     {
-      icon: <Zap className="h-8 w-8" />,
-      title: "Emergency Recovery",
-      description: "Never lose data with intelligent timeout handling and fallback methods"
-    },
-    {
-      icon: <Eye className="h-8 w-8" />,
-      title: "Screenshots & PDFs",
-      description: "Full page captures in multiple formats with batch processing"
-    },
-    {
-      icon: <Layers className="h-8 w-8" />,
-      title: "Docker Ready",
-      description: "Complete containerization with nginx, PM2, and production configs"
+      icon: Code,
+      title: 'Developer-First API',
+      description: 'RESTful endpoints with comprehensive documentation and SDKs',
+      gradient: 'from-purple-500 to-pink-500'
     }
   ]
 
-  const endpoints = [
-    { method: 'GET', path: '/api/health', description: 'Server health and status check' },
-    { method: 'GET', path: '/api/status', description: 'Detailed server information' },
-    { method: 'POST', path: '/api/render', description: 'Full page rendering with JSON response' },
-    { method: 'POST', path: '/api/html', description: 'Raw HTML extraction (POST)' },
-    { method: 'GET', path: '/api/html', description: 'Raw HTML extraction (GET)' },
-    { method: 'POST', path: '/api/content', description: 'Clean text extraction (POST)' },
-    { method: 'GET', path: '/api/content', description: 'Clean text extraction (GET)' },
-    { method: 'GET', path: '/api/screenshot', description: 'Capture page screenshots' },
-    { method: 'GET', path: '/api/pdf', description: 'Generate PDF documents' },
-    { method: 'POST', path: '/api/batch', description: 'Process multiple URLs in batch' }
+  const n8nOperations = [
+    {
+      category: '🎯 Content Extraction',
+      operations: [
+        'Extract HTML Content',
+        'Get Page Text',
+        'Extract Links',
+        'Parse Structured Data'
+      ]
+    },
+    {
+      category: '📸 Visual Capture',
+      operations: [
+        'Full Page Screenshot',
+        'Element Screenshot',
+        'PDF Generation',
+        'Visual Comparison'
+      ]
+    },
+    {
+      category: '⚡ Advanced Processing',
+      operations: [
+        'Wait for Elements',
+        'Custom JavaScript',
+        'Form Interactions',
+        'Multi-step Automation'
+      ]
+    }
   ]
-
-  const stats = [
-    { label: 'Success Rate', value: '99.9%' },
-    { label: 'Avg Response', value: '<2s' },
-    { label: 'Detection Rate', value: '0.01%' },
-    { label: 'Uptime', value: '99.95%' }
-  ]
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveFeature((prev) => (prev + 1) % features.length)
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [features.length])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Header */}
-      <header className="relative z-50 bg-black/20 backdrop-blur-md border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+    <div className="min-h-screen bg-gradient-to-br from-white via-primary-50/30 to-accent-50/40">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-white/20">
+        <div className="container-custom">
+          <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
-              {/* Mobile: square icon + text */}
-              <div className="flex items-center space-x-3 md:hidden">
-                <div className="h-10 w-10 rounded-lg overflow-hidden bg-black/20 ring-1 ring-white/10">
-                  <Image src="/logo.svg" alt="HeadlessX Logo" width={40} height={40} priority />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-white">HeadlessX</h1>
-                  <p className="text-xs text-gray-300">v1.1.0</p>
-                </div>
+              <div className="w-8 h-8 bg-gradient-to-r from-accent-600 to-accent-700 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">H</span>
               </div>
-              {/* Desktop: horizontal logo only (contains wordmark) */}
-              <div className="hidden md:block">
-                <Image src="/logo-horizontal.svg" alt="HeadlessX v1.1.0" width={200} height={40} priority />
-              </div>
+              <span className="text-xl font-bold text-primary-900">HeadlessX</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <a href="#docs" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
-                Documentation
+            
+            <div className="hidden lg:flex items-center space-x-8">
+              <a href="#features" className="text-primary-600 hover:text-accent-600 transition-colors">Features</a>
+              <a href="#integrations" className="text-primary-600 hover:text-accent-600 transition-colors">Integrations</a>
+              <a href="#api" className="text-primary-600 hover:text-accent-600 transition-colors">API Docs</a>
+              <a href="https://github.com/SaifyXPRO/HeadlessX" target="_blank" rel="noopener noreferrer" 
+                 className="text-primary-600 hover:text-accent-600 transition-colors flex items-center gap-1">
+                GitHub <ExternalLink className="w-4 h-4" />
               </a>
-              <a href="#api" className="text-gray-300 hover:text-white transition-colors text-sm md:text-base">
-                API
+            </div>
+
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <a href="https://github.com/SaifyXPRO/HeadlessX" target="_blank" rel="noopener noreferrer"
+                 className="hidden sm:flex btn-secondary px-3 sm:px-4 py-2 rounded-lg text-sm font-medium items-center gap-2">
+                <GitBranch className="w-4 h-4" />
+                <span className="hidden md:inline">Source Code</span>
+                <span className="md:hidden">GitHub</span>
               </a>
-              <a href="https://github.com/SaifyXPRO/HeadlessX" className="bg-gray-800 hover:bg-gray-700 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg transition-colors flex items-center gap-2 text-sm md:text-base">
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-                <span className="hidden sm:inline">GitHub</span>
+              <a href="#api" className="btn-primary px-3 sm:px-4 py-2 rounded-lg text-sm font-medium">
+                <span className="hidden sm:inline">Get Started Free</span>
+                <span className="sm:hidden">Start</span>
               </a>
             </div>
           </div>
         </div>
-      </header>
+      </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-16 md:pt-20 pb-24 md:pb-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="animate-fade-in">
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-white mb-4 md:mb-6">
-              Advanced
-              <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                {" "}Browserless{" "}
-              </span>
-              Web Scraping
+      <section className="relative pt-24 sm:pt-32 pb-16 sm:pb-20 overflow-hidden">
+        <motion.div 
+          style={{ y: y1 }}
+          className="absolute top-20 left-4 sm:left-10 w-48 sm:w-72 h-48 sm:h-72 bg-gradient-to-r from-accent-200/40 to-accent-300/40 rounded-full blur-3xl"
+        />
+        <motion.div 
+          style={{ y: y2 }}
+          className="absolute top-40 right-4 sm:right-10 w-64 sm:w-96 h-64 sm:h-96 bg-gradient-to-r from-primary-200/40 to-primary-300/40 rounded-full blur-3xl"
+        />
+        
+        <div className="container-custom relative px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-4xl mx-auto"
+          >
+            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-accent-200 rounded-full px-3 sm:px-4 py-2 mb-6 sm:mb-8 text-xs sm:text-sm">
+              <Star className="w-3 h-3 sm:w-4 sm:h-4 text-accent-600" />
+              <span className="font-medium text-primary-700">Free & Open Source • v1.2.0 • MIT License</span>
+              <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse" />
+            </div>
+
+            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold text-primary-900 mb-4 sm:mb-6 leading-tight px-2">
+              Free & Open Source
+              <span className="gradient-text block">Web Scraping Server</span>
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-6 md:mb-8 max-w-4xl mx-auto">
-              Open source browserless web scraping API with human-like behavior simulation, 40+ anti-detection techniques, 
-              and comprehensive automation features. Built for scale and reliability.
-            </p>
             
-            {/* Quick Start Code */}
-            <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-4 md:p-6 max-w-3xl mx-auto mb-6 md:mb-8">
+            <p className="text-lg sm:text-xl text-primary-600 mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto px-4">
+              Completely free and open-source browserless automation server with enterprise-grade stealth technology. 
+              Extract data, capture screenshots, generate PDFs, and integrate with Make.com, Zapier, n8n, and any HTTP client.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-12 sm:mb-16 px-4">
+              <a href="https://github.com/SaifyXPRO/HeadlessX" target="_blank" rel="noopener noreferrer"
+                 className="w-full sm:w-auto btn-primary px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold flex items-center justify-center gap-2 group">
+                <GitBranch className="w-4 h-4 sm:w-5 sm:h-5" />
+                View on GitHub
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
+              </a>
+              
+              <a href="https://github.com/SaifyXPRO/n8n-nodes-headlessx" target="_blank" rel="noopener noreferrer"
+                 className="w-full sm:w-auto btn-secondary px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold flex items-center justify-center gap-2">
+                <Package className="w-4 h-4 sm:w-5 sm:h-5" />
+                Install n8n Node
+              </a>
+            </div>
+
+            {/* Code Example */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="bg-white/90 backdrop-blur-sm border border-primary-100 rounded-2xl p-4 sm:p-6 max-w-2xl mx-auto shadow-elegant"
+            >
               <div className="flex items-center justify-between mb-4">
-                <span className="text-green-400 text-sm font-mono">$ Quick Start</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-400 rounded-full" />
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 bg-yellow-400 rounded-full" />
+                  <div className="w-2 h-2 sm:w-3 sm:h-3 bg-green-400 rounded-full" />
+                </div>
                 <button 
-                  onClick={() => copyToClipboard('curl -X GET "https://headless.saify.me/api/html?token=YOUR_TOKEN&url=https://example.com"')}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  onClick={() => copyToClipboard('curl -X POST "https://your-domain.com/api/html?token=YOUR_TOKEN" -H "Content-Type: application/json" -d \'{"url": "https://example.com"}\'')}
+                  className="text-primary-500 hover:text-accent-600 transition-colors p-1"
                 >
-                  {copied ? <CheckCircle className="h-4 w-4" /> : <Download className="h-4 w-4" />}
+                  {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </button>
               </div>
-              <code className="text-blue-300 font-mono text-xs sm:text-sm md:text-base break-all">
-                curl -X GET &quot;https://headless.saify.me/api/html?token=YOUR_TOKEN&url=https://example.com&quot;
-              </code>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="https://github.com/SaifyXPRO/HeadlessX" className="bg-blue-600 hover:bg-blue-700 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all transform hover:scale-105 text-sm md:text-base">
-                <svg className="h-4 md:h-5 w-4 md:w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-                View on GitHub
-              </a>
-              <a href="#api" className="border border-white/20 text-white px-6 md:px-8 py-3 md:py-4 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors text-sm md:text-base">
-                <Code className="h-4 md:h-5 w-4 md:w-5" />
-                View Documentation
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* Floating Animation Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse-slow delay-1000"></div>
+              <pre className="text-left text-xs sm:text-sm text-primary-700 font-mono overflow-x-auto">
+{`curl -X POST https://your-domain.com/api/html?token=YOUR_TOKEN \\
+  -H "Content-Type: application/json" \\
+  -d '{"url": "https://example.com"}'`}
+              </pre>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-black/20 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+      <section className="py-12 sm:py-16 bg-white/60 backdrop-blur-sm">
+        <div className="container-custom px-4 sm:px-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-white mb-2">{stat.value}</div>
-                <div className="text-gray-400">{stat.label}</div>
-              </div>
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="text-center"
+              >
+                <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-accent-500 to-accent-600 rounded-xl mb-3 sm:mb-4">
+                  <stat.icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                </div>
+                <div className="text-2xl sm:text-3xl font-bold text-primary-900 mb-1 sm:mb-2">{stat.value}</div>
+                <div className="text-sm sm:text-base text-primary-600">{stat.label}</div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Why Choose HeadlessX?
+      <section id="features" className="py-16 sm:py-20">
+        <div className="container-custom px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12 sm:mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-900 mb-4 sm:mb-6">
+              Powerful Features
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Built with cutting-edge technology to deliver undetectable automation 
-              and reliable data extraction at enterprise scale.
+            <p className="text-lg sm:text-xl text-primary-600 max-w-2xl mx-auto px-4">
+              Everything you need for modern web automation and data extraction
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {features.map((feature, index) => (
-              <div 
+              <motion.div
                 key={index}
-                className={`feature-card rounded-xl p-6 transition-all duration-300 hover:scale-105 cursor-pointer ${
-                  index === activeFeature ? 'glow-effect' : ''
-                }`}
-                onMouseEnter={() => setActiveFeature(index)}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="card card-hover p-6 sm:p-8 text-center group"
               >
-                <div className="text-blue-400 mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-                <p className="text-gray-300">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* API Endpoints Section */}
-      <section id="api" className="py-20 bg-black/20 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Comprehensive API
-            </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              RESTful endpoints designed for developers. Simple integration, powerful results.
-            </p>
-          </div>
-
-          <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl p-8">
-            <div className="grid gap-4">
-              {endpoints.map((endpoint, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                  <div className="flex items-center space-x-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      endpoint.method === 'GET' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'
-                    }`}>
-                      {endpoint.method}
-                    </span>
-                    <code className="text-blue-300 font-mono">{endpoint.path}</code>
-                  </div>
-                  <p className="text-gray-300 hidden md:block">{endpoint.description}</p>
-                  <ArrowRight className="h-4 w-4 text-gray-400" />
+                <div className={`inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r ${feature.gradient} rounded-2xl mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                  <feature.icon className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
                 </div>
-              ))}
-            </div>
+                <h3 className="text-lg sm:text-xl font-semibold text-primary-900 mb-3 sm:mb-4">{feature.title}</h3>
+                <p className="text-sm sm:text-base text-primary-600 leading-relaxed">{feature.description}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Tech Stack Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Enterprise-Grade Technology
+      {/* n8n Integration Showcase */}
+      <section className="py-16 sm:py-20 bg-gradient-to-br from-purple-50 via-white to-indigo-50">
+        <div className="container-custom px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12 sm:mb-16"
+          >
+            <div className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-3 sm:px-4 py-2 rounded-full text-sm font-medium mb-4 sm:mb-6">
+              <Package className="w-4 h-4" />
+              <span>Featured Integration</span>
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-900 mb-4 sm:mb-6">
+              Official <span className="gradient-text">n8n Community Node</span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Built on proven technologies for maximum reliability and performance.
+            <p className="text-lg sm:text-xl text-primary-600 max-w-3xl mx-auto mb-8 sm:mb-12 px-4">
+              Our dedicated n8n community node package makes HeadlessX integration seamless with visual workflow automation
             </p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className="bg-white/90 backdrop-blur-sm border border-primary-100 rounded-2xl p-6 sm:p-8 shadow-elegant">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <Package className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-primary-900">n8n-nodes-headlessx</h3>
+                    <p className="text-sm sm:text-base text-primary-600">Community Node Package</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="bg-primary-50 p-3 sm:p-4 rounded-lg">
+                    <div className="text-sm text-primary-600 mb-2">Install via npm:</div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <code className="text-xs sm:text-sm font-mono text-primary-800 flex-1 break-all">
+                        npm install n8n-nodes-headlessx
+                      </code>
+                      <button 
+                        onClick={() => copyToClipboard('npm install n8n-nodes-headlessx')}
+                        className="text-primary-500 hover:text-accent-600 transition-colors self-start sm:self-center p-1"
+                      >
+                        {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-primary-50 p-3 sm:p-4 rounded-lg">
+                    <div className="text-sm text-primary-600 mb-2">Or install via n8n Community Nodes:</div>
+                    <code className="text-xs sm:text-sm font-mono text-primary-800">
+                      Search for &ldquo;headlessx&rdquo; in Community Nodes
+                    </code>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                    <a 
+                      href="https://github.com/SaifyXPRO/n8n-nodes-headlessx" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="btn-primary px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 group"
+                    >
+                      <GitBranch className="w-4 h-4" />
+                      View Source
+                      <ExternalLink className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    </a>
+                    <a 
+                      href="https://www.npmjs.com/package/n8n-nodes-headlessx" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="btn-outline px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2"
+                    >
+                      <Package className="w-4 h-4" />
+                      npm Package
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="space-y-6"
+            >
+              <h3 className="text-xl sm:text-2xl font-bold text-primary-900 mb-4 sm:mb-6">Available Operations</h3>
+              
+              {n8nOperations.map((category, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="bg-white/90 backdrop-blur-sm border border-primary-100 rounded-xl p-4 sm:p-6"
+                >
+                  <h4 className="text-base sm:text-lg font-semibold text-primary-900 mb-3 sm:mb-4">{category.category}</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                    {category.operations.map((operation, opIndex) => (
+                      <div key={opIndex} className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-accent-500 rounded-full flex-shrink-0" />
+                        <span className="text-primary-700 text-sm">{operation}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              ))}
+
+              <div className="bg-gradient-to-r from-accent-50 to-purple-50 border border-accent-200 rounded-xl p-4 sm:p-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Star className="w-4 h-4 sm:w-5 sm:h-5 text-accent-600" />
+                  <span className="font-semibold text-accent-800">Pro Tip</span>
+                </div>
+                <p className="text-accent-700 text-sm leading-relaxed">
+                  The HeadlessX n8n node supports all server endpoints with a user-friendly interface, 
+                  making complex web scraping workflows as simple as drag-and-drop.
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* HTTP Integrations Section */}
+      <section id="integrations" className="py-16 sm:py-20 bg-white/80 backdrop-blur-sm">
+        <div className="container-custom px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12 sm:mb-16"
+          >
+            <div className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-accent-50 to-accent-100 rounded-full px-4 sm:px-6 py-2 sm:py-3 mb-4 sm:mb-6">
+              <Workflow className="w-4 h-4 sm:w-5 sm:h-5 text-accent-600" />
+              <span className="text-accent-800 font-semibold text-sm sm:text-base">Universal HTTP Integration</span>
+              <div className="flex items-center gap-1">
+                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500 fill-current" />
+                <span className="text-xs sm:text-sm text-primary-600">Any Platform</span>
+              </div>
+            </div>
+
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-900 mb-4 sm:mb-6">
+              Connect to <span className="gradient-text">Any Platform</span>
+            </h2>
+            <p className="text-lg sm:text-xl text-primary-600 max-w-3xl mx-auto mb-8 sm:mb-12 px-4">
+              Integrate HeadlessX with Make.com, Zapier, n8n, or any application using simple HTTP requests
+            </p>
+          </motion.div>
+
+          {/* Platform Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12 sm:mb-16">
+            {[
+              { 
+                name: 'Make.com', 
+                icon: Workflow, 
+                description: 'Visual automation platform', 
+                bgColor: 'bg-blue-100',
+                textColor: 'text-blue-600',
+                example: 'HTTP Request Module'
+              },
+              { 
+                name: 'Zapier', 
+                icon: Zap, 
+                description: 'Connect 5000+ apps', 
+                bgColor: 'bg-orange-100',
+                textColor: 'text-orange-600',
+                example: 'Webhooks by Zapier'
+              },
+              { 
+                name: 'n8n', 
+                icon: Package, 
+                description: 'Open source automation', 
+                bgColor: 'bg-purple-100',
+                textColor: 'text-purple-600',
+                example: 'Community Node Available'
+              },
+              { 
+                name: 'Custom Apps', 
+                icon: Code, 
+                description: 'Any programming language', 
+                bgColor: 'bg-green-100',
+                textColor: 'text-green-600',
+                example: 'REST API Calls'
+              }
+            ].map((platform, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="bg-white/90 backdrop-blur-sm border border-primary-100 rounded-2xl p-4 sm:p-6 text-center shadow-elegant hover:shadow-lg transition-shadow"
+              >
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 ${platform.bgColor} rounded-xl flex items-center justify-center mx-auto mb-3 sm:mb-4`}>
+                  <platform.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${platform.textColor}`} />
+                </div>
+                <h3 className="text-base sm:text-lg font-semibold text-primary-900 mb-2">{platform.name}</h3>
+                <p className="text-sm text-primary-600 mb-3 leading-relaxed">{platform.description}</p>
+                <span className="text-xs text-accent-600 font-medium bg-accent-50 px-2 sm:px-3 py-1 rounded-full">
+                  {platform.example}
+                </span>
+              </motion.div>
+            ))}
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { name: 'Playwright', icon: <Server className="h-8 w-8" /> },
-              { name: 'Node.js', icon: <Gauge className="h-8 w-8" /> },
-              { name: 'Docker', icon: <Layers className="h-8 w-8" /> },
-              { name: 'Nginx', icon: <Lock className="h-8 w-8" /> }
-            ].map((tech, index) => (
-              <div key={index} className="text-center p-6 feature-card rounded-xl">
-                <div className="text-blue-400 mb-4 flex justify-center">{tech.icon}</div>
-                <h3 className="text-white font-semibold">{tech.name}</h3>
+          {/* Quick Start Examples */}
+          <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
+            {/* Basic cURL Example */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="bg-white/90 backdrop-blur-sm border border-primary-100 rounded-2xl p-4 sm:p-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-primary-900">Quick Start - cURL</h3>
+                <button 
+                  onClick={() => copyToClipboard('curl -X POST "https://your-domain.com/api/html?token=YOUR_TOKEN" -H "Content-Type: application/json" -d \'{"url": "https://example.com"}\'')}
+                  className="text-primary-500 hover:text-accent-600 transition-colors p-1"
+                >
+                  {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </button>
               </div>
-            ))}
+              <pre className="text-xs sm:text-sm font-mono text-primary-800 bg-primary-50 px-3 sm:px-4 py-3 rounded-lg overflow-x-auto">
+{`curl -X POST "https://your-domain.com/api/html?token=YOUR_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{"url": "https://example.com"}'`}
+              </pre>
+            </motion.div>
+
+            {/* JavaScript Example */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="bg-white/90 backdrop-blur-sm border border-primary-100 rounded-2xl p-4 sm:p-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base sm:text-lg font-semibold text-primary-900">JavaScript/Node.js</h3>
+                <button 
+                  onClick={() => copyToClipboard(`fetch('https://your-domain.com/api/html?token=YOUR_TOKEN', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ url: 'https://example.com' })
+})`)}
+                  className="text-primary-500 hover:text-accent-600 transition-colors p-1"
+                >
+                  {copied ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+              <pre className="text-xs sm:text-sm font-mono text-primary-800 bg-primary-50 px-3 sm:px-4 py-3 rounded-lg overflow-x-auto">
+{`fetch('https://your-domain.com/api/html?token=YOUR_TOKEN', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ url: 'https://example.com' })
+})`}
+              </pre>
+            </motion.div>
+          </div>
+
+          {/* Repository Links */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="text-center mt-8 sm:mt-12"
+          >
+            <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+              <a
+                href="https://github.com/SaifyXPRO/HeadlessX"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 btn-primary px-4 sm:px-6 py-3 rounded-xl font-semibold group"
+              >
+                <GitBranch className="w-4 h-4 sm:w-5 sm:h-5" />
+                HeadlessX Server
+                <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
+              </a>
+              <a
+                href="https://github.com/SaifyXPRO/n8n-nodes-headlessx"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 btn-outline px-4 sm:px-6 py-3 rounded-xl font-semibold group"
+              >
+                <Package className="w-4 h-4 sm:w-5 sm:h-5" />
+                n8n Node Package
+                <ExternalLink className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* API Section */}
+      <section id="api" className="py-16 sm:py-20">
+        <div className="container-custom px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12 sm:mb-16"
+          >
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-primary-900 mb-4 sm:mb-6">
+              Developer-Friendly <span className="gradient-text">REST API</span>
+            </h2>
+            <p className="text-lg sm:text-xl text-primary-600 max-w-2xl mx-auto px-4">
+              Clean, RESTful endpoints with comprehensive documentation and examples
+            </p>
+          </motion.div>
+
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-start">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <h3 className="text-xl sm:text-2xl font-bold text-primary-900 mb-4 sm:mb-6">API Endpoints</h3>
+              
+              <div className="space-y-3">
+                {[
+                  { method: 'GET', endpoint: '/api/health', description: 'Server health and status check' },
+                  { method: 'GET', endpoint: '/api/status', description: 'Detailed server information' },
+                  { method: 'POST', endpoint: '/api/render', description: 'Full page rendering with JSON response' },
+                  { method: 'POST', endpoint: '/api/html', description: 'Raw HTML extraction (POST)' },
+                  { method: 'GET', endpoint: '/api/html', description: 'Raw HTML extraction (GET)' },
+                  { method: 'POST', endpoint: '/api/content', description: 'Clean text extraction (POST)' },
+                  { method: 'GET', endpoint: '/api/content', description: 'Clean text extraction (GET)' },
+                  { method: 'GET', endpoint: '/api/screenshot', description: 'Capture page screenshots' },
+                  { method: 'GET', endpoint: '/api/pdf', description: 'Generate PDF documents' },
+                  { method: 'POST', endpoint: '/api/batch', description: 'Process multiple URLs in batch' }
+                ].map((api, index) => (
+                  <div key={index} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-white/70 rounded-xl border border-primary-100 hover:bg-white/90 transition-colors">
+                    <span className={`px-3 py-1 rounded-lg text-sm font-medium w-fit ${
+                      api.method === 'POST' ? 'bg-success-100 text-success-700' : 'bg-accent-100 text-accent-700'
+                    }`}>
+                      {api.method}
+                    </span>
+                    <code className="font-mono text-primary-700 flex-1 text-sm sm:text-base break-all">{api.endpoint}</code>
+                    <span className="text-primary-600 text-sm leading-tight">{api.description}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8 }}
+              className="bg-white/90 backdrop-blur-sm border border-primary-100 rounded-2xl p-6 sm:p-8 shadow-elegant"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h4 className="text-base sm:text-lg font-semibold text-primary-900">Example Response</h4>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-success-500 rounded-full" />
+                  <span className="text-sm text-primary-600">200 OK</span>
+                </div>
+              </div>
+              
+              <pre className="text-xs sm:text-sm text-primary-700 font-mono overflow-x-auto bg-primary-50 p-3 sm:p-4 rounded-lg">
+{`{
+  "success": true,
+  "data": {
+    "title": "Example Page",
+    "content": "...",
+    "links": [...],
+    "images": [...],
+    "metadata": {
+      "loadTime": "1.2s",
+      "timestamp": "2025-01-01T00:00:00Z"
+    }
+  },
+  "status": 200
+}`}
+              </pre>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600/20 to-purple-600/20">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to Get Started?
-          </h2>
-          <p className="text-xl text-gray-300 mb-8">
-            Deploy HeadlessX on your server today. Open source, self-hosted, and completely free.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="https://github.com/SaifyXPRO/HeadlessX" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all transform hover:scale-105">
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.30.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-              </svg>
-              Clone Repository
-            </a>
-            <a href="#api" className="border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-colors">
-              View API Docs
-            </a>
-          </div>
+      <section className="py-16 sm:py-20 bg-gradient-to-r from-accent-600 to-accent-700 text-white">
+        <div className="container-custom text-center px-4 sm:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 sm:mb-6">
+              Ready to Get Started?
+            </h2>
+            <p className="text-lg sm:text-xl text-accent-100 mb-8 sm:mb-12 max-w-2xl mx-auto px-4">
+              Join thousands of developers using HeadlessX for free web automation and scraping
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center">
+              <a href="https://github.com/SaifyXPRO/HeadlessX" target="_blank" rel="noopener noreferrer"
+                 className="w-full sm:w-auto bg-white text-accent-700 px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:bg-accent-50 transition-colors flex items-center justify-center gap-2 min-h-[48px]">
+                <GitBranch className="w-5 h-5" />
+                Download & Deploy
+              </a>
+              
+              <a href="https://github.com/SaifyXPRO/n8n-nodes-headlessx" target="_blank" rel="noopener noreferrer"
+                 className="w-full sm:w-auto border-2 border-white/30 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl text-base sm:text-lg font-semibold hover:bg-white/10 transition-colors flex items-center justify-center gap-2 min-h-[48px]">
+                <Package className="w-5 h-5" />
+                Install n8n Node
+              </a>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-black/40 backdrop-blur-sm border-t border-white/10 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-3 mb-4 md:mb-0">
-              <div className="h-8 w-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Bot className="h-5 w-5 text-white" />
+      <footer className="py-8 sm:py-12 bg-primary-900 text-white">
+        <div className="container-custom px-4 sm:px-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0">
+            <div className="flex items-center space-x-3 text-center md:text-left">
+              <div className="w-8 h-8 bg-gradient-to-r from-accent-500 to-accent-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">H</span>
               </div>
               <div>
-                <div className="text-white font-semibold">HeadlessX v1.1.0</div>
-                <div className="text-gray-400 text-sm">Open Source Browserless Web Scraping API</div>
+                <span className="text-xl font-bold">HeadlessX</span>
+                <div className="text-xs text-primary-400">Free & Open Source • MIT License</div>
               </div>
             </div>
-            <div className="flex items-center space-x-6">
-              <a href="https://github.com/SaifyXPRO/HeadlessX" className="text-gray-400 hover:text-white transition-colors text-sm">
-                GitHub
+            
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-primary-300">
+              <a href="https://github.com/SaifyXPRO/HeadlessX" target="_blank" rel="noopener noreferrer" 
+                 className="hover:text-white transition-colors flex items-center gap-1 text-sm sm:text-base min-h-[44px]">
+                Server Repo
+                <ExternalLink className="w-3 h-3" />
               </a>
-              <a href="#docs" className="text-gray-400 hover:text-white transition-colors text-sm">
-                Documentation
+              
+              <a href="https://github.com/SaifyXPRO/n8n-nodes-headlessx" target="_blank" rel="noopener noreferrer"
+                 className="hover:text-white transition-colors flex items-center gap-1 text-sm sm:text-base min-h-[44px]">
+                n8n Node Repo
+                <ExternalLink className="w-3 h-3" />
               </a>
-              <div className="text-gray-400 text-sm">
-                © 2025 SaifyXPRO. Open Source under MIT License.
+              
+              <div className="text-primary-400 text-xs sm:text-sm text-center">
+                © 2025 SaifyXPRO. All rights reserved.
               </div>
             </div>
           </div>

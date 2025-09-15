@@ -385,12 +385,12 @@ async function safeCloseContext(context, requestId) {
     }
 }
 
-// Enhanced timeout handler function with fallback
+// Enhanced timeout handler function with anti-bot detection fallback
 async function withTimeoutFallback(asyncOperation, fallbackOperation = null, timeoutMs = 30000) {
     return new Promise(async (resolve, reject) => {
         let completed = false;
         
-        // Set timeout
+        // Set timeout with shorter intervals for anti-bot sites
         const timeoutId = setTimeout(() => {
             if (!completed) {
                 completed = true;
@@ -398,7 +398,13 @@ async function withTimeoutFallback(asyncOperation, fallbackOperation = null, tim
                 if (fallbackOperation) {
                     fallbackOperation().then(resolve).catch(reject);
                 } else {
-                    reject(new Error(`Operation timed out after ${timeoutMs}ms`));
+                    // Provide partial content instead of complete failure
+                    reject(new HeadlessXError(
+                        `Operation timed out after ${timeoutMs}ms - site may have anti-bot protection`,
+                        'TIMEOUT',
+                        'timeout',
+                        { suggestion: 'Try with a different URL or reduce timeout', timeout: timeoutMs }
+                    ));
                 }
             }
         }, timeoutMs);
@@ -414,7 +420,19 @@ async function withTimeoutFallback(asyncOperation, fallbackOperation = null, tim
             if (!completed) {
                 completed = true;
                 clearTimeout(timeoutId);
-                console.log(`❌ Operation failed: ${error.message}, attempting fallback...`);
+                
+                // Check if this is an anti-bot detection error
+                const isAntiBotError = error.message.includes('net::ERR_FAILED') || 
+                                     error.message.includes('Navigation timeout') ||
+                                     error.message.includes('Timeout') ||
+                                     error.message.includes('blocked');
+                
+                if (isAntiBotError) {
+                    console.log(`🤖 Possible anti-bot detection: ${error.message}, attempting fallback...`);
+                } else {
+                    console.log(`❌ Operation failed: ${error.message}, attempting fallback...`);
+                }
+                
                 if (fallbackOperation) {
                     try {
                         const fallbackResult = await fallbackOperation();
@@ -582,9 +600,9 @@ async function renderPageAdvanced(options) {
             });
         });
 
-        // Set adequate timeouts for complete JavaScript execution
-        page.setDefaultTimeout(60000); // Increased from timeout/2 to fixed 60000ms
-        page.setDefaultNavigationTimeout(timeout); // Keep full timeout for navigation
+        // Set more reasonable timeouts to handle anti-bot sites
+        page.setDefaultTimeout(45000); // Reduced from 60000ms to 45000ms
+        page.setDefaultNavigationTimeout(Math.min(timeout, 60000)); // Cap navigation timeout at 60s
 
         // Capture console logs if requested
         if (captureConsole) {
@@ -988,20 +1006,109 @@ async function renderPageAdvanced(options) {
             };
         });
 
+        // Add Google-specific anti-detection measures
+        if (url.includes('google.') || url.includes('googleapis.')) {
+            await context.addInitScript(() => {
+                // Google-specific bot detection bypass
+                console.debug('🔧 Applying Google-specific stealth measures...');
+                
+                // Override Google-specific bot detection properties
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined,
+                    configurable: true
+                });
+                
+                // Hide automation indicators
+                delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
+                delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
+                delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
+                
+                // Override runtime detection
+                Object.defineProperty(window.chrome, 'runtime', {
+                    get: () => ({
+                        onConnect: undefined,
+                        onMessage: undefined,
+                        id: 'chrome-extension://boadgeojelhgndaghljhdicfkmllpafd/'
+                    }),
+                    configurable: true
+                });
+                
+                // Add realistic mouse/keyboard event history
+                window._eventHistory = {
+                    mouse: Date.now() - Math.random() * 30000,
+                    keyboard: Date.now() - Math.random() * 20000,
+                    touch: null
+                };
+                
+                // Simulate realistic user interaction timing
+                ['mousedown', 'mouseup', 'click'].forEach(eventType => {
+                    document.addEventListener(eventType, () => {
+                        window._eventHistory.mouse = Date.now();
+                    }, true);
+                });
+                
+                ['keydown', 'keyup'].forEach(eventType => {
+                    document.addEventListener(eventType, () => {
+                        window._eventHistory.keyboard = Date.now();
+                    }, true);
+                });
+                
+                // Override Google's specific detection methods
+                if (window.google && window.google.ima) {
+                    const originalGetVersion = window.google.ima.getVersion;
+                    window.google.ima.getVersion = function() {
+                        return originalGetVersion ? originalGetVersion.call(this) : '3.517.2';
+                    };
+                }
+                
+                // Hide Playwright/automation traces
+                const originalQuerySelector = document.querySelector;
+                document.querySelector = function(selector) {
+                    if (selector.includes('playwright') || selector.includes('webdriver')) {
+                        return null;
+                    }
+                    return originalQuerySelector.call(this, selector);
+                };
+                
+                console.debug('✅ Google stealth measures applied');
+            });
+        }
+
         console.log(`🌐 Navigating to: ${url}`);
 
-        // Enhanced navigation with better CSS loading detection
+        // Enhanced navigation with better error handling and fallbacks
         await withTimeoutFallback(
             async () => {
-                // Use 'networkidle' instead of 'domcontentloaded' for better CSS loading
-                await page.goto(url, { 
-                    waitUntil: 'networkidle', // Changed to ensure resources load
-                    timeout: timeout
-                });
-                console.log('📄 Page navigation completed');
+                try {
+                    // Try 'networkidle' first (best for complete loading)
+                    await page.goto(url, { 
+                        waitUntil: 'networkidle', 
+                        timeout: Math.min(timeout * 0.7, 30000) // Use 70% of timeout or max 30s
+                    });
+                    console.log('📄 Page navigation completed (networkidle)');
+                } catch (navError) {
+                    console.log('⚠️ NetworkIdle failed, trying domcontentloaded...');
+                    // Fallback to faster domcontentloaded
+                    await page.goto(url, { 
+                        waitUntil: 'domcontentloaded', 
+                        timeout: Math.min(timeout * 0.5, 20000) // Use 50% of timeout or max 20s
+                    });
+                    console.log('📄 Page navigation completed (domcontentloaded)');
+                }
                 
-                // Additional wait for CSS rendering
-                await page.waitForTimeout(3000); // Increased to 3 seconds
+                // Smart wait - only wait if page seems to be loading resources
+                const isStillLoading = await page.evaluate(() => {
+                    return document.readyState !== 'complete' || 
+                           performance.getEntriesByType('resource').some(r => !r.responseEnd);
+                });
+                
+                if (isStillLoading) {
+                    // Additional wait for CSS rendering (reduced from 3s to 1.5s)
+                    await page.waitForTimeout(1500);
+                } else {
+                    // Quick wait for immediate rendering
+                    await page.waitForTimeout(500);
+                }
                 
                 // Force CSS evaluation to ensure styles are applied
                 await page.evaluate(() => {
@@ -1028,23 +1135,51 @@ async function renderPageAdvanced(options) {
                 
                 console.log('✅ Page loaded with CSS verification');
             },
+            // Enhanced fallback for anti-bot protected sites
             returnPartialOnTimeout ? async () => {
                 wasTimeout = true;
-                console.log('⚠️ Navigation timeout, but continuing with partial content...');
-                // Try a simpler navigation
+                console.log('⚠️ Navigation timeout detected - implementing anti-bot fallback strategy...');
+                
                 try {
-                    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
-                    console.log('📄 Page loaded with domcontentloaded (partial)');
-                } catch (e) {
-                    console.log('⚠️ Even simple navigation failed, checking if page has any content...');
-                    // Check if we have any content at all
-                    const currentUrl = page.url();
-                    if (!currentUrl || currentUrl === 'about:blank') {
-                        throw new Error('Page failed to load completely');
+                    // Strategy 1: Quick reload with minimal waiting
+                    console.log('🔄 Attempting quick reload...');
+                    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
+                    await page.waitForTimeout(1000); // Brief wait
+                    console.log('📄 Quick reload successful');
+                } catch (reloadError) {
+                    console.log('⚠️ Quick reload failed, trying basic navigation...');
+                    
+                    try {
+                        // Strategy 2: Basic navigation without waiting
+                        await page.goto(url, { waitUntil: 'load', timeout: 8000 });
+                        console.log('📄 Basic navigation successful');
+                    } catch (basicError) {
+                        console.log('⚠️ Basic navigation failed, checking current page state...');
+                        
+                        // Strategy 3: Check if we have any usable content
+                        const currentUrl = page.url();
+                        const hasContent = await page.evaluate(() => {
+                            return document.body && document.body.innerHTML.length > 100;
+                        });
+                        
+                        if (!currentUrl || currentUrl === 'about:blank' || !hasContent) {
+                            throw new HeadlessXError(
+                                'Site appears to be blocking automated access',
+                                'ANTI_BOT_DETECTED',
+                                'network',
+                                { 
+                                    url: url,
+                                    suggestion: 'This site may have anti-bot protection. Try a different URL or use a proxy.',
+                                    currentUrl: currentUrl
+                                }
+                            );
+                        }
+                        
+                        console.log('📄 Found partial content, proceeding...');
                     }
                 }
             } : null,
-            timeout
+            Math.min(timeout, 45000) // Cap timeout at 45 seconds maximum
         );
 
         // Continue with dynamic content loading - always execute JavaScript features
@@ -1444,8 +1579,16 @@ async function renderPageAdvanced(options) {
     } catch (error) {
         if (context) await context.close();
         
+        // Enhanced error analysis and user-friendly messages
+        const isTimeoutError = error.message.includes('Timeout') || error.name === 'TimeoutError';
+        const isNetworkError = error.message.includes('net::ERR_FAILED') || error.message.includes('ERR_NAME_NOT_RESOLVED');
+        const isAntiBot = error.message.includes('blocked') || error.message.includes('denied') || 
+                         (isTimeoutError && (url.includes('google.') || url.includes('facebook.') || url.includes('amazon.')));
+        
+        console.error(`❌ Page rendering failed: ${error.message}`);
+        
         // If we have returnPartialOnTimeout enabled and this is a timeout, try to get whatever content we can
-        if (returnPartialOnTimeout && (error.message.includes('Timeout') || error.name === 'TimeoutError')) {
+        if (returnPartialOnTimeout && isTimeoutError) {
             console.log('🔄 Final attempt to get partial content...');
             try {
                 // Try to get content even after timeout with realistic settings
@@ -1501,6 +1644,45 @@ async function renderPageAdvanced(options) {
                 console.log('🆘 Emergency content extraction also failed');
                 throw error; // Throw original error
             }
+        }
+        
+        // Enhance error with user-friendly information
+        if (isAntiBot) {
+            throw new HeadlessXError(
+                `Site appears to be blocking automated access: ${error.message}`,
+                'ANTI_BOT_DETECTED',
+                'network',
+                { 
+                    url: url,
+                    suggestion: 'This site has sophisticated anti-bot protection. Try: 1) Using a different URL, 2) Adding delays, 3) Using residential proxies, or 4) Trying during off-peak hours.',
+                    originalError: error.message,
+                    errorType: 'anti-bot-protection'
+                }
+            );
+        } else if (isNetworkError) {
+            throw new HeadlessXError(
+                `Network connection failed: ${error.message}`,
+                'NETWORK_ERROR',
+                'network',
+                { 
+                    url: url,
+                    suggestion: 'Check if the URL is accessible and your internet connection is stable.',
+                    originalError: error.message,
+                    errorType: 'network-connectivity'
+                }
+            );
+        } else if (isTimeoutError) {
+            throw new HeadlessXError(
+                `Operation timed out: ${error.message}`,
+                'TIMEOUT_ERROR',
+                'timeout',
+                { 
+                    url: url,
+                    suggestion: 'Site is taking too long to load. Try: 1) Increasing timeout, 2) Using returnPartialOnTimeout=true, or 3) Checking site performance.',
+                    originalError: error.message,
+                    errorType: 'timeout'
+                }
+            );
         }
         
         throw error;
@@ -2039,11 +2221,35 @@ app.post('/api/render', async (req, res) => {
 
     } catch (error) {
         console.error('❌ Rendering error:', error);
-        res.status(500).json({ 
-            error: 'Failed to render page', 
+        
+        // Enhanced error response with helpful information
+        let statusCode = 500;
+        let errorResponse = {
+            error: 'Failed to render page',
             details: error.message,
             timestamp: new Date().toISOString()
-        });
+        };
+        
+        // Check if this is a HeadlessXError with specific information
+        if (error.metadata) {
+            errorResponse = {
+                ...errorResponse,
+                errorType: error.metadata.errorType || 'unknown',
+                suggestion: error.metadata.suggestion,
+                url: error.metadata.url
+            };
+            
+            // Set appropriate status codes
+            if (error.metadata.errorType === 'anti-bot-protection') {
+                statusCode = 403; // Forbidden
+            } else if (error.metadata.errorType === 'network-connectivity') {
+                statusCode = 502; // Bad Gateway
+            } else if (error.metadata.errorType === 'timeout') {
+                statusCode = 408; // Request Timeout
+            }
+        }
+        
+        res.status(statusCode).json(errorResponse);
     }
 });
 
@@ -2094,7 +2300,26 @@ app.post('/api/html', async (req, res) => {
 
     } catch (error) {
         console.error('❌ HTML rendering error:', error);
-        res.status(500).send(`Error: ${error.message}`);
+        
+        // Enhanced error response for HTML endpoint
+        let statusCode = 500;
+        let errorMessage = `Error: ${error.message}`;
+        
+        // Check if this is a HeadlessXError with specific information
+        if (error.metadata) {
+            if (error.metadata.errorType === 'anti-bot-protection') {
+                statusCode = 403;
+                errorMessage = `Anti-bot protection detected: ${error.message}\nSuggestion: ${error.metadata.suggestion}`;
+            } else if (error.metadata.errorType === 'network-connectivity') {
+                statusCode = 502;
+                errorMessage = `Network error: ${error.message}\nSuggestion: ${error.metadata.suggestion}`;
+            } else if (error.metadata.errorType === 'timeout') {
+                statusCode = 408;
+                errorMessage = `Timeout error: ${error.message}\nSuggestion: ${error.metadata.suggestion}`;
+            }
+        }
+        
+        res.status(statusCode).send(errorMessage);
     }
 });
 

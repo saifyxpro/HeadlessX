@@ -1,10 +1,12 @@
-# 🚀 HeadlessX v1.1.0
+# 🚀 HeadlessX v1.2.0
 
-**Advanced Browserless Web Scraping API with Human-like Behavior**
+**Open Source Browserless Web Scraping API with Human-like Behavior**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg)](https://nodejs.org/)
 [![Playwright](https://img.shields.io/badge/Playwright-Latest-blue.svg)](https://playwright.dev/)
+[![GitHub](https://img.shields.io/badge/GitHub-SaifyXPRO%2FHeadlessX-blue.svg)](https://github.com/SaifyXPRO/HeadlessX)
+[![Open Source](https://img.shields.io/badge/Open%20Source-100%25%20Free-green.svg)](https://github.com/SaifyXPRO/HeadlessX)
 
 > 🎯 **Unified Solution**: Website + API on a single domain  
 > 🧠 **Human-like Behavior**: 40+ anti-detection techniques  
@@ -178,24 +180,166 @@ HeadlessX Routes:
 
 ---
 
-## 🚀 API Examples
+## 🚀 API Examples & HTTP Integrations
 
-### Health Check (No Auth)
+### Quick Health Check (No Auth)
 ```bash
 curl https://your-subdomain.yourdomain.com/api/health
 ```
 
-### Extract HTML
+### 🔧 cURL Examples
+
+#### Extract HTML Content
 ```bash
 curl -X POST "https://your-subdomain.yourdomain.com/api/html?token=YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com", "timeout": 30000}'
 ```
 
-### Generate Screenshot
+#### Generate Screenshot
 ```bash
 curl "https://your-subdomain.yourdomain.com/api/screenshot?token=YOUR_TOKEN&url=https://example.com&fullPage=true" \
   -o screenshot.png
+```
+
+#### Extract Text Only
+```bash
+curl -X POST "https://your-subdomain.yourdomain.com/api/text?token=YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com", "waitForSelector": "main"}'
+```
+
+#### Generate PDF
+```bash
+curl -X POST "https://your-subdomain.yourdomain.com/api/pdf?token=YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com", "format": "A4"}' \
+  -o document.pdf
+```
+
+### 🤖 Make.com (Integromat) Integration
+
+**HTTP Request Module Configuration:**
+```json
+{
+  "url": "https://your-subdomain.yourdomain.com/api/html",
+  "method": "POST",
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "qs": {
+    "token": "YOUR_TOKEN"
+  },
+  "body": {
+    "url": "{{url_to_scrape}}",
+    "timeout": 30000,
+    "waitForSelector": "{{optional_selector}}"
+  }
+}
+```
+
+### ⚡ Zapier Integration
+
+**Webhooks by Zapier Setup:**
+- **URL:** `https://your-subdomain.yourdomain.com/api/html?token=YOUR_TOKEN`
+- **Method:** POST
+- **Headers:** `Content-Type: application/json`
+- **Body:**
+```json
+{
+  "url": "{{url_from_trigger}}",
+  "timeout": 30000,
+  "humanBehavior": true
+}
+```
+
+### 🔗 n8n Integration
+
+**HTTP Request Node:**
+```json
+{
+  "url": "https://your-subdomain.yourdomain.com/api/html",
+  "method": "POST",
+  "authentication": "queryAuth",
+  "query": {
+    "token": "YOUR_TOKEN"
+  },
+  "headers": {
+    "Content-Type": "application/json"
+  },
+  "body": {
+    "url": "={{$json.url}}",
+    "timeout": 30000,
+    "humanBehavior": true
+  }
+}
+```
+
+**Available via n8n Community Node:**
+- Install: `npm install n8n-nodes-headlessx`
+- [GitHub Repository](https://github.com/SaifyXPRO/n8n-nodes-headlessx)
+
+### 🐍 Python Example
+```python
+import requests
+
+def scrape_with_headlessx(url, token):
+    response = requests.post(
+        "https://your-subdomain.yourdomain.com/api/html",
+        params={"token": token},
+        json={
+            "url": url,
+            "timeout": 30000,
+            "humanBehavior": True
+        }
+    )
+    return response.json()
+
+# Usage
+result = scrape_with_headlessx("https://example.com", "YOUR_TOKEN")
+print(result['html'])
+```
+
+### 🟨 JavaScript/Node.js Example
+```javascript
+const axios = require('axios');
+
+async function scrapeWithHeadlessX(url, token) {
+  try {
+    const response = await axios.post(
+      `https://your-subdomain.yourdomain.com/api/html?token=${token}`,
+      {
+        url: url,
+        timeout: 30000,
+        humanBehavior: true
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Scraping failed:', error.message);
+    throw error;
+  }
+}
+
+// Usage
+scrapeWithHeadlessX('https://example.com', 'YOUR_TOKEN')
+  .then(result => console.log(result.html))
+  .catch(error => console.error(error));
+```
+
+### 🔄 Batch Processing Example
+```bash
+curl -X POST "https://your-subdomain.yourdomain.com/api/batch?token=YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "urls": [
+      "https://example1.com",
+      "https://example2.com",
+      "https://example3.com"
+    ],
+    "timeout": 30000,
+    "humanBehavior": true
+  }'
 ```
 
 ### Batch Processing

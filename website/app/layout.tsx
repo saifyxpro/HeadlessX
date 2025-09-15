@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 
@@ -9,7 +9,6 @@ export const metadata: Metadata = {
   description: 'Professional browserless web scraping API with human-like behavior simulation, anti-detection techniques, and comprehensive automation features.',
   keywords: 'headlessx, browserless, web scraping, playwright, automation, api, javascript rendering, anti-detection, human behavior',
   authors: [{ name: 'SaifyXPRO' }],
-  viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
   icons: {
     icon: '/favicon.svg',
@@ -27,6 +26,11 @@ export const metadata: Metadata = {
     title: 'HeadlessX v1.1.0 - Advanced Browserless Web Scraping API',
     description: 'Professional browserless web scraping API with human-like behavior simulation.',
   }
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 }
 
 export default function RootLayout({

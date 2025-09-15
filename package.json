@@ -1,7 +1,7 @@
 {
   "name": "headlessx",
-  "version": "1.1.0",
-  "description": "HeadlessX v1.1.0 - Advanced Browserless Web Scraping API with integrated website, human-like behavior simulation, and comprehensive anti-detection features",
+  "version": "1.2.0",
+  "description": "HeadlessX v1.2.0 - Open Source Browserless Web Scraping API by Saify with integrated website, human-like behavior simulation, and comprehensive anti-detection features",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

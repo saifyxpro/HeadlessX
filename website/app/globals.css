@@ -1,23 +1,236 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;200;300;400;500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #f8fafc;
+  --secondary-foreground: #334155;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #334155;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #3b82f6;
+  --radius: 0.75rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground));
+  background: linear-gradient(to bottom right, #ffffff, #f8fafc);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+  font-variation-settings: 'opsz' 32;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Selection */
+::selection {
+  background-color: rgba(59, 130, 246, 0.2);
+  color: #1e40af;
+}
+
+/* Focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 focus:ring-offset-white;
+}
+
+/* Button variants */
+.btn-primary {
+  @apply bg-accent-600 text-white hover:bg-accent-700 focus:ring-accent-500 transition-all duration-200 ease-in-out;
+}
+
+.btn-secondary {
+  @apply bg-white text-primary-700 border border-primary-200 hover:bg-primary-50 focus:ring-primary-500 transition-all duration-200 ease-in-out;
+}
+
+.btn-ghost {
+  @apply text-primary-600 hover:text-primary-700 hover:bg-primary-50 focus:ring-primary-500 transition-all duration-200 ease-in-out;
+}
+
+/* Card styles */
+.card {
+  @apply bg-white border border-primary-100 rounded-xl shadow-elegant hover:shadow-elegant-lg transition-all duration-300 ease-in-out;
+}
+
+.card-hover {
+  @apply hover:scale-[1.02] hover:-translate-y-1;
+}
+
+/* Glass effect */
+.glass {
+  @apply bg-white/80 backdrop-blur-md border border-white/20;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-gradient-to-r from-accent-600 to-accent-800 bg-clip-text text-transparent;
+}
+
+/* Loading shimmer */
+.shimmer {
+  background: linear-gradient(90deg, #f1f5f9 0%, #e2e8f0 50%, #f1f5f9 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Code blocks */
+.code-block {
+  @apply bg-primary-50 border border-primary-100 rounded-lg p-4 font-mono text-sm overflow-x-auto;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Utilities */
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+/* Typography */
+.prose-custom {
+  @apply max-w-none;
+}
+
+.prose-custom h1 {
+  @apply text-primary-900 font-bold tracking-tight text-4xl mb-4;
+}
+
+.prose-custom h2 {
+  @apply text-primary-800 font-semibold tracking-tight text-3xl mb-3;
+}
+
+.prose-custom h3 {
+  @apply text-primary-700 font-medium text-2xl mb-2;
+}
+
+.prose-custom p {
+  @apply text-primary-600 leading-relaxed mb-4;
+}
+
+.prose-custom a {
+  @apply text-accent-600 hover:text-accent-700 no-underline hover:underline transition-colors;
+}
+
+/* Responsive design utilities */
+.container-custom {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Interactive elements */
+.interactive {
+  @apply transition-all duration-200 ease-in-out transform hover:scale-105 active:scale-95;
+}
+
+/* Status indicators */
+.status-online {
+  @apply bg-success-500 animate-pulse;
+}
+
+.status-offline {
+  @apply bg-primary-400;
+}
+
+/* Loading states */
+.loading-dots::after {
+  content: '';
+  animation: dots 1.5s steps(5, end) infinite;
+}
+
+@keyframes dots {
+  0%, 20% {
+    color: rgba(0,0,0,0);
+    text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0);
+  }
+  40% {
+    color: currentColor;
+    text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0);
+  }
+  60% {
+    text-shadow: .25em 0 0 currentColor, .5em 0 0 rgba(0,0,0,0);
+  }
+  80%, 100% {
+    text-shadow: .25em 0 0 currentColor, .5em 0 0 currentColor;
+  }
 }
 
 @layer utilities {
@@ -25,58 +238,3 @@ body {
     text-wrap: balance;
   }
 }
-
-/* Custom animations */
-.hero-gradient {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.feature-card {
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.glow-effect {
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-}
-
-.code-block {
-  background: #1e1e1e;
-  border-radius: 8px;
-  padding: 1rem;
-  overflow-x: auto;
-  font-family: 'Fira Code', 'Courier New', monospace;
-}
-
-/* Mobile-first helpers */
-@media (max-width: 640px) {
-  .feature-card { 
-    padding: 1rem; 
-    margin-bottom: 1rem;
-  }
-  
-  /* Better text scaling on mobile */
-  h1 { line-height: 1.1; }
-  h2 { line-height: 1.2; }
-  
-  /* Improve touch targets */
-  button, a { min-height: 44px; }
-  
-  /* Better mobile spacing */
-  .max-w-7xl { padding-left: 1rem; padding-right: 1rem; }
-}
-
-@media (max-width: 480px) {
-  /* Extra small screens */
-  .text-4xl { font-size: 2rem; }
-  .text-5xl { font-size: 2.5rem; }
-}
-
-/* Soft pulse animation used in background blobs */
-@keyframes pulse-slow {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.06); }
-}
-
-.animate-pulse-slow { animation: pulse-slow 6s ease-in-out infinite; }
