@@ -10,22 +10,22 @@ module.exports = {
     {
       // Application configuration
       name: 'headlessx',
-      script: './src/server.js',
+      script: './src/server.js', // Using main app for debugging
       cwd: process.cwd(), // Use current working directory
       
       // Process management
       instances: 1, // Start with 1 instance, can be scaled with: pm2 scale headlessx +1
       exec_mode: 'fork', // Use 'cluster' for CPU-intensive workloads
       
-      // Auto-restart configuration
+      // Auto-restart configuration - REDUCED FOR STABILITY
       autorestart: true,
       watch: false, // Set to true for development, false for production
-      max_memory_restart: '1G', // Restart if memory usage exceeds 1GB (optimized for 2GB server)
+      max_memory_restart: '800M', // Restart if memory usage exceeds 800MB (conservative for 2GB server)
       
-      // Startup configuration for better reliability
-      min_uptime: '10s', // Minimum uptime before restart
-      max_restarts: 5, // Maximum restarts in 1 minute
-      restart_delay: 2000, // Delay between restarts (2 seconds)
+      // Startup configuration for better reliability - CONSERVATIVE
+      min_uptime: '30s', // Minimum uptime before restart (increased)
+      max_restarts: 3, // Maximum restarts in 1 minute (reduced)
+      restart_delay: 5000, // Delay between restarts (5 seconds - increased)
       
       // Environment variables for production
       env: {
@@ -34,24 +34,24 @@ module.exports = {
         HOST: '0.0.0.0',
         
         // Security
-        AUTH_TOKEN: 'your-secure-auth-token-here',
+        AUTH_TOKEN: 'headless-x-secure-token-2024',
         
-        // Browser configuration
-        BROWSER_TIMEOUT: '60000',
-        EXTRA_WAIT_TIME: '3000',
-        MAX_CONCURRENCY: '3',
+        // Browser configuration - OPTIMIZED FOR 2GB RAM
+        BROWSER_TIMEOUT: '30000',      // Reduced from 60000
+        EXTRA_WAIT_TIME: '2000',       // Reduced from 3000 
+        MAX_CONCURRENCY: '2',          // Reduced from 3
         
-        // API configuration
-        BODY_LIMIT: '10mb',
-        MAX_BATCH_URLS: '10',
+        // API configuration - LIGHTWEIGHT
+        BODY_LIMIT: '5mb',             // Reduced from 10mb
+        MAX_BATCH_URLS: '5',           // Reduced from 10
         
         // Website configuration
         WEBSITE_ENABLED: 'true',
         WEBSITE_PATH: './website/out',
         
-        // Logging
+        // Logging - MINIMAL
         DEBUG: 'false',
-        LOG_LEVEL: 'info'
+        LOG_LEVEL: 'error'             // Only errors to reduce overhead
       },
       
       // Environment variables for development
@@ -82,22 +82,22 @@ module.exports = {
       error_file: './logs/error.log',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
       
-      // Advanced PM2 features
-      min_uptime: '10s', // Minimum uptime before considering a restart successful
-      max_restarts: 10, // Maximum number of restarts within restart_delay period
-      restart_delay: 4000, // Delay between restarts in milliseconds
+      // Advanced PM2 features - CONSERVATIVE SETTINGS
+      min_uptime: '30s', // Minimum uptime before considering a restart successful
+      max_restarts: 3, // Maximum number of restarts within restart_delay period (reduced)
+      restart_delay: 10000, // Delay between restarts in milliseconds (increased to 10s)
       
       // Monitoring
       monitoring: false, // Set to true to enable PM2 Plus monitoring
       
-      // Resource limits
-      max_memory_restart: '2G',
+      // Resource limits - CONSERVATIVE FOR 2GB RAM
+      max_memory_restart: '800M', // Conservative memory limit
       
-      // Process signals
-      kill_timeout: 5000, // Time to wait before force killing the process
+      // Process signals - EXTENDED TIMEOUTS
+      kill_timeout: 10000, // Time to wait before force killing the process (increased)
       
-      // Graceful shutdown
-      listen_timeout: 3000,
+      // Graceful shutdown - EXTENDED TIMEOUTS
+      listen_timeout: 8000, // Increased timeout for server startup
       
       // Health check (if using PM2 Plus)
       health_check_path: '/api/health',

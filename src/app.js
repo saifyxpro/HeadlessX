@@ -29,20 +29,40 @@
  * Updated: September 15, 2025
  */
 
+console.log('🔍 DEBUG: Starting app.js...');
+
 const express = require('express');
+console.log('🔍 DEBUG: Express loaded');
+
 const bodyParser = require('body-parser');
+console.log('🔍 DEBUG: BodyParser loaded');
 
 // Import configuration and services
+console.log('🔍 DEBUG: Loading config...');
 const config = require('./config');
+console.log('🔍 DEBUG: Config loaded');
+
+console.log('🔍 DEBUG: Loading browser service...');
 const browserService = require('./services/browser');
+console.log('🔍 DEBUG: Browser service loaded');
+
+console.log('🔍 DEBUG: Loading logger...');
 const { logger } = require('./utils/logger');
+console.log('🔍 DEBUG: Logger loaded');
 
 // Import middleware
+console.log('🔍 DEBUG: Loading middleware...');
 const { errorHandler, notFoundHandler } = require('./middleware/error');
+console.log('🔍 DEBUG: Middleware loaded');
 
 // Import routes
+console.log('🔍 DEBUG: Loading routes...');
 const apiRoutes = require('./routes/api');
+console.log('🔍 DEBUG: API routes loaded');
 const staticRoutes = require('./routes/static');
+console.log('🔍 DEBUG: Static routes loaded');
+
+console.log('🔍 DEBUG: All modules loaded successfully!');
 
 // Create Express application
 const app = express();
@@ -164,17 +184,12 @@ function startServer() {
 if (require.main === module) {
     console.log('🔄 Initializing server...');
     
-    // Force start server even if something hangs
-    setTimeout(() => {
-        console.log('⚡ Force starting server (timeout protection)');
-        startServer();
-    }, 500);
-    
-    // Also try immediate start
+    // Start server with single initialization
     try {
         startServer();
     } catch (error) {
-        console.log('⚠️ Immediate start failed, waiting for timeout start:', error.message);
+        console.error('❌ Server startup failed:', error.message);
+        process.exit(1);
     }
 }
 
