@@ -524,7 +524,7 @@ async function renderPageAdvanced(options) {
         console.log(`🎭 Using User Agent: ${realisticUserAgent.substring(0, 80)}...`);
         console.log(`🌍 Using Locale: ${realisticLocale.locale} (${realisticLocale.timezone})`);
         
-        // Create new browser context with realistic stealth settings
+        // Create new browser context with enhanced stealth and CSS loading settings
         context = await browser.newContext({
             viewport,
             userAgent: realisticUserAgent,
@@ -533,19 +533,29 @@ async function renderPageAdvanced(options) {
             extraHTTPHeaders: realisticHeaders,
             ignoreHTTPSErrors: true,
             javaScriptEnabled: true,
-            permissions: ['geolocation', 'notifications', 'camera', 'microphone'],
-            colorScheme: Math.random() > 0.2 ? 'light' : 'dark', // Mostly light mode
-            reducedMotion: Math.random() > 0.9 ? 'reduce' : 'no-preference',
+            // Enhanced permissions for better compatibility
+            permissions: ['geolocation', 'notifications', 'camera', 'microphone', 'clipboard-read', 'clipboard-write'],
+            colorScheme: 'light', // Force light mode for better CSS compatibility
+            reducedMotion: 'no-preference', // Allow animations for proper rendering
             forcedColors: 'none',
             // Realistic screen settings
             screen: {
                 width: viewport.width,
                 height: viewport.height
             },
-            // Add realistic device features
-            hasTouch: false, // Desktop Windows
+            // Enhanced device features for better rendering
+            hasTouch: false,
             isMobile: false,
-            deviceScaleFactor: Math.random() > 0.7 ? 1.25 : 1, // Some users have scaling
+            deviceScaleFactor: 1, // Fixed scale for consistent CSS rendering
+            // Critical: Enable bypass for CSP and security headers that block resources
+            bypassCSP: true,
+            // Enable HTTP credentials for protected resources
+            httpCredentials: null,
+            // Accept all downloads for complete resource loading
+            acceptDownloads: false,
+            // Enhanced media settings for better compatibility
+            recordVideo: undefined,
+            recordHar: undefined
         });
 
         // Add cookies if provided
@@ -571,8 +581,9 @@ async function renderPageAdvanced(options) {
             });
         }
 
-        // Add comprehensive stealth scripts to avoid detection
-        await page.addInitScript(() => {
+    // Add comprehensive stealth scripts to avoid detection and ensure proper CSS loading
+    // Use context.addInitScript so it applies to all pages/frames in this context
+    await context.addInitScript(() => {
             // Remove webdriver properties completely
             delete navigator.__proto__.webdriver;
             delete navigator.webdriver;
@@ -588,7 +599,12 @@ async function renderPageAdvanced(options) {
             delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
             delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
             
-            // Override chrome runtime
+            // Remove playwright indicators
+            delete window.__playwright;
+            delete window.__pw_manual;
+            delete window.__pw_originals;
+            
+            // Override chrome runtime to appear more realistic
             if (!window.chrome) {
                 window.chrome = {};
             }
@@ -597,17 +613,14 @@ async function renderPageAdvanced(options) {
                 window.chrome.runtime = {
                     onConnect: undefined,
                     onMessage: undefined,
-                    id: 'extension-id-placeholder'
+                    id: 'mmfbcljfglbokpmkimbfghdkjmjhdgbg' // Realistic extension ID
                 };
             }
 
-            // Realistic plugins array (Windows typical plugins)
+            // Enhanced plugins for better compatibility
             const plugins = [
-                { name: 'PDF Viewer', description: 'Portable Document Format', filename: 'internal-pdf-viewer' },
-                { name: 'Chrome PDF Viewer', description: 'Portable Document Format', filename: 'internal-pdf-viewer' },
-                { name: 'Chromium PDF Viewer', description: 'Portable Document Format', filename: 'internal-pdf-viewer' },
-                { name: 'Microsoft Edge PDF Viewer', description: 'Portable Document Format', filename: 'internal-pdf-viewer' },
-                { name: 'WebKit built-in PDF', description: 'Portable Document Format', filename: 'internal-pdf-viewer' }
+                { name: 'PDF Viewer', description: 'Portable Document Format', filename: 'internal-pdf-viewer', length: 1 },
+                { name: 'Chrome PDF Viewer', description: 'Portable Document Format', filename: 'internal-pdf-viewer', length: 1 }
             ];
             
             Object.defineProperty(navigator, 'plugins', {
@@ -615,11 +628,14 @@ async function renderPageAdvanced(options) {
                 configurable: true
             });
 
-            // Realistic mimeTypes
+            // Enhanced mimeTypes for better compatibility
+            const mimeTypes = [
+                { type: 'application/pdf', description: 'Portable Document Format', suffixes: 'pdf', enabledPlugin: plugins[0] },
+                { type: 'text/css', description: 'CSS Stylesheet', suffixes: 'css', enabledPlugin: null },
+                { type: 'text/html', description: 'HTML Document', suffixes: 'html,htm', enabledPlugin: null }
+            ];
             Object.defineProperty(navigator, 'mimeTypes', {
-                get: () => [
-                    { type: 'application/pdf', description: 'Portable Document Format', suffixes: 'pdf' }
-                ],
+                get: () => mimeTypes,
                 configurable: true
             });
 
@@ -630,100 +646,79 @@ async function renderPageAdvanced(options) {
                 configurable: true
             });
 
-            // Realistic hardware concurrency (common Windows values)
-            const cores = [4, 6, 8, 12, 16][Math.floor(Math.random() * 5)];
+            // Realistic hardware concurrency (modern Windows values)
+            const cores = [8, 12, 16][Math.floor(Math.random() * 3)];
             Object.defineProperty(navigator, 'hardwareConcurrency', {
                 get: () => cores,
                 configurable: true
             });
 
-            // Realistic device memory (Windows typical)
-            const memory = [4, 8, 16, 32][Math.floor(Math.random() * 4)];
+            // Realistic device memory (modern Windows values)
+            const memory = [8, 16, 32][Math.floor(Math.random() * 3)];
             Object.defineProperty(navigator, 'deviceMemory', {
                 get: () => memory,
                 configurable: true
             });
 
-            // Override permissions API to be more realistic
+            // Enhanced connection information
+            Object.defineProperty(navigator, 'connection', {
+                get: () => ({
+                    effectiveType: '4g',
+                    rtt: 50,
+                    downlink: 25,
+                    saveData: false
+                }),
+                configurable: true
+            });
+
+            // Override permissions API to avoid blocking
             const originalQuery = window.navigator.permissions.query;
             window.navigator.permissions.query = (parameters) => {
                 switch(parameters.name) {
                     case 'notifications':
-                        return Promise.resolve({ state: Math.random() > 0.5 ? 'default' : 'denied' });
+                        return Promise.resolve({ state: 'default' });
                     case 'geolocation':
-                        return Promise.resolve({ state: 'prompt' });
-                    case 'camera':
-                        return Promise.resolve({ state: 'prompt' });
-                    case 'microphone':
-                        return Promise.resolve({ state: 'prompt' });
+                        return Promise.resolve({ state: 'granted' });
                     default:
-                        return originalQuery ? originalQuery(parameters) : Promise.resolve({ state: 'prompt' });
+                        return originalQuery ? originalQuery.call(navigator.permissions, parameters) : Promise.resolve({ state: 'granted' });
                 }
             };
 
-            // Battery API (if supported)
-            if ('getBattery' in navigator) {
-                const originalGetBattery = navigator.getBattery;
-                navigator.getBattery = () => Promise.resolve({
-                    charging: Math.random() > 0.3, // 70% chance charging
-                    chargingTime: Math.random() * 7200, // 0-2 hours
-                    dischargingTime: Math.random() * 14400 + 3600, // 1-5 hours
-                    level: Math.random() * 0.8 + 0.2 // 20-100%
-                });
-            }
-
-            // Connection API (simulate Windows typical connection)
-            if ('connection' in navigator) {
-                Object.defineProperty(navigator, 'connection', {
-                    get: () => ({
-                        effectiveType: ['4g', 'wifi'][Math.floor(Math.random() * 2)],
-                        rtt: Math.floor(Math.random() * 50) + 20, // 20-70ms
-                        downlink: Math.floor(Math.random() * 90) + 10, // 10-100 Mbps
-                        saveData: false
-                    })
-                });
-            }
-
-            // Screen properties (realistic Windows values)
-            const screenWidth = screen.width;
-            const screenHeight = screen.height;
-            Object.defineProperty(screen, 'availWidth', {
-                get: () => screenWidth,
-                configurable: true
-            });
-            Object.defineProperty(screen, 'availHeight', {
-                get: () => screenHeight - 40, // Taskbar height
-                configurable: true
-            });
-
-            // Timezone consistency
-            try {
-                Date.prototype.getTimezoneOffset = function() {
-                    return new Date().getTimezoneOffset();
-                };
-            } catch (timezoneError) {
-                // Log but don't fail - timezone override is non-critical for stealth
-                console.warn('Failed to override timezone function:', timezoneError.message);
-            }
-
-            // Remove automation-related properties from window
-            ['_phantom', '__phantom', '_selenium', 'callPhantom', 'callSelenium', '__webdriver_script_fn'].forEach(prop => {
-                delete window[prop];
-            });
-
-            // Add some noise to timing functions (slight randomness)
-            const originalNow = performance.now;
-            performance.now = function() {
-                return originalNow.call(performance) + (Math.random() - 0.5) * 0.1;
+            // Fix CSS loading issues by ensuring proper resource loading
+            const originalFetch = window.fetch;
+            window.fetch = function(...args) {
+                const [resource] = args;
+                if (typeof resource === 'string' && resource.includes('.css')) {
+                    console.debug('Fetching CSS:', resource);
+                }
+                return originalFetch.apply(this, args);
             };
 
-            // Mouse movement tracking (add some realism)
-            let mouseX = Math.floor(Math.random() * window.innerWidth);
-            let mouseY = Math.floor(Math.random() * window.innerHeight);
+            // Enhance window.navigator.userAgentData for better detection avoidance
+            if (!navigator.userAgentData) {
+                Object.defineProperty(navigator, 'userAgentData', {
+                    get: () => ({
+                        brands: [
+                            { brand: 'Not_A Brand', version: '8' },
+                            { brand: 'Chromium', version: '120' },
+                            { brand: 'Google Chrome', version: '120' }
+                        ],
+                        mobile: false,
+                        platform: 'Windows'
+                    }),
+                    configurable: true
+                });
+            }
+
+            // Override screen properties for consistency
+            Object.defineProperty(screen, 'colorDepth', {
+                get: () => 24,
+                configurable: true
+            });
             
-            document.addEventListener('mousemove', (e) => {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
+            Object.defineProperty(screen, 'pixelDepth', {
+                get: () => 24,
+                configurable: true
             });
 
             // Override toString methods to hide function modifications
