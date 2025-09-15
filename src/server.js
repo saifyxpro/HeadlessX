@@ -32,6 +32,109 @@ const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
 
+// Error categorization system for proper handling
+class HeadlessXError extends Error {
+    constructor(message, category = 'unknown', isRecoverable = false, originalError = null) {
+        super(message);
+        this.name = 'HeadlessXError';
+        this.category = category; // 'network', 'timeout', 'validation', 'resource', 'browser', 'script'
+        this.isRecoverable = isRecoverable;
+        this.originalError = originalError;
+        this.timestamp = new Date().toISOString();
+    }
+}
+
+// Error categories for classification
+const ERROR_CATEGORIES = {
+    NETWORK: 'network',           // Network connectivity issues
+    TIMEOUT: 'timeout',           // Operation timeouts
+    VALIDATION: 'validation',     // Input validation failures
+    RESOURCE: 'resource',         // Resource exhaustion (memory, browser contexts)
+    BROWSER: 'browser',           // Browser/page issues
+    SCRIPT: 'script',            // JavaScript execution errors
+    AUTHENTICATION: 'auth',       // Authentication failures
+    RATE_LIMIT: 'rate_limit'     // Rate limiting errors
+};
+
+// Enhanced logging system with error categorization
+function createStructuredLogger() {
+    return {
+        info: (requestId, message, data = {}) => {
+            const timestamp = new Date().toISOString();
+            console.log(`[${timestamp}] [${requestId}] [INFO] ${message}`, 
+                Object.keys(data).length > 0 ? JSON.stringify(data) : '');
+        },
+        warn: (requestId, message, data = {}) => {
+            const timestamp = new Date().toISOString();
+            console.log(`[${timestamp}] [${requestId}] [WARN] ${message}`, 
+                Object.keys(data).length > 0 ? JSON.stringify(data) : '');
+        },
+        error: (requestId, message, error = null, data = {}) => {
+            const timestamp = new Date().toISOString();
+            const errorInfo = error ? {
+                message: error.message,
+                category: error.category || 'unknown',
+                isRecoverable: error.isRecoverable || false,
+                stack: error.stack
+            } : {};
+            console.error(`[${timestamp}] [${requestId}] [ERROR] ${message}`, 
+                JSON.stringify({ ...errorInfo, ...data }));
+        },
+        debug: (requestId, message, data = {}) => {
+            if (process.env.DEBUG === 'true') {
+                const timestamp = new Date().toISOString();
+                console.log(`[${timestamp}] [${requestId}] [DEBUG] ${message}`, 
+                    Object.keys(data).length > 0 ? JSON.stringify(data) : '');
+            }
+        }
+    };
+}
+
+const logger = createStructuredLogger();
+
+// Generate unique request ID for correlation
+function generateRequestId() {
+    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// Enhanced error handler for proper categorization and response
+function handleError(error, requestId, context = '') {
+    let categorizedError;
+    
+    if (error instanceof HeadlessXError) {
+        categorizedError = error;
+    } else {
+        // Categorize common errors
+        let category = ERROR_CATEGORIES.BROWSER;
+        let isRecoverable = false;
+        
+        if (error.message.includes('timeout') || error.name === 'TimeoutError') {
+            category = ERROR_CATEGORIES.TIMEOUT;
+            isRecoverable = true;
+        } else if (error.message.includes('net::') || error.message.includes('NetworkError')) {
+            category = ERROR_CATEGORIES.NETWORK;
+            isRecoverable = true;
+        } else if (error.message.includes('Script') || error.message.includes('evaluate')) {
+            category = ERROR_CATEGORIES.SCRIPT;
+            isRecoverable = false;
+        } else if (error.message.includes('Memory') || error.message.includes('context')) {
+            category = ERROR_CATEGORIES.RESOURCE;
+            isRecoverable = true;
+        }
+        
+        categorizedError = new HeadlessXError(
+            error.message,
+            category,
+            isRecoverable,
+            error
+        );
+    }
+    
+    logger.error(requestId, `${context}: ${categorizedError.message}`, categorizedError);
+    
+    return categorizedError;
+}
+
 // Load environment variables if .env file exists
 try {
     if (fs.existsSync('.env')) {
@@ -48,6 +151,12 @@ try {
 }
 
 const app = express();
+
+// Import and configure rate limiter
+const rateLimiter = require('./rate-limiter');
+
+// Apply rate limiting before other middleware
+app.use('/api', rateLimiter.middleware());
 
 // Middleware
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -168,105 +277,165 @@ function generateRealisticHeaders(userAgent, customHeaders = {}) {
     return { ...baseHeaders, ...customHeaders };
 }
 
-// Browser pool for better performance
+// Browser pool for better performance and isolation
 let browserInstance = null;
+const activeContexts = new Set(); // Track active contexts to prevent memory leaks
 
-// Initialize persistent browser
+// Generate unique request correlation ID for debugging
+function generateRequestId() {
+    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// Structured logging with correlation IDs
+function logWithId(requestId, level, message, data = {}) {
+    const timestamp = new Date().toISOString();
+    const logEntry = {
+        timestamp,
+        requestId,
+        level,
+        message,
+        ...data
+    };
+    console.log(`[${timestamp}] [${requestId}] [${level.toUpperCase()}] ${message}`, 
+        Object.keys(data).length > 0 ? JSON.stringify(data) : '');
+}
+
+// Initialize persistent browser with better error handling
 async function getBrowser() {
     if (!browserInstance || !browserInstance.isConnected()) {
         console.log('🚀 Launching new realistic browser instance...');
-        browserInstance = await chromium.launch({
-            headless: true,
-            args: [
-                // Security & Sandboxing (required for servers)
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                
-                // Stealth & Anti-Detection
-                '--disable-blink-features=AutomationControlled',
-                '--disable-features=VizDisplayCompositor',
-                '--disable-component-extensions-with-background-pages',
-                '--no-default-browser-check',
-                '--no-first-run',
-                '--disable-default-apps',
-                '--disable-extensions',
-                '--disable-plugins-discovery',
-                '--disable-prompt-on-repost',
-                '--disable-hang-monitor',
-                '--disable-ipc-flooding-protection',
-                '--disable-popup-blocking',
-                '--disable-backgrounding-occluded-windows',
-                '--disable-background-timer-throttling',
-                '--disable-renderer-backgrounding',
-                '--disable-field-trial-config',
-                '--disable-back-forward-cache',
-                
-                // Performance & Memory
-                '--memory-pressure-off',
-                '--disable-client-side-phishing-detection',
-                '--disable-sync',
-                '--disable-translate',
-                '--disable-background-networking',
-                '--disable-domain-reliability',
-                '--disable-component-update',
-                '--disable-features=TranslateUI',
-                '--disable-features=BlinkGenPropertyTrees',
-                
-                // Media & Hardware
-                '--disable-accelerated-2d-canvas',
-                '--disable-gpu',
-                '--disable-gpu-sandbox',
-                '--disable-software-rasterizer',
-                '--disable-gl-drawing-for-tests',
-                '--no-zygote',
-                
-                // Realistic Windows Chrome flags
-                '--enable-features=NetworkService,NetworkServiceInProcess',
-                '--enable-automation=false',
-                '--password-store=basic',
-                '--use-mock-keychain',
-                '--disable-web-security', // Only for scraping
-                
-                // Window & Display settings
-                '--force-device-scale-factor=1',
-                '--hide-scrollbars',
-                '--mute-audio',
-                '--disable-logging',
-                '--disable-gpu-logging',
-                '--silent',
-                '--log-level=3',
-                '--disable-dev-tools',
-                
-                // Network & Privacy
-                '--disable-features=VizDisplayCompositor,VizHitTestSurfaceLayer',
-                '--disable-breakpad',
-                '--disable-crash-reporter',
-                '--disable-metrics',
-                '--disable-metrics-reporting',
-                '--no-report-upload',
-                
-                // Additional stealth
-                '--user-agent-override-header', // Will be set by context
-                '--disable-automation',
-                '--exclude-switches=enable-automation',
-                '--disable-blink-features=AutomationControlled'
-            ],
-            // Additional launch options for realism
-            ignoreDefaultArgs: [
-                '--enable-automation',
-                '--enable-blink-features=IdleDetection'
-            ],
-            env: {
-                ...process.env,
-                // Remove automation indicators from environment
-                'PLAYWRIGHT_DOWNLOAD_HOST': undefined,
-                'PLAYWRIGHT_BROWSERS_PATH': undefined
-            }
-        });
-        console.log('✅ Realistic browser launched successfully');
+        try {
+            browserInstance = await chromium.launch({
+                headless: true,
+                args: [
+                    // Security & Sandboxing (required for servers)
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    
+                    // Stealth & Anti-Detection
+                    '--disable-blink-features=AutomationControlled',
+                    '--disable-features=VizDisplayCompositor',
+                    '--disable-component-extensions-with-background-pages',
+                    '--no-default-browser-check',
+                    '--no-first-run',
+                    '--disable-default-apps',
+                    '--disable-extensions',
+                    '--disable-plugins-discovery',
+                    '--disable-prompt-on-repost',
+                    '--disable-hang-monitor',
+                    '--disable-ipc-flooding-protection',
+                    '--disable-popup-blocking',
+                    '--disable-backgrounding-occluded-windows',
+                    '--disable-background-timer-throttling',
+                    '--disable-renderer-backgrounding',
+                    '--disable-field-trial-config',
+                    '--disable-back-forward-cache',
+                    
+                    // Performance & Memory
+                    '--memory-pressure-off',
+                    '--disable-client-side-phishing-detection',
+                    '--disable-sync',
+                    '--disable-translate',
+                    '--disable-background-networking',
+                    '--disable-domain-reliability',
+                    '--disable-component-update',
+                    '--disable-features=TranslateUI',
+                    '--disable-features=BlinkGenPropertyTrees',
+                    
+                    // Media & Hardware
+                    '--disable-accelerated-2d-canvas',
+                    '--disable-gpu',
+                    '--disable-gpu-sandbox',
+                    '--disable-software-rasterizer',
+                    '--disable-gl-drawing-for-tests',
+                    '--no-zygote',
+                    
+                    // Realistic Windows Chrome flags
+                    '--enable-features=NetworkService,NetworkServiceInProcess',
+                    '--enable-automation=false',
+                    '--password-store=basic',
+                    '--use-mock-keychain',
+                    '--disable-web-security', // Only for scraping
+                    
+                    // Window & Display settings
+                    '--force-device-scale-factor=1',
+                    '--hide-scrollbars',
+                    '--mute-audio',
+                    '--disable-logging',
+                    '--disable-gpu-logging',
+                    '--silent',
+                    '--log-level=3',
+                    '--disable-dev-tools',
+                    
+                    // Network & Privacy
+                    '--disable-features=VizDisplayCompositor,VizHitTestSurfaceLayer',
+                    '--disable-breakpad',
+                    '--disable-crash-reporter',
+                    '--disable-metrics',
+                    '--disable-metrics-reporting',
+                    '--no-report-upload',
+                    
+                    // Additional stealth
+                    '--user-agent-override-header', // Will be set by context
+                    '--disable-automation',
+                    '--exclude-switches=enable-automation',
+                    '--disable-blink-features=AutomationControlled'
+                ],
+                // Additional launch options for realism
+                ignoreDefaultArgs: [
+                    '--enable-automation',
+                    '--enable-blink-features=IdleDetection'
+                ],
+                env: {
+                    ...process.env,
+                    // Remove automation indicators from environment
+                    'PLAYWRIGHT_DOWNLOAD_HOST': undefined,
+                    'PLAYWRIGHT_BROWSERS_PATH': undefined
+                }
+            });
+            console.log('✅ Realistic browser launched successfully');
+            
+            // Handle browser disconnect
+            browserInstance.on('disconnected', () => {
+                console.log('⚠️ Browser disconnected, cleaning up contexts...');
+                browserInstance = null;
+                // Clean up active contexts
+                activeContexts.clear();
+            });
+            
+        } catch (error) {
+            console.error('❌ Failed to launch browser:', error);
+            throw new Error(`Browser launch failed: ${error.message}`);
+        }
     }
     return browserInstance;
+}
+
+// Clean context management function
+async function createIsolatedContext(browser, options = {}) {
+    const context = await browser.newContext(options);
+    activeContexts.add(context);
+    
+    // Auto-cleanup on close
+    context.on('close', () => {
+        activeContexts.delete(context);
+    });
+    
+    return context;
+}
+
+// Safe context cleanup
+async function safeCloseContext(context, requestId) {
+    if (context && !context._closed) {
+        try {
+            await context.close();
+            activeContexts.delete(context);
+            logWithId(requestId, 'debug', 'Context closed successfully');
+        } catch (error) {
+            logWithId(requestId, 'error', 'Failed to close context', { error: error.message });
+        }
+    }
 }
 
 // Enhanced timeout handler function with fallback
@@ -319,8 +488,8 @@ async function renderPageAdvanced(options) {
     const {
         url,
         waitUntil = 'networkidle',
-        timeout = 60000,
-        extraWaitTime = 10000,
+        timeout = 120000, // Increased from 60000 to 120000ms
+        extraWaitTime = 15000, // Increased from 10000 to 15000ms
         userAgent,
         cookies = [],
         headers = {},
@@ -332,7 +501,7 @@ async function renderPageAdvanced(options) {
         customScript = null,
         waitForNetworkIdle = true,
         captureConsole = false,
-        returnPartialOnTimeout = true, // New option to return partial content on timeout
+        returnPartialOnTimeout = false, // Changed default to false - prioritize complete execution
         fullPage = false,
         screenshotPath = null,
         screenshotFormat = 'png',
@@ -387,9 +556,9 @@ async function renderPageAdvanced(options) {
         // Create page
         page = await context.newPage();
 
-        // Set shorter individual timeouts but handle them gracefully
-        page.setDefaultTimeout(Math.min(timeout / 2, 30000));
-        page.setDefaultNavigationTimeout(Math.min(timeout, 60000));
+        // Set adequate timeouts for complete JavaScript execution
+        page.setDefaultTimeout(60000); // Increased from timeout/2 to fixed 60000ms
+        page.setDefaultNavigationTimeout(timeout); // Keep full timeout for navigation
 
         // Capture console logs if requested
         if (captureConsole) {
@@ -532,7 +701,10 @@ async function renderPageAdvanced(options) {
                 Date.prototype.getTimezoneOffset = function() {
                     return new Date().getTimezoneOffset();
                 };
-            } catch (e) {}
+            } catch (timezoneError) {
+                // Log but don't fail - timezone override is non-critical for stealth
+                console.warn('Failed to override timezone function:', timezoneError.message);
+            }
 
             // Remove automation-related properties from window
             ['_phantom', '__phantom', '_selenium', 'callPhantom', 'callSelenium', '__webdriver_script_fn'].forEach(prop => {
@@ -597,94 +769,131 @@ async function renderPageAdvanced(options) {
             timeout
         );
 
-        // Continue with dynamic content loading (with shorter timeouts due to potential initial timeout)
-        const remainingTime = wasTimeout ? Math.min(extraWaitTime, 5000) : extraWaitTime;
+        // Continue with dynamic content loading - always execute JavaScript features
+        const remainingTime = extraWaitTime; // Always use full extra wait time
         
-        if (!wasTimeout) {
-            console.log('📄 Page loaded, waiting for dynamic content...');
+        console.log('📄 Page loaded, waiting for dynamic content...');
+        
+        // Wait for specific selectors if provided (with increased timeout)
+        if (waitForSelectors.length > 0) {
+            console.log(`⏳ Waiting for selectors: ${waitForSelectors.join(', ')}`);
+            for (const selector of waitForSelectors) {
+                try {
+                    await withTimeoutFallback(
+                        () => page.waitForSelector(selector, { timeout: 30000 }), // Increased from 15000 to 30000ms
+                        () => {
+                            console.log(`⚠️ Selector timeout (continuing): ${selector}`);
+                            return Promise.resolve();
+                        },
+                        30000
+                    );
+                    console.log(`✅ Found selector: ${selector}`);
+                } catch (e) {
+                    console.log(`⚠️ Selector not found: ${selector}`);
+                }
+            }
+        }
+
+        // Click elements if specified (with increased timeout)
+        if (clickSelectors.length > 0) {
+            console.log(`🖱️ Clicking elements: ${clickSelectors.join(', ')}`);
+            for (const selector of clickSelectors) {
+                try {
+                    await withTimeoutFallback(
+                        async () => {
+                            await page.click(selector);
+                            await page.waitForTimeout(2000);
+                            console.log(`✅ Clicked: ${selector}`);
+                        },
+                        () => {
+                            console.log(`⚠️ Click timeout (continuing): ${selector}`);
+                            return Promise.resolve();
+                        },
+                        20000 // Increased from 10000 to 20000ms
+                    );
+                } catch (e) {
+                    console.log(`⚠️ Could not click: ${selector}`);
+                }
+            }
+        }
+
+        // Always simulate human-like behavior for complete rendering
+        console.log('🎭 Simulating human behavior...');
+        try {
+            await simulateHumanBehavior(page);
+        } catch (behaviorError) {
+            // Human behavior simulation failure is non-critical but should be logged
+            const requestId = generateRequestId();
+            const categorizedError = handleError(behaviorError, requestId, 'Human behavior simulation');
             
-            // Wait for specific selectors if provided (with timeout handling)
-            if (waitForSelectors.length > 0) {
-                console.log(`⏳ Waiting for selectors: ${waitForSelectors.join(', ')}`);
-                for (const selector of waitForSelectors) {
-                    try {
-                        await withTimeoutFallback(
-                            () => page.waitForSelector(selector, { timeout: 15000 }),
-                            () => {
-                                console.log(`⚠️ Selector timeout (continuing): ${selector}`);
-                                return Promise.resolve();
-                            },
-                            15000
-                        );
-                        console.log(`✅ Found selector: ${selector}`);
-                    } catch (e) {
-                        console.log(`⚠️ Selector not found: ${selector}`);
-                    }
-                }
+            // Only continue if this is a recoverable error
+            if (categorizedError.isRecoverable) {
+                logger.warn(requestId, 'Human behavior simulation failed but continuing', { 
+                    error: categorizedError.message,
+                    category: categorizedError.category 
+                });
+            } else {
+                // Non-recoverable behavior errors might indicate page issues
+                throw new HeadlessXError(
+                    `Human behavior simulation failed: ${behaviorError.message}`,
+                    ERROR_CATEGORIES.BROWSER,
+                    false,
+                    behaviorError
+                );
             }
+        }
 
-            // Click elements if specified (with timeout handling)
-            if (clickSelectors.length > 0) {
-                console.log(`🖱️ Clicking elements: ${clickSelectors.join(', ')}`);
-                for (const selector of clickSelectors) {
-                    try {
-                        await withTimeoutFallback(
-                            async () => {
-                                await page.click(selector);
-                                await page.waitForTimeout(2000);
-                                console.log(`✅ Clicked: ${selector}`);
-                            },
-                            () => {
-                                console.log(`⚠️ Click timeout (continuing): ${selector}`);
-                                return Promise.resolve();
-                            },
-                            10000
-                        );
-                    } catch (e) {
-                        console.log(`⚠️ Could not click: ${selector}`);
-                    }
-                }
-            }
-
-            // Simulate human-like behavior (mouse movements, interactions)
-            console.log('🎭 Simulating human behavior...');
+        // Always scroll to bottom to trigger lazy loading
+        if (scrollToBottom) {
+            console.log('📜 Scrolling to load all content...');
             try {
-                await simulateHumanBehavior(page);
-            } catch (e) {
-                console.log('⚠️ Human behavior simulation failed, continuing...');
+                await withTimeoutFallback(
+                    () => autoScroll(page),
+                    () => {
+                        console.log('⚠️ Scroll timeout (continuing)');
+                        return Promise.resolve();
+                    },
+                    25000 // Increased from 15000 to 25000ms
+                );
+            } catch (scrollError) {
+                // Scrolling failure might indicate page loading issues
+                const requestId = generateRequestId();
+                const categorizedError = handleError(scrollError, requestId, 'Page scrolling');
+                
+                // Scrolling errors are usually recoverable but important for lazy loading
+                logger.warn(requestId, 'Page scrolling failed - some content may not be loaded', { 
+                    error: categorizedError.message,
+                    category: categorizedError.category,
+                    impact: 'Some lazy-loaded content may be missing' 
+                });
             }
+        }
 
-            // Scroll to bottom to trigger lazy loading (with timeout handling)
-            if (scrollToBottom) {
-                console.log('📜 Scrolling to load all content...');
-                try {
-                    await withTimeoutFallback(
-                        () => autoScroll(page),
-                        () => {
-                            console.log('⚠️ Scroll timeout (continuing)');
-                            return Promise.resolve();
-                        },
-                        15000
-                    );
-                } catch (e) {
-                    console.log('⚠️ Scrolling failed, continuing...');
-                }
-            }
-
-            // Wait for network to be idle (with timeout handling)
-            if (waitForNetworkIdle) {
-                console.log('🌐 Waiting for network idle...');
-                try {
-                    await withTimeoutFallback(
-                        () => page.waitForLoadState('networkidle', { timeout: 20000 }),
-                        () => {
-                            console.log('⚠️ Network idle timeout (continuing)');
-                            return Promise.resolve();
-                        },
-                        20000
-                    );
-                } catch (e) {
-                    console.log('⚠️ Network idle wait failed, continuing...');
+        // Always wait for network to be idle
+        if (waitForNetworkIdle) {
+            console.log('🌐 Waiting for network idle...');
+            try {
+                await withTimeoutFallback(
+                    () => page.waitForLoadState('networkidle', { timeout: 30000 }), // Increased from 20000 to 30000ms
+                    () => {
+                        console.log('⚠️ Network idle timeout (continuing)');
+                        return Promise.resolve();
+                    },
+                    30000
+                );
+            } catch (networkError) {
+                // Network idle failure might indicate ongoing network activity
+                const requestId = generateRequestId();
+                const categorizedError = handleError(networkError, requestId, 'Network idle wait');
+                
+                // Network errors can be recoverable but affect content completeness
+                if (categorizedError.category === ERROR_CATEGORIES.NETWORK) {
+                    logger.warn(requestId, 'Network still active - content may be incomplete', { 
+                        error: categorizedError.message,
+                        impact: 'Dynamic content may still be loading' 
+                    });
+                } else {
+                    logger.error(requestId, 'Network idle wait failed unexpectedly', categorizedError);
                 }
             }
         }
@@ -695,8 +904,8 @@ async function renderPageAdvanced(options) {
             await page.waitForTimeout(remainingTime);
         }
 
-        // Execute custom script if provided (with timeout handling)
-        if (customScript && !wasTimeout) {
+        // Execute custom script if provided (with increased timeout)
+        if (customScript) {
             console.log('🔧 Executing custom script...');
             try {
                 await withTimeoutFallback(
@@ -705,15 +914,33 @@ async function renderPageAdvanced(options) {
                         console.log('⚠️ Custom script timeout (continuing)');
                         return Promise.resolve();
                     },
-                    10000
+                    20000 // Increased from 10000 to 20000ms
                 );
-            } catch (e) {
-                console.log('⚠️ Custom script failed, continuing...');
+            } catch (scriptError) {
+                // Custom script errors are often non-recoverable and should be reported
+                const requestId = generateRequestId();
+                const categorizedError = handleError(scriptError, requestId, 'Custom script execution');
+                
+                // Script errors should be treated seriously as they might break functionality
+                if (categorizedError.category === ERROR_CATEGORIES.SCRIPT) {
+                    throw new HeadlessXError(
+                        `Custom script execution failed: ${scriptError.message}`,
+                        ERROR_CATEGORIES.SCRIPT,
+                        false,
+                        scriptError
+                    );
+                } else {
+                    // Timeout or other recoverable errors
+                    logger.warn(requestId, 'Custom script execution failed but continuing', { 
+                        error: categorizedError.message,
+                        category: categorizedError.category 
+                    });
+                }
             }
         }
 
-        // Remove unwanted elements (with timeout handling)
-        if (removeElements.length > 0 && !wasTimeout) {
+        // Always remove unwanted elements
+        if (removeElements.length > 0) {
             console.log(`🗑️ Removing elements: ${removeElements.join(', ')}`);
             for (const selector of removeElements) {
                 try {
@@ -739,8 +966,17 @@ async function renderPageAdvanced(options) {
                     quality: screenshotFormat === 'jpeg' ? 90 : undefined
                 });
                 console.log(`✅ Screenshot saved: ${screenshotPath}`);
-            } catch (e) {
-                console.log('⚠️ Screenshot failed, continuing...');
+            } catch (screenshotError) {
+                // Screenshot errors are usually resource-related and should be logged
+                const requestId = generateRequestId();
+                const categorizedError = handleError(screenshotError, requestId, 'Screenshot generation');
+                
+                logger.warn(requestId, 'Screenshot generation failed', { 
+                    error: categorizedError.message,
+                    category: categorizedError.category,
+                    path: screenshotPath 
+                });
+                // Screenshot failure doesn't affect main functionality, so continue
             }
         }
 
@@ -756,8 +992,17 @@ async function renderPageAdvanced(options) {
                     margin: { top: '20px', right: '20px', bottom: '20px', left: '20px' }
                 });
                 console.log(`✅ PDF saved: ${pdfPath}`);
-            } catch (e) {
-                console.log('⚠️ PDF generation failed, continuing...');
+            } catch (pdfError) {
+                // PDF generation errors are usually resource-related
+                const requestId = generateRequestId();
+                const categorizedError = handleError(pdfError, requestId, 'PDF generation');
+                
+                logger.warn(requestId, 'PDF generation failed', { 
+                    error: categorizedError.message,
+                    category: categorizedError.category,
+                    path: pdfPath 
+                });
+                // PDF failure doesn't affect main functionality, so continue
             }
         }
 
@@ -825,12 +1070,12 @@ async function renderPageAdvanced(options) {
                 });
                 
                 const page2 = await context2.newPage();
-                page2.setDefaultTimeout(10000);
-                page2.setDefaultNavigationTimeout(15000);
+                page2.setDefaultTimeout(30000); // Increased from 10000 to 30000ms
+                page2.setDefaultNavigationTimeout(45000); // Increased from 15000 to 45000ms
                 
                 try {
-                    await page2.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 });
-                    await page2.waitForTimeout(3000); // Wait a bit for content
+                    await page2.goto(url, { waitUntil: 'networkidle', timeout: 45000 }); // Changed from domcontentloaded to networkidle
+                    await page2.waitForTimeout(5000); // Increased from 3000 to 5000ms for better content loading
                     
                     const content = await page2.content();
                     const title = await page2.title().catch(() => 'Unknown');
@@ -1180,6 +1425,33 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// Rate limit status endpoint (requires authentication)
+app.get('/api/ratelimit', (req, res) => {
+    try {
+        // Check authentication
+        const token = req.query.token || req.headers['x-token'] || req.headers['authorization']?.replace('Bearer ', '');
+        if (token !== AUTH_TOKEN) {
+            return res.status(401).json({ error: 'Unauthorized: Invalid token' });
+        }
+
+        const stats = rateLimiter.getStats();
+        res.json({
+            status: 'OK',
+            timestamp: new Date().toISOString(),
+            rateLimiting: {
+                ...stats,
+                description: 'Current rate limiting statistics and configuration'
+            }
+        });
+    } catch (error) {
+        console.error('❌ Rate limit status error:', error);
+        res.status(500).json({ 
+            error: 'Failed to get rate limit status', 
+            message: error.message 
+        });
+    }
+});
+
 // Status endpoint with server information (requires authentication)
 app.get('/api/status', (req, res) => {
     try {
@@ -1250,10 +1522,10 @@ app.post('/api/render', async (req, res) => {
 
         console.log(`🚀 Advanced rendering: ${url}`);
 
-        // Enable partial content return by default
+        // Disable partial content return by default - prioritize complete execution
         const options = { 
             ...req.body, 
-            returnPartialOnTimeout: req.body.returnPartialOnTimeout !== false 
+            returnPartialOnTimeout: req.body.returnPartialOnTimeout === true 
         };
         
         const result = await renderPageAdvanced(options);
@@ -1294,10 +1566,10 @@ app.post('/api/html', async (req, res) => {
 
         console.log(`🚀 Advanced HTML rendering: ${url}`);
 
-        // Enable partial content return by default
+        // Disable partial content return by default - prioritize complete execution
         const options = { 
             ...req.body, 
-            returnPartialOnTimeout: req.body.returnPartialOnTimeout !== false 
+            returnPartialOnTimeout: req.body.returnPartialOnTimeout === true 
         };
         
         const result = await renderPageAdvanced(options);
@@ -1354,7 +1626,7 @@ app.get('/api/html', async (req, res) => {
             scrollToBottom: req.query.scroll !== 'false',
             waitForNetworkIdle: req.query.networkIdle !== 'false',
             captureConsole: req.query.console === 'true',
-            returnPartialOnTimeout: req.query.returnPartial !== 'false' // Default to true
+            returnPartialOnTimeout: req.query.returnPartial === 'true' // Default to false - prioritize complete execution
         };
 
         // Parse arrays from query parameters
@@ -1413,10 +1685,10 @@ app.post('/api/content', async (req, res) => {
 
         console.log(`🚀 Advanced content extraction: ${url}`);
 
-        // Enable partial content return by default
+        // Disable partial content return by default - prioritize complete execution
         const options = { 
             ...req.body, 
-            returnPartialOnTimeout: req.body.returnPartialOnTimeout !== false 
+            returnPartialOnTimeout: req.body.returnPartialOnTimeout === true 
         };
 
         const result = await renderPageAdvanced(options);
@@ -1477,7 +1749,7 @@ app.get('/api/content', async (req, res) => {
             scrollToBottom: req.query.scroll !== 'false',
             waitForNetworkIdle: req.query.networkIdle !== 'false',
             captureConsole: req.query.console === 'true',
-            returnPartialOnTimeout: req.query.returnPartial !== 'false' // Default to true
+            returnPartialOnTimeout: req.query.returnPartial === 'true' // Default to false - prioritize complete execution
         };
 
         // Parse arrays from query parameters
@@ -1550,7 +1822,7 @@ app.get('/api/screenshot', async (req, res) => {
                 width: parseInt(req.query.width) || 1920,
                 height: parseInt(req.query.height) || 1080
             },
-            returnPartialOnTimeout: req.query.returnPartial !== 'false'
+            returnPartialOnTimeout: req.query.returnPartial === 'true' // Default to false - prioritize complete execution
         };
 
         const result = await renderPageAdvanced(options);
@@ -1617,7 +1889,7 @@ app.get('/api/pdf', async (req, res) => {
         const options = {
             url,
             timeout: parseInt(req.query.timeout) || 30000,
-            returnPartialOnTimeout: req.query.returnPartial !== 'false'
+            returnPartialOnTimeout: req.query.returnPartial === 'true' // Default to false - prioritize complete execution
         };
 
         const result = await renderPageAdvanced(options);
@@ -1704,7 +1976,7 @@ app.post('/api/batch', async (req, res) => {
                     const options = { 
                         ...commonOptions, 
                         url,
-                        returnPartialOnTimeout: commonOptions.returnPartialOnTimeout !== false 
+                        returnPartialOnTimeout: commonOptions.returnPartialOnTimeout === true 
                     };
                     const result = await renderPageAdvanced(options);
                     console.log(`✅ Batch item completed: ${url}`);

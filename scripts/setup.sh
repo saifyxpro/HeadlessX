@@ -212,6 +212,30 @@ if [ ! -d "website/out" ]; then
     cd website && npm run build && cd ..
 fi
 
+# Validate new server files
+echo "🔍 Validating server files..."
+REQUIRED_FILES=(
+    "src/server.js"
+    "src/rate-limiter.js"
+    "src/content-optimizer.js"
+    "src/improved-renderer.js"
+)
+
+for file in "${REQUIRED_FILES[@]}"; do
+    if [ ! -f "$file" ]; then
+        print_error "Required file missing: $file"
+        exit 1
+    fi
+done
+
+# Check syntax by running a quick validation
+if node -c src/server.js && node -c src/rate-limiter.js && node -c src/content-optimizer.js && node -c src/improved-renderer.js; then
+    print_status "All server files syntax validated"
+else
+    print_error "Syntax validation failed"
+    exit 1
+fi
+
 print_status "Installation validated"
 
 # Test the server
