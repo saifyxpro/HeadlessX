@@ -1,22 +1,30 @@
 # 🚀 HeadlessX Deployment Guide
 
-Complete guide for deploying HeadlessX v1.1.0 with integrated website and API server.
+Complete guide for deploying HeadlessX v1.2.0 with modular architecture and integrated website and API server.
 
 ## 🏗️ Architecture Overview
 
-HeadlessX v1.1.0 uses a **unified architecture** where a single Node.js server handles both the website and API:
+HeadlessX v1.2.0 features a **modular architecture** where a single Node.js server with distinct modules handles both the website and API:
 
 ```
-Internet → Nginx → Node.js Server (Port 3000)
+Internet → Nginx → Node.js Server (Port 3000) - Modular Architecture
                    ├── / → Website (Next.js)
                    └── /api/* → API Endpoints
+                   
+Internal Structure:
+├── Routes → Controllers → Services
+├── Middleware (Auth, Errors)
+├── Utils (Logging, Helpers)
+└── Config (Environment, Browser)
 ```
 
 **Benefits:**
+- ✅ Modular design for better maintainability
+- ✅ Enhanced error handling and logging
+- ✅ Improved performance and resource management
+- ✅ Better separation of concerns
 - ✅ Single domain for everything
-- ✅ Simplified deployment and maintenance  
-- ✅ Better performance (no separate static file serving)
-- ✅ Integrated monitoring and logging
+- ✅ Enterprise-grade monitoring and observability
 
 ---
 
@@ -46,7 +54,7 @@ cd HeadlessX
 
 # 2. Configure environment
 cp .env.example .env
-nano .env  # Set DOMAIN, SUBDOMAIN, and TOKEN
+nano .env  # Set DOMAIN, SUBDOMAIN, and AUTH_TOKEN
 
 # 3. Run automated setup
 chmod +x scripts/setup.sh
@@ -85,7 +93,7 @@ DOMAIN=yourdomain.com           # Your root domain
 SUBDOMAIN=headlessx             # Your subdomain
 
 # Security
-TOKEN=your_secure_random_token  # Generate with: openssl rand -hex 32
+AUTH_TOKEN=your_secure_random_token  # Generate with: openssl rand -hex 32
 
 # Server Configuration
 PORT=3000                       # Internal port (nginx proxies to this)
@@ -173,7 +181,7 @@ nano .env
 # Example configuration:
 echo "DOMAIN=yourdomain.com" >> .env
 echo "SUBDOMAIN=headlessx" >> .env
-echo "TOKEN=$(openssl rand -hex 32)" >> .env
+echo "AUTH_TOKEN=$(openssl rand -hex 32)" >> .env
 echo "PORT=3000" >> .env
 echo "NODE_ENV=production" >> .env
 ```
@@ -255,10 +263,10 @@ curl https://your-subdomain.yourdomain.com/favicon.ico
 ### 3. API Test
 ```bash
 # Test authenticated endpoint
-curl "https://your-subdomain.yourdomain.com/api/status?token=YOUR_TOKEN"
+curl "https://your-subdomain.yourdomain.com/api/status?token=YOUR_AUTH_TOKEN"
 
 # Test HTML extraction
-curl -X POST "https://your-subdomain.yourdomain.com/api/html?token=YOUR_TOKEN" \
+curl -X POST "https://your-subdomain.yourdomain.com/api/html?token=YOUR_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://httpbin.org/html"}'
 ```
@@ -371,11 +379,11 @@ sudo ufw status
 
 #### 2. API 401 Unauthorized
 ```bash
-# Verify token in .env file
-cat .env | grep TOKEN
+# Verify auth token in .env file
+cat .env | grep AUTH_TOKEN
 
 # Test with correct token
-curl "https://your-subdomain.yourdomain.com/api/status?token=YOUR_ACTUAL_TOKEN"
+curl "https://your-subdomain.yourdomain.com/api/status?token=YOUR_ACTUAL_AUTH_TOKEN"
 ```
 
 #### 3. SSL Issues

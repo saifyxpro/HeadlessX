@@ -7,6 +7,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2025-09-15 🏗️ **MAJOR MODULAR ARCHITECTURE REFACTOR**
+
+### 🚀 Revolutionary Changes
+- **Complete Modular Refactor**: Transformed 3079-line monolithic `server.js` into 20+ focused modules
+- **Separation of Concerns**: Clean architecture with distinct layers for configuration, services, controllers, and middleware
+- **Enhanced Maintainability**: Each module has a single responsibility for better code organization
+- **Production-Ready**: Enterprise-grade error handling, logging, and monitoring capabilities
+- **Developer Experience**: Improved development workflow with clear module boundaries
+
+### 🏗️ New Modular Architecture
+```
+src/
+├── config/         # Configuration management
+├── utils/          # Utilities (errors, logging, helpers)
+├── services/       # Business logic (browser, stealth, rendering)
+├── middleware/     # Express middleware (auth, errors)
+├── controllers/    # Request handlers by feature
+├── routes/         # Route definitions and mappings
+├── app.js          # Main application setup
+└── server.js       # Entry point for PM2
+```
+
+### ✨ Major Features Added
+- **Enhanced Error Handling**: Structured error responses with correlation IDs for debugging
+- **Advanced Rate Limiting**: Intelligent rate limiting with memory-based storage and cleanup
+- **Improved Logging**: Structured logging with request correlation and detailed context
+- **Better Browser Management**: Optimized browser lifecycle with resource monitoring
+- **Security Enhancements**: Improved authentication middleware and request validation
+- **Performance Optimization**: Better resource utilization and memory management
+
+### 🔧 Configuration Updates
+- **Environment Variables**: `TOKEN` → `AUTH_TOKEN` (breaking change)
+- **PM2 Configuration**: Moved from `config/ecosystem.config.js` to root `ecosystem.config.js`
+- **Enhanced .env**: More configuration options with validation and defaults
+- **Docker Optimization**: Updated Docker configuration for modular structure
+
+### 📚 Documentation Overhaul
+- **New Architecture Guide**: Added `MODULAR_ARCHITECTURE.md` with comprehensive documentation
+- **Updated README**: Complete rewrite to reflect modular architecture and v1.2.0 features
+- **API Documentation**: Updated all endpoint documentation for new structure
+- **Setup Scripts**: Enhanced setup and deployment scripts for modular components
+
+### 🛠️ Developer Experience Improvements
+- **Module Independence**: Each module can be developed and tested independently
+- **Clear Dependencies**: Explicit dependency injection and module interfaces
+- **Better Debugging**: Enhanced error messages with stack traces and correlation IDs
+- **Type Safety**: Improved code organization for better IDE support
+- **Testing**: Individual modules can be unit tested separately
+
+### 🐛 Performance & Reliability
+- **Memory Optimization**: Better memory management with automatic cleanup
+- **Error Recovery**: Graceful error handling with fallback mechanisms
+- **Resource Monitoring**: Enhanced monitoring of browser instances and system resources
+- **Concurrent Processing**: Improved handling of concurrent requests
+- **Timeout Management**: Better timeout handling with partial content recovery
+
+### 💥 Breaking Changes
+- **Environment Variable**: `TOKEN` environment variable renamed to `AUTH_TOKEN`
+- **File Structure**: PM2 configuration moved from `config/` to root directory
+- **Import Paths**: Internal imports updated for modular structure (affects custom modifications)
+- **Script Updates**: Setup scripts updated to work with new architecture
+
+### 🔄 Migration Guide
+```bash
+# Update environment variables
+sed -i 's/TOKEN=/AUTH_TOKEN=/g' .env
+
+# Update PM2 configuration path
+mv config/ecosystem.config.js ./ecosystem.config.js
+
+# Restart services
+npm run pm2:restart
+```
+
+### 📦 Dependencies
+- **Added**: Enhanced dependencies for better module organization
+- **Optimized**: Removed unused dependencies from the monolithic structure
+- **Updated**: Latest versions of core dependencies for security and performance
+
+---
+
 ## [1.1.0] - 2024-12-19
 
 ### 🚀 Major Features Added

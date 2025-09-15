@@ -69,7 +69,7 @@ HeadlessX includes several security features:
 ## Security Checklist for Deployment
 
 - [ ] Generated a secure random token
-- [ ] Set `TOKEN` environment variable
+- [ ] Set `AUTH_TOKEN` environment variable
 - [ ] Removed all default/example tokens
 - [ ] Configured HTTPS (for production)
 - [ ] Set up proper firewall rules

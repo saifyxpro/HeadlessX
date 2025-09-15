@@ -34,7 +34,7 @@ cd HeadlessX
 
 # Quick setup (makes scripts executable + creates .env)
 chmod +x scripts/quick-setup.sh && ./scripts/quick-setup.sh
-# Then edit: nano .env  # Update DOMAIN, SUBDOMAIN, and TOKEN
+# Then edit: nano .env  # Update DOMAIN, SUBDOMAIN, and AUTH_TOKEN
 ```
 
 **Choose your deployment:**
@@ -49,7 +49,7 @@ chmod +x scripts/quick-setup.sh && ./scripts/quick-setup.sh
 ```
 🌐 Website:  https://your-subdomain.yourdomain.com
 🔧 Health:   https://your-subdomain.yourdomain.com/api/health
-📊 Status:   https://your-subdomain.yourdomain.com/api/status?token=YOUR_TOKEN
+📊 Status:   https://your-subdomain.yourdomain.com/api/status?token=YOUR_AUTH_TOKEN
 ```
 
 ---
@@ -103,7 +103,7 @@ sudo usermod -aG docker $USER
 git clone https://github.com/SaifyXPRO/HeadlessX.git
 cd HeadlessX
 cp .env.example .env
-nano .env  # Configure DOMAIN, SUBDOMAIN, TOKEN
+nano .env  # Configure DOMAIN, SUBDOMAIN, AUTH_TOKEN
 
 # Start services
 docker-compose up -d
@@ -227,27 +227,27 @@ curl https://your-subdomain.yourdomain.com/api/health
 
 #### Extract HTML Content
 ```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/html?token=YOUR_TOKEN" \
+curl -X POST "https://your-subdomain.yourdomain.com/api/html?token=YOUR_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com", "timeout": 30000}'
 ```
 
 #### Generate Screenshot
 ```bash
-curl "https://your-subdomain.yourdomain.com/api/screenshot?token=YOUR_TOKEN&url=https://example.com&fullPage=true" \
+curl "https://your-subdomain.yourdomain.com/api/screenshot?token=YOUR_AUTH_TOKEN&url=https://example.com&fullPage=true" \
   -o screenshot.png
 ```
 
 #### Extract Text Only
 ```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/text?token=YOUR_TOKEN" \
+curl -X POST "https://your-subdomain.yourdomain.com/api/text?token=YOUR_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com", "waitForSelector": "main"}'
 ```
 
 #### Generate PDF
 ```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/pdf?token=YOUR_TOKEN" \
+curl -X POST "https://your-subdomain.yourdomain.com/api/pdf?token=YOUR_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"url": "https://example.com", "format": "A4"}' \
   -o document.pdf
@@ -264,7 +264,7 @@ curl -X POST "https://your-subdomain.yourdomain.com/api/pdf?token=YOUR_TOKEN" \
     "Content-Type": "application/json"
   },
   "qs": {
-    "token": "YOUR_TOKEN"
+    "token": "YOUR_AUTH_TOKEN"
   },
   "body": {
     "url": "{{url_to_scrape}}",
@@ -277,7 +277,7 @@ curl -X POST "https://your-subdomain.yourdomain.com/api/pdf?token=YOUR_TOKEN" \
 ### ⚡ Zapier Integration
 
 **Webhooks by Zapier Setup:**
-- **URL:** `https://your-subdomain.yourdomain.com/api/html?token=YOUR_TOKEN`
+- **URL:** `https://your-subdomain.yourdomain.com/api/html?token=YOUR_AUTH_TOKEN`
 - **Method:** POST
 - **Headers:** `Content-Type: application/json`
 - **Body:**
@@ -298,7 +298,7 @@ curl -X POST "https://your-subdomain.yourdomain.com/api/pdf?token=YOUR_TOKEN" \
   "method": "POST",
   "authentication": "queryAuth",
   "query": {
-    "token": "YOUR_TOKEN"
+    "token": "YOUR_AUTH_TOKEN"
   },
   "headers": {
     "Content-Type": "application/json"
@@ -365,7 +365,7 @@ scrapeWithHeadlessX('https://example.com', 'YOUR_TOKEN')
 
 ### 🔄 Batch Processing Example
 ```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/batch?token=YOUR_TOKEN" \
+curl -X POST "https://your-subdomain.yourdomain.com/api/batch?token=YOUR_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "urls": [
@@ -380,7 +380,7 @@ curl -X POST "https://your-subdomain.yourdomain.com/api/batch?token=YOUR_TOKEN" 
 
 ### Batch Processing
 ```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/batch?token=YOUR_TOKEN" \
+curl -X POST "https://your-subdomain.yourdomain.com/api/batch?token=YOUR_AUTH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "urls": ["https://example.com", "https://httpbin.org"],
