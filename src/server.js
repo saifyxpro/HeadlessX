@@ -2031,6 +2031,60 @@ app.post('/api/html', async (req, res) => {
     }
 });
 
+// HTML endpoint (GET version - returns raw HTML directly) with enhanced timeout handling
+app.get('/api/html', async (req, res) => {
+    try {
+        // Check authentication
+        const token = req.query.token || req.headers['x-token'] || req.headers['authorization']?.replace('Bearer ', '');
+        if (token !== AUTH_TOKEN) {
+            return res.status(401).send('Unauthorized: Invalid token');
+        }
+
+        // Validate URL (from query parameter for GET)
+        const { url } = req.query;
+        if (!url) {
+            return res.status(400).send('Missing required parameter: url');
+        }
+
+        try {
+            new URL(url);
+        } catch (e) {
+            return res.status(400).send('Invalid URL format');
+        }
+
+        console.log(`🚀 Advanced HTML rendering (GET): ${url}`);
+
+        // Disable partial content return by default - prioritize complete execution
+        const options = { 
+            url,
+            waitForSelector: req.query.waitForSelector,
+            timeout: req.query.timeout ? parseInt(req.query.timeout) : undefined,
+            delay: req.query.delay ? parseInt(req.query.delay) : undefined,
+            returnPartialOnTimeout: req.query.returnPartialOnTimeout === 'true'
+        };
+        
+        const result = await renderPageAdvanced(options);
+        
+        console.log(`✅ Successfully rendered HTML (GET): ${url} (${result.wasTimeout ? 'with timeouts' : 'complete'})`);
+        
+        // Return raw HTML with proper headers
+        res.set({
+            'Content-Type': 'text/html; charset=utf-8',
+            'X-Rendered-URL': result.url,
+            'X-Page-Title': result.title,
+            'X-Timestamp': result.timestamp,
+            'X-Was-Timeout': result.wasTimeout.toString(),
+            'X-Content-Length': result.contentLength.toString(),
+            'X-Is-Emergency': (result.isEmergencyContent || false).toString()
+        });
+        res.send(result.html);
+
+    } catch (error) {
+        console.error('❌ HTML rendering error (GET):', error);
+        res.status(500).send(`Error: ${error.message}`);
+    }
+});
+
 // Content endpoint (returns clean text only - POST) with enhanced timeout handling
 app.post('/api/content', async (req, res) => {
     try {
@@ -2082,6 +2136,64 @@ app.post('/api/content', async (req, res) => {
 
     } catch (error) {
         console.error('❌ Content extraction error:', error);
+        res.status(500).send(`Error: ${error.message}`);
+    }
+});
+
+// Content endpoint (GET version - returns clean text only) with enhanced timeout handling
+app.get('/api/content', async (req, res) => {
+    try {
+        // Check authentication
+        const token = req.query.token || req.headers['x-token'] || req.headers['authorization']?.replace('Bearer ', '');
+        if (token !== AUTH_TOKEN) {
+            return res.status(401).send('Unauthorized: Invalid token');
+        }
+
+        // Validate URL (from query parameter for GET)
+        const { url } = req.query;
+        if (!url) {
+            return res.status(400).send('Missing required parameter: url');
+        }
+
+        try {
+            new URL(url);
+        } catch (e) {
+            return res.status(400).send('Invalid URL format');
+        }
+
+        console.log(`🚀 Advanced content extraction (GET): ${url}`);
+
+        // Disable partial content return by default - prioritize complete execution
+        const options = { 
+            url,
+            waitForSelector: req.query.waitForSelector,
+            timeout: req.query.timeout ? parseInt(req.query.timeout) : undefined,
+            delay: req.query.delay ? parseInt(req.query.delay) : undefined,
+            returnPartialOnTimeout: req.query.returnPartialOnTimeout === 'true'
+        };
+
+        const result = await renderPageAdvanced(options);
+        
+        // Extract clean text content
+        const textContent = await extractCleanText(result.html);
+        
+        console.log(`✅ Successfully extracted content (GET): ${url} (${result.wasTimeout ? 'with timeouts' : 'complete'})`);
+        console.log(`📝 Content length: ${textContent.length} characters`);
+        
+        // Return plain text with proper headers
+        res.set({
+            'Content-Type': 'text/plain; charset=utf-8',
+            'X-Rendered-URL': result.url,
+            'X-Page-Title': result.title,
+            'X-Content-Length': textContent.length,
+            'X-Timestamp': result.timestamp,
+            'X-Was-Timeout': result.wasTimeout.toString(),
+            'X-Is-Emergency': (result.isEmergencyContent || false).toString()
+        });
+        res.send(textContent);
+
+    } catch (error) {
+        console.error('❌ Content extraction error (GET):', error);
         res.status(500).send(`Error: ${error.message}`);
     }
 });
@@ -2336,16 +2448,8 @@ if (fs.existsSync(websitePath)) {
     }));
     
     // Handle client-side routing - serve index.html for all non-API routes
-    app.get('*', (req, res) => {
-        // Skip API routes
-        if (req.path.startsWith('/api/')) {
-            return res.status(404).json({
-                error: 'API endpoint not found',
-                message: 'Check available API endpoints at /api/status'
-            });
-        }
-        
-        // Serve index.html for all other routes (SPA routing)
+    app.get(/^(?!\/api\/).*/, (req, res) => {
+        // This regex ensures we only match routes that DON'T start with /api/
         res.sendFile(path.join(websitePath, 'index.html'));
     });
     
@@ -2373,18 +2477,20 @@ if (fs.existsSync(websitePath)) {
 // 404 handler with helpful information (only for API routes now)
 app.use('/api/*', (req, res) => {
     res.status(404).json({
-        error: 'Endpoint not found',
+        error: 'API endpoint not found',
+        requestedPath: req.path,
+        requestedMethod: req.method,
         availableEndpoints: [
-            'GET /api/health - Server health check',
-            'GET /api/status - Detailed server status',
-            'POST /api/render - Full page rendering with JSON response',
-            'POST /api/html - Raw HTML extraction',
-            'GET /api/html - Raw HTML extraction (GET)',
-            'POST /api/content - Clean text extraction',
-            'GET /api/content - Clean text extraction (GET)',
-            'GET /api/screenshot - Screenshot generation',
-            'GET /api/pdf - PDF generation',
-            'POST /api/batch - Batch URL processing'
+            'GET /api/health - Server health check (no auth required)',
+            'GET /api/status - Detailed server status (auth required)',
+            'POST /api/render - Full page rendering with JSON response (auth required)',
+            'POST /api/html - Raw HTML extraction (auth required)',
+            'GET /api/html - Raw HTML extraction (GET) (auth required)',
+            'POST /api/content - Clean text extraction (auth required)',
+            'GET /api/content - Clean text extraction (GET) (auth required)',
+            'GET /api/screenshot - Screenshot generation (auth required)',
+            'GET /api/pdf - PDF generation (auth required)',
+            'POST /api/batch - Batch URL processing (auth required)'
         ],
         message: 'Use one of the available endpoints above',
         timestamp: new Date().toISOString()
