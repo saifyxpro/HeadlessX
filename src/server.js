@@ -549,8 +549,6 @@ async function renderPageAdvanced(options) {
             deviceScaleFactor: 1, // Fixed scale for consistent CSS rendering
             // Critical: Enable bypass for CSP and security headers that block resources
             bypassCSP: true,
-            // Enable HTTP credentials for protected resources
-            httpCredentials: null,
             // Accept all downloads for complete resource loading
             acceptDownloads: false,
             // Enhanced media settings for better compatibility
