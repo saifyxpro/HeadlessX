@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Enhanced HeadlessX Setup Script v1.1.0
+# HeadlessX Complete Setup Script v1.2.0
+# Sets up HeadlessX from scratch on Ubuntu/Debian servers
 # Run with: bash setup.sh
 
 set -e
@@ -12,6 +13,7 @@ echo "==========================================================================
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Try to load environment variables from .env file
@@ -51,6 +53,10 @@ print_warning() {
 
 print_error() {
     echo -e "${RED}❌ $1${NC}"
+}
+
+print_info() {
+    echo -e "${BLUE}ℹ️ $1${NC}"
 }
 
 # Update system
@@ -105,6 +111,12 @@ else
     npm install --production
     print_status "NPM dependencies installed (using install)"
 fi
+
+# Install Playwright browsers
+echo "🌐 Installing Playwright browsers..."
+npx playwright install chromium
+npx playwright install-deps chromium
+print_status "Playwright browsers installed"
 
 # Build website
 echo "🌐 Building website..."
@@ -273,16 +285,27 @@ print_status "Installation validated"
 
 # Test the modular server
 echo "🧪 Testing modular server startup..."
-timeout 10s node src/app.js &
+
+# Quick syntax check first
+if ! node -c src/app.js; then
+    print_error "Server syntax check failed"
+    exit 1
+fi
+
+# Test server startup (don't fail if this doesn't work)
+timeout 10s node src/app.js > /dev/null 2>&1 &
 SERVER_PID=$!
-sleep 5
+sleep 3
 
 if kill -0 $SERVER_PID 2>/dev/null; then
-    print_status "Modular server test successful"
-    kill $SERVER_PID
+    print_status "Server test successful"
+    kill $SERVER_PID 2>/dev/null || true
 else
-    print_warning "Server test failed - this might be due to missing AUTH_TOKEN in .env"
+    print_warning "Server test failed - will try with PM2"
 fi
+
+# Kill any remaining processes
+pkill -f "node.*src/app.js" 2>/dev/null || true
 
 # Start with PM2
 echo "🚀 Starting HeadlessX with PM2..."
