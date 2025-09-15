@@ -526,11 +526,26 @@ async function renderPageAdvanced(options) {
         
         // Create new browser context with enhanced stealth and CSS loading settings
         context = await browser.newContext({
-            viewport,
+            viewport: { width: 1920, height: 1080 }, // Force large desktop viewport
             userAgent: realisticUserAgent,
             locale: realisticLocale.locale,
             timezoneId: realisticLocale.timezone,
-            extraHTTPHeaders: realisticHeaders,
+            extraHTTPHeaders: {
+                ...realisticHeaders,
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Sec-Ch-Ua': '"Google Chrome";v="120", "Chromium";v="120", "Not_A Brand";v="8"',
+                'Sec-Ch-Ua-Mobile': '?0',
+                'Sec-Ch-Ua-Platform': '"Windows"',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-User': '?1',
+                'Upgrade-Insecure-Requests': '1'
+            },
             ignoreHTTPSErrors: true,
             javaScriptEnabled: true,
             // Enhanced permissions for better compatibility
@@ -538,12 +553,12 @@ async function renderPageAdvanced(options) {
             colorScheme: 'light', // Force light mode for better CSS compatibility
             reducedMotion: 'no-preference', // Allow animations for proper rendering
             forcedColors: 'none',
-            // Realistic screen settings
+            // Realistic screen settings - force desktop
             screen: {
-                width: viewport.width,
-                height: viewport.height
+                width: 1920,
+                height: 1080
             },
-            // Enhanced device features for better rendering
+            // Enhanced device features for better rendering - FORCE DESKTOP
             hasTouch: false,
             isMobile: false,
             deviceScaleFactor: 1, // Fixed scale for consistent CSS rendering
@@ -682,15 +697,62 @@ async function renderPageAdvanced(options) {
                 }
             };
 
-            // Fix CSS loading issues by ensuring proper resource loading
+            // Enhanced CSS and resource loading monitoring
             const originalFetch = window.fetch;
             window.fetch = function(...args) {
                 const [resource] = args;
-                if (typeof resource === 'string' && resource.includes('.css')) {
-                    console.debug('Fetching CSS:', resource);
+                if (typeof resource === 'string') {
+                    if (resource.includes('.css')) {
+                        console.debug('🎨 Loading CSS:', resource);
+                    } else if (resource.includes('.js')) {
+                        console.debug('📜 Loading JS:', resource);
+                    }
                 }
                 return originalFetch.apply(this, args);
             };
+
+            // Enhanced stylesheet monitoring
+            const originalCreateElement = document.createElement;
+            document.createElement = function(tagName) {
+                const element = originalCreateElement.call(document, tagName);
+                if (tagName.toLowerCase() === 'link') {
+                    element.addEventListener('load', () => {
+                        console.debug('✅ Stylesheet loaded:', element.href);
+                    });
+                    element.addEventListener('error', () => {
+                        console.warn('❌ Stylesheet failed:', element.href);
+                    });
+                }
+                return element;
+            };
+
+            // Monitor for dynamic CSS additions
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.tagName === 'LINK' && node.rel === 'stylesheet') {
+                            console.debug('🆕 Dynamic stylesheet:', node.href);
+                        } else if (node.tagName === 'STYLE') {
+                            console.debug('🆕 Inline styles added');
+                        }
+                    });
+                });
+            });
+            
+            // Start observing when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    observer.observe(document.head || document.documentElement, {
+                        childList: true,
+                        subtree: true
+                    });
+                });
+            } else {
+                observer.observe(document.head || document.documentElement, {
+                    childList: true,
+                    subtree: true
+                });
+            }
 
             // Enhance window.navigator.userAgentData for better detection avoidance
             if (!navigator.userAgentData) {
@@ -719,6 +781,20 @@ async function renderPageAdvanced(options) {
                 configurable: true
             });
 
+            // Add realistic timing variations to prevent detection
+            const originalSetTimeout = window.setTimeout;
+            const originalSetInterval = window.setInterval;
+            
+            window.setTimeout = function(callback, delay, ...args) {
+                const variation = delay * 0.1 * (Math.random() - 0.5); // ±5% variation
+                return originalSetTimeout.call(this, callback, delay + variation, ...args);
+            };
+            
+            window.setInterval = function(callback, delay, ...args) {
+                const variation = delay * 0.05 * (Math.random() - 0.5); // ±2.5% variation
+                return originalSetInterval.call(this, callback, delay + variation, ...args);
+            };
+
             // Override toString methods to hide function modifications
             const originalToString = Function.prototype.toString;
             Function.prototype.toString = function() {
@@ -728,20 +804,46 @@ async function renderPageAdvanced(options) {
                 if (this === performance.now) {
                     return 'function now() { [native code] }';
                 }
+                if (this === window.fetch) {
+                    return 'function fetch() { [native code] }';
+                }
                 return originalToString.call(this);
             };
         });
 
         console.log(`🌐 Navigating to: ${url}`);
 
-        // Navigate with timeout handling and fallback
+        // Enhanced navigation with better CSS loading detection
         await withTimeoutFallback(
             async () => {
+                // Use 'networkidle' instead of 'domcontentloaded' for better CSS loading
                 await page.goto(url, { 
-                    waitUntil: waitUntil === 'networkidle0' ? 'networkidle' : waitUntil,
+                    waitUntil: 'networkidle', // Changed to ensure resources load
                     timeout: timeout
                 });
-                console.log('📄 Page loaded successfully');
+                console.log('📄 Page navigation completed');
+                
+                // Additional wait for CSS rendering
+                await page.waitForTimeout(2000);
+                
+                // Force CSS evaluation to ensure styles are applied
+                await page.evaluate(() => {
+                    // Force style recalculation
+                    document.body.offsetHeight;
+                    
+                    // Wait for any remaining stylesheets
+                    const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
+                    return Promise.all(stylesheets.map(link => {
+                        if (link.sheet) return Promise.resolve();
+                        return new Promise((resolve) => {
+                            link.onload = () => resolve();
+                            link.onerror = () => resolve();
+                            setTimeout(() => resolve(), 1000); // Timeout
+                        });
+                    }));
+                });
+                
+                console.log('✅ Page loaded with CSS verification');
             },
             returnPartialOnTimeout ? async () => {
                 wasTimeout = true;
@@ -808,6 +910,176 @@ async function renderPageAdvanced(options) {
                     console.log(`⚠️ Could not click: ${selector}`);
                 }
             }
+        }
+
+        // Enhanced CSS and JavaScript loading detection
+        console.log('🎨 Waiting for CSS and resources to load...');
+        try {
+            await withTimeoutFallback(
+                async () => {
+                    // Comprehensive CSS and resource loading check
+                    await page.evaluate(async () => {
+                        // Force desktop layout by checking viewport
+                        const viewport = window.innerWidth;
+                        console.log(`Viewport width: ${viewport}px`);
+                        
+                        // Wait for stylesheets to load completely
+                        const waitForStylesheets = () => {
+                            return new Promise((resolve) => {
+                                const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
+                                let loadedCount = 0;
+                                const totalCount = stylesheets.length;
+                                
+                                console.log(`Found ${totalCount} stylesheets to load`);
+                                
+                                if (totalCount === 0) {
+                                    resolve();
+                                    return;
+                                }
+                                
+                                const checkComplete = () => {
+                                    if (loadedCount >= totalCount) {
+                                        console.log('All stylesheets loaded');
+                                        resolve();
+                                    }
+                                };
+                                
+                                stylesheets.forEach((link, index) => {
+                                    if (link.sheet || link.disabled) {
+                                        console.log(`Stylesheet ${index + 1} already loaded: ${link.href}`);
+                                        loadedCount++;
+                                    } else {
+                                        link.addEventListener('load', () => {
+                                            console.log(`Stylesheet ${index + 1} loaded: ${link.href}`);
+                                            loadedCount++;
+                                            checkComplete();
+                                        });
+                                        link.addEventListener('error', () => {
+                                            console.log(`Stylesheet ${index + 1} failed: ${link.href}`);
+                                            loadedCount++;
+                                            checkComplete();
+                                        });
+                                    }
+                                });
+                                
+                                checkComplete();
+                                
+                                // Timeout after 8 seconds
+                                setTimeout(() => {
+                                    console.log(`Stylesheet loading timeout, ${loadedCount}/${totalCount} loaded`);
+                                    resolve();
+                                }, 8000);
+                            });
+                        };
+                        
+                        await waitForStylesheets();
+                        
+                        // Force style recalculation
+                        document.body.offsetHeight;
+                        
+                        // Additional wait for any dynamically loaded CSS
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        
+                        // Check if fonts are loading
+                        if (document.fonts && document.fonts.ready) {
+                            console.log('Waiting for fonts...');
+                            await document.fonts.ready;
+                            console.log('Fonts loaded');
+                        }
+                        
+                        // Check for media queries to ensure desktop layout
+                        if (window.matchMedia) {
+                            const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+                            console.log(`Desktop layout detected: ${isDesktop}`);
+                        }
+                        
+                        // Force one more style recalculation
+                        const allElements = document.querySelectorAll('*');
+                        for (let i = 0; i < Math.min(allElements.length, 100); i++) {
+                            allElements[i].offsetHeight; // Force style calculation
+                        }
+                    });
+                },
+                () => {
+                    console.log('⚠️ CSS loading timeout (continuing)');
+                    return Promise.resolve();
+                },
+                15000
+            );
+        } catch (cssError) {
+            console.log('⚠️ CSS loading detection failed:', cssError.message);
+        }
+
+        // Wait for JavaScript execution to complete
+        console.log('📜 Waiting for JavaScript execution...');
+        try {
+            await withTimeoutFallback(
+                async () => {
+                    await page.evaluate(async () => {
+                        // Wait for common JavaScript frameworks to initialize
+                        const checkFrameworks = () => {
+                            return new Promise((resolve) => {
+                                let checksCompleted = 0;
+                                const totalChecks = 5;
+                                
+                                const completeCheck = () => {
+                                    checksCompleted++;
+                                    if (checksCompleted >= totalChecks) {
+                                        resolve();
+                                    }
+                                };
+                                
+                                // Check for jQuery
+                                if (window.jQuery) {
+                                    window.jQuery(document).ready(() => completeCheck());
+                                } else {
+                                    completeCheck();
+                                }
+                                
+                                // Check for React
+                                setTimeout(() => {
+                                    if (window.React || document.querySelector('[data-reactroot]')) {
+                                        // Wait a bit more for React to render
+                                        setTimeout(completeCheck, 500);
+                                    } else {
+                                        completeCheck();
+                                    }
+                                }, 100);
+                                
+                                // Check for Vue
+                                setTimeout(() => {
+                                    if (window.Vue || document.querySelector('[data-server-rendered]')) {
+                                        setTimeout(completeCheck, 500);
+                                    } else {
+                                        completeCheck();
+                                    }
+                                }, 100);
+                                
+                                // Check for Angular
+                                setTimeout(() => {
+                                    if (window.ng || document.querySelector('[ng-app]') || document.querySelector('[data-ng-app]')) {
+                                        setTimeout(completeCheck, 500);
+                                    } else {
+                                        completeCheck();
+                                    }
+                                }, 100);
+                                
+                                // General timeout
+                                setTimeout(completeCheck, 2000);
+                            });
+                        };
+                        
+                        await checkFrameworks();
+                    });
+                },
+                () => {
+                    console.log('⚠️ JavaScript execution timeout (continuing)');
+                    return Promise.resolve();
+                },
+                10000
+            );
+        } catch (jsError) {
+            console.log('⚠️ JavaScript execution check failed:', jsError.message);
         }
 
         // Always simulate human-like behavior for complete rendering
@@ -1216,59 +1488,205 @@ async function autoScroll(page) {
 // Simulate realistic mouse movements and interactions
 async function simulateHumanBehavior(page) {
     try {
+        console.log('🎭 Starting enhanced human behavior simulation...');
+        
+        // Step 1: Initial page assessment and realistic delays
+        await page.waitForTimeout(500 + Math.random() * 1000); // 0.5-1.5s initial delay
+        
+        // Step 2: Enhanced mouse movement simulation
         await page.evaluate(() => {
-            // Simulate random mouse movements
-            const moveCount = 3 + Math.floor(Math.random() * 5); // 3-7 movements
+            // Simulate realistic mouse movements with acceleration/deceleration
+            const simulateRealisticMovement = (startX, startY, endX, endY, duration) => {
+                const steps = Math.floor(duration / 16); // 60fps
+                const movements = [];
+                
+                for (let i = 0; i <= steps; i++) {
+                    const progress = i / steps;
+                    // Ease-in-out curve for realistic acceleration
+                    const easeProgress = progress < 0.5 
+                        ? 2 * progress * progress 
+                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                    
+                    const x = startX + (endX - startX) * easeProgress;
+                    const y = startY + (endY - startY) * easeProgress;
+                    
+                    // Add slight randomness for human-like imperfection
+                    const jitterX = (Math.random() - 0.5) * 2;
+                    const jitterY = (Math.random() - 0.5) * 2;
+                    
+                    movements.push({
+                        x: Math.round(x + jitterX),
+                        y: Math.round(y + jitterY),
+                        delay: i * 16
+                    });
+                }
+                return movements;
+            };
+            
+            // Generate 3-7 realistic mouse movements
+            const moveCount = 3 + Math.floor(Math.random() * 5);
             let currentX = Math.floor(Math.random() * window.innerWidth);
             let currentY = Math.floor(Math.random() * window.innerHeight);
             
-            const movements = [];
+            const allMovements = [];
+            let totalDelay = 0;
+            
             for (let i = 0; i < moveCount; i++) {
                 const targetX = Math.floor(Math.random() * window.innerWidth);
                 const targetY = Math.floor(Math.random() * window.innerHeight);
-                movements.push({ x: targetX, y: targetY });
+                const duration = 200 + Math.random() * 300; // 200-500ms per movement
+                
+                const movements = simulateRealisticMovement(currentX, currentY, targetX, targetY, duration);
+                movements.forEach(move => {
+                    allMovements.push({
+                        ...move,
+                        delay: totalDelay + move.delay
+                    });
+                });
+                
+                totalDelay += duration + 100 + Math.random() * 200; // Pause between movements
+                currentX = targetX;
+                currentY = targetY;
             }
             
-            // Dispatch mouse move events
-            movements.forEach((pos, index) => {
+            // Execute all movements
+            allMovements.forEach((move) => {
                 setTimeout(() => {
                     const event = new MouseEvent('mousemove', {
-                        clientX: pos.x,
-                        clientY: pos.y,
+                        clientX: move.x,
+                        clientY: move.y,
                         bubbles: true,
-                        cancelable: true
+                        cancelable: true,
+                        view: window
                     });
                     document.dispatchEvent(event);
-                    currentX = pos.x;
-                    currentY = pos.y;
-                }, index * 200 + Math.random() * 100);
+                }, move.delay);
             });
+            
+            // Simulate scroll behavior
+            setTimeout(() => {
+                const scrollDistance = Math.floor(Math.random() * 300) + 100; // 100-400px
+                const scrollSteps = 10;
+                const scrollDelay = 50;
+                
+                for (let i = 0; i < scrollSteps; i++) {
+                    setTimeout(() => {
+                        window.scrollBy(0, scrollDistance / scrollSteps);
+                    }, i * scrollDelay);
+                }
+                
+                // Scroll back up slightly (human behavior)
+                setTimeout(() => {
+                    const backScroll = Math.floor(scrollDistance * 0.3);
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => {
+                            window.scrollBy(0, -backScroll / 5);
+                        }, i * 30);
+                    }
+                }, scrollSteps * scrollDelay + 500);
+            }, totalDelay + 500);
             
             // Simulate occasional clicks on safe elements
             setTimeout(() => {
-                const safeElements = ['body', 'main', '.content', '.container'];
-                const element = document.querySelector(safeElements[Math.floor(Math.random() * safeElements.length)]);
-                if (element && Math.random() > 0.7) {
-                    const rect = element.getBoundingClientRect();
-                    const clickX = rect.left + Math.random() * rect.width;
-                    const clickY = rect.top + Math.random() * rect.height;
-                    
-                    const clickEvent = new MouseEvent('click', {
-                        clientX: clickX,
-                        clientY: clickY,
-                        bubbles: true,
-                        cancelable: true
-                    });
-                    element.dispatchEvent(clickEvent);
+                const safeSelectors = [
+                    'body', 'main', '.content', '.container', 'article', 
+                    '.page', '.wrapper', '#content', '#main'
+                ];
+                
+                for (const selector of safeSelectors) {
+                    const element = document.querySelector(selector);
+                    if (element && Math.random() > 0.8) { // 20% chance to click
+                        const rect = element.getBoundingClientRect();
+                        if (rect.width > 0 && rect.height > 0) {
+                            const clickX = rect.left + Math.random() * rect.width;
+                            const clickY = rect.top + Math.random() * rect.height;
+                            
+                            // Realistic click sequence: mousedown -> mouseup -> click
+                            ['mousedown', 'mouseup', 'click'].forEach((eventType, index) => {
+                                setTimeout(() => {
+                                    const clickEvent = new MouseEvent(eventType, {
+                                        clientX: clickX,
+                                        clientY: clickY,
+                                        bubbles: true,
+                                        cancelable: true,
+                                        view: window,
+                                        button: 0
+                                    });
+                                    element.dispatchEvent(clickEvent);
+                                }, index * 50);
+                            });
+                            break; // Only click one element
+                        }
+                    }
                 }
-            }, moveCount * 250);
+            }, totalDelay + 1000);
+            
+            // Simulate focus events
+            setTimeout(() => {
+                const focusableElements = document.querySelectorAll('input, textarea, select, button, a[href]');
+                if (focusableElements.length > 0 && Math.random() > 0.7) {
+                    const element = focusableElements[Math.floor(Math.random() * focusableElements.length)];
+                    element.focus();
+                    setTimeout(() => element.blur(), 500 + Math.random() * 1000);
+                }
+            }, totalDelay + 1500);
+            
+            return totalDelay + 2000; // Return total simulation time
         });
         
-        // Wait for mouse simulation to complete
-        await page.waitForTimeout(2000);
+        // Step 3: Wait for the simulation to complete
+        const simulationTime = await page.evaluate(() => {
+            return new Promise(resolve => {
+                setTimeout(() => resolve(), 3000); // Give extra time for all events
+            });
+        });
+        
+        // Step 4: Additional realistic behaviors
+        await page.evaluate(() => {
+            // Simulate keyboard activity (without actual typing)
+            if (Math.random() > 0.8) {
+                const keyEvents = ['keydown', 'keyup'];
+                const keys = ['Tab', 'Shift', 'Control', 'Alt'];
+                const key = keys[Math.floor(Math.random() * keys.length)];
+                
+                keyEvents.forEach((eventType, index) => {
+                    setTimeout(() => {
+                        const keyEvent = new KeyboardEvent(eventType, {
+                            key: key,
+                            bubbles: true,
+                            cancelable: true
+                        });
+                        document.dispatchEvent(keyEvent);
+                    }, index * 50);
+                });
+            }
+            
+            // Simulate window focus/blur
+            setTimeout(() => {
+                window.dispatchEvent(new Event('blur'));
+                setTimeout(() => {
+                    window.dispatchEvent(new Event('focus'));
+                }, 100 + Math.random() * 200);
+            }, 1000);
+        });
+        
+        // Step 5: Final wait and page interaction check
+        await page.waitForTimeout(1000 + Math.random() * 500);
+        
+        console.log('✅ Enhanced human behavior simulation completed');
         
     } catch (error) {
         console.log('⚠️ Human behavior simulation failed:', error.message);
+        // Fallback: simple mouse movement
+        try {
+            await page.mouse.move(
+                Math.random() * 800,
+                Math.random() * 600
+            );
+            await page.waitForTimeout(500);
+        } catch (fallbackError) {
+            console.log('⚠️ Fallback behavior simulation also failed');
+        }
     }
 }
 
