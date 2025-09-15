@@ -10,8 +10,8 @@ module.exports = {
     {
       // Application configuration
       name: 'headlessx',
-      script: './src/server.js', // Using main app for debugging
-      cwd: process.cwd(), // Use current working directory
+      script: './src/server.js', // Main server entry point
+      cwd: process.cwd(),
       
       // Process management
       instances: 1, // Start with 1 instance, can be scaled with: pm2 scale headlessx +1

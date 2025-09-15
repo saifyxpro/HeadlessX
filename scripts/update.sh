@@ -1,66 +1,205 @@
 #!/bin/bash
 
 # HeadlessX Update Script v1.2.0
-# Updates an existing HeadlessX installation
+# Updates HeadlessX installation with latest changes
 # Run with: bash scripts/update.sh
 
 set -e
 
-echo "🔄 Updating HeadlessX v1.2.0 - Open Source Browserless Web Scraping API"
-echo "======================================================================="
+echo "🔄 HeadlessX Update Script v1.2.0"
+echo "=================================="
 
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+BLUE='\033[0;34m'
+NC='\033[0m'
 
-# Function to print status
-print_status() {
-    echo -e "${GREEN}✅ $1${NC}"
-}
+print_status() { echo -e "${GREEN}✅ $1${NC}"; }
+print_warning() { echo -e "${YELLOW}⚠️ $1${NC}"; }
+print_error() { echo -e "${RED}❌ $1${NC}"; }
+print_info() { echo -e "${BLUE}ℹ️ $1${NC}"; }
 
-print_warning() {
-    echo -e "${YELLOW}⚠️ $1${NC}"
-}
-
-print_error() {
-    echo -e "${RED}❌ $1${NC}"
-}
-
-# Check if running as root
-if [[ $EUID -eq 0 ]]; then
-   SUDO_CMD=""
-else
-   SUDO_CMD="sudo"
+# Verify we're in the right directory
+if [ ! -f "package.json" ] || [ ! -d "src" ]; then
+    print_error "Please run this script from the HeadlessX root directory"
+    exit 1
 fi
 
-# Backup current installation
+# Load environment variables
+if [ -f .env ]; then
+    print_info "Loading environment variables..."
+    export $(grep -v '^#' .env | grep -v '^$' | xargs)
+fi
+# 1. Stop services gracefully
+echo "🛑 Stopping services..."
+if command -v pm2 >/dev/null 2>&1; then
+    pm2 stop headlessx 2>/dev/null || true
+    print_status "PM2 services stopped"
+fi
+
+# Kill any remaining processes
+if command -v fuser >/dev/null 2>&1; then
+    fuser -k 3000/tcp 2>/dev/null || true
+fi
+
+# 2. Backup current configuration
 echo "💾 Creating backup..."
-BACKUP_DIR="~/headlessx-backup-$(date +%Y%m%d-%H%M%S)"
+BACKUP_DIR="backup_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BACKUP_DIR"
-cp -r . "$BACKUP_DIR/" 2>/dev/null || true
-print_status "Backup created: $BACKUP_DIR"
+cp .env "$BACKUP_DIR/" 2>/dev/null || true
+cp ecosystem.config.js "$BACKUP_DIR/" 2>/dev/null || true
+print_status "Configuration backed up to $BACKUP_DIR"
 
-# Stop PM2 processes
-echo "🛑 Stopping current processes..."
-pm2 stop all 2>/dev/null || true
-pm2 delete all 2>/dev/null || true
-print_status "Processes stopped"
+# 3. Update dependencies
+echo "📦 Updating dependencies..."
+if [ -f "package-lock.json" ]; then
+    rm -f package-lock.json
+fi
+npm install --production
+print_status "Dependencies updated"
 
-# Pull latest changes
-echo "📥 Pulling latest changes from GitHub..."
-git fetch origin main
-git reset --hard origin/main
-print_status "Latest code pulled"
+# 4. Update Playwright browsers
+echo "🌐 Updating Playwright browsers..."
+npx playwright install chromium
+print_status "Playwright browsers updated"
 
-# Update system packages
-echo "📦 Updating system packages..."
-$SUDO_CMD apt update
-print_status "System packages updated"
+# 5. Rebuild website
+echo "🌐 Rebuilding website..."
+cd website
 
-# Update Node.js dependencies
-echo "📦 Updating project dependencies..."
+# Backup website .env.local if exists
+if [ -f .env.local ]; then
+    cp .env.local "../$BACKUP_DIR/website_env.local"
+fi
+
+# Update website dependencies
+if [ -f "package-lock.json" ]; then
+    rm -f package-lock.json
+fi
+npm install
+
+# Rebuild with current environment
+DOMAIN=${DOMAIN:-"yourdomain.com"}
+SUBDOMAIN=${SUBDOMAIN:-"headlessx"}
+
+if [ ! -z "$DOMAIN" ] && [ ! -z "$SUBDOMAIN" ]; then
+    print_info "Configuring website for domain: $SUBDOMAIN.$DOMAIN"
+    cat > .env.local << EOF
+NEXT_PUBLIC_DOMAIN=$DOMAIN
+NEXT_PUBLIC_SUBDOMAIN=$SUBDOMAIN
+NEXT_PUBLIC_API_URL=https://$SUBDOMAIN.$DOMAIN
+NEXT_PUBLIC_SITE_URL=https://$SUBDOMAIN.$DOMAIN
+EOF
+fi
+
+npm run build
+cd ..
+print_status "Website rebuilt"
+
+# 6. Validate installation
+echo "🔍 Validating installation..."
+
+# Check required files
+REQUIRED_FILES=("src/app.js" "src/server.js" "src/config/index.js" "ecosystem.config.js")
+for file in "${REQUIRED_FILES[@]}"; do
+    if [ ! -f "$file" ]; then
+        print_error "Required file missing: $file"
+        exit 1
+    fi
+done
+
+# Syntax check
+if ! node -c src/app.js; then
+    print_error "Main server file has syntax errors"
+    exit 1
+fi
+
+print_status "Installation validated"
+
+# 7. Restart services
+echo "🚀 Restarting services..."
+
+# Start with PM2
+if command -v pm2 >/dev/null 2>&1; then
+    pm2 start ecosystem.config.js
+    sleep 5
+    
+    # Validate startup
+    RETRY_COUNT=0
+    MAX_RETRIES=15
+    
+    while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+        if pm2 status headlessx | grep -q "online"; then
+            print_status "HeadlessX restarted successfully"
+            break
+        fi
+        echo "   Waiting for startup... ($((RETRY_COUNT + 1))/$MAX_RETRIES)"
+        sleep 2
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+    done
+    
+    if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+        print_warning "Server startup validation timed out"
+        pm2 logs headlessx --lines 5
+    fi
+    
+    pm2 save
+else
+    print_warning "PM2 not available, starting with Node.js directly"
+    nohup node src/server.js > logs/server.log 2>&1 &
+    sleep 3
+fi
+
+# 8. Test server health
+echo "🏥 Testing server health..."
+if command -v curl >/dev/null 2>&1; then
+    sleep 2
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/api/health || echo "000")
+    if [ "$HTTP_CODE" = "200" ]; then
+        print_status "Server health check passed"
+    else
+        print_warning "Server health check failed (HTTP $HTTP_CODE)"
+    fi
+else
+    print_info "curl not available - skipping health check"
+fi
+
+# 9. Reload nginx if available
+if command -v nginx >/dev/null 2>&1; then
+    echo "🌐 Reloading nginx..."
+    if sudo nginx -t 2>/dev/null; then
+        sudo systemctl reload nginx
+        print_status "Nginx reloaded"
+    else
+        print_warning "Nginx configuration test failed"
+    fi
+fi
+
+echo ""
+echo "🎉 HeadlessX Update Complete!"
+echo "============================="
+echo ""
+print_status "Update completed successfully"
+echo ""
+echo "📊 Service Status:"
+if command -v pm2 >/dev/null 2>&1; then
+    pm2 status headlessx || echo "   PM2 status unavailable"
+else
+    echo "   PM2 not available"
+fi
+echo ""
+echo "📋 Backup Location: $BACKUP_DIR"
+echo ""
+echo "🔧 Management Commands:"
+echo "   pm2 logs headlessx    # View logs"
+echo "   pm2 restart headlessx # Restart server"
+echo "   pm2 monit            # Monitor resources"
+echo ""
+print_info "Update process completed"
+
+exit 0
 if [ -f "package-lock.json" ]; then
     rm -f package-lock.json
 fi

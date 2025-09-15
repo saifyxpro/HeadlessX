@@ -28,30 +28,25 @@ router.get('/robots.txt', (req, res) => {
     res.send('User-agent: *\nDisallow: /api/\nAllow: /\n');
 });
 
-// Serve static website files if enabled and available
-if (config.website.enabled && fs.existsSync(config.website.path)) {
-    // Serve static files from the website build
+// Serve static website files if enabled and available (PM2-optimized)
+if (config.website.enabled) {
+    console.log(`🌐 Website served from: ${config.website.path}`);
+    
+    // Simple static file serving without complex headers (PM2-friendly)
     router.use(express.static(config.website.path, {
-        index: 'index.html',
-        setHeaders: (res, path) => {
-            // Cache static assets
-            if (path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
-                res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
-            } else {
-                res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hour for HTML
-            }
-        }
+        index: 'index.html'
     }));
     
-    // Handle client-side routing - serve index.html for all non-API routes
+    // Simple fallback for SPA routing
     router.get('*', (req, res) => {
-        // Only handle routes that don't start with /api/
         if (!req.path.startsWith('/api/')) {
-            res.sendFile(path.join(config.website.path, 'index.html'));
+            res.sendFile(path.join(config.website.path, 'index.html'), (err) => {
+                if (err) {
+                    res.status(404).send('Website not found');
+                }
+            });
         }
     });
-    
-    console.log(`🌐 Website served from: ${config.website.path}`);
 } else {
     console.log(`⚠️ Website build not found at: ${config.website.path}`);
     console.log(`   Run 'npm run build' in the website directory to build the website`);

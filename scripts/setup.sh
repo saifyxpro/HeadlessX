@@ -16,32 +16,6 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Try to load environment variables from .env file
-if [ -f .env ]; then
-    echo "📄 Loading configuration from .env file..."
-    export $(grep -v '^#' .env | xargs)
-fi
-
-# Set default domain values if not in environment
-DOMAIN=${DOMAIN:-"yourdomain.com"}
-SUBDOMAIN=${SUBDOMAIN:-"headlessx"}
-FULL_DOMAIN="$SUBDOMAIN.$DOMAIN"
-
-echo -e "${GREEN}✅ Configuration loaded:${NC}"
-echo -e "   Domain: ${YELLOW}$FULL_DOMAIN${NC}"
-echo ""
-
-# Check if running as root and warn (but allow)
-if [[ $EUID -eq 0 ]]; then
-   echo -e "${YELLOW}⚠️ Warning: Running as root user${NC}"
-   echo -e "${YELLOW}   For production, consider running as a regular user with sudo privileges${NC}"
-   echo -e "${YELLOW}   Continuing setup...${NC}"
-   echo ""
-   SUDO_CMD=""
-else
-   SUDO_CMD="sudo"
-fi
-
 # Function to print status
 print_status() {
     echo -e "${GREEN}✅ $1${NC}"
@@ -58,6 +32,59 @@ print_error() {
 print_info() {
     echo -e "${BLUE}ℹ️ $1${NC}"
 }
+
+# Check if .env exists, if not create from .env.example
+if [ ! -f .env ]; then
+    if [ -f .env.example ]; then
+        print_info "Creating .env file from .env.example..."
+        cp .env.example .env
+        print_warning "Please edit .env file and set your AUTH_TOKEN and domain settings"
+        print_warning "Generate a secure token with: openssl rand -hex 32"
+    else
+        print_warning ".env file not found. Creating basic .env file..."
+        cat > .env << 'EOF'
+# REQUIRED: Set a secure random token
+AUTH_TOKEN=CHANGE_THIS_TO_SECURE_RANDOM_TOKEN
+PORT=3000
+HOST=0.0.0.0
+NODE_ENV=production
+DOMAIN=yourdomain.com
+SUBDOMAIN=headlessx
+BROWSER_TIMEOUT=30000
+EXTRA_WAIT_TIME=2000
+MAX_CONCURRENCY=2
+BODY_LIMIT=10mb
+MAX_BATCH_URLS=5
+WEBSITE_ENABLED=true
+DEBUG=false
+LOG_LEVEL=error
+EOF
+        print_warning "Created basic .env file. Please edit it and set your values!"
+    fi
+fi
+
+# Load environment variables
+if [ -f .env ]; then
+    print_info "Loading configuration from .env file..."
+    export $(grep -v '^#' .env | grep -v '^$' | xargs)
+fi
+
+# Set default domain values if not set
+DOMAIN=${DOMAIN:-"yourdomain.com"}
+SUBDOMAIN=${SUBDOMAIN:-"headlessx"}
+FULL_DOMAIN="$SUBDOMAIN.$DOMAIN"
+
+echo -e "${GREEN}✅ Configuration loaded:${NC}"
+echo -e "   Domain: ${YELLOW}$FULL_DOMAIN${NC}"
+echo ""
+
+# Check if running as root
+if [[ $EUID -eq 0 ]]; then
+   print_warning "Running as root. For production, consider using a regular user with sudo."
+   SUDO_CMD=""
+else
+   SUDO_CMD="sudo"
+fi
 
 # Update system
 echo "📦 Updating system packages..."
@@ -101,19 +128,19 @@ if [ -f "package-lock.json" ]; then
         npm ci --omit=dev
         print_status "NPM dependencies installed (using ci)"
     else
-        print_warning "package-lock.json out of sync with package.json, regenerating..."
+        print_warning "package-lock.json out of sync, regenerating..."
         rm -f package-lock.json
         npm install --production
         print_status "NPM dependencies installed (regenerated lock file)"
     fi
 else
-    print_warning "package-lock.json not found, using npm install"
     npm install --production
-    print_status "NPM dependencies installed (using install)"
+    print_status "NPM dependencies installed"
 fi
 
-# Install Playwright browsers
+# Install Playwright browsers (single step)
 echo "🌐 Installing Playwright browsers..."
+export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 npx playwright install chromium
 npx playwright install-deps chromium
 print_status "Playwright browsers installed"
@@ -122,9 +149,9 @@ print_status "Playwright browsers installed"
 echo "🌐 Building website..."
 cd website
 
-# Create .env.local with domain configuration for build
+# Configure website environment
 if [ ! -z "$DOMAIN" ] && [ ! -z "$SUBDOMAIN" ]; then
-    echo "📝 Configuring website with domain: $FULL_DOMAIN"
+    print_info "Configuring website with domain: $FULL_DOMAIN"
     cat > .env.local << EOF
 NEXT_PUBLIC_DOMAIN=$DOMAIN
 NEXT_PUBLIC_SUBDOMAIN=$SUBDOMAIN
@@ -134,38 +161,26 @@ EOF
     print_status "Website environment configured"
 fi
 
+# Install website dependencies
 if [ -f "package-lock.json" ]; then
-    # Check if package-lock.json is in sync with package.json
     if npm ci --dry-run > /dev/null 2>&1; then
-        npm ci  # Install all dependencies including devDependencies for build
+        npm ci
         print_status "Website dependencies installed (using ci)"
     else
         print_warning "Website package-lock.json out of sync, regenerating..."
         rm -f package-lock.json
-        npm install  # Install all dependencies including devDependencies
-        print_status "Website dependencies installed (regenerated lock file)"
+        npm install
+        print_status "Website dependencies installed (regenerated)"
     fi
 else
-    print_warning "package-lock.json not found, using npm install"
-    npm install  # Install all dependencies including devDependencies
-    print_status "Website dependencies installed (using install)"
+    npm install
+    print_status "Website dependencies installed"
 fi
+
+# Build the website
 npm run build
 cd ..
 print_status "Website built successfully"
-
-# Install Playwright browsers
-echo "🌐 Installing Playwright browsers..."
-if [ -f "scripts/setup-playwright.sh" ]; then
-    chmod +x scripts/setup-playwright.sh
-    bash scripts/setup-playwright.sh
-    print_status "Playwright setup completed"
-else
-    # Fallback method
-    export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
-    npx playwright install chromium
-    print_status "Playwright Chromium browser installed"
-fi
 
 # Create logs directory
 mkdir -p logs
@@ -338,32 +353,44 @@ pkill -f "node.*src/app.js" 2>/dev/null || true
 # Start with PM2
 echo "🚀 Starting HeadlessX with PM2..."
 
-# Stop any existing processes first
+# Stop any existing processes
 pm2 stop headlessx 2>/dev/null || true
 pm2 delete headlessx 2>/dev/null || true
 
-# Kill any processes that might be using port 3000
-fuser -k 3000/tcp 2>/dev/null || true
+# Kill any processes using port 3000
+if command -v fuser >/dev/null 2>&1; then
+    fuser -k 3000/tcp 2>/dev/null || true
+fi
 sleep 2
 
-# Start fresh with PM2
+# Start with PM2
 pm2 start ecosystem.config.js
 sleep 5
 
-# Validate server startup
+# Validate server startup with improved checks
 echo "🔍 Validating server startup..."
 RETRY_COUNT=0
 MAX_RETRIES=30
+SERVER_HEALTHY=false
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    # Check if PM2 shows process as online
     if pm2 status headlessx | grep -q "online"; then
-        # Check if server is responding
-        if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health | grep -q "200"; then
-            print_status "Server is online and responding"
-            break
-        elif ss -tlnp | grep -q ":3000"; then
-            print_status "Server is listening on port 3000"
-            break
+        # Check if port 3000 is listening
+        if command -v ss >/dev/null 2>&1 && ss -tlnp | grep -q ":3000"; then
+            # Try to curl health endpoint
+            if command -v curl >/dev/null 2>&1; then
+                HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health || echo "000")
+                if [ "$HTTP_CODE" = "200" ]; then
+                    print_status "Server is healthy and responding to requests"
+                    SERVER_HEALTHY=true
+                    break
+                fi
+            else
+                print_status "Server is listening on port 3000"
+                SERVER_HEALTHY=true
+                break
+            fi
         fi
     fi
     
@@ -372,61 +399,73 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     RETRY_COUNT=$((RETRY_COUNT + 1))
 done
 
-if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+if [ "$SERVER_HEALTHY" = "false" ]; then
     print_warning "Server startup validation timed out"
     echo "   PM2 Status:"
     pm2 status
     echo "   Latest logs:"
     pm2 logs headlessx --lines 10
-    
-    # Try restarting once more
-    print_info "Attempting to restart server..."
-    pm2 restart headlessx
-    sleep 5
-    
-    if ss -tlnp | grep -q ":3000"; then
-        print_status "Server restarted successfully"
-    else
-        print_error "Server startup failed - check logs with: pm2 logs headlessx"
-    fi
+    print_error "Server may not be fully operational - check logs with: pm2 logs headlessx"
 else
     print_status "HeadlessX started successfully with PM2"
 fi
 
+# Save PM2 configuration
 pm2 save
 
 # Setup PM2 startup script
 echo "⚙️ Configuring PM2 startup..."
 if [[ $EUID -eq 0 ]]; then
-    # Running as root
-    pm2 startup systemd
-    pm2 save
+    pm2 startup systemd -u root --hp /root
 else
-    # Running as regular user
-    sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $USER --hp $HOME
-    pm2 save
+    $SUDO_CMD env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u $USER --hp $HOME
 fi
+pm2 save
 print_status "PM2 startup configured"
 
 echo ""
-echo "🎉 HeadlessX v1.2.0 Setup completed successfully!"
-echo "==============================================="
+echo "🎉 HeadlessX v1.2.0 Setup Complete!"
+echo "==================================="
 echo ""
-echo -e "${GREEN}✅ Server Status:${NC}"
-echo "   $(pm2 status headlessx)"
+echo -e "${GREEN}✅ Installation Summary:${NC}"
+echo "   - Server: HeadlessX v1.2.0"
+echo "   - Website: Built and integrated"
+echo "   - Process Manager: PM2"
+echo "   - Web Server: Nginx"
+echo "   - Domain: $FULL_DOMAIN"
 echo ""
-echo "📋 Next steps:"
+echo -e "${GREEN}✅ Service Status:${NC}"
+pm2 status headlessx || echo "   PM2 status unavailable"
 echo ""
-echo "1. Update your domain DNS:"
-echo "   - Point $FULL_DOMAIN to your server IP"
-echo "   - Wait for DNS propagation (1-24 hours)"
+echo "📋 Next Steps:"
 echo ""
-echo "2. Configure SSL certificate:"
-echo "   ${SUDO_CMD} apt install certbot python3-certbot-nginx"
-echo "   ${SUDO_CMD} certbot --nginx -d $FULL_DOMAIN"
-echo ""
-echo "3. Update the AUTH_TOKEN in .env file:"
+echo "1. 🔐 Configure Authentication:"
 echo "   nano .env"
+echo "   # Set a secure AUTH_TOKEN value"
+echo ""
+echo "2. 🌐 Configure DNS:"
+echo "   # Point $FULL_DOMAIN to your server IP"
+echo ""
+echo "3. 🔒 Setup SSL Certificate:"
+echo "   $SUDO_CMD apt install certbot python3-certbot-nginx"
+echo "   $SUDO_CMD certbot --nginx -d $FULL_DOMAIN"
+echo ""
+echo "4. 🧪 Test Your Installation:"
+echo "   curl http://localhost:3000/api/health"
+echo "   curl http://$FULL_DOMAIN/api/health"
+echo ""
+echo "📊 Management Commands:"
+echo "   pm2 status       # Check server status"
+echo "   pm2 logs         # View server logs"
+echo "   pm2 restart all  # Restart server"
+echo "   pm2 monit        # Monitor resources"
+echo ""
+echo -e "${YELLOW}⚠️ Important:${NC}"
+echo "   - Update AUTH_TOKEN in .env file before production use"
+echo "   - Configure your firewall and SSL certificate"
+echo "   - Monitor logs regularly with: pm2 logs headlessx"
+echo ""
+print_status "Setup completed successfully!"
 echo "   pm2 restart headlessx  # Restart after updating .env"
 echo ""
 echo "4. Test your setup:"

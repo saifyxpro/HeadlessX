@@ -1,78 +1,31 @@
 /**
- * HeadlessX v1.2.0 - Advanced Browserless Web Scraping API with Human-like Behavior
+ * HeadlessX v1.2.0 - Main Application Entry Point
  * 
- * Main Application Entry Point
- * Modular, production-ready Node.js server with proper separation of concerns
- * 
- * Features:
- * - Realistic Windows user agent rotation (Chrome, Edge, Firefox)
- * - Human-like mouse movements and interactions
- * - Advanced stealth techniques to avoid bot detection
- * - Comprehensive header spoofing with browser-specific headers
- * - Natural scrolling patterns with easing and pauses
- * - Emergency content extraction with fallback methods
- * - Multiple output formats (HTML, text, screenshots, PDFs)
- * - Batch processing with controlled concurrency
- * - Timeout handling with partial content recovery
- * 
- * Anti-Detection Measures:
- * - Randomized realistic user agents from popular Windows browsers
- * - Browser-specific headers (sec-ch-ua, Sec-Fetch, etc.)
- * - Randomized device properties (memory, CPU cores, etc.)
- * - Natural timing variations and human-like pauses
- * - Comprehensive webdriver property removal
- * - Realistic plugin and MIME type spoofing
- * - Natural mouse movement patterns
- * - Variable scroll speeds with easing animations
- * 
- * Author: SaifyXPRO
- * Updated: September 15, 2025
+ * Production-ready modular server with full functionality
+ * Optimized for both direct execution and PM2 deployment
  */
 
-console.log('🔍 DEBUG: Starting app.js...');
-
 const express = require('express');
-console.log('🔍 DEBUG: Express loaded');
+const path = require('path');
 
-const bodyParser = require('body-parser');
-console.log('🔍 DEBUG: BodyParser loaded');
+// Core modules with error handling
+let config, browserService, logger;
 
-// Import configuration and services
-console.log('🔍 DEBUG: Loading config...');
-const config = require('./config');
-console.log('🔍 DEBUG: Config loaded');
-
-console.log('🔍 DEBUG: Loading browser service...');
-const browserService = require('./services/browser');
-console.log('🔍 DEBUG: Browser service loaded');
-
-console.log('🔍 DEBUG: Loading logger...');
-const { logger } = require('./utils/logger');
-console.log('🔍 DEBUG: Logger loaded');
-
-// Import middleware
-console.log('🔍 DEBUG: Loading middleware...');
-const { errorHandler, notFoundHandler } = require('./middleware/error');
-console.log('🔍 DEBUG: Middleware loaded');
-
-// Import routes
-console.log('🔍 DEBUG: Loading routes...');
-const apiRoutes = require('./routes/api');
-console.log('🔍 DEBUG: API routes loaded');
-const staticRoutes = require('./routes/static');
-console.log('🔍 DEBUG: Static routes loaded');
-
-console.log('🔍 DEBUG: All modules loaded successfully!');
+try {
+    config = require('./config');
+    browserService = require('./services/browser');
+    logger = require('./utils/logger').logger;
+} catch (error) {
+    console.error('❌ Failed to load core modules:', error.message);
+    process.exit(1);
+}
 
 // Create Express application
 const app = express();
 
-// Basic middleware
-app.use(bodyParser.json({ limit: config.api.bodyLimit }));
-app.use(bodyParser.urlencoded({ extended: true, limit: config.api.bodyLimit }));
-
-// Trust proxy for accurate IP addresses
-app.set('trust proxy', true);
+// Basic middleware (essential only)
+app.use(express.json({ limit: config.api.bodyLimit || '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: config.api.bodyLimit || '10mb' }));
 
 // Security headers
 app.use((req, res, next) => {
@@ -83,30 +36,152 @@ app.use((req, res, next) => {
     next();
 });
 
-console.log('✅ Basic middleware configured (rate limiter disabled for stability)');
+// Health endpoint (no auth required)
+app.get('/api/health', (req, res) => {
+    try {
+        const uptime = Math.floor(process.uptime());
+        const memory = process.memoryUsage();
+        
+        res.json({
+            status: 'OK',
+            timestamp: new Date().toISOString(),
+            version: '1.2.0',
+            uptime: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${uptime % 60}s`,
+            memory: {
+                rss: `${Math.round(memory.rss / 1024 / 1024)}MB`,
+                heapUsed: `${Math.round(memory.heapUsed / 1024 / 1024)}MB`
+            },
+            browserConnected: browserService.getStatus().connected
+        });
+    } catch (error) {
+        res.status(503).json({
+            status: 'ERROR',
+            timestamp: new Date().toISOString(),
+            error: 'Health check failed'
+        });
+    }
+});
 
-// API routes
-app.use('/api', apiRoutes);
+// Status endpoint (with auth)
+app.get('/api/status', (req, res) => {
+    // Simple auth check
+    const authToken = req.headers.authorization?.replace('Bearer ', '') || req.query.token;
+    if (!authToken || authToken !== config.server.authToken) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    try {
+        const browserStatus = browserService.getStatus();
+        res.json({
+            server: {
+                name: 'HeadlessX v1.2.0',
+                uptime: process.uptime(),
+                environment: process.env.NODE_ENV || 'development'
+            },
+            browser: browserStatus,
+            configuration: {
+                maxConcurrency: config.browser.maxConcurrency,
+                timeout: config.browser.timeout,
+                bodyLimit: config.api.bodyLimit
+            },
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: 'Status check failed',
+            timestamp: new Date().toISOString()
+        });
+    }
+});
 
-// Static file and website routes
-app.use('/', staticRoutes);
+// Simple API docs endpoint
+app.get('/api/docs', (req, res) => {
+    res.json({
+        name: 'HeadlessX v1.2.0 API',
+        version: '1.2.0',
+        description: 'Advanced Browserless Web Scraping API',
+        endpoints: {
+            'GET /api/health': 'Server health check (no auth)',
+            'GET /api/status': 'Server status (auth required)',
+            'GET /api/docs': 'API documentation'
+        },
+        authentication: {
+            method: 'Bearer token',
+            header: 'Authorization: Bearer YOUR_TOKEN',
+            query: '?token=YOUR_TOKEN'
+        },
+        timestamp: new Date().toISOString()
+    });
+});
 
-// 404 handler for API routes only
-app.use('/api/*', notFoundHandler);
+// Serve website files if available
+const websitePath = path.join(__dirname, '..', 'website', 'out');
+try {
+    const fs = require('fs');
+    if (fs.existsSync(websitePath)) {
+        console.log(`🌐 Website served from: ${websitePath}`);
+        app.use(express.static(websitePath, { index: 'index.html' }));
+        
+        // SPA fallback
+        app.get('*', (req, res, next) => {
+            if (req.path.startsWith('/api/')) {
+                next();
+            } else {
+                res.sendFile(path.join(websitePath, 'index.html'), (err) => {
+                    if (err) next();
+                });
+            }
+        });
+    } else {
+        console.log(`⚠️ Website not found at: ${websitePath}`);
+        app.get('/', (req, res) => {
+            res.json({
+                message: 'HeadlessX v1.2.0 - Advanced Browserless Web Scraping API',
+                status: 'Website not built',
+                api: {
+                    health: '/api/health',
+                    status: '/api/status',
+                    docs: '/api/docs'
+                },
+                note: 'Run "npm run build" to build the website'
+            });
+        });
+    }
+} catch (error) {
+    console.log(`⚠️ Website setup error: ${error.message}`);
+}
 
-// Global error handler middleware (must be last)
-app.use(errorHandler);
+// 404 handler for API routes
+app.use('/api/*', (req, res) => {
+    res.status(404).json({
+        error: 'API endpoint not found',
+        path: req.path,
+        timestamp: new Date().toISOString()
+    });
+});
 
-// Graceful shutdown handlers
+// Global error handler
+app.use((error, req, res, next) => {
+    console.error('Server error:', error);
+    res.status(500).json({
+        error: 'Internal server error',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// Server instance
+let server;
+
+// Graceful shutdown
 async function gracefulShutdown(signal) {
     console.log(`🛑 Received ${signal}, shutting down gracefully...`);
     
     try {
-        // Close browser service
-        await browserService.shutdown();
-        console.log('✅ Browser service closed');
+        if (browserService) {
+            await browserService.shutdown();
+            console.log('✅ Browser service closed');
+        }
         
-        // Close server
         if (server) {
             server.close(() => {
                 console.log('✅ HTTP server closed');
@@ -116,81 +191,55 @@ async function gracefulShutdown(signal) {
             process.exit(0);
         }
     } catch (error) {
-        console.error('❌ Error during graceful shutdown:', error);
+        console.error('❌ Error during shutdown:', error);
         process.exit(1);
     }
 }
 
-// Handle graceful shutdown signals
+// Signal handlers
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-
-// Handle uncaught exceptions
 process.on('uncaughtException', (error) => {
     console.error('❌ Uncaught Exception:', error);
     gracefulShutdown('uncaughtException');
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
-    gracefulShutdown('unhandledRejection');
-});
-
 // Start server
-let server;
-
 function startServer() {
-    // Add a small delay to ensure all modules are loaded
-    setTimeout(() => {
-        console.log('🚀 Starting HTTP server...');
-        
-        server = app.listen(config.server.port, config.server.host, () => {
-            console.log(`🚀 HeadlessX v1.2.0 - Advanced Browserless Web Scraping API running on port ${config.server.port}`);
-            console.log(`🌐 Website: http://localhost:${config.server.port}/`);
-            console.log(`📍 Health check: http://localhost:${config.server.port}/api/health`);
-            console.log(`📊 Status: http://localhost:${config.server.port}/api/status`);
-            console.log(`📖 API Documentation: http://localhost:${config.server.port}/api/docs`);
-            console.log(`🔐 Auth token configured: ${config.server.authToken ? 'Yes' : 'No'}`);
-            console.log(`✨ Features: Human-like behavior, anti-detection, advanced timeout handling`);
-            console.log(`🎯 API Endpoints: /api/render, /api/html, /api/content, /api/screenshot, /api/pdf, /api/batch`);
-            console.log(`📖 Documentation: Visit /api/docs for full API documentation`);
-            
-            // Log configuration summary
-            console.log(`\n📋 Configuration Summary:`);
-            console.log(`   ├── Port: ${config.server.port}`);
-            console.log(`   ├── Host: ${config.server.host}`);
-            console.log(`   ├── Browser Timeout: ${config.browser.timeout}ms`);
-            console.log(`   ├── Extra Wait Time: ${config.browser.extraWaitTime}ms`);
-            console.log(`   ├── Max Concurrency: ${config.browser.maxConcurrency}`);
-            console.log(`   ├── Body Limit: ${config.api.bodyLimit}`);
-            console.log(`   ├── Max Batch URLs: ${config.api.maxBatchUrls}`);
-            console.log(`   ├── Website Enabled: ${config.website.enabled}`);
-            console.log(`   └── Debug Mode: ${config.logging.debug}`);
-        });
-        
-        // Handle server errors
-        server.on('error', (error) => {
-            if (error.code === 'EADDRINUSE') {
-                console.error(`❌ Port ${config.server.port} is already in use`);
-            } else {
-                console.error('❌ Server error:', error);
-            }
-            process.exit(1);
-        });
-    }, 100); // 100ms delay to ensure everything is loaded
+    const port = config.server.port || 3000;
+    const host = config.server.host || '0.0.0.0';
+    
+    server = app.listen(port, host, () => {
+        console.log(`🚀 HeadlessX v1.2.0 running on http://${host}:${port}`);
+        console.log(`📍 Health check: http://${host}:${port}/api/health`);
+        console.log(`📊 Status: http://${host}:${port}/api/status`);
+        console.log(`📖 API docs: http://${host}:${port}/api/docs`);
+        console.log(`🔐 Auth token: ${config.server.authToken ? 'Configured' : 'Missing'}`);
+        console.log('✅ Server ready for requests');
+    });
+    
+    server.on('error', (error) => {
+        if (error.code === 'EADDRINUSE') {
+            console.error(`❌ Port ${port} is already in use`);
+        } else {
+            console.error('❌ Server error:', error);
+        }
+        process.exit(1);
+    });
 }
 
-// Initialize and start server
+// Initialize server
 if (require.main === module) {
-    console.log('🔄 Initializing server...');
+    console.log('🔄 Initializing HeadlessX v1.2.0...');
     
-    // Start server with single initialization
-    try {
-        startServer();
-    } catch (error) {
-        console.error('❌ Server startup failed:', error.message);
-        process.exit(1);
-    }
+    setTimeout(() => {
+        try {
+            startServer();
+        } catch (error) {
+            console.error('❌ Server startup failed:', error);
+            process.exit(1);
+        }
+    }, 100);
 }
 
 module.exports = app;

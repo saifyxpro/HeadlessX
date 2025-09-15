@@ -67,14 +67,14 @@ ENV AUTH_TOKEN=""
 ENV DOMAIN=localhost
 ENV SUBDOMAIN=headlessx
 
-# Create startup script for modular architecture
+# Create startup script for simplified server architecture
 RUN echo '#!/bin/bash\n\
 # Configure nginx to proxy to Node.js\n\
 sed -i "s/SUBDOMAIN.DOMAIN.COM/$SUBDOMAIN.$DOMAIN/g" /etc/nginx/sites-available/default\n\
 service nginx start\n\
 \n\
-# Start HeadlessX modular server\n\
-exec su headlessx -c "node src/app.js"' > /start.sh && chmod +x /start.sh
+# Start HeadlessX server\n\
+exec su headlessx -c "node src/server.js"' > /start.sh && chmod +x /start.sh
 
 # Expose ports
 EXPOSE 80 3000
