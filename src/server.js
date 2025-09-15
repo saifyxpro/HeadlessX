@@ -517,34 +517,43 @@ async function renderPageAdvanced(options) {
 
     try {
         // Get realistic user agent and locale settings
-        const realisticUserAgent = userAgent || getRandomUserAgent();
+        // Force high-end desktop user agent to get full desktop version
+        const realisticUserAgent = userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
         const realisticLocale = getRandomLocale();
         const realisticHeaders = generateRealisticHeaders(realisticUserAgent, headers);
         
         console.log(`🎭 Using User Agent: ${realisticUserAgent.substring(0, 80)}...`);
         console.log(`🌍 Using Locale: ${realisticLocale.locale} (${realisticLocale.timezone})`);
         
-        // Create new browser context with enhanced stealth and CSS loading settings
+        // Create new browser context with FORCED desktop settings
         context = await browser.newContext({
-            viewport: { width: 1920, height: 1080 }, // Force large desktop viewport
+            viewport: { width: 1920, height: 1080 }, // Large desktop viewport
             userAgent: realisticUserAgent,
-            locale: realisticLocale.locale,
-            timezoneId: realisticLocale.timezone,
+            locale: 'en-US', // Force English US
+            timezoneId: 'America/New_York',
             extraHTTPHeaders: {
-                ...realisticHeaders,
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Accept-Encoding': 'gzip, deflate, br',
                 'Cache-Control': 'no-cache',
                 'Pragma': 'no-cache',
-                'Sec-Ch-Ua': '"Google Chrome";v="120", "Chromium";v="120", "Not_A Brand";v="8"',
+                'User-Agent': realisticUserAgent,
+                'Sec-Ch-Ua': '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"',
                 'Sec-Ch-Ua-Mobile': '?0',
                 'Sec-Ch-Ua-Platform': '"Windows"',
+                'Sec-Ch-Ua-Platform-Version': '"15.0.0"',
+                'Sec-Ch-Ua-Full-Version': '"128.0.6613.84"',
+                'Sec-Ch-Ua-Full-Version-List': '"Chromium";v="128.0.6613.84", "Not;A=Brand";v="24.0.0.0", "Google Chrome";v="128.0.6613.84"',
+                'Sec-Ch-Viewport-Width': '1920',
+                'Sec-Ch-Viewport-Height': '1080',
+                'Sec-Ch-Device-Memory': '8',
+                'Sec-Ch-Dpr': '1',
                 'Sec-Fetch-Dest': 'document',
                 'Sec-Fetch-Mode': 'navigate',
                 'Sec-Fetch-Site': 'none',
                 'Sec-Fetch-User': '?1',
-                'Upgrade-Insecure-Requests': '1'
+                'Upgrade-Insecure-Requests': '1',
+                'Connection': 'keep-alive'
             },
             ignoreHTTPSErrors: true,
             javaScriptEnabled: true,
@@ -594,9 +603,28 @@ async function renderPageAdvanced(options) {
             });
         }
 
-    // Add comprehensive stealth scripts to avoid detection and ensure proper CSS loading
-    // Use context.addInitScript so it applies to all pages/frames in this context
+    // AGGRESSIVE desktop stealth script to force desktop rendering
     await context.addInitScript(() => {
+            // FORCE DESKTOP MODE - Override all mobile detection
+            Object.defineProperty(navigator, 'userAgent', {
+                get: () => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+                configurable: false
+            });
+            
+            // BLOCK GOOGLE'S BOT DETECTION
+            Object.defineProperty(navigator, 'userAgentData', {
+                get: () => ({
+                    brands: [
+                        { brand: 'Chromium', version: '128' },
+                        { brand: 'Not;A=Brand', version: '24' },
+                        { brand: 'Google Chrome', version: '128' }
+                    ],
+                    mobile: false,
+                    platform: 'Windows'
+                }),
+                configurable: true
+            });
+            
             // Remove webdriver properties completely
             delete navigator.__proto__.webdriver;
             delete navigator.webdriver;
@@ -616,6 +644,72 @@ async function renderPageAdvanced(options) {
             delete window.__playwright;
             delete window.__pw_manual;
             delete window.__pw_originals;
+            
+            // ANTI-GOOGLE DETECTION - Remove automation properties
+            ['__webdriver_evaluate', '__selenium_evaluate', '__webdriver_script_function', '__webdriver_script_func', '__webdriver_script_fn', '__fxdriver_evaluate', '__driver_unwrapped', '__webdriver_unwrapped', '__driver_evaluate', '__selenium_unwrapped', '__fxdriver_unwrapped'].forEach(prop => {
+                delete window[prop];
+            });
+            
+            // FORCE DESKTOP SCREEN PROPERTIES
+            Object.defineProperty(screen, 'width', {
+                get: () => 1920,
+                configurable: true
+            });
+            Object.defineProperty(screen, 'height', {
+                get: () => 1080,
+                configurable: true
+            });
+            Object.defineProperty(screen, 'availWidth', {
+                get: () => 1920,
+                configurable: true
+            });
+            Object.defineProperty(screen, 'availHeight', {
+                get: () => 1040,
+                configurable: true
+            });
+            
+            // FORCE WINDOW SIZE
+            Object.defineProperty(window, 'innerWidth', {
+                get: () => 1920,
+                configurable: true
+            });
+            Object.defineProperty(window, 'innerHeight', {
+                get: () => 1080,
+                configurable: true
+            });
+            Object.defineProperty(window, 'outerWidth', {
+                get: () => 1920,
+                configurable: true
+            });
+            Object.defineProperty(window, 'outerHeight', {
+                get: () => 1080,
+                configurable: true
+            });
+            
+            // OVERRIDE MOBILE DETECTION
+            Object.defineProperty(navigator, 'maxTouchPoints', {
+                get: () => 0,
+                configurable: true
+            });
+            
+            // Override media queries to force desktop
+            const originalMatchMedia = window.matchMedia;
+            window.matchMedia = function(query) {
+                // Force desktop media queries to match
+                if (query.includes('min-width: 1024px') || query.includes('min-width: 768px')) {
+                    return { matches: true, media: query };
+                }
+                if (query.includes('max-width') && (query.includes('768px') || query.includes('1023px'))) {
+                    return { matches: false, media: query };
+                }
+                if (query.includes('orientation: portrait')) {
+                    return { matches: false, media: query };
+                }
+                if (query.includes('orientation: landscape')) {
+                    return { matches: true, media: query };
+                }
+                return originalMatchMedia.call(this, query);
+            };
             
             // Override chrome runtime to appear more realistic
             if (!window.chrome) {
@@ -813,23 +907,36 @@ async function renderPageAdvanced(options) {
 
         console.log(`🌐 Navigating to: ${url}`);
 
+        // Force desktop version for Google and other sites
+        let targetUrl = url;
+        if (url.includes('google.com') && !url.includes('?')) {
+            targetUrl = url + '?hl=en&gl=us&pws=0&gws_rd=ssl';
+            console.log(`🎯 Forcing Google desktop version: ${targetUrl}`);
+        }
+
         // Enhanced navigation with better CSS loading detection
         await withTimeoutFallback(
             async () => {
                 // Use 'networkidle' instead of 'domcontentloaded' for better CSS loading
-                await page.goto(url, { 
+                await page.goto(targetUrl, { 
                     waitUntil: 'networkidle', // Changed to ensure resources load
                     timeout: timeout
                 });
                 console.log('📄 Page navigation completed');
                 
                 // Additional wait for CSS rendering
-                await page.waitForTimeout(2000);
+                await page.waitForTimeout(3000); // Increased to 3 seconds
                 
                 // Force CSS evaluation to ensure styles are applied
                 await page.evaluate(() => {
                     // Force style recalculation
                     document.body.offsetHeight;
+                    
+                    // Force desktop layout
+                    const viewport = document.querySelector('meta[name="viewport"]');
+                    if (viewport) {
+                        viewport.setAttribute('content', 'width=1920');
+                    }
                     
                     // Wait for any remaining stylesheets
                     const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
@@ -838,7 +945,7 @@ async function renderPageAdvanced(options) {
                         return new Promise((resolve) => {
                             link.onload = () => resolve();
                             link.onerror = () => resolve();
-                            setTimeout(() => resolve(), 1000); // Timeout
+                            setTimeout(() => resolve(), 2000); // Increased timeout
                         });
                     }));
                 });
@@ -991,6 +1098,35 @@ async function renderPageAdvanced(options) {
                         if (window.matchMedia) {
                             const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
                             console.log(`Desktop layout detected: ${isDesktop}`);
+                        }
+                        
+                        // GOOGLE-SPECIFIC: Wait for logo to load
+                        if (window.location.href.includes('google.com')) {
+                            console.log('Waiting for Google logo to load...');
+                            
+                            // Wait for Google logo specifically
+                            let logoAttempts = 0;
+                            while (logoAttempts < 20) { // 10 seconds max
+                                const logo = document.querySelector('img[alt="Google"]') || 
+                                           document.querySelector('.lnXdpd') || 
+                                           document.querySelector('#hplogo') ||
+                                           document.querySelector('[src*="logo"]');
+                                
+                                if (logo && logo.complete && logo.naturalHeight > 0) {
+                                    console.log('Google logo loaded successfully');
+                                    break;
+                                }
+                                
+                                await new Promise(resolve => setTimeout(resolve, 500));
+                                logoAttempts++;
+                            }
+                            
+                            // Force re-render Google elements
+                            const hplogo = document.querySelector('#hplogo');
+                            if (hplogo) hplogo.style.display = 'block';
+                            
+                            const lnXdpd = document.querySelector('.lnXdpd');
+                            if (lnXdpd) lnXdpd.style.display = 'block';
                         }
                         
                         // Force one more style recalculation
