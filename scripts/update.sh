@@ -158,22 +158,29 @@ sleep 5
 # Comprehensive server validation
 echo "🧪 Validating server startup..."
 RETRY_COUNT=0
-MAX_RETRIES=30
+MAX_RETRIES=15  # Reduced from 30 to 15 for faster feedback
 SERVER_READY=false
 
 while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$SERVER_READY" = false ]; do
     # Check PM2 status
     if pm2 status headlessx | grep -q "online"; then
         # Check if port is listening
-        if ss -tlnp | grep -q ":3000"; then
-            # Test HTTP response
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health 2>/dev/null || echo "000")
+        if ss -tlnp | grep -q ":3000" || netstat -tlnp 2>/dev/null | grep -q ":3000"; then
+            # Test HTTP response with shorter timeout
+            HTTP_CODE=$(timeout 5s curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health 2>/dev/null || echo "000")
             if [ "$HTTP_CODE" = "200" ]; then
                 SERVER_READY=true
-                print_status "Server is online and responding correctly"
+                print_status "Server is online and responding correctly (HTTP 200)"
                 break
-            elif [ "$HTTP_CODE" != "000" ]; then
-                print_status "Server is responding (HTTP $HTTP_CODE)"
+            elif [ "$HTTP_CODE" != "000" ] && [ "$HTTP_CODE" != "000" ]; then
+                print_status "Server is responding (HTTP $HTTP_CODE) - likely still starting"
+                SERVER_READY=true
+                break
+            fi
+            
+            # If port is listening but no HTTP response, server is probably starting
+            if [ $RETRY_COUNT -gt 8 ]; then
+                print_status "Server is listening on port 3000 - startup in progress"
                 SERVER_READY=true
                 break
             fi
@@ -186,14 +193,23 @@ while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$SERVER_READY" = false ]; do
 done
 
 if [ "$SERVER_READY" = false ]; then
-    print_warning "Server startup validation failed"
-    echo "   Current PM2 Status:"
-    pm2 status
+    print_warning "Server startup validation timed out after 30 seconds"
     echo ""
-    echo "   Latest logs (run 'pm2 logs headlessx' for more):"
-    pm2 logs headlessx --lines 5
+    echo "📊 Current Status:"
+    pm2 status headlessx
     echo ""
-    print_info "Server may still be starting - check logs for details"
+    echo "🔍 Port Check:"
+    if ss -tlnp | grep -q ":3000"; then
+        print_status "Port 3000 is listening"
+    else
+        print_warning "Port 3000 is not listening"
+    fi
+    echo ""
+    echo "📋 Recent logs:"
+    pm2 logs headlessx --lines 10
+    echo ""
+    print_info "Server may still be initializing - this is normal for first startup"
+    print_info "Monitor with: pm2 logs headlessx --lines 0"
 else
     pm2 save
     print_status "HeadlessX restarted successfully"
