@@ -339,8 +339,7 @@ class StealthService {
             bypassCSP: true,
             acceptDownloads: false,
             // DATACENTER OPTIMIZATION: Additional context options
-            geolocation: { latitude: 40.7128, longitude: -74.0060 }, // New York coordinates
-            httpCredentials: 'include'
+            geolocation: { latitude: 40.7128, longitude: -74.0060 } // New York coordinates
         };
     }
 
