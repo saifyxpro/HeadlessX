@@ -45,17 +45,36 @@ if [ ! -f .env ]; then
         cat > .env << 'EOF'
 # REQUIRED: Set a secure random token
 AUTH_TOKEN=CHANGE_THIS_TO_SECURE_RANDOM_TOKEN
+
+# Server configuration
 PORT=3000
 HOST=0.0.0.0
 NODE_ENV=production
-DOMAIN=yourdomain.com
+
+# Domain configuration (replace with your actual domain)
+DOMAIN=saify.me
 SUBDOMAIN=headlessx
+# Full domain will be: headlessx.saify.me
+
+# Website domain configuration
+NEXT_PUBLIC_DOMAIN=saify.me
+NEXT_PUBLIC_SUBDOMAIN=headlessx
+NEXT_PUBLIC_API_URL=https://headlessx.saify.me
+NEXT_PUBLIC_SITE_URL=https://headlessx.saify.me
+
+# Browser configuration
 BROWSER_TIMEOUT=30000
 EXTRA_WAIT_TIME=2000
 MAX_CONCURRENCY=2
+
+# API configuration
 BODY_LIMIT=10mb
 MAX_BATCH_URLS=5
+
+# Website configuration
 WEBSITE_ENABLED=true
+
+# Logging configuration
 DEBUG=false
 LOG_LEVEL=error
 EOF
@@ -70,7 +89,7 @@ if [ -f .env ]; then
 fi
 
 # Set default domain values if not set
-DOMAIN=${DOMAIN:-"yourdomain.com"}
+DOMAIN=${DOMAIN:-"saify.me"}
 SUBDOMAIN=${SUBDOMAIN:-"headlessx"}
 FULL_DOMAIN="$SUBDOMAIN.$DOMAIN"
 
@@ -149,16 +168,19 @@ print_status "Playwright browsers installed"
 echo "🌐 Building website..."
 cd website
 
-# Configure website environment
+# Configure website environment using main .env file
 if [ ! -z "$DOMAIN" ] && [ ! -z "$SUBDOMAIN" ]; then
     print_info "Configuring website with domain: $FULL_DOMAIN"
-    cat > .env.local << EOF
-NEXT_PUBLIC_DOMAIN=$DOMAIN
-NEXT_PUBLIC_SUBDOMAIN=$SUBDOMAIN
-NEXT_PUBLIC_API_URL=https://$FULL_DOMAIN
-NEXT_PUBLIC_SITE_URL=https://$FULL_DOMAIN
-EOF
-    print_status "Website environment configured"
+    
+    # Copy main .env to website directory for Next.js to read NEXT_PUBLIC_ variables
+    if [ -f "../.env" ]; then
+        cp ../.env .env.local
+        print_status "Copied main .env to website/.env.local for Next.js build"
+    else
+        print_warning "Main .env file not found, website may not have proper configuration"
+    fi
+else
+    print_warning "DOMAIN or SUBDOMAIN not set in .env file"
 fi
 
 # Install website dependencies
@@ -204,10 +226,19 @@ else
     print_status "Nginx already installed"
 fi
 
-# Copy Nginx configuration
-$SUDO_CMD cp nginx/headlessx.conf /etc/nginx/sites-available/headlessx
+# Copy and configure Nginx
+print_info "Configuring Nginx for domain: $FULL_DOMAIN"
+
+# Copy nginx config and replace placeholder with actual domain
+cp nginx/headlessx.conf /tmp/headlessx.conf.tmp
+sed "s/YOUR_DOMAIN_HERE/$FULL_DOMAIN/g" /tmp/headlessx.conf.tmp > /tmp/headlessx.conf.configured
+
+$SUDO_CMD cp /tmp/headlessx.conf.configured /etc/nginx/sites-available/headlessx
 $SUDO_CMD ln -sf /etc/nginx/sites-available/headlessx /etc/nginx/sites-enabled/
 $SUDO_CMD rm -f /etc/nginx/sites-enabled/default
+
+# Clean up temporary files
+rm -f /tmp/headlessx.conf.tmp /tmp/headlessx.conf.configured
 
 # Add rate limiting zones to main nginx config if not already present
 if ! grep -q "limit_req_zone.*zone=api" /etc/nginx/nginx.conf; then

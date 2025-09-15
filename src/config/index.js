@@ -13,9 +13,22 @@ function loadEnvironmentVariables() {
         if (fs.existsSync(envPath)) {
             const envFile = fs.readFileSync(envPath, 'utf8');
             envFile.split('\n').forEach(line => {
-                const [key, value] = line.split('=');
-                if (key && value && !process.env[key]) {
-                    process.env[key] = value.trim();
+                // Skip comments and empty lines
+                if (line.trim() === '' || line.trim().startsWith('#')) {
+                    return;
+                }
+                
+                const equalIndex = line.indexOf('=');
+                if (equalIndex > 0) {
+                    const key = line.substring(0, equalIndex).trim();
+                    const value = line.substring(equalIndex + 1).trim();
+                    
+                    // Remove quotes if present
+                    const cleanValue = value.replace(/^["']|["']$/g, '');
+                    
+                    if (key && !process.env[key]) {
+                        process.env[key] = cleanValue;
+                    }
                 }
             });
             console.log('✅ Environment variables loaded from .env file');

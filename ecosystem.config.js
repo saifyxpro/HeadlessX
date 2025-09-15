@@ -3,7 +3,12 @@
  * 
  * This configuration file manages HeadlessX deployment with PM2
  * providing process management, monitoring, and scaling capabilities
+ * 
+ * All values are loaded from .env file - no hardcoded values
  */
+
+// Load environment variables from .env file
+require('dotenv').config();
 
 module.exports = {
   apps: [
@@ -27,51 +32,74 @@ module.exports = {
       max_restarts: 3, // Maximum restarts in 1 minute (reduced)
       restart_delay: 5000, // Delay between restarts (5 seconds - increased)
       
-      // Environment variables for production
+      // Environment variables for production - ALL FROM .env FILE
       env: {
-        NODE_ENV: 'production',
-        PORT: 3000,
-        HOST: '0.0.0.0',
+        NODE_ENV: process.env.NODE_ENV || 'production',
+        PORT: process.env.PORT || 3000,
+        HOST: process.env.HOST || '0.0.0.0',
         
-        // Security
-        AUTH_TOKEN: 'headless-x-secure-token-2024',
+        // Security - FROM .env FILE
+        AUTH_TOKEN: process.env.AUTH_TOKEN,
         
-        // Browser configuration - OPTIMIZED FOR 2GB RAM
-        BROWSER_TIMEOUT: '30000',      // Reduced from 60000
-        EXTRA_WAIT_TIME: '2000',       // Reduced from 3000 
-        MAX_CONCURRENCY: '2',          // Reduced from 3
+        // Domain configuration - FROM .env FILE
+        DOMAIN: process.env.DOMAIN,
+        SUBDOMAIN: process.env.SUBDOMAIN,
         
-        // API configuration - LIGHTWEIGHT
-        BODY_LIMIT: '5mb',             // Reduced from 10mb
-        MAX_BATCH_URLS: '5',           // Reduced from 10
+        // Website environment variables - FROM .env FILE
+        NEXT_PUBLIC_DOMAIN: process.env.NEXT_PUBLIC_DOMAIN,
+        NEXT_PUBLIC_SUBDOMAIN: process.env.NEXT_PUBLIC_SUBDOMAIN,
+        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+        NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
         
-        // Website configuration
-        WEBSITE_ENABLED: 'true',
-        WEBSITE_PATH: './website/out',
+        // Browser configuration - FROM .env FILE
+        BROWSER_TIMEOUT: process.env.BROWSER_TIMEOUT || '30000',
+        EXTRA_WAIT_TIME: process.env.EXTRA_WAIT_TIME || '2000',
+        MAX_CONCURRENCY: process.env.MAX_CONCURRENCY || '2',
         
-        // Logging - MINIMAL
-        DEBUG: 'false',
-        LOG_LEVEL: 'error'             // Only errors to reduce overhead
+        // API configuration - FROM .env FILE
+        BODY_LIMIT: process.env.BODY_LIMIT || '5mb',
+        MAX_BATCH_URLS: process.env.MAX_BATCH_URLS || '5',
+        
+        // Website configuration - FROM .env FILE
+        WEBSITE_ENABLED: process.env.WEBSITE_ENABLED || 'true',
+        WEBSITE_PATH: process.env.WEBSITE_PATH || './website/out',
+        
+        // Logging - FROM .env FILE
+        DEBUG: process.env.DEBUG || 'false',
+        LOG_LEVEL: process.env.LOG_LEVEL || 'error'
       },
       
-      // Environment variables for development
+      // Environment variables for development - FROM .env FILE
       env_development: {
         NODE_ENV: 'development',
-        PORT: 3000,
-        HOST: 'localhost',
+        PORT: process.env.PORT || 3000,
+        HOST: process.env.HOST || 'localhost',
+        AUTH_TOKEN: process.env.AUTH_TOKEN,
+        DOMAIN: process.env.DOMAIN,
+        SUBDOMAIN: process.env.SUBDOMAIN,
+        NEXT_PUBLIC_DOMAIN: process.env.NEXT_PUBLIC_DOMAIN,
+        NEXT_PUBLIC_SUBDOMAIN: process.env.NEXT_PUBLIC_SUBDOMAIN,
+        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+        NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
         DEBUG: 'true',
         LOG_LEVEL: 'debug',
-        BROWSER_TIMEOUT: '30000',
-        EXTRA_WAIT_TIME: '2000',
-        MAX_CONCURRENCY: '2'
+        BROWSER_TIMEOUT: process.env.BROWSER_TIMEOUT || '30000',
+        EXTRA_WAIT_TIME: process.env.EXTRA_WAIT_TIME || '2000',
+        MAX_CONCURRENCY: process.env.MAX_CONCURRENCY || '2'
       },
       
-      // Environment variables for staging
+      // Environment variables for staging - FROM .env FILE
       env_staging: {
         NODE_ENV: 'staging',
-        PORT: 3000,
-        HOST: '0.0.0.0',
-        AUTH_TOKEN: 'staging-auth-token',
+        PORT: process.env.PORT || 3000,
+        HOST: process.env.HOST || '0.0.0.0',
+        AUTH_TOKEN: process.env.AUTH_TOKEN,
+        DOMAIN: process.env.DOMAIN,
+        SUBDOMAIN: process.env.SUBDOMAIN,
+        NEXT_PUBLIC_DOMAIN: process.env.NEXT_PUBLIC_DOMAIN,
+        NEXT_PUBLIC_SUBDOMAIN: process.env.NEXT_PUBLIC_SUBDOMAIN,
+        NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+        NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
         DEBUG: 'true',
         LOG_LEVEL: 'debug'
       },

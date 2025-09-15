@@ -7,7 +7,7 @@
     "start": "node src/app.js",
     "dev": "node src/app.js",
     "server": "node src/server.js",
-    "build": "cd website && npm install && npm run build",
+    "build": "node -e \"const fs=require('fs'); try{fs.copyFileSync('.env','website/.env.local')}catch(e){console.log('No .env file to copy')}\" && cd website && npm install && npm run build",
     "build:full": "npm install && npm run build",
     "setup": "bash scripts/setup.sh",
     "setup-playwright": "bash scripts/setup-playwright.sh",

@@ -2,15 +2,15 @@
 // This file supports build-time environment variables for domain configuration
 
 const config = {
-  // Domain configuration from environment variables or defaults
-  domain: process.env.NEXT_PUBLIC_DOMAIN || 'yourdomain.com',
-  subdomain: process.env.NEXT_PUBLIC_SUBDOMAIN || 'your-subdomain',
+  // Domain configuration from environment variables
+  domain: process.env.NEXT_PUBLIC_DOMAIN,
+  subdomain: process.env.NEXT_PUBLIC_SUBDOMAIN,
   
   // API configuration  
-  apiUrl: process.env.NEXT_PUBLIC_API_URL || `https://${process.env.NEXT_PUBLIC_SUBDOMAIN || 'your-subdomain'}.${process.env.NEXT_PUBLIC_DOMAIN || 'yourdomain.com'}`,
+  apiUrl: process.env.NEXT_PUBLIC_API_URL,
   
   // Site metadata
-  siteUrl: `https://${process.env.NEXT_PUBLIC_SUBDOMAIN || 'your-subdomain'}.${process.env.NEXT_PUBLIC_DOMAIN || 'yourdomain.com'}`,
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
   
   // GitHub repository
   githubUrl: 'https://github.com/SaifyXPRO/HeadlessX',

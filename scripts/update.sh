@@ -80,18 +80,28 @@ if [ -f "package-lock.json" ]; then
 fi
 npm install
 
-# Rebuild with current environment
-DOMAIN=${DOMAIN:-"yourdomain.com"}
+# Rebuild with current environment from main .env file
+DOMAIN=${DOMAIN:-"saify.me"}
 SUBDOMAIN=${SUBDOMAIN:-"headlessx"}
 
 if [ ! -z "$DOMAIN" ] && [ ! -z "$SUBDOMAIN" ]; then
     print_info "Configuring website for domain: $SUBDOMAIN.$DOMAIN"
-    cat > .env.local << EOF
+    
+    # Copy main .env to website directory for Next.js to read NEXT_PUBLIC_ variables
+    if [ -f "../.env" ]; then
+        cp ../.env .env.local
+        print_status "Copied main .env to website/.env.local for Next.js build"
+    else
+        print_warning "Main .env file not found, creating basic website environment"
+        cat > .env.local << EOF
 NEXT_PUBLIC_DOMAIN=$DOMAIN
 NEXT_PUBLIC_SUBDOMAIN=$SUBDOMAIN
 NEXT_PUBLIC_API_URL=https://$SUBDOMAIN.$DOMAIN
 NEXT_PUBLIC_SITE_URL=https://$SUBDOMAIN.$DOMAIN
 EOF
+    fi
+else
+    print_warning "DOMAIN or SUBDOMAIN not set in environment"
 fi
 
 npm run build
@@ -166,9 +176,32 @@ else
     print_info "curl not available - skipping health check"
 fi
 
-# 9. Reload nginx if available
+# 9. Update and reload nginx if available
 if command -v nginx >/dev/null 2>&1; then
-    echo "🌐 Reloading nginx..."
+    echo "🌐 Updating and reloading nginx..."
+    
+    # Get domain from environment
+    DOMAIN=${DOMAIN:-"saify.me"}
+    SUBDOMAIN=${SUBDOMAIN:-"headlessx"}
+    FULL_DOMAIN="$SUBDOMAIN.$DOMAIN"
+    
+    # Update nginx configuration with current domain
+    if [ -f "nginx/headlessx.conf" ]; then
+        print_info "Updating Nginx configuration for domain: $FULL_DOMAIN"
+        
+        # Create updated nginx config
+        cp nginx/headlessx.conf /tmp/headlessx.conf.tmp
+        sed "s/YOUR_DOMAIN_HERE/$FULL_DOMAIN/g" /tmp/headlessx.conf.tmp > /tmp/headlessx.conf.configured
+        
+        # Copy to nginx sites-available
+        sudo cp /tmp/headlessx.conf.configured /etc/nginx/sites-available/headlessx
+        
+        # Clean up temporary files
+        rm -f /tmp/headlessx.conf.tmp /tmp/headlessx.conf.configured
+        
+        print_status "Nginx configuration updated"
+    fi
+    
     if sudo nginx -t 2>/dev/null; then
         sudo systemctl reload nginx
         print_status "Nginx reloaded"

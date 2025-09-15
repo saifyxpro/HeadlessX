@@ -18,9 +18,9 @@ const nextConfig = {
   
   // Generate static paths with environment-based configuration
   generateBuildId: async () => {
-    const domain = process.env.NEXT_PUBLIC_DOMAIN || process.env.DOMAIN || 'yourdomain.com';
-    const subdomain = process.env.NEXT_PUBLIC_SUBDOMAIN || process.env.SUBDOMAIN || 'your-subdomain';
-    return `headlessx-${subdomain}-${Date.now()}`;
+    const domain = process.env.NEXT_PUBLIC_DOMAIN || process.env.DOMAIN;
+    const subdomain = process.env.NEXT_PUBLIC_SUBDOMAIN || process.env.SUBDOMAIN;
+    return `headlessx-${subdomain || 'default'}-${Date.now()}`;
   }
 }
 
