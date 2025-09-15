@@ -120,42 +120,117 @@ if [ ! -f ".env" ]; then
 fi
 
 # Restart with PM2
-echo "🚀 Starting HeadlessX with PM2..."
-pm2 start ecosystem.config.js
-pm2 save
-print_status "HeadlessX restarted"
+echo "🚀 Restarting HeadlessX with PM2..."
 
-# Test server
-echo "🧪 Testing server..."
+# Stop existing processes
+pm2 stop headlessx 2>/dev/null || true
+pm2 delete headlessx 2>/dev/null || true
+
+# Kill any processes that might be using port 3000
+fuser -k 3000/tcp 2>/dev/null || true
+sleep 3
+
+# Validate dependencies before restart
+echo "🔍 Validating dependencies..."
+
+# Check Node.js modules
+if [ ! -d "node_modules/express" ]; then
+    print_warning "Installing missing dependencies..."
+    npm install --production
+fi
+
+# Check website build
+if [ ! -d "website/out" ]; then
+    print_warning "Website not built, building now..."
+    cd website && npm run build && cd ..
+fi
+
+# Check Playwright
+if ! npx playwright install chromium --dry-run 2>/dev/null; then
+    print_warning "Installing Playwright browsers..."
+    npx playwright install chromium
+fi
+
+# Start fresh with PM2
+pm2 start ecosystem.config.js
 sleep 5
 
-if curl -f http://localhost:3000/api/health > /dev/null 2>&1; then
-    print_status "Server is responding"
+# Comprehensive server validation
+echo "🧪 Validating server startup..."
+RETRY_COUNT=0
+MAX_RETRIES=30
+SERVER_READY=false
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$SERVER_READY" = false ]; do
+    # Check PM2 status
+    if pm2 status headlessx | grep -q "online"; then
+        # Check if port is listening
+        if ss -tlnp | grep -q ":3000"; then
+            # Test HTTP response
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health 2>/dev/null || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+                SERVER_READY=true
+                print_status "Server is online and responding correctly"
+                break
+            elif [ "$HTTP_CODE" != "000" ]; then
+                print_status "Server is responding (HTTP $HTTP_CODE)"
+                SERVER_READY=true
+                break
+            fi
+        fi
+    fi
+    
+    echo "   Waiting for server startup... ($((RETRY_COUNT + 1))/$MAX_RETRIES)"
+    sleep 2
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+done
+
+if [ "$SERVER_READY" = false ]; then
+    print_warning "Server startup validation failed"
+    echo "   Current PM2 Status:"
+    pm2 status
+    echo ""
+    echo "   Latest logs (run 'pm2 logs headlessx' for more):"
+    pm2 logs headlessx --lines 5
+    echo ""
+    print_info "Server may still be starting - check logs for details"
 else
-    print_warning "Server may not be fully ready yet"
+    pm2 save
+    print_status "HeadlessX restarted successfully"
 fi
 
 echo ""
-echo "🎉 HeadlessX v1.2.0 Update completed successfully!"
-echo "================================================="
+echo "🎉 HeadlessX v1.2.0 Update completed!"
+echo "===================================="
 echo ""
 echo -e "${GREEN}✅ Update Summary:${NC}"
 echo "   - Code updated from GitHub"
-echo "   - Dependencies updated"
+echo "   - Dependencies validated and updated"
 echo "   - Website rebuilt"
-echo "   - PM2 restarted"
+echo "   - PM2 restarted with validation"
 echo ""
-echo "📋 Next steps:"
+echo "� Current Status:"
+pm2 status headlessx
 echo ""
-echo "1. Check server status:"
-echo "   pm2 status"
-echo "   pm2 logs headlessx"
+echo "�📋 Quick Tests:"
 echo ""
-echo "2. Test your API:"
-echo "   curl http://localhost:3000/api/health"
+echo "1. Test API Health:"
+echo "   curl http://127.0.0.1:3000/api/health"
 echo ""
-echo "3. Monitor performance:"
+echo "2. Check what's listening on port 3000:"
+echo "   ss -tlnp | grep :3000"
+echo ""
+echo "3. View real-time logs:"
+echo "   pm2 logs headlessx --lines 0"
+echo ""
+echo "4. Full server monitoring:"
 echo "   pm2 monit"
+echo ""
+echo "🔧 Troubleshooting:"
+echo "   - View logs: pm2 logs headlessx"
+echo "   - Restart: pm2 restart headlessx"
+echo "   - Manual start: node src/app.js"
+echo "   - Check dependencies: npm list --depth=0"
 echo ""
 echo "📚 Visit https://github.com/SaifyXPRO/HeadlessX for documentation"
 echo ""

@@ -230,14 +230,42 @@ fi
 
 # Validate dependencies before starting server
 echo "🔍 Validating installation..."
+
+# Check Node.js modules
 if [ ! -d "node_modules" ] || [ ! -f "node_modules/express/package.json" ]; then
     print_error "Dependencies not properly installed. Installing again..."
-    npm install
+    npm install --production
 fi
 
+# Check website build
 if [ ! -d "website/out" ]; then
     print_error "Website not built. Building again..."
     cd website && npm run build && cd ..
+fi
+
+# Check Playwright installation
+if [ ! -d "node_modules/playwright-core" ]; then
+    print_error "Playwright not installed. Installing..."
+    npm install playwright-core
+fi
+
+# Ensure Playwright browsers are installed
+echo "🌐 Verifying Playwright browsers..."
+if ! npx playwright install chromium --dry-run 2>/dev/null; then
+    print_warning "Installing Playwright Chromium browser..."
+    npx playwright install chromium
+fi
+
+# Validate .env file
+if [ ! -f ".env" ]; then
+    print_warning "Creating .env file from template..."
+    cp .env.example .env
+    print_warning "Please update the AUTH_TOKEN value in .env file!"
+fi
+
+# Check if AUTH_TOKEN is set
+if ! grep -q "AUTH_TOKEN=" .env || grep -q "AUTH_TOKEN=your_secure_token_here" .env; then
+    print_warning "AUTH_TOKEN not configured - please update .env file"
 fi
 
 # Validate new modular server files
@@ -309,9 +337,63 @@ pkill -f "node.*src/app.js" 2>/dev/null || true
 
 # Start with PM2
 echo "🚀 Starting HeadlessX with PM2..."
+
+# Stop any existing processes first
+pm2 stop headlessx 2>/dev/null || true
+pm2 delete headlessx 2>/dev/null || true
+
+# Kill any processes that might be using port 3000
+fuser -k 3000/tcp 2>/dev/null || true
+sleep 2
+
+# Start fresh with PM2
 pm2 start ecosystem.config.js
+sleep 5
+
+# Validate server startup
+echo "🔍 Validating server startup..."
+RETRY_COUNT=0
+MAX_RETRIES=30
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if pm2 status headlessx | grep -q "online"; then
+        # Check if server is responding
+        if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health | grep -q "200"; then
+            print_status "Server is online and responding"
+            break
+        elif ss -tlnp | grep -q ":3000"; then
+            print_status "Server is listening on port 3000"
+            break
+        fi
+    fi
+    
+    echo "   Waiting for server startup... ($((RETRY_COUNT + 1))/$MAX_RETRIES)"
+    sleep 2
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+done
+
+if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+    print_warning "Server startup validation timed out"
+    echo "   PM2 Status:"
+    pm2 status
+    echo "   Latest logs:"
+    pm2 logs headlessx --lines 10
+    
+    # Try restarting once more
+    print_info "Attempting to restart server..."
+    pm2 restart headlessx
+    sleep 5
+    
+    if ss -tlnp | grep -q ":3000"; then
+        print_status "Server restarted successfully"
+    else
+        print_error "Server startup failed - check logs with: pm2 logs headlessx"
+    fi
+else
+    print_status "HeadlessX started successfully with PM2"
+fi
+
 pm2 save
-print_status "HeadlessX started with PM2"
 
 # Setup PM2 startup script
 echo "⚙️ Configuring PM2 startup..."
