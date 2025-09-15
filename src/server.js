@@ -186,11 +186,11 @@ const AUTH_TOKEN = process.env.TOKEN;
 // Server startup time
 const serverStartTime = new Date();
 
-// Realistic Windows User Agents Pool
+// DESKTOP-ONLY Chrome User Agents Pool - No Mobile, No Other Browsers
 const REALISTIC_USER_AGENTS = [
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0'
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
 ];
 
 // Realistic Windows locales and languages
@@ -209,11 +209,11 @@ function getRandomLocale() {
     return REALISTIC_LOCALES[Math.floor(Math.random() * REALISTIC_LOCALES.length)];
 }
 
-// Function to generate realistic headers based on user agent
+// Function to generate CHROME-ONLY realistic headers (no mobile detection)
 function generateRealisticHeaders(userAgent, customHeaders = {}) {
-    const isChrome = userAgent.includes('Chrome') && !userAgent.includes('Edg');
-    const isEdge = userAgent.includes('Edg');
-    const isFirefox = userAgent.includes('Firefox');
+    // Extract Chrome version from user agent
+    const chromeMatch = userAgent.match(/Chrome\/(\d+)/);
+    const chromeVersion = chromeMatch ? chromeMatch[1] : '129';
     
     const baseHeaders = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -221,41 +221,23 @@ function generateRealisticHeaders(userAgent, customHeaders = {}) {
         'Accept-Encoding': 'gzip, deflate, br, zstd',
         'Cache-Control': 'max-age=0',
         'Upgrade-Insecure-Requests': '1',
-        'DNT': '1', // Do Not Track
-        'Connection': 'keep-alive'
+        'Connection': 'keep-alive',
+        // FORCE CHROME DESKTOP HEADERS ONLY
+        'sec-ch-ua': `"Google Chrome";v="${chromeVersion}", "Not=A?Brand";v="8", "Chromium";v="${chromeVersion}"`,
+        'sec-ch-ua-mobile': '?0',  // CRITICAL: Force desktop
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-ch-ua-platform-version': '"15.0.0"',
+        'sec-ch-ua-arch': '"x86"',
+        'sec-ch-ua-bitness': '"64"',
+        'sec-ch-ua-full-version-list': `"Google Chrome";v="${chromeVersion}.0.6668.70", "Not=A?Brand";v="8.0.0.0", "Chromium";v="${chromeVersion}.0.6668.70"`,
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Sec-Fetch-User': '?1'
     };
 
-    // Browser-specific headers
-    if (isChrome || isEdge) {
-        baseHeaders['sec-ch-ua'] = isEdge 
-            ? '"Chromium";v="128", "Not;A=Brand";v="24", "Microsoft Edge";v="128"'
-            : '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"';
-        baseHeaders['sec-ch-ua-mobile'] = '?0';
-        baseHeaders['sec-ch-ua-platform'] = '"Windows"';
-        baseHeaders['Sec-Fetch-Dest'] = 'document';
-        baseHeaders['Sec-Fetch-Mode'] = 'navigate';
-        baseHeaders['Sec-Fetch-Site'] = 'none';
-        baseHeaders['Sec-Fetch-User'] = '?1';
-    } else if (isFirefox) {
-        // Firefox doesn't send sec-ch-ua headers
-        delete baseHeaders['sec-ch-ua'];
-        delete baseHeaders['sec-ch-ua-mobile'];
-        delete baseHeaders['sec-ch-ua-platform'];
-        // Firefox uses different Sec-Fetch headers
-        baseHeaders['Sec-Fetch-Dest'] = 'document';
-        baseHeaders['Sec-Fetch-Mode'] = 'navigate';
-        baseHeaders['Sec-Fetch-Site'] = 'none';
-        baseHeaders['Sec-Fetch-User'] = '?1';
-    }
-
-    // Add random realistic headers occasionally
-    if (Math.random() > 0.7) {
-        baseHeaders['Pragma'] = 'no-cache';
-    }
-    
-    if (Math.random() > 0.8) {
-        baseHeaders['X-Requested-With'] = Math.random() > 0.5 ? 'XMLHttpRequest' : undefined;
-    }
+    // Remove any random headers that might trigger mobile detection
+    // Always include essential desktop-only headers
 
     // Merge with custom headers (custom headers take priority)
     return { ...baseHeaders, ...customHeaders };
@@ -483,7 +465,7 @@ async function renderPageAdvanced(options) {
     try {
         // Get realistic user agent and locale settings
         // Force high-end desktop user agent to get full desktop version
-        const realisticUserAgent = userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+        const realisticUserAgent = userAgent || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36';
         const realisticLocale = getRandomLocale();
         const realisticHeaders = generateRealisticHeaders(realisticUserAgent, headers);
         
@@ -497,18 +479,18 @@ async function renderPageAdvanced(options) {
             locale: 'en-US', // Force English US
             timezoneId: 'America/New_York',
             extraHTTPHeaders: {
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                 'Accept-Language': 'en-US,en;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br',
+                'Accept-Encoding': 'gzip, deflate, br, zstd',
                 'Cache-Control': 'no-cache',
                 'Pragma': 'no-cache',
                 'User-Agent': realisticUserAgent,
-                'Sec-Ch-Ua': '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"',
+                'Sec-Ch-Ua': '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
                 'Sec-Ch-Ua-Mobile': '?0',
                 'Sec-Ch-Ua-Platform': '"Windows"',
                 'Sec-Ch-Ua-Platform-Version': '"15.0.0"',
-                'Sec-Ch-Ua-Full-Version': '"128.0.6613.84"',
-                'Sec-Ch-Ua-Full-Version-List': '"Chromium";v="128.0.6613.84", "Not;A=Brand";v="24.0.0.0", "Google Chrome";v="128.0.6613.84"',
+                'Sec-Ch-Ua-Full-Version': '"129.0.6668.70"',
+                'Sec-Ch-Ua-Full-Version-List': '"Google Chrome";v="129.0.6668.70", "Not=A?Brand";v="8.0.0.0", "Chromium";v="129.0.6668.70"',
                 'Sec-Ch-Viewport-Width': '1920',
                 'Sec-Ch-Viewport-Height': '1080',
                 'Sec-Ch-Device-Memory': '8',
@@ -568,54 +550,66 @@ async function renderPageAdvanced(options) {
             });
         }
 
-    // AGGRESSIVE desktop stealth script to force desktop rendering
+    // GOOGLE-LEVEL ENTERPRISE STEALTH SCRIPT - Force Chrome Desktop Rendering
     await context.addInitScript(() => {
-            // FORCE DESKTOP MODE - Override all mobile detection
+            // FORCE LATEST CHROME DESKTOP MODE - Zero mobile detection
             Object.defineProperty(navigator, 'userAgent', {
-                get: () => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+                get: () => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
                 configurable: false
             });
             
-            // BLOCK GOOGLE'S BOT DETECTION
+            // ENTERPRISE-GRADE CHROME FINGERPRINTING
             Object.defineProperty(navigator, 'userAgentData', {
                 get: () => ({
                     brands: [
-                        { brand: 'Chromium', version: '128' },
-                        { brand: 'Not;A=Brand', version: '24' },
-                        { brand: 'Google Chrome', version: '128' }
+                        { brand: 'Google Chrome', version: '129' },
+                        { brand: 'Not=A?Brand', version: '8' },
+                        { brand: 'Chromium', version: '129' }
                     ],
                     mobile: false,
-                    platform: 'Windows'
+                    platform: 'Windows',
+                    getHighEntropyValues: async () => ({
+                        architecture: 'x86',
+                        bitness: '64',
+                        brands: [
+                            { brand: 'Google Chrome', version: '129' },
+                            { brand: 'Not=A?Brand', version: '8' },
+                            { brand: 'Chromium', version: '129' }
+                        ],
+                        fullVersionList: [
+                            { brand: 'Google Chrome', version: '129.0.6668.70' },
+                            { brand: 'Not=A?Brand', version: '8.0.0.0' },
+                            { brand: 'Chromium', version: '129.0.6668.70' }
+                        ],
+                        mobile: false,
+                        model: '',
+                        platform: 'Windows',
+                        platformVersion: '15.0.0',
+                        uaFullVersion: '129.0.6668.70',
+                        wow64: false
+                    })
                 }),
                 configurable: true
             });
             
-            // Remove webdriver properties completely
+            // COMPLETE AUTOMATION REMOVAL
             delete navigator.__proto__.webdriver;
             delete navigator.webdriver;
-            
-            // Override webdriver property more thoroughly
             Object.defineProperty(navigator, 'webdriver', {
                 get: () => undefined,
                 configurable: true
             });
 
-            // Remove automation indicators
-            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
-            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
-            delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
-            
-            // Remove playwright indicators
-            delete window.__playwright;
-            delete window.__pw_manual;
-            delete window.__pw_originals;
-            
-            // ANTI-GOOGLE DETECTION - Remove automation properties
-            ['__webdriver_evaluate', '__selenium_evaluate', '__webdriver_script_function', '__webdriver_script_func', '__webdriver_script_fn', '__fxdriver_evaluate', '__driver_unwrapped', '__webdriver_unwrapped', '__driver_evaluate', '__selenium_unwrapped', '__fxdriver_unwrapped'].forEach(prop => {
+            // Remove all automation indicators
+            [
+                'cdc_adoQpoasnfa76pfcZLmcfl_Array', 'cdc_adoQpoasnfa76pfcZLmcfl_Promise', 'cdc_adoQpoasnfa76pfcZLmcfl_Symbol',
+                '__playwright', '__pw_manual', '__pw_originals',
+                '__webdriver_evaluate', '__selenium_evaluate', '__webdriver_script_function', '__webdriver_script_func', '__webdriver_script_fn', '__fxdriver_evaluate', '__driver_unwrapped', '__webdriver_unwrapped', '__driver_evaluate', '__selenium_unwrapped', '__fxdriver_unwrapped'
+            ].forEach(prop => {
                 delete window[prop];
             });
             
-            // FORCE DESKTOP SCREEN PROPERTIES
+            // AGGRESSIVE DESKTOP SCREEN FORCING (4K Desktop)
             Object.defineProperty(screen, 'width', {
                 get: () => 1920,
                 configurable: true
@@ -632,8 +626,16 @@ async function renderPageAdvanced(options) {
                 get: () => 1040,
                 configurable: true
             });
+            Object.defineProperty(screen, 'colorDepth', {
+                get: () => 24,
+                configurable: true
+            });
+            Object.defineProperty(screen, 'pixelDepth', {
+                get: () => 24,
+                configurable: true
+            });
             
-            // FORCE WINDOW SIZE
+            // FORCE LARGE DESKTOP WINDOW
             Object.defineProperty(window, 'innerWidth', {
                 get: () => 1920,
                 configurable: true
@@ -651,30 +653,47 @@ async function renderPageAdvanced(options) {
                 configurable: true
             });
             
-            // OVERRIDE MOBILE DETECTION
+            // ZERO TOUCH/MOBILE CAPABILITY
             Object.defineProperty(navigator, 'maxTouchPoints', {
                 get: () => 0,
                 configurable: true
             });
             
-            // Override media queries to force desktop
+            // ENTERPRISE MEDIA QUERY OVERRIDE - Force Desktop CSS
             const originalMatchMedia = window.matchMedia;
             window.matchMedia = function(query) {
-                // Force desktop media queries to match
-                if (query.includes('min-width: 1024px') || query.includes('min-width: 768px')) {
-                    return { matches: true, media: query };
+                // FORCE ALL DESKTOP MEDIA QUERIES TO MATCH
+                if (query.includes('min-width: 1200px') || query.includes('min-width: 1024px') || query.includes('min-width: 768px') || query.includes('min-width: 992px')) {
+                    return { matches: true, media: query, addListener: () => {}, removeListener: () => {} };
                 }
-                if (query.includes('max-width') && (query.includes('768px') || query.includes('1023px'))) {
-                    return { matches: false, media: query };
+                // FORCE ALL MOBILE/SMALL SCREEN QUERIES TO FAIL
+                if (query.includes('max-width') && (query.includes('767px') || query.includes('768px') || query.includes('1023px') || query.includes('991px'))) {
+                    return { matches: false, media: query, addListener: () => {}, removeListener: () => {} };
                 }
+                // Force desktop orientation
                 if (query.includes('orientation: portrait')) {
-                    return { matches: false, media: query };
+                    return { matches: false, media: query, addListener: () => {}, removeListener: () => {} };
                 }
                 if (query.includes('orientation: landscape')) {
-                    return { matches: true, media: query };
+                    return { matches: true, media: query, addListener: () => {}, removeListener: () => {} };
+                }
+                // Force high-resolution display
+                if (query.includes('min-resolution') || query.includes('-webkit-min-device-pixel-ratio')) {
+                    return { matches: true, media: query, addListener: () => {}, removeListener: () => {} };
                 }
                 return originalMatchMedia.call(this, query);
             };
+            
+            // FORCE DESKTOP CSS VIEWPORT
+            const viewportMeta = document.querySelector('meta[name="viewport"]');
+            if (viewportMeta) {
+                viewportMeta.setAttribute('content', 'width=1920, initial-scale=1.0');
+            } else {
+                const meta = document.createElement('meta');
+                meta.name = 'viewport';
+                meta.content = 'width=1920, initial-scale=1.0';
+                document.head?.appendChild(meta);
+            }
             
             // Override chrome runtime to appear more realistic
             if (!window.chrome) {
@@ -977,102 +996,51 @@ async function renderPageAdvanced(options) {
             }
         }
 
-        // Enhanced CSS and JavaScript loading detection
-        console.log('🎨 Waiting for CSS and resources to load...');
+        // ENTERPRISE-GRADE CSS AND DESKTOP LAYOUT FORCING
+        console.log('🎨 FORCING DESKTOP CSS AND LAYOUT...');
         try {
             await withTimeoutFallback(
                 async () => {
-                    // Comprehensive CSS and resource loading check
                     await page.evaluate(async () => {
-                        // Force desktop layout by checking viewport
+                        console.log('Starting desktop CSS forcing...');
+                        
+                        // Force desktop viewport
                         const viewport = window.innerWidth;
-                        console.log(`Viewport width: ${viewport}px`);
+                        console.log(`Desktop viewport: ${viewport}px`);
                         
-                        // Wait for stylesheets to load completely
-                        const waitForStylesheets = () => {
-                            return new Promise((resolve) => {
-                                const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
-                                let loadedCount = 0;
-                                const totalCount = stylesheets.length;
-                                
-                                console.log(`Found ${totalCount} stylesheets to load`);
-                                
-                                if (totalCount === 0) {
-                                    resolve();
-                                    return;
-                                }
-                                
-                                const checkComplete = () => {
-                                    if (loadedCount >= totalCount) {
-                                        console.log('All stylesheets loaded');
-                                        resolve();
-                                    }
-                                };
-                                
-                                stylesheets.forEach((link, index) => {
-                                    if (link.sheet || link.disabled) {
-                                        console.log(`Stylesheet ${index + 1} already loaded: ${link.href}`);
-                                        loadedCount++;
-                                    } else {
-                                        link.addEventListener('load', () => {
-                                            console.log(`Stylesheet ${index + 1} loaded: ${link.href}`);
-                                            loadedCount++;
-                                            checkComplete();
-                                        });
-                                        link.addEventListener('error', () => {
-                                            console.log(`Stylesheet ${index + 1} failed: ${link.href}`);
-                                            loadedCount++;
-                                            checkComplete();
-                                        });
-                                    }
-                                });
-                                
-                                checkComplete();
-                                
-                                // Timeout after 8 seconds
-                                setTimeout(() => {
-                                    console.log(`Stylesheet loading timeout, ${loadedCount}/${totalCount} loaded`);
-                                    resolve();
-                                }, 8000);
-                            });
-                        };
+                        // Force desktop CSS loading
+                        const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
+                        console.log(`Processing ${stylesheets.length} stylesheets for desktop`);
                         
-                        await waitForStylesheets();
+                        // Inject desktop-forcing CSS
+                        const desktopCSS = document.createElement('style');
+                        desktopCSS.textContent = `
+                            body, html { min-width: 1920px !important; width: 100% !important; }
+                            .mobile-only, .mobile, [class*="mobile"] { display: none !important; }
+                            .desktop-only, .desktop, [class*="desktop"] { display: block !important; }
+                            @media (max-width: 768px) { * { display: none !important; } }
+                        `;
+                        document.head.appendChild(desktopCSS);
                         
-                        // Force style recalculation
+                        // Wait for fonts and CSS
+                        if (document.fonts && document.fonts.ready) {
+                            await document.fonts.ready;
+                        }
+                        
+                        // Force layout recalculation
                         document.body.offsetHeight;
                         
-                        // Additional wait for any dynamically loaded CSS
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                        
-                        // Check if fonts are loading
-                        if (document.fonts && document.fonts.ready) {
-                            console.log('Waiting for fonts...');
-                            await document.fonts.ready;
-                            console.log('Fonts loaded');
-                        }
-                        
-                        // Check for media queries to ensure desktop layout
-                        if (window.matchMedia) {
-                            const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
-                            console.log(`Desktop layout detected: ${isDesktop}`);
-                        }
-                        
-                        // Force one more style recalculation
-                        const allElements = document.querySelectorAll('*');
-                        for (let i = 0; i < Math.min(allElements.length, 100); i++) {
-                            allElements[i].offsetHeight; // Force style calculation
-                        }
+                        console.log('Desktop CSS forcing completed');
                     });
                 },
                 () => {
-                    console.log('⚠️ CSS loading timeout (continuing)');
+                    console.log('⚠️ Desktop CSS forcing timeout (continuing)');
                     return Promise.resolve();
                 },
-                15000
+                10000
             );
         } catch (cssError) {
-            console.log('⚠️ CSS loading detection failed:', cssError.message);
+            console.log('⚠️ Desktop CSS forcing failed:', cssError.message);
         }
 
         // Wait for JavaScript execution to complete
