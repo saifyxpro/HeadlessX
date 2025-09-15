@@ -90,8 +90,16 @@ print_status "System dependencies installed"
 # Install project dependencies
 echo "📦 Installing project dependencies..."
 if [ -f "package-lock.json" ]; then
-    npm ci --omit=dev
-    print_status "NPM dependencies installed (using ci)"
+    # Check if package-lock.json is in sync with package.json
+    if npm ci --dry-run --omit=dev > /dev/null 2>&1; then
+        npm ci --omit=dev
+        print_status "NPM dependencies installed (using ci)"
+    else
+        print_warning "package-lock.json out of sync with package.json, regenerating..."
+        rm -f package-lock.json
+        npm install --production
+        print_status "NPM dependencies installed (regenerated lock file)"
+    fi
 else
     print_warning "package-lock.json not found, using npm install"
     npm install --production
@@ -115,8 +123,16 @@ EOF
 fi
 
 if [ -f "package-lock.json" ]; then
-    npm ci
-    print_status "Website dependencies installed (using ci)"
+    # Check if package-lock.json is in sync with package.json
+    if npm ci --dry-run > /dev/null 2>&1; then
+        npm ci
+        print_status "Website dependencies installed (using ci)"
+    else
+        print_warning "Website package-lock.json out of sync, regenerating..."
+        rm -f package-lock.json
+        npm install
+        print_status "Website dependencies installed (regenerated lock file)"
+    fi
 else
     print_warning "package-lock.json not found, using npm install"
     npm install
@@ -195,7 +211,7 @@ print_status "Firewall configured"
 echo "⚙️ Creating environment configuration..."
 if [ ! -f .env ]; then
     cp .env.example .env
-    print_warning "Created .env file - please update the TOKEN value!"
+    print_warning "Created .env file - please update the AUTH_TOKEN value!"
 else
     print_status ".env file already exists"
 fi
@@ -265,7 +281,7 @@ if kill -0 $SERVER_PID 2>/dev/null; then
     print_status "Modular server test successful"
     kill $SERVER_PID
 else
-    print_warning "Server test failed - this might be due to missing TOKEN in .env"
+    print_warning "Server test failed - this might be due to missing AUTH_TOKEN in .env"
 fi
 
 # Start with PM2
@@ -288,7 +304,7 @@ fi
 print_status "PM2 startup configured"
 
 echo ""
-echo "🎉 HeadlessX v1.1.0 Setup completed successfully!"
+echo "🎉 HeadlessX v1.2.0 Setup completed successfully!"
 echo "==============================================="
 echo ""
 echo -e "${GREEN}✅ Server Status:${NC}"
@@ -304,14 +320,14 @@ echo "2. Configure SSL certificate:"
 echo "   ${SUDO_CMD} apt install certbot python3-certbot-nginx"
 echo "   ${SUDO_CMD} certbot --nginx -d $FULL_DOMAIN"
 echo ""
-echo "3. Update the TOKEN in .env file:"
+echo "3. Update the AUTH_TOKEN in .env file:"
 echo "   nano .env"
 echo "   pm2 restart headlessx  # Restart after updating .env"
 echo ""
 echo "4. Test your setup:"
 echo "   🌐 Website: https://$FULL_DOMAIN"
 echo "   🔧 API Health: https://$FULL_DOMAIN/api/health"
-echo "   📊 API Status: https://$FULL_DOMAIN/api/status?token=YOUR_TOKEN"
+echo "   📊 API Status: https://$FULL_DOMAIN/api/status?token=YOUR_AUTH_TOKEN"
 echo ""
 echo "5. Monitor your server:"
 echo "   pm2 status           # Check process status"
