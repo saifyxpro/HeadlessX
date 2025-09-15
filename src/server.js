@@ -186,33 +186,17 @@ const AUTH_TOKEN = process.env.TOKEN;
 // Server startup time
 const serverStartTime = new Date();
 
-// Realistic Windows User Agents Pool (Updated September 2025)
+// Realistic Windows User Agents Pool
 const REALISTIC_USER_AGENTS = [
-    // Chrome on Windows 11
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-    
-    // Edge on Windows 11
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36 Edg/127.0.0.0',
-    
-    // Firefox on Windows 11
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-    
-    // Chrome on Windows 10
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:129.0) Gecko/20100101 Firefox/129.0'
 ];
 
 // Realistic Windows locales and languages
 const REALISTIC_LOCALES = [
     { locale: 'en-US', timezone: 'America/New_York', languages: ['en-US', 'en'] },
-    { locale: 'en-GB', timezone: 'Europe/London', languages: ['en-GB', 'en'] },
-    { locale: 'en-US', timezone: 'America/Los_Angeles', languages: ['en-US', 'en'] },
-    { locale: 'en-US', timezone: 'America/Chicago', languages: ['en-US', 'en'] },
-    { locale: 'en-CA', timezone: 'America/Toronto', languages: ['en-CA', 'en'] }
+    { locale: 'en-GB', timezone: 'Europe/London', languages: ['en-GB', 'en'] }
 ];
 
 // Function to get random realistic user agent
@@ -280,25 +264,6 @@ function generateRealisticHeaders(userAgent, customHeaders = {}) {
 // Browser pool for better performance and isolation
 let browserInstance = null;
 const activeContexts = new Set(); // Track active contexts to prevent memory leaks
-
-// Generate unique request correlation ID for debugging
-function generateRequestId() {
-    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
-
-// Structured logging with correlation IDs
-function logWithId(requestId, level, message, data = {}) {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-        timestamp,
-        requestId,
-        level,
-        message,
-        ...data
-    };
-    console.log(`[${timestamp}] [${requestId}] [${level.toUpperCase()}] ${message}`, 
-        Object.keys(data).length > 0 ? JSON.stringify(data) : '');
-}
 
 // Initialize persistent browser with better error handling
 async function getBrowser() {
@@ -907,18 +872,11 @@ async function renderPageAdvanced(options) {
 
         console.log(`🌐 Navigating to: ${url}`);
 
-        // Force desktop version for Google and other sites
-        let targetUrl = url;
-        if (url.includes('google.com') && !url.includes('?')) {
-            targetUrl = url + '?hl=en&gl=us&pws=0&gws_rd=ssl';
-            console.log(`🎯 Forcing Google desktop version: ${targetUrl}`);
-        }
-
         // Enhanced navigation with better CSS loading detection
         await withTimeoutFallback(
             async () => {
                 // Use 'networkidle' instead of 'domcontentloaded' for better CSS loading
-                await page.goto(targetUrl, { 
+                await page.goto(url, { 
                     waitUntil: 'networkidle', // Changed to ensure resources load
                     timeout: timeout
                 });
@@ -1098,35 +1056,6 @@ async function renderPageAdvanced(options) {
                         if (window.matchMedia) {
                             const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
                             console.log(`Desktop layout detected: ${isDesktop}`);
-                        }
-                        
-                        // GOOGLE-SPECIFIC: Wait for logo to load
-                        if (window.location.href.includes('google.com')) {
-                            console.log('Waiting for Google logo to load...');
-                            
-                            // Wait for Google logo specifically
-                            let logoAttempts = 0;
-                            while (logoAttempts < 20) { // 10 seconds max
-                                const logo = document.querySelector('img[alt="Google"]') || 
-                                           document.querySelector('.lnXdpd') || 
-                                           document.querySelector('#hplogo') ||
-                                           document.querySelector('[src*="logo"]');
-                                
-                                if (logo && logo.complete && logo.naturalHeight > 0) {
-                                    console.log('Google logo loaded successfully');
-                                    break;
-                                }
-                                
-                                await new Promise(resolve => setTimeout(resolve, 500));
-                                logoAttempts++;
-                            }
-                            
-                            // Force re-render Google elements
-                            const hplogo = document.querySelector('#hplogo');
-                            if (hplogo) hplogo.style.display = 'block';
-                            
-                            const lnXdpd = document.querySelector('.lnXdpd');
-                            if (lnXdpd) lnXdpd.style.display = 'block';
                         }
                         
                         // Force one more style recalculation
@@ -1956,47 +1885,8 @@ app.get('/api/health', (req, res) => {
             heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB`,
             external: `${Math.round(memoryUsage.external / 1024 / 1024)}MB`
         },
-        version: '1.1.0',
-        features: [
-            'Advanced timeout handling',
-            'Partial content recovery',
-            'Emergency extraction',
-            'Screenshot capture',
-            'PDF generation',
-            'Batch processing',
-            'Clean text extraction',
-            'Realistic user agent rotation',
-            'Human-like behavior simulation',
-            'Advanced stealth techniques'
-        ]
+        version: '1.1.0'
     });
-});
-
-// Rate limit status endpoint (requires authentication)
-app.get('/api/ratelimit', (req, res) => {
-    try {
-        // Check authentication
-        const token = req.query.token || req.headers['x-token'] || req.headers['authorization']?.replace('Bearer ', '');
-        if (token !== AUTH_TOKEN) {
-            return res.status(401).json({ error: 'Unauthorized: Invalid token' });
-        }
-
-        const stats = rateLimiter.getStats();
-        res.json({
-            status: 'OK',
-            timestamp: new Date().toISOString(),
-            rateLimiting: {
-                ...stats,
-                description: 'Current rate limiting statistics and configuration'
-            }
-        });
-    } catch (error) {
-        console.error('❌ Rate limit status error:', error);
-        res.status(500).json({ 
-            error: 'Failed to get rate limit status', 
-            message: error.message 
-        });
-    }
 });
 
 // Status endpoint with server information (requires authentication)
@@ -2141,74 +2031,6 @@ app.post('/api/html', async (req, res) => {
     }
 });
 
-// GET endpoint for HTML (easier for testing) with enhanced timeout handling
-app.get('/api/html', async (req, res) => {
-    try {
-        // Check authentication
-        const token = req.query.token;
-        if (token !== AUTH_TOKEN) {
-            return res.status(401).send('Unauthorized: Invalid token');
-        }
-
-        // Get URL from query parameter
-        const url = req.query.url;
-        if (!url) {
-            return res.status(400).send('Missing required parameter: url');
-        }
-
-        try {
-            new URL(url);
-        } catch (e) {
-            return res.status(400).send('Invalid URL format');
-        }
-
-        console.log(`🚀 Advanced HTML rendering (GET): ${url}`);
-
-        // Build options from query parameters
-        const options = {
-            url,
-            waitUntil: req.query.waitUntil || 'networkidle',
-            timeout: parseInt(req.query.timeout) || 60000,
-            extraWaitTime: parseInt(req.query.extraWait) || 10000,
-            scrollToBottom: req.query.scroll !== 'false',
-            waitForNetworkIdle: req.query.networkIdle !== 'false',
-            captureConsole: req.query.console === 'true',
-            returnPartialOnTimeout: req.query.returnPartial === 'true' // Default to false - prioritize complete execution
-        };
-
-        // Parse arrays from query parameters
-        if (req.query.waitForSelectors) {
-            options.waitForSelectors = req.query.waitForSelectors.split(',');
-        }
-        if (req.query.clickSelectors) {
-            options.clickSelectors = req.query.clickSelectors.split(',');
-        }
-        if (req.query.removeElements) {
-            options.removeElements = req.query.removeElements.split(',');
-        }
-
-        const result = await renderPageAdvanced(options);
-        
-        console.log(`✅ Successfully rendered HTML (GET): ${url} (${result.wasTimeout ? 'with timeouts' : 'complete'})`);
-        
-        // Return raw HTML with headers
-        res.set({
-            'Content-Type': 'text/html; charset=utf-8',
-            'X-Rendered-URL': result.url,
-            'X-Page-Title': result.title,
-            'X-Timestamp': result.timestamp,
-            'X-Was-Timeout': result.wasTimeout.toString(),
-            'X-Content-Length': result.contentLength.toString(),
-            'X-Is-Emergency': (result.isEmergencyContent || false).toString()
-        });
-        res.send(result.html);
-
-    } catch (error) {
-        console.error('❌ GET HTML rendering error:', error);
-        res.status(500).send(`Error: ${error.message}`);
-    }
-});
-
 // Content endpoint (returns clean text only - POST) with enhanced timeout handling
 app.post('/api/content', async (req, res) => {
     try {
@@ -2260,78 +2082,6 @@ app.post('/api/content', async (req, res) => {
 
     } catch (error) {
         console.error('❌ Content extraction error:', error);
-        res.status(500).send(`Error: ${error.message}`);
-    }
-});
-
-// Content endpoint (returns clean text only - GET) with enhanced timeout handling
-app.get('/api/content', async (req, res) => {
-    try {
-        // Check authentication
-        const token = req.query.token;
-        if (token !== AUTH_TOKEN) {
-            return res.status(401).send('Unauthorized: Invalid token');
-        }
-
-        // Get URL from query parameter
-        const url = req.query.url;
-        if (!url) {
-            return res.status(400).send('Missing required parameter: url');
-        }
-
-        try {
-            new URL(url);
-        } catch (e) {
-            return res.status(400).send('Invalid URL format');
-        }
-
-        console.log(`🚀 Advanced content extraction (GET): ${url}`);
-
-        // Build options from query parameters
-        const options = {
-            url,
-            waitUntil: req.query.waitUntil || 'networkidle',
-            timeout: parseInt(req.query.timeout) || 60000,
-            extraWaitTime: parseInt(req.query.extraWait) || 10000,
-            scrollToBottom: req.query.scroll !== 'false',
-            waitForNetworkIdle: req.query.networkIdle !== 'false',
-            captureConsole: req.query.console === 'true',
-            returnPartialOnTimeout: req.query.returnPartial === 'true' // Default to false - prioritize complete execution
-        };
-
-        // Parse arrays from query parameters
-        if (req.query.waitForSelectors) {
-            options.waitForSelectors = req.query.waitForSelectors.split(',');
-        }
-        if (req.query.clickSelectors) {
-            options.clickSelectors = req.query.clickSelectors.split(',');
-        }
-        if (req.query.removeElements) {
-            options.removeElements = req.query.removeElements.split(',');
-        }
-
-        const result = await renderPageAdvanced(options);
-        
-        // Extract clean text content
-        const textContent = await extractCleanText(result.html);
-        
-        console.log(`✅ Successfully extracted content (GET): ${url} (${result.wasTimeout ? 'with timeouts' : 'complete'})`);
-        console.log(`📝 Content length: ${textContent.length} characters`);
-        
-        // Return plain text with headers
-        res.set({
-            'Content-Type': 'text/plain; charset=utf-8',
-            'X-Rendered-URL': result.url,
-            'X-Page-Title': result.title,
-            'X-Content-Length': textContent.length,
-            'X-Timestamp': result.timestamp,
-            'X-Was-Timeout': result.wasTimeout.toString(),
-            'X-Is-Emergency': (result.isEmergencyContent || false).toString()
-        });
-        res.send(textContent);
-
-    } catch (error) {
-        console.error('❌ GET Content extraction error:', error);
         res.status(500).send(`Error: ${error.message}`);
     }
 });
