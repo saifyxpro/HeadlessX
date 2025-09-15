@@ -96,41 +96,53 @@ class StealthService {
                 HTMLCanvasElement.prototype.getContext = function(contextType, ...args) {
                     const context = getContext.call(this, contextType, ...args);
                     
-                    if (contextType === 'webgl' || contextType === 'experimental-webgl') {
-                        const getParameter = context.getParameter;
+                    if (context && (contextType === 'webgl' || contextType === 'experimental-webgl')) {
+                        const originalGetParameter = context.getParameter;
                         context.getParameter = function(parameter) {
-                            // WEBGL_debug_renderer_info constants  
-                            if (parameter === 37445) return fp.WEBGL_VENDOR; // UNMASKED_VENDOR_WEBGL
-                            if (parameter === 37446) return fp.WEBGL_RENDERER; // UNMASKED_RENDERER_WEBGL
-                            
-                            // Additional WebGL parameters for consistency
-                            if (parameter === 33901) return new Float32Array([1, 8191]);
-                            if (parameter === 3386) return new Int32Array([16384, 16384]);
-                            if (parameter === 35661) return 80;
-                            if (parameter === 34076) return 16384;
-                            if (parameter === 36349) return 1024;
-                            if (parameter === 34024) return 16384;
-                            if (parameter === 3379) return 16384;
-                            if (parameter === 34921) return 16;
-                            if (parameter === 36347) return 1024;
-                            
-                            return getParameter.call(this, parameter);
+                            try {
+                                // WEBGL_debug_renderer_info constants  
+                                if (parameter === 37445) return fp.WEBGL_VENDOR; // UNMASKED_VENDOR_WEBGL
+                                if (parameter === 37446) return fp.WEBGL_RENDERER; // UNMASKED_RENDERER_WEBGL
+                                
+                                // Additional WebGL parameters for consistency
+                                if (parameter === 33901) return new Float32Array([1, 8191]);
+                                if (parameter === 3386) return new Int32Array([16384, 16384]);
+                                if (parameter === 35661) return 80;
+                                if (parameter === 34076) return 16384;
+                                if (parameter === 36349) return 1024;
+                                if (parameter === 34024) return 16384;
+                                if (parameter === 3379) return 16384;
+                                if (parameter === 34921) return 16;
+                                if (parameter === 36347) return 1024;
+                                
+                                // Use original function for other parameters
+                                return originalGetParameter.call(this, parameter);
+                            } catch (e) {
+                                // Fallback to prevent recursion errors
+                                return null;
+                            }
                         };
                         
                         // Enhanced extension spoofing
-                        const getSupportedExtensions = context.getSupportedExtensions;
-                        context.getSupportedExtensions = function() {
-                            return [
-                                'ANGLE_instanced_arrays', 'EXT_blend_minmax', 'EXT_color_buffer_half_float',
-                                'EXT_frag_depth', 'EXT_shader_texture_lod', 'EXT_texture_filter_anisotropic',
-                                'WEBKIT_EXT_texture_filter_anisotropic', 'EXT_sRGB', 'OES_element_index_uint',
-                                'OES_standard_derivatives', 'OES_texture_float', 'OES_texture_float_linear',
-                                'OES_texture_half_float', 'OES_texture_half_float_linear', 'OES_vertex_array_object',
-                                'WEBGL_color_buffer_float', 'WEBGL_compressed_texture_s3tc', 'WEBKIT_WEBGL_compressed_texture_s3tc',
-                                'WEBGL_compressed_texture_s3tc_srgb', 'WEBGL_debug_renderer_info', 'WEBGL_debug_shaders',
-                                'WEBGL_depth_texture', 'WEBKIT_WEBGL_depth_texture', 'WEBGL_draw_buffers', 'WEBGL_lose_context'
-                            ];
-                        };
+                        const originalGetSupportedExtensions = context.getSupportedExtensions;
+                        if (originalGetSupportedExtensions) {
+                            context.getSupportedExtensions = function() {
+                                try {
+                                    return [
+                                        'ANGLE_instanced_arrays', 'EXT_blend_minmax', 'EXT_color_buffer_half_float',
+                                        'EXT_frag_depth', 'EXT_shader_texture_lod', 'EXT_texture_filter_anisotropic',
+                                        'WEBKIT_EXT_texture_filter_anisotropic', 'EXT_sRGB', 'OES_element_index_uint',
+                                        'OES_standard_derivatives', 'OES_texture_float', 'OES_texture_float_linear',
+                                        'OES_texture_half_float', 'OES_texture_half_float_linear', 'OES_vertex_array_object',
+                                        'WEBGL_color_buffer_float', 'WEBGL_compressed_texture_s3tc', 'WEBKIT_WEBGL_compressed_texture_s3tc',
+                                        'WEBGL_compressed_texture_s3tc_srgb', 'WEBGL_debug_renderer_info', 'WEBGL_debug_shaders',
+                                        'WEBGL_depth_texture', 'WEBKIT_WEBGL_depth_texture', 'WEBGL_draw_buffers', 'WEBGL_lose_context'
+                                    ];
+                                } catch (e) {
+                                    return originalGetSupportedExtensions.call(this);
+                                }
+                            };
+                        }
                     }
                     
                     return context;
@@ -175,30 +187,40 @@ class StealthService {
                 Object.defineProperty(navigator, 'plugins', { get: () => plugins });
 
                 // Canvas fingerprinting protection with BUID consistency
-                const toDataURL = HTMLCanvasElement.prototype.toDataURL;
+                const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
                 HTMLCanvasElement.prototype.toDataURL = function(...args) {
-                    const context = this.getContext('2d');
-                    if (context) {
-                        // Add consistent noise based on BUID
-                        const imageData = context.getImageData(0, 0, this.width, this.height);
-                        const data = imageData.data;
-                        
-                        for (let i = 0; i < data.length; i += 4) {
-                            const noise = Math.floor(fp.random(i) * 3) - 1;
-                            data[i] = Math.max(0, Math.min(255, data[i] + noise));
+                    try {
+                        const context = getContext.call(this, '2d'); // Use original getContext
+                        if (context) {
+                            // Add consistent noise based on BUID
+                            const imageData = context.getImageData(0, 0, this.width, this.height);
+                            const data = imageData.data;
+                            
+                            for (let i = 0; i < data.length; i += 4) {
+                                const noise = Math.floor(fp.random(i) * 3) - 1;
+                                data[i] = Math.max(0, Math.min(255, data[i] + noise));
+                            }
+                            
+                            context.putImageData(imageData, 0, 0);
                         }
-                        
-                        context.putImageData(imageData, 0, 0);
+                        return originalToDataURL.apply(this, args);
+                    } catch (e) {
+                        // Fallback to original function on error
+                        return originalToDataURL.apply(this, args);
                     }
-                    return toDataURL.apply(this, args);
                 };
 
                 // Enhanced canvas text rendering with BUID signature
-                const fillText = CanvasRenderingContext2D.prototype.fillText;
+                const originalFillText = CanvasRenderingContext2D.prototype.fillText;
                 CanvasRenderingContext2D.prototype.fillText = function(text, x, y, maxWidth) {
-                    // Inject BUID into canvas for consistency
-                    const modifiedText = text + fp.BUID.slice(-4);
-                    return fillText.call(this, modifiedText, Math.max(0, x - 2), Math.max(0, y - 2), maxWidth);
+                    try {
+                        // Inject BUID into canvas for consistency
+                        const modifiedText = text + fp.BUID.slice(-4);
+                        return originalFillText.call(this, modifiedText, Math.max(0, x - 2), Math.max(0, y - 2), maxWidth);
+                    } catch (e) {
+                        // Fallback to original on error
+                        return originalFillText.call(this, text, x, y, maxWidth);
+                    }
                 };
 
                 // Block WebRTC completely to prevent IP leaks

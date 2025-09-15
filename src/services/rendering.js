@@ -351,9 +351,82 @@ class RenderingService {
             // Remove unwanted elements
             await InteractionService.removeElements(page, removeElements);
 
-            // Final content extraction
-            logger.info(requestId, 'Extracting final content...');
-            const content = await page.content();
+            // Final content extraction with enhanced CSS inlining for HTML endpoint
+            logger.info(requestId, 'Extracting final content with inline CSS...');
+            
+            // Inline CSS styles for better HTML rendering
+            const content = await page.evaluate(() => {
+                try {
+                    // Get all external stylesheets and inline them
+                    const styleSheets = Array.from(document.styleSheets);
+                    let inlineCSS = '';
+                    
+                    styleSheets.forEach(sheet => {
+                        try {
+                            const rules = Array.from(sheet.cssRules || sheet.rules || []);
+                            rules.forEach(rule => {
+                                if (rule.cssText) {
+                                    inlineCSS += rule.cssText + '\n';
+                                }
+                            });
+                        } catch (e) {
+                            // Cross-origin stylesheets might throw errors, skip them
+                        }
+                    });
+                    
+                    // Create a comprehensive style tag
+                    let styleTag = '';
+                    if (inlineCSS) {
+                        styleTag = `<style type="text/css">\n${inlineCSS}\n</style>`;
+                    }
+                    
+                    // Get the document HTML
+                    let htmlContent = document.documentElement.outerHTML;
+                    
+                    // Inject the inline CSS into the head
+                    if (styleTag && htmlContent.includes('<head>')) {
+                        htmlContent = htmlContent.replace('<head>', `<head>\n${styleTag}`);
+                    } else if (styleTag && htmlContent.includes('<html>')) {
+                        // Fallback: add after opening HTML tag
+                        htmlContent = htmlContent.replace('<html>', `<html>\n<head>\n${styleTag}\n</head>`);
+                    }
+                    
+                    // Also inline computed styles for better compatibility
+                    const allElements = document.querySelectorAll('*');
+                    allElements.forEach(element => {
+                        try {
+                            const computedStyle = window.getComputedStyle(element);
+                            const importantStyles = [
+                                'display', 'position', 'width', 'height', 'margin', 'padding',
+                                'color', 'background', 'background-color', 'font-family', 'font-size',
+                                'font-weight', 'text-align', 'border', 'border-radius'
+                            ];
+                            
+                            let inlineStyle = element.getAttribute('style') || '';
+                            importantStyles.forEach(prop => {
+                                const value = computedStyle.getPropertyValue(prop);
+                                if (value && value !== 'initial' && value !== 'normal') {
+                                    if (!inlineStyle.includes(prop + ':')) {
+                                        inlineStyle += `${prop}: ${value}; `;
+                                    }
+                                }
+                            });
+                            
+                            if (inlineStyle) {
+                                element.setAttribute('style', inlineStyle);
+                            }
+                        } catch (e) {
+                            // Skip elements that can't be styled
+                        }
+                    });
+                    
+                    return document.documentElement.outerHTML;
+                } catch (error) {
+                    // Fallback to basic content extraction
+                    return document.documentElement.outerHTML;
+                }
+            });
+            
             const title = await page.title().catch(() => 'Unknown Title');
             const currentUrl = page.url();
 
@@ -542,6 +615,160 @@ class RenderingService {
             
             await browserService.safeCloseContext(context, requestId);
             return screenshotBuffer;
+        } catch (error) {
+            await browserService.safeCloseContext(context, requestId);
+            throw error;
+        }
+    }
+
+    // Generate screenshot directly from URL with full CSS loading
+    static async generateScreenshotFromUrl(url, options = {}) {
+        const requestId = generateRequestId();
+        const browser = await browserService.getBrowser();
+        
+        try {
+            logger.info(requestId, `Generating screenshot with full CSS loading for: ${url}`);
+            
+            // Use the same stealth context as normal rendering
+            const stealthOptions = StealthService.generateStealthContextOptions();
+            const context = await browserService.createIsolatedContext(browser, stealthOptions);
+            
+            // Setup Google consent cookies for better compatibility
+            await StealthService.setupGoogleCookies(context, url);
+            
+            const page = await context.newPage();
+            
+            // Setup request interception for perfect headers
+            await StealthService.setupRequestInterception(page);
+            
+            // Add stealth script
+            await context.addInitScript(StealthService.getStealthScript());
+            
+            // Set viewport
+            await page.setViewportSize({
+                width: options.viewport?.width || 1920,
+                height: options.viewport?.height || 1080
+            });
+            
+            // Set timeouts for screenshot generation
+            page.setDefaultTimeout(60000);
+            page.setDefaultNavigationTimeout(60000);
+            
+            logger.info(requestId, `Navigating to URL for screenshot: ${url}`);
+            
+            // Navigate to the actual URL to load all CSS/JS resources
+            await page.goto(url, { 
+                waitUntil: 'networkidle',
+                timeout: 60000 
+            });
+            
+            // Apply advanced stealth fingerprinting
+            await StealthService.enhancePageWithAdvancedStealth(page);
+            
+            // Handle Google consent if it's a Google URL
+            if (url.includes('google.')) {
+                await StealthService.handleGoogleConsent(page);
+            }
+            
+            // Wait for complete CSS and content loading
+            await page.evaluate(async () => {
+                // Wait for all stylesheets to load
+                await new Promise((resolve) => {
+                    const checkStyleSheets = () => {
+                        try {
+                            const linkSheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
+                            const allDocSheets = Array.from(document.styleSheets);
+                            
+                            const linkSheetsLoaded = linkSheets.every(link => {
+                                try {
+                                    return link.sheet && link.sheet.cssRules;
+                                } catch (e) {
+                                    return link.sheet !== null;
+                                }
+                            });
+                            
+                            const docSheetsLoaded = allDocSheets.every(sheet => {
+                                try {
+                                    return sheet.cssRules;
+                                } catch (e) {
+                                    return true;
+                                }
+                            });
+                            
+                            if ((linkSheetsLoaded && docSheetsLoaded) || Date.now() - startTime > 10000) {
+                                resolve();
+                            } else {
+                                setTimeout(checkStyleSheets, 200);
+                            }
+                        } catch (e) {
+                            resolve();
+                        }
+                    };
+                    
+                    const startTime = Date.now();
+                    checkStyleSheets();
+                });
+                
+                // Wait for images to load
+                const images = Array.from(document.querySelectorAll('img'));
+                await Promise.all(images.map(img => {
+                    return new Promise((resolve) => {
+                        if (img.complete && img.naturalHeight !== 0) {
+                            resolve();
+                        } else {
+                            const cleanup = () => {
+                                img.removeEventListener('load', handleLoad);
+                                img.removeEventListener('error', handleError);
+                            };
+                            
+                            const handleLoad = () => {
+                                cleanup();
+                                resolve();
+                            };
+                            
+                            const handleError = () => {
+                                cleanup();
+                                resolve();
+                            };
+                            
+                            img.addEventListener('load', handleLoad);
+                            img.addEventListener('error', handleError);
+                            setTimeout(() => {
+                                cleanup();
+                                resolve();
+                            }, 5000);
+                        }
+                    });
+                }));
+                
+                // Wait for fonts
+                if (document.fonts && document.fonts.ready) {
+                    try {
+                        await Promise.race([
+                            document.fonts.ready,
+                            new Promise(resolve => setTimeout(resolve, 5000))
+                        ]);
+                    } catch (e) {}
+                }
+            });
+            
+            // Additional wait for content to stabilize
+            await page.waitForTimeout(3000);
+            
+            logger.info(requestId, `Taking screenshot with proper CSS loading...`);
+            
+            // Take the screenshot
+            const screenshotBuffer = await page.screenshot({
+                fullPage: options.fullPage || false,
+                type: options.format || 'png',
+                quality: options.quality || (options.format === 'jpeg' ? 90 : undefined)
+            });
+            
+            logger.info(requestId, `Screenshot completed: ${screenshotBuffer.length} bytes`);
+            
+            await browserService.safeCloseContext(context, requestId);
+            return screenshotBuffer;
+            
         } catch (error) {
             await browserService.safeCloseContext(context, requestId);
             throw error;

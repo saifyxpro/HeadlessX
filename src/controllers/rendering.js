@@ -165,14 +165,15 @@ class RenderingController {
             const screenshotOptions = {
                 fullPage: req.query.fullPage === 'true',
                 format: req.query.format === 'jpeg' ? 'jpeg' : 'png',
+                quality: req.query.format === 'jpeg' ? (parseInt(req.query.quality) || 90) : undefined,
                 viewport: {
                     width: parseInt(req.query.width) || 1920,
                     height: parseInt(req.query.height) || 1080
                 }
             };
 
-            // Generate screenshot directly from URL (not HTML content)
-            const screenshotBuffer = await RenderingService.generateScreenshot(url, screenshotOptions);
+            // Use proper URL-based screenshot generation (not HTML content)
+            const screenshotBuffer = await RenderingService.generateScreenshotFromUrl(url, screenshotOptions);
             
             logger.info(requestId, `Screenshot generated successfully: ${url} (${screenshotBuffer.length} bytes)`);
             
