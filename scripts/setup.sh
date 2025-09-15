@@ -427,13 +427,8 @@ elif command -v ss >/dev/null 2>&1; then
 fi
 sleep 2
 
-# Start with PM2 (directly run server.js with proper Ubuntu VPS configuration)
-pm2 start src/server.js --name headlessx --time --update-env --no-autorestart --max-memory-restart 800M
-sleep 3
-
-# Enable autorestart after initial startup (better for Ubuntu VPS stability)
-pm2 stop headlessx
-pm2 start src/server.js --name headlessx --time --update-env --max-memory-restart 800M --max-restarts 3 --min-uptime 30s --restart-delay 5000
+# Start with PM2 (directly run server.js with basic Ubuntu VPS configuration)
+pm2 start src/server.js --name headlessx --time --update-env --max-memory-restart 800M
 sleep 5
 
 # Validate server startup with improved checks

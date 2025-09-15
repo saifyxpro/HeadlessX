@@ -131,12 +131,12 @@ print_status "Installation validated"
 # 7. Restart services
 echo "🚀 Restarting services..."
 
-# Start with PM2 (directly using server.js with enhanced configuration)
+# Start with PM2 (directly using server.js with basic configuration)
 if command -v pm2 >/dev/null 2>&1; then
     if pm2 describe headlessx >/dev/null 2>&1; then
         pm2 restart headlessx --update-env
     else
-        pm2 start src/server.js --name headlessx --time --update-env --max-memory-restart 800M --max-restarts 3 --min-uptime 30s --restart-delay 5000
+        pm2 start src/server.js --name headlessx --time --update-env --max-memory-restart 800M
     fi
     sleep 5
     
