@@ -49,7 +49,7 @@ echo "💾 Creating backup..."
 BACKUP_DIR="backup_$(date +%Y%m%d_%H%M%S)"
 mkdir -p "$BACKUP_DIR"
 cp .env "$BACKUP_DIR/" 2>/dev/null || true
-cp ecosystem.config.js "$BACKUP_DIR/" 2>/dev/null || true
+# No ecosystem file backup needed
 print_status "Configuration backed up to $BACKUP_DIR"
 
 # 3. Update dependencies
@@ -112,7 +112,7 @@ print_status "Website rebuilt"
 echo "🔍 Validating installation..."
 
 # Check required files
-REQUIRED_FILES=("src/app.js" "src/server.js" "src/config/index.js" "ecosystem.config.js")
+REQUIRED_FILES=("src/app.js" "src/server.js" "src/config/index.js")
 for file in "${REQUIRED_FILES[@]}"; do
     if [ ! -f "$file" ]; then
         print_error "Required file missing: $file"
@@ -131,9 +131,13 @@ print_status "Installation validated"
 # 7. Restart services
 echo "🚀 Restarting services..."
 
-# Start with PM2
+# Start with PM2 (directly using server.js with enhanced configuration)
 if command -v pm2 >/dev/null 2>&1; then
-    pm2 start ecosystem.config.js
+    if pm2 describe headlessx >/dev/null 2>&1; then
+        pm2 restart headlessx --update-env
+    else
+        pm2 start src/server.js --name headlessx --time --update-env --max-memory-restart 800M --max-restarts 3 --min-uptime 30s --restart-delay 5000
+    fi
     sleep 5
     
     # Validate startup
@@ -205,140 +209,7 @@ if command -v nginx >/dev/null 2>&1; then
     if sudo nginx -t 2>/dev/null; then
         sudo systemctl reload nginx
         print_status "Nginx reloaded"
-    else
-        print_warning "Nginx configuration test failed"
-    fi
-fi
-
-echo ""
-echo "🎉 HeadlessX Update Complete!"
-echo "============================="
-echo ""
-print_status "Update completed successfully"
-echo ""
-echo "📊 Service Status:"
-if command -v pm2 >/dev/null 2>&1; then
-    pm2 status headlessx || echo "   PM2 status unavailable"
-else
-    echo "   PM2 not available"
-fi
-echo ""
-echo "📋 Backup Location: $BACKUP_DIR"
-echo ""
-echo "🔧 Management Commands:"
-echo "   pm2 logs headlessx    # View logs"
-echo "   pm2 restart headlessx # Restart server"
-echo "   pm2 monit            # Monitor resources"
-echo ""
-print_info "Update process completed"
-
-exit 0
-if [ -f "package-lock.json" ]; then
-    rm -f package-lock.json
-fi
-npm install --production
-print_status "Project dependencies updated"
-
-# Update Playwright browsers
-echo "🌐 Updating Playwright browsers..."
-npx playwright install chromium
-npx playwright install-deps chromium
-print_status "Playwright browsers updated"
-
-# Build website
-echo "🌐 Rebuilding website..."
-cd website
-
-# Clean previous build
-rm -rf .next out node_modules
-
-# Install website dependencies
-npm install
-
-# Build website
-npm run build
-cd ..
-print_status "Website rebuilt"
-
-# Validate installation
-echo "🔍 Validating installation..."
-REQUIRED_FILES=(
-    "src/app.js"
-    "src/server.js"
-    "src/rate-limiter.js"
-    "ecosystem.config.js"
-)
-
-for file in "${REQUIRED_FILES[@]}"; do
-    if [ ! -f "$file" ]; then
-        print_error "Required file missing: $file"
-        exit 1
-    fi
-done
-
-# Validate syntax
-if node -c src/app.js && node -c src/server.js && node -c ecosystem.config.js; then
-    print_status "Installation validated"
-else
-    print_error "Validation failed"
-    exit 1
-fi
-
-# Check environment file
-if [ ! -f ".env" ]; then
-    print_warning ".env file not found, creating from example..."
-    cp .env.example .env
-    print_warning "Please update the AUTH_TOKEN in .env file!"
-fi
-
-# Restart with PM2
-echo "🚀 Restarting HeadlessX with PM2..."
-
-# Stop existing processes
-pm2 stop headlessx 2>/dev/null || true
-pm2 delete headlessx 2>/dev/null || true
-
-# Kill any processes that might be using port 3000
-fuser -k 3000/tcp 2>/dev/null || true
-sleep 3
-
-# Validate dependencies before restart
-echo "🔍 Validating dependencies..."
-
-# Check Node.js modules
-if [ ! -d "node_modules/express" ]; then
-    print_warning "Installing missing dependencies..."
-    npm install --production
-fi
-
-# Check website build
-if [ ! -d "website/out" ]; then
-    print_warning "Website not built, building now..."
-    cd website && npm run build && cd ..
-fi
-
-# Check Playwright
-if ! npx playwright install chromium --dry-run 2>/dev/null; then
-    print_warning "Installing Playwright browsers..."
-    npx playwright install chromium
-fi
-
-# Start fresh with PM2
-pm2 start ecosystem.config.js
-sleep 5
-
-# Comprehensive server validation
-echo "🧪 Validating server startup..."
-RETRY_COUNT=0
-MAX_RETRIES=15  # Reduced from 30 to 15 for faster feedback
-SERVER_READY=false
-
-while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$SERVER_READY" = false ]; do
-    # Check PM2 status
-    if pm2 status headlessx | grep -q "online"; then
-        # Check if port is listening
-        if ss -tlnp | grep -q ":3000" || netstat -tlnp 2>/dev/null | grep -q ":3000"; then
-            # Test HTTP response with shorter timeout
+    exit 0
             HTTP_CODE=$(timeout 5s curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:3000/api/health 2>/dev/null || echo "000")
             if [ "$HTTP_CODE" = "200" ]; then
                 SERVER_READY=true

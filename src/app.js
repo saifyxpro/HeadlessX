@@ -20,12 +20,28 @@ try {
     process.exit(1);
 }
 
+// Import routes
+const apiRoutes = require('./routes/api');
+const staticRoutes = require('./routes/static');
+
+// Import middleware
+const { errorHandler, notFoundHandler } = require('./middleware/error');
+
 // Create Express application
 const app = express();
 
 // Basic middleware (essential only)
 app.use(express.json({ limit: config.api.bodyLimit || '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: config.api.bodyLimit || '10mb' }));
+
+// CORS middleware
+if (config.security.corsEnabled) {
+    const cors = require('cors');
+    app.use(cors({
+        origin: config.security.allowedOrigins.includes('*') ? true : config.security.allowedOrigins,
+        credentials: true
+    }));
+}
 
 // Security headers
 app.use((req, res, next) => {
@@ -36,83 +52,15 @@ app.use((req, res, next) => {
     next();
 });
 
-// Health endpoint (no auth required)
-app.get('/api/health', (req, res) => {
-    try {
-        const uptime = Math.floor(process.uptime());
-        const memory = process.memoryUsage();
-        
-        res.json({
-            status: 'OK',
-            timestamp: new Date().toISOString(),
-            version: '1.2.0',
-            uptime: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m ${uptime % 60}s`,
-            memory: {
-                rss: `${Math.round(memory.rss / 1024 / 1024)}MB`,
-                heapUsed: `${Math.round(memory.heapUsed / 1024 / 1024)}MB`
-            },
-            browserConnected: browserService.getStatus().connected
-        });
-    } catch (error) {
-        res.status(503).json({
-            status: 'ERROR',
-            timestamp: new Date().toISOString(),
-            error: 'Health check failed'
-        });
-    }
-});
+// Mount API routes
+app.use('/api', apiRoutes);
 
-// Status endpoint (with auth)
-app.get('/api/status', (req, res) => {
-    // Simple auth check
-    const authToken = req.headers.authorization?.replace('Bearer ', '') || req.query.token;
-    if (!authToken || authToken !== config.server.authToken) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-    
-    try {
-        const browserStatus = browserService.getStatus();
-        res.json({
-            server: {
-                name: 'HeadlessX v1.2.0',
-                uptime: process.uptime(),
-                environment: process.env.NODE_ENV || 'development'
-            },
-            browser: browserStatus,
-            configuration: {
-                maxConcurrency: config.browser.maxConcurrency,
-                timeout: config.browser.timeout,
-                bodyLimit: config.api.bodyLimit
-            },
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        res.status(500).json({
-            error: 'Status check failed',
-            timestamp: new Date().toISOString()
-        });
-    }
-});
-
-// Simple API docs endpoint
-app.get('/api/docs', (req, res) => {
-    res.json({
-        name: 'HeadlessX v1.2.0 API',
-        version: '1.2.0',
-        description: 'Advanced Browserless Web Scraping API',
-        endpoints: {
-            'GET /api/health': 'Server health check (no auth)',
-            'GET /api/status': 'Server status (auth required)',
-            'GET /api/docs': 'API documentation'
-        },
-        authentication: {
-            method: 'Bearer token',
-            header: 'Authorization: Bearer YOUR_TOKEN',
-            query: '?token=YOUR_TOKEN'
-        },
-        timestamp: new Date().toISOString()
-    });
-});
+// Mount static routes (if available)
+try {
+    app.use('/', staticRoutes);
+} catch (error) {
+    console.log('⚠️ Static routes not available');
+}
 
 // Serve website files if available
 const websitePath = path.join(__dirname, '..', 'website', 'out');
@@ -152,22 +100,10 @@ try {
 }
 
 // 404 handler for API routes
-app.use('/api/*', (req, res) => {
-    res.status(404).json({
-        error: 'API endpoint not found',
-        path: req.path,
-        timestamp: new Date().toISOString()
-    });
-});
+app.use('/api/*', notFoundHandler);
 
 // Global error handler
-app.use((error, req, res, next) => {
-    console.error('Server error:', error);
-    res.status(500).json({
-        error: 'Internal server error',
-        timestamp: new Date().toISOString()
-    });
-});
+app.use(errorHandler);
 
 // Server instance
 let server;
@@ -229,7 +165,7 @@ function startServer() {
 }
 
 // Initialize server
-if (require.main === module) {
+if (require.main === module || (require.main && require.main.filename.includes('server.js'))) {
     console.log('🔄 Initializing HeadlessX v1.2.0...');
     
     setTimeout(() => {

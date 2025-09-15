@@ -2,7 +2,7 @@
 
 # HeadlessX Complete Setup Script v1.2.0
 # Sets up HeadlessX from scratch on Ubuntu/Debian servers
-# Run with: bash setup.sh
+# Run with: bash scripts/setup.sh
 
 set -e
 
@@ -32,6 +32,33 @@ print_error() {
 print_info() {
     echo -e "${BLUE}ℹ️ $1${NC}"
 }
+
+# Ubuntu VPS compatibility checks
+echo "🔍 Checking Ubuntu VPS compatibility..."
+
+# Check OS
+if [[ -f /etc/os-release ]]; then
+    source /etc/os-release
+    if [[ "$ID" == "ubuntu" ]]; then
+        print_status "Running on Ubuntu $VERSION_ID"
+    elif [[ "$ID" == "debian" ]]; then
+        print_status "Running on Debian $VERSION_ID"
+    else
+        print_warning "Not running on Ubuntu/Debian. Some features may not work correctly."
+    fi
+else
+    print_warning "Unable to detect OS version"
+fi
+
+# Check available memory (important for VPS)
+TOTAL_MEM=$(free -m | awk 'NR==2{print $2}')
+if [[ $TOTAL_MEM -lt 1024 ]]; then
+    print_warning "Low memory detected (${TOTAL_MEM}MB). Consider upgrading your VPS for better performance."
+elif [[ $TOTAL_MEM -lt 2048 ]]; then
+    print_info "Memory: ${TOTAL_MEM}MB (adequate for HeadlessX)"
+else
+    print_status "Memory: ${TOTAL_MEM}MB (excellent for HeadlessX)"
+fi
 
 # Check if .env exists, if not create from .env.example
 if [ ! -f .env ]; then
@@ -337,7 +364,6 @@ REQUIRED_FILES=(
     "src/controllers/get.js"
     "src/routes/api.js"
     "src/routes/static.js"
-    "ecosystem.config.js"
 )
 
 for file in "${REQUIRED_FILES[@]}"; do
@@ -348,7 +374,7 @@ for file in "${REQUIRED_FILES[@]}"; do
 done
 
 # Check syntax by running a quick validation on main files
-if node -c src/app.js && node -c src/server.js && node -c src/rate-limiter.js && node -c ecosystem.config.js; then
+if node -c src/app.js && node -c src/server.js && node -c src/rate-limiter.js; then
     print_status "All main server files syntax validated"
 else
     print_error "Syntax validation failed"
@@ -388,14 +414,26 @@ echo "🚀 Starting HeadlessX with PM2..."
 pm2 stop headlessx 2>/dev/null || true
 pm2 delete headlessx 2>/dev/null || true
 
-# Kill any processes using port 3000
+# Kill any processes using port 3000 (better Ubuntu VPS compatibility)
 if command -v fuser >/dev/null 2>&1; then
     fuser -k 3000/tcp 2>/dev/null || true
+elif command -v lsof >/dev/null 2>&1; then
+    lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+elif command -v ss >/dev/null 2>&1; then
+    PID=$(ss -tlnp | grep :3000 | awk '{print $6}' | grep -o '[0-9]*' | head -1)
+    if [[ ! -z "$PID" ]]; then
+        kill -9 $PID 2>/dev/null || true
+    fi
 fi
 sleep 2
 
-# Start with PM2
-pm2 start ecosystem.config.js
+# Start with PM2 (directly run server.js with proper Ubuntu VPS configuration)
+pm2 start src/server.js --name headlessx --time --update-env --no-autorestart --max-memory-restart 800M
+sleep 3
+
+# Enable autorestart after initial startup (better for Ubuntu VPS stability)
+pm2 stop headlessx
+pm2 start src/server.js --name headlessx --time --update-env --max-memory-restart 800M --max-restarts 3 --min-uptime 30s --restart-delay 5000
 sleep 5
 
 # Validate server startup with improved checks
