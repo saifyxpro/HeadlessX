@@ -74,11 +74,11 @@ if [ -f .env.local ]; then
     cp .env.local "../$BACKUP_DIR/website_env.local"
 fi
 
-# Update website dependencies
+# Update website dependencies (including dev dependencies for build)
 if [ -f "package-lock.json" ]; then
     rm -f package-lock.json
 fi
-npm install
+npm install --include=dev
 
 # Rebuild with current environment from main .env file
 DOMAIN=${DOMAIN:-"saify.me"}

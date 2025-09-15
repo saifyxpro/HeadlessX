@@ -118,7 +118,15 @@ const config: Config = {
   },
   plugins: [
     require('@tailwindcss/typography'),
-    require('@tailwindcss/forms'),
+    // Make forms plugin optional to prevent build failures
+    ...((() => {
+      try {
+        return [require('@tailwindcss/forms')];
+      } catch (e) {
+        console.warn('⚠️ @tailwindcss/forms not found, skipping forms plugin');
+        return [];
+      }
+    })()),
   ],
 }
 

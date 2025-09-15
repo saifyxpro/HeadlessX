@@ -183,20 +183,20 @@ else
     print_warning "DOMAIN or SUBDOMAIN not set in .env file"
 fi
 
-# Install website dependencies
+# Install website dependencies (including devDependencies for build)
 if [ -f "package-lock.json" ]; then
     if npm ci --dry-run > /dev/null 2>&1; then
-        npm ci
-        print_status "Website dependencies installed (using ci)"
+        npm ci --include=dev
+        print_status "Website dependencies installed (using ci with dev)"
     else
         print_warning "Website package-lock.json out of sync, regenerating..."
         rm -f package-lock.json
-        npm install
-        print_status "Website dependencies installed (regenerated)"
+        npm install --include=dev
+        print_status "Website dependencies installed (regenerated with dev)"
     fi
 else
-    npm install
-    print_status "Website dependencies installed"
+    npm install --include=dev
+    print_status "Website dependencies installed (with dev)"
 fi
 
 # Build the website
