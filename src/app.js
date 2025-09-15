@@ -47,12 +47,6 @@ const staticRoutes = require('./routes/static');
 // Create Express application
 const app = express();
 
-// Import and configure rate limiter
-const rateLimiter = require('./rate-limiter');
-
-// Apply rate limiting before other middleware
-app.use('/api', rateLimiter.middleware());
-
 // Basic middleware
 app.use(bodyParser.json({ limit: config.api.bodyLimit }));
 app.use(bodyParser.urlencoded({ extended: true, limit: config.api.bodyLimit }));
@@ -68,6 +62,8 @@ app.use((req, res, next) => {
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     next();
 });
+
+console.log('✅ Basic middleware configured (rate limiter disabled for stability)');
 
 // API routes
 app.use('/api', apiRoutes);
@@ -124,44 +120,62 @@ process.on('unhandledRejection', (reason, promise) => {
 let server;
 
 function startServer() {
-    server = app.listen(config.server.port, config.server.host, () => {
-        console.log(`🚀 HeadlessX v1.2.0 - Advanced Browserless Web Scraping API running on port ${config.server.port}`);
-        console.log(`🌐 Website: http://localhost:${config.server.port}/`);
-        console.log(`📍 Health check: http://localhost:${config.server.port}/api/health`);
-        console.log(`📊 Status: http://localhost:${config.server.port}/api/status`);
-        console.log(`📖 API Documentation: http://localhost:${config.server.port}/api/docs`);
-        console.log(`🔐 Auth token configured: ${config.server.authToken ? 'Yes' : 'No'}`);
-        console.log(`✨ Features: Human-like behavior, anti-detection, advanced timeout handling`);
-        console.log(`🎯 API Endpoints: /api/render, /api/html, /api/content, /api/screenshot, /api/pdf, /api/batch`);
-        console.log(`📖 Documentation: Visit /api/docs for full API documentation`);
+    // Add a small delay to ensure all modules are loaded
+    setTimeout(() => {
+        console.log('🚀 Starting HTTP server...');
         
-        // Log configuration summary
-        console.log(`\n📋 Configuration Summary:`);
-        console.log(`   ├── Port: ${config.server.port}`);
-        console.log(`   ├── Host: ${config.server.host}`);
-        console.log(`   ├── Browser Timeout: ${config.browser.timeout}ms`);
-        console.log(`   ├── Extra Wait Time: ${config.browser.extraWaitTime}ms`);
-        console.log(`   ├── Max Concurrency: ${config.browser.maxConcurrency}`);
-        console.log(`   ├── Body Limit: ${config.api.bodyLimit}`);
-        console.log(`   ├── Max Batch URLs: ${config.api.maxBatchUrls}`);
-        console.log(`   ├── Website Enabled: ${config.website.enabled}`);
-        console.log(`   └── Debug Mode: ${config.logging.debug}`);
-    });
-    
-    // Handle server errors
-    server.on('error', (error) => {
-        if (error.code === 'EADDRINUSE') {
-            console.error(`❌ Port ${config.server.port} is already in use`);
-        } else {
-            console.error('❌ Server error:', error);
-        }
-        process.exit(1);
-    });
+        server = app.listen(config.server.port, config.server.host, () => {
+            console.log(`🚀 HeadlessX v1.2.0 - Advanced Browserless Web Scraping API running on port ${config.server.port}`);
+            console.log(`🌐 Website: http://localhost:${config.server.port}/`);
+            console.log(`📍 Health check: http://localhost:${config.server.port}/api/health`);
+            console.log(`📊 Status: http://localhost:${config.server.port}/api/status`);
+            console.log(`📖 API Documentation: http://localhost:${config.server.port}/api/docs`);
+            console.log(`🔐 Auth token configured: ${config.server.authToken ? 'Yes' : 'No'}`);
+            console.log(`✨ Features: Human-like behavior, anti-detection, advanced timeout handling`);
+            console.log(`🎯 API Endpoints: /api/render, /api/html, /api/content, /api/screenshot, /api/pdf, /api/batch`);
+            console.log(`📖 Documentation: Visit /api/docs for full API documentation`);
+            
+            // Log configuration summary
+            console.log(`\n📋 Configuration Summary:`);
+            console.log(`   ├── Port: ${config.server.port}`);
+            console.log(`   ├── Host: ${config.server.host}`);
+            console.log(`   ├── Browser Timeout: ${config.browser.timeout}ms`);
+            console.log(`   ├── Extra Wait Time: ${config.browser.extraWaitTime}ms`);
+            console.log(`   ├── Max Concurrency: ${config.browser.maxConcurrency}`);
+            console.log(`   ├── Body Limit: ${config.api.bodyLimit}`);
+            console.log(`   ├── Max Batch URLs: ${config.api.maxBatchUrls}`);
+            console.log(`   ├── Website Enabled: ${config.website.enabled}`);
+            console.log(`   └── Debug Mode: ${config.logging.debug}`);
+        });
+        
+        // Handle server errors
+        server.on('error', (error) => {
+            if (error.code === 'EADDRINUSE') {
+                console.error(`❌ Port ${config.server.port} is already in use`);
+            } else {
+                console.error('❌ Server error:', error);
+            }
+            process.exit(1);
+        });
+    }, 100); // 100ms delay to ensure everything is loaded
 }
 
 // Initialize and start server
 if (require.main === module) {
-    startServer();
+    console.log('🔄 Initializing server...');
+    
+    // Force start server even if something hangs
+    setTimeout(() => {
+        console.log('⚡ Force starting server (timeout protection)');
+        startServer();
+    }, 500);
+    
+    // Also try immediate start
+    try {
+        startServer();
+    } catch (error) {
+        console.log('⚠️ Immediate start failed, waiting for timeout start:', error.message);
+    }
 }
 
 module.exports = app;

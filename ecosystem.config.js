@@ -20,7 +20,12 @@ module.exports = {
       // Auto-restart configuration
       autorestart: true,
       watch: false, // Set to true for development, false for production
-      max_memory_restart: '2G', // Restart if memory usage exceeds 2GB
+      max_memory_restart: '1G', // Restart if memory usage exceeds 1GB (optimized for 2GB server)
+      
+      // Startup configuration for better reliability
+      min_uptime: '10s', // Minimum uptime before restart
+      max_restarts: 5, // Maximum restarts in 1 minute
+      restart_delay: 2000, // Delay between restarts (2 seconds)
       
       // Environment variables for production
       env: {
