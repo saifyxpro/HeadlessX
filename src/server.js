@@ -472,35 +472,42 @@ async function renderPageAdvanced(options) {
         console.log(`🎭 Using User Agent: ${realisticUserAgent.substring(0, 80)}...`);
         console.log(`🌍 Using Locale: ${realisticLocale.locale} (${realisticLocale.timezone})`);
         
-        // Create new browser context with FORCED desktop settings
+        // Create new browser context with PERFECT CHROME DESKTOP HEADERS
         context = await browser.newContext({
             viewport: { width: 1920, height: 1080 }, // Large desktop viewport
             userAgent: realisticUserAgent,
             locale: 'en-US', // Force English US
             timezoneId: 'America/New_York',
             extraHTTPHeaders: {
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-                'Accept-Language': 'en-US,en;q=0.9',
-                'Accept-Encoding': 'gzip, deflate, br, zstd',
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache',
-                'User-Agent': realisticUserAgent,
-                'Sec-Ch-Ua': '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
-                'Sec-Ch-Ua-Mobile': '?0',
-                'Sec-Ch-Ua-Platform': '"Windows"',
-                'Sec-Ch-Ua-Platform-Version': '"15.0.0"',
-                'Sec-Ch-Ua-Full-Version': '"129.0.6668.70"',
-                'Sec-Ch-Ua-Full-Version-List': '"Google Chrome";v="129.0.6668.70", "Not=A?Brand";v="8.0.0.0", "Chromium";v="129.0.6668.70"',
-                'Sec-Ch-Viewport-Width': '1920',
-                'Sec-Ch-Viewport-Height': '1080',
-                'Sec-Ch-Device-Memory': '8',
-                'Sec-Ch-Dpr': '1',
-                'Sec-Fetch-Dest': 'document',
-                'Sec-Fetch-Mode': 'navigate',
-                'Sec-Fetch-Site': 'none',
-                'Sec-Fetch-User': '?1',
+                // CRITICAL: Perfect Chrome 129 header order and values
+                'sec-ch-ua': '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-platform': '"Windows"',
                 'Upgrade-Insecure-Requests': '1',
-                'Connection': 'keep-alive'
+                'User-Agent': realisticUserAgent,
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-User': '?1',
+                'Sec-Fetch-Dest': 'document',
+                'Accept-Encoding': 'gzip, deflate, br, zstd',
+                'Accept-Language': 'en-US,en;q=0.9',
+                'Connection': 'keep-alive',
+                // ENTERPRISE: Additional Chrome-specific headers that Schema.org checks
+                'sec-ch-ua-arch': '"x86"',
+                'sec-ch-ua-bitness': '"64"',
+                'sec-ch-ua-full-version': '"129.0.6668.89"',
+                'sec-ch-ua-full-version-list': '"Google Chrome";v="129.0.6668.89", "Not=A?Brand";v="8.0.0.0", "Chromium";v="129.0.6668.89"',
+                'sec-ch-ua-model': '""',
+                'sec-ch-ua-platform-version': '"15.0.0"',
+                'sec-ch-ua-wow64': '?0',
+                'sec-ch-viewport-width': '1920',
+                'sec-ch-viewport-height': '1080',
+                'sec-ch-device-memory': '8',
+                'sec-ch-dpr': '1',
+                // CRITICAL: Add missing headers that real Chrome sends
+                'sec-gpc': '1',
+                'dnt': '1'
             },
             ignoreHTTPSErrors: true,
             javaScriptEnabled: true,
@@ -534,6 +541,46 @@ async function renderPageAdvanced(options) {
 
         // Create page
         page = await context.newPage();
+
+        // ULTIMATE CHROME SPOOFING: Intercept ALL requests and inject perfect headers
+        await page.route('**/*', async (route) => {
+            const request = route.request();
+            
+            // CRITICAL: Perfect Chrome headers for Schema.org detection bypass
+            const perfectChromeHeaders = {
+                ...request.headers(),
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+                'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                'accept-language': 'en-US,en;q=0.9',
+                'accept-encoding': 'gzip, deflate, br, zstd',
+                'sec-ch-ua': '"Google Chrome";v="129", "Not=A?Brand";v="8", "Chromium";v="129"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-platform': '"Windows"',
+                'sec-ch-ua-arch': '"x86"',
+                'sec-ch-ua-bitness': '"64"',
+                'sec-ch-ua-model': '""',
+                'sec-ch-ua-platform-version': '"15.0.0"',
+                'sec-ch-ua-full-version': '"129.0.6668.89"',
+                'sec-ch-ua-wow64': '?0',
+                'sec-fetch-dest': request.url().includes('.css') ? 'style' : 
+                                 request.url().includes('.js') ? 'script' : 'document',
+                'sec-fetch-mode': 'navigate',
+                'sec-fetch-site': 'none',
+                'sec-fetch-user': '?1',
+                'upgrade-insecure-requests': '1',
+                'cache-control': 'max-age=0',
+                'dnt': '1',
+                'connection': 'keep-alive'
+            };
+
+            // Remove automation headers that might leak
+            delete perfectChromeHeaders['x-requested-with'];
+            delete perfectChromeHeaders['pragma'];
+            
+            await route.continue({
+                headers: perfectChromeHeaders
+            });
+        });
 
         // Set adequate timeouts for complete JavaScript execution
         page.setDefaultTimeout(60000); // Increased from timeout/2 to fixed 60000ms
@@ -694,6 +741,58 @@ async function renderPageAdvanced(options) {
                 meta.content = 'width=1920, initial-scale=1.0';
                 document.head?.appendChild(meta);
             }
+            
+            // SCHEMA.ORG SPECIFIC: Force desktop CSS overrides
+            const schemaDesktopCSS = document.createElement('style');
+            schemaDesktopCSS.id = 'schema-desktop-force';
+            schemaDesktopCSS.textContent = `
+                /* FORCE SCHEMA.ORG DESKTOP LAYOUT */
+                body { 
+                    min-width: 1920px !important; 
+                    max-width: none !important;
+                    width: 100% !important; 
+                }
+                
+                /* Force desktop navigation */
+                .navbar, .nav, header { 
+                    display: block !important; 
+                    width: 100% !important; 
+                }
+                
+                /* Force desktop search box */
+                .search-container, .search-box, input[type="search"] { 
+                    display: block !important; 
+                    width: auto !important; 
+                    min-width: 300px !important; 
+                }
+                
+                /* Hide mobile-only elements */
+                .mobile-only, .d-block.d-md-none, .visible-xs { 
+                    display: none !important; 
+                }
+                
+                /* Show desktop-only elements */
+                .desktop-only, .d-none.d-md-block, .hidden-xs { 
+                    display: block !important; 
+                }
+                
+                /* Force desktop grid system */
+                .container, .container-fluid { 
+                    max-width: none !important; 
+                    width: 100% !important; 
+                    padding: 0 15px !important; 
+                }
+                
+                /* Override responsive breakpoints */
+                @media (max-width: 767px) { 
+                    .container { max-width: none !important; width: 100% !important; } 
+                    .col-xs-*, .col-sm-*, .col-md-*, .col-lg-* { 
+                        width: auto !important; 
+                        float: left !important; 
+                    }
+                }
+            `;
+            document.head.appendChild(schemaDesktopCSS);
             
             // Override chrome runtime to appear more realistic
             if (!window.chrome) {
