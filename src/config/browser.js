@@ -3,11 +3,12 @@
  * Realistic Windows Chrome user agents and locale settings
  */
 
-// DESKTOP-ONLY Chrome User Agents Pool - No Mobile, No Other Browsers
+// DESKTOP-ONLY Chrome User Agents Pool - Latest versions for Google compatibility
 const REALISTIC_USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
 ];
 
 // Realistic Windows locales and languages
@@ -16,33 +17,38 @@ const REALISTIC_LOCALES = [
     { locale: 'en-GB', timezone: 'Europe/London', languages: ['en-GB', 'en'] }
 ];
 
-// Browser launch arguments for stealth and performance
+// Browser launch arguments for stealth and performance (Google-optimized)
 const BROWSER_ARGS = [
     // Security & Sandboxing (required for servers)
     '--no-sandbox',
     '--disable-setuid-sandbox',
     '--disable-dev-shm-usage',
     
-    // Stealth & Anti-Detection
+    // CRITICAL: Primary anti-detection flags for Google
     '--disable-blink-features=AutomationControlled',
-    '--disable-features=VizDisplayCompositor',
-    '--disable-component-extensions-with-background-pages',
+    '--exclude-switches=enable-automation',
+    '--disable-automation',
     '--no-default-browser-check',
     '--no-first-run',
     '--disable-default-apps',
     '--disable-extensions',
-    '--disable-plugins-discovery',
-    '--disable-prompt-on-repost',
-    '--disable-hang-monitor',
+    '--disable-component-extensions-with-background-pages',
+    
+    // Google-specific optimizations
+    '--disable-features=VizDisplayCompositor',
+    '--disable-features=TranslateUI',
+    '--disable-features=BlinkGenPropertyTrees',
     '--disable-ipc-flooding-protection',
+    '--disable-hang-monitor',
     '--disable-popup-blocking',
+    '--disable-prompt-on-repost',
     '--disable-backgrounding-occluded-windows',
     '--disable-background-timer-throttling',
     '--disable-renderer-backgrounding',
     '--disable-field-trial-config',
     '--disable-back-forward-cache',
     
-    // Performance & Memory
+    // Performance & Memory (lighter for better detection avoidance)
     '--memory-pressure-off',
     '--disable-client-side-phishing-detection',
     '--disable-sync',
@@ -50,35 +56,16 @@ const BROWSER_ARGS = [
     '--disable-background-networking',
     '--disable-domain-reliability',
     '--disable-component-update',
-    '--disable-features=TranslateUI',
-    '--disable-features=BlinkGenPropertyTrees',
     
-    // Media & Hardware
+    // Media & Hardware (minimal GPU usage for stealth)
     '--disable-accelerated-2d-canvas',
     '--disable-gpu',
     '--disable-gpu-sandbox',
     '--disable-software-rasterizer',
     '--disable-gl-drawing-for-tests',
-    '--no-zygote',
-    
-    // Realistic Windows Chrome flags
-    '--enable-features=NetworkService,NetworkServiceInProcess',
-    '--enable-automation=false',
-    '--password-store=basic',
-    '--use-mock-keychain',
-    '--disable-web-security', // Only for scraping
-    
-    // Window & Display settings
-    '--force-device-scale-factor=1',
-    '--hide-scrollbars',
-    '--mute-audio',
-    '--disable-logging',
-    '--disable-gpu-logging',
-    '--silent',
-    '--log-level=3',
-    '--disable-dev-tools',
     
     // Network & Privacy
+    '--disable-web-security',
     '--disable-features=VizDisplayCompositor,VizHitTestSurfaceLayer',
     '--disable-breakpad',
     '--disable-crash-reporter',
@@ -86,11 +73,24 @@ const BROWSER_ARGS = [
     '--disable-metrics-reporting',
     '--no-report-upload',
     
-    // Additional stealth
+    // Realistic Chrome behavior
+    '--enable-features=NetworkService,NetworkServiceInProcess',
+    '--password-store=basic',
+    '--use-mock-keychain',
+    '--force-device-scale-factor=1',
+    '--hide-scrollbars',
+    '--mute-audio',
+    
+    // Logging (minimal for stealth)
+    '--disable-logging',
+    '--disable-gpu-logging',
+    '--silent',
+    '--log-level=3',
+    '--disable-dev-tools',
+    
+    // IMPORTANT: Remove telltale automation headers
     '--user-agent-override-header',
-    '--disable-automation',
-    '--exclude-switches=enable-automation',
-    '--disable-blink-features=AutomationControlled'
+    '--disable-plugins-discovery'
 ];
 
 // Default browser launch options

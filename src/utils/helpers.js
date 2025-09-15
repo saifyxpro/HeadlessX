@@ -126,97 +126,217 @@ function extractOptionsFromQuery(query) {
     return options;
 }
 
-// Clean text extraction function
+// Enhanced clean text extraction function with real content detection
 async function extractCleanText(htmlContent, browserService) {
-    const context = await browserService.createIsolatedContext();
-    const page = await context.newPage();
-    
     try {
-        // Set HTML content and extract text
-        await page.setContent(htmlContent);
+        // Check if we actually have HTML content
+        if (!htmlContent || htmlContent.trim().length === 0) {
+            return 'No content available - page may be empty or failed to load';
+        }
+
+        // Simple text extraction for basic HTML without needing a browser
+        if (htmlContent.length < 50000) { // For smaller content, use regex parsing
+            let textContent = htmlContent
+                // Remove script and style blocks completely
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+                // Remove comments
+                .replace(/<!--[\s\S]*?-->/g, '')
+                // Remove all HTML tags
+                .replace(/<[^>]*>/g, ' ')
+                // Decode HTML entities
+                .replace(/&nbsp;/g, ' ')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&amp;/g, '&')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                // Clean up whitespace
+                .replace(/\s+/g, ' ')
+                .replace(/\n\s*\n/g, '\n\n')
+                .trim();
+
+            if (textContent && textContent.length > 50) {
+                return textContent;
+            }
+        }
+
+        // For complex content or when simple parsing fails, use browser
+        const context = await browserService.createIsolatedContext();
+        const page = await context.newPage();
         
-        // Remove script, style, and other non-content elements
-        const textContent = await page.evaluate(() => {
-            // Remove unwanted elements
-            const unwantedSelectors = [
-                'script', 'style', 'noscript', 'iframe', 'object', 'embed',
-                'nav', 'header', 'footer', '.nav', '.navigation', '.menu',
-                '.sidebar', '.advertisement', '.ads', '.social', '.share',
-                '.comments', '.comment', '.popup', '.modal', '.overlay',
-                '[role="banner"]', '[role="navigation"]', '[role="complementary"]'
-            ];
+        try {
+            // Set HTML content directly
+            await page.setContent(htmlContent, { waitUntil: 'networkidle' });
             
-            unwantedSelectors.forEach(selector => {
-                const elements = document.querySelectorAll(selector);
-                elements.forEach(el => el.remove());
-            });
+            // Wait a moment for any dynamic content to load
+            await page.waitForTimeout(1000);
+            
+            // Enhanced text extraction with better content detection
+            const textContent = await page.evaluate(() => {
+                // Remove unwanted elements first
+                const unwantedSelectors = [
+                    'script', 'style', 'noscript', 'iframe', 'object', 'embed',
+                    'nav', 'header', 'footer', '.nav', '.navigation', '.menu',
+                    '.sidebar', '.advertisement', '.ads', '.social', '.share',
+                    '.comments', '.comment', '.popup', '.modal', '.overlay',
+                    '[role="banner"]', '[role="navigation"]', '[role="complementary"]',
+                    '.cookie-banner', '.newsletter', '.subscription', '#comments'
+                ];
+                
+                unwantedSelectors.forEach(selector => {
+                    try {
+                        const elements = document.querySelectorAll(selector);
+                        elements.forEach(el => el.remove());
+                    } catch (e) {}
+                });
 
-            // Get main content areas first
-            const contentSelectors = [
-                'main', '[role="main"]', '.main-content', '.content', 
-                '.post-content', '.article-content', '.page-content',
-                'article', '.article', '.post', '.entry-content'
-            ];
-            
-            let mainContent = null;
-            for (const selector of contentSelectors) {
-                const element = document.querySelector(selector);
-                if (element) {
-                    mainContent = element;
-                    break;
-                }
-            }
-            
-            // If no main content found, use body
-            if (!mainContent) {
-                mainContent = document.body;
-            }
-
-            // Get text content with proper spacing
-            const walker = document.createTreeWalker(
-                mainContent,
-                NodeFilter.SHOW_TEXT,
-                null,
-                false
-            );
-
-            let textContent = '';
-            let node;
-            
-            while (node = walker.nextNode()) {
-                const text = node.textContent.trim();
-                if (text && text.length > 1) {
-                    // Add spacing between different elements
-                    const parent = node.parentElement;
-                    if (parent) {
-                        const tagName = parent.tagName.toLowerCase();
-                        if (['p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li'].includes(tagName)) {
-                            textContent += text + '\n\n';
-                        } else if (['br'].includes(tagName)) {
-                            textContent += '\n';
-                        } else {
-                            textContent += text + ' ';
+                // Try to find main content areas in order of preference
+                const contentSelectors = [
+                    'main[role="main"]', 'main', '[role="main"]',
+                    '.main-content', '.content', '.post-content', 
+                    '.article-content', '.page-content', '.entry-content',
+                    'article', '.article', '.post', '.entry',
+                    '#content', '#main', '#main-content',
+                    '.container .content', '.wrapper .content'
+                ];
+                
+                let mainContent = null;
+                for (const selector of contentSelectors) {
+                    try {
+                        const element = document.querySelector(selector);
+                        if (element && element.textContent.trim().length > 100) {
+                            mainContent = element;
+                            break;
                         }
-                    } else {
-                        textContent += text + ' ';
+                    } catch (e) {}
+                }
+                
+                // If no main content found, try body but filter out navigation
+                if (!mainContent) {
+                    mainContent = document.body;
+                    
+                    // Remove likely navigation elements from body
+                    const navElements = document.querySelectorAll('nav, .nav, .navigation, header, footer');
+                    navElements.forEach(el => {
+                        try {
+                            el.remove();
+                        } catch (e) {}
+                    });
+                }
+
+                if (!mainContent) {
+                    return 'No readable content found - page structure may be unusual';
+                }
+
+                // Extract meaningful text with proper formatting
+                let extractedText = '';
+                
+                // Get all text nodes and organize them
+                const walker = document.createTreeWalker(
+                    mainContent,
+                    NodeFilter.SHOW_TEXT,
+                    {
+                        acceptNode: function(node) {
+                            // Skip empty or whitespace-only nodes
+                            const text = node.textContent.trim();
+                            if (!text || text.length < 3) {
+                                return NodeFilter.FILTER_REJECT;
+                            }
+                            
+                            // Skip nodes that are likely not content
+                            const parent = node.parentElement;
+                            if (parent) {
+                                const tagName = parent.tagName.toLowerCase();
+                                const className = parent.className || '';
+                                const id = parent.id || '';
+                                
+                                // Skip navigation, menu, and other non-content elements
+                                if (tagName === 'button' || tagName === 'input' || 
+                                    className.includes('nav') || className.includes('menu') ||
+                                    className.includes('button') || id.includes('nav')) {
+                                    return NodeFilter.FILTER_REJECT;
+                                }
+                            }
+                            
+                            return NodeFilter.FILTER_ACCEPT;
+                        }
+                    },
+                    false
+                );
+
+                const textBlocks = [];
+                let node;
+                
+                while (node = walker.nextNode()) {
+                    const text = node.textContent.trim();
+                    if (text && text.length >= 3) {
+                        const parent = node.parentElement;
+                        const tagName = parent ? parent.tagName.toLowerCase() : '';
+                        
+                        // Add appropriate spacing based on element type
+                        let formattedText = text;
+                        if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+                            formattedText = '\n\n=== ' + text + ' ===\n';
+                        } else if (['p', 'div', 'li', 'td'].includes(tagName)) {
+                            formattedText = text + '\n';
+                        } else if (tagName === 'br') {
+                            formattedText = '\n';
+                        } else {
+                            formattedText = text + ' ';
+                        }
+                        
+                        textBlocks.push(formattedText);
                     }
                 }
-            }
+                
+                // Join all text blocks
+                extractedText = textBlocks.join('');
+                
+                // Clean up the final text
+                extractedText = extractedText
+                    // Remove excessive whitespace
+                    .replace(/[ \t]+/g, ' ')
+                    // Normalize line breaks
+                    .replace(/\n\s*\n\s*\n/g, '\n\n')
+                    // Remove leading/trailing whitespace from lines
+                    .split('\n').map(line => line.trim()).join('\n')
+                    // Remove empty lines at start/end
+                    .trim();
 
-            // Clean up text
-            return textContent
-                .replace(/\s+/g, ' ')           // Multiple spaces to single space
-                .replace(/\n\s*\n/g, '\n\n')    // Multiple newlines to double newline
-                .replace(/^\s+|\s+$/g, '')      // Trim start and end
-                .replace(/\n{3,}/g, '\n\n');   // Max 2 consecutive newlines
-        });
+                // Fallback: if we still don't have good content, try innerText
+                if (!extractedText || extractedText.length < 50) {
+                    extractedText = mainContent.innerText || mainContent.textContent || '';
+                    extractedText = extractedText.trim();
+                }
 
-        await context.close();
-        return textContent;
+                // Final validation
+                if (!extractedText || extractedText.length < 20) {
+                    return 'Content extraction failed - page may contain mostly dynamic content or be protected';
+                }
+
+                return extractedText;
+            });
+            
+            await context.close();
+            return textContent || 'No readable text content found';
+            
+        } catch (error) {
+            await context.close();
+            console.error('Error in browser-based text extraction:', error);
+            
+            // Fallback to simple regex-based extraction
+            return htmlContent
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+                .replace(/<[^>]*>/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim() || 'Text extraction failed - unable to parse content';
+        }
         
     } catch (error) {
-        await context.close();
-        throw error;
+        console.error('Error extracting clean text:', error);
+        return 'Error extracting content: ' + error.message;
     }
 }
 

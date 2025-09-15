@@ -76,9 +76,9 @@ class RenderingService {
             // Setup request interception for perfect headers
             await StealthService.setupRequestInterception(page);
 
-            // Set reasonable timeouts
-            page.setDefaultTimeout(45000);
-            page.setDefaultNavigationTimeout(Math.min(timeout, 60000));
+            // Set reasonable timeouts (more generous for Google)
+            page.setDefaultTimeout(60000);
+            page.setDefaultNavigationTimeout(Math.min(timeout, 90000));
 
             // Capture console logs if requested
             if (captureConsole) {
@@ -96,26 +96,53 @@ class RenderingService {
 
             logger.info(requestId, `Navigating to: ${url}`);
 
-            // Enhanced navigation with better error handling
+            // Enhanced navigation with Google-specific handling
             await withTimeoutFallback(
                 async () => {
                     const isGoogle = url.includes('google.');
                     try {
                         if (isGoogle) {
-                            await page.goto(url, { waitUntil: 'domcontentloaded', timeout: Math.min(timeout * 0.5, 15000) });
-                            const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 2000));
-                            if (/unusual traffic|automated queries|are you a robot/i.test(bodyText)) {
-                                throw new HeadlessXError('Google anti-bot page detected', ERROR_CATEGORIES.NETWORK, false);
+                            // Special Google navigation strategy
+                            logger.info(requestId, 'Using Google-optimized navigation strategy');
+                            
+                            // First, navigate with minimal timeout
+                            await page.goto(url, { 
+                                waitUntil: 'domcontentloaded', 
+                                timeout: 30000 
+                            });
+                            
+                            // Wait a bit for any redirects
+                            await page.waitForTimeout(2000);
+                            
+                            // Check for anti-bot detection
+                            const bodyText = await page.evaluate(() => {
+                                return document.body ? document.body.innerText.slice(0, 2000) : '';
+                            });
+                            
+                            if (/unusual traffic|automated queries|are you a robot|captcha/i.test(bodyText)) {
+                                logger.warn(requestId, 'Google anti-bot detection triggered');
+                                // Try waiting longer and check again
+                                await page.waitForTimeout(5000);
+                                
+                                // Sometimes Google shows a temporary block, try refreshing
+                                await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+                                await page.waitForTimeout(3000);
                             }
+                            
+                            // Handle Google consent if present
                             await StealthService.handleGoogleConsent(page);
-                            await page.waitForTimeout(1000);
-                            logger.info(requestId, 'Page navigation completed (google/domcontentloaded)');
+                            
+                            // Wait for content to stabilize
+                            await page.waitForTimeout(2000);
+                            logger.info(requestId, 'Google navigation completed successfully');
+                            
                         } else {
+                            // Standard navigation for non-Google sites
                             await page.goto(url, { 
                                 waitUntil: 'networkidle', 
-                                timeout: Math.min(timeout * 0.7, 30000)
+                                timeout: Math.min(timeout * 0.7, 45000)
                             });
-                            logger.info(requestId, 'Page navigation completed (networkidle)');
+                            logger.info(requestId, 'Standard navigation completed');
                         }
                     } catch (navError) {
                         logger.warn(requestId, 'Primary navigation failed, trying domcontentloaded...');
@@ -146,6 +173,135 @@ class RenderingService {
                 } : null,
                 Math.min(timeout, 45000)
             );
+
+            // Enhanced CSS and resource loading wait with advanced stealth
+            logger.info(requestId, 'Applying advanced stealth and waiting for complete rendering...');
+            
+            // Apply advanced stealth fingerprinting before content loading
+            await StealthService.enhancePageWithAdvancedStealth(page);
+            
+            await page.evaluate(async () => {
+                // Advanced stylesheet loading detection
+                await new Promise((resolve) => {
+                    const checkStyleSheets = () => {
+                        try {
+                            // Check both link elements and document.styleSheets
+                            const linkSheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
+                            const allDocSheets = Array.from(document.styleSheets);
+                            
+                            const linkSheetsLoaded = linkSheets.every(link => {
+                                try {
+                                    return link.sheet && link.sheet.cssRules && link.sheet.cssRules.length >= 0;
+                                } catch (e) {
+                                    // Cross-origin sheets might throw but are loaded
+                                    return link.sheet !== null;
+                                }
+                            });
+                            
+                            const docSheetsLoaded = allDocSheets.every(sheet => {
+                                try {
+                                    return sheet.cssRules && sheet.cssRules.length >= 0;
+                                } catch (e) {
+                                    return true; // Cross-origin or loaded
+                                }
+                            });
+                            
+                            if ((linkSheetsLoaded && docSheetsLoaded) || Date.now() - startTime > 15000) {
+                                resolve();
+                            } else {
+                                setTimeout(checkStyleSheets, 200);
+                            }
+                        } catch (e) {
+                            resolve(); // Fallback on any error
+                        }
+                    };
+                    
+                    const startTime = Date.now();
+                    checkStyleSheets();
+                });
+                
+                // Wait for fonts with better error handling
+                if (document.fonts && document.fonts.ready) {
+                    try {
+                        await Promise.race([
+                            document.fonts.ready,
+                            new Promise(resolve => setTimeout(resolve, 8000))
+                        ]);
+                    } catch (e) {
+                        // Font loading can fail, continue anyway
+                    }
+                }
+                
+                // Enhanced image loading with better detection
+                const images = Array.from(document.querySelectorAll('img, picture img, [style*="background-image"]'));
+                await Promise.all(images.map(img => {
+                    return new Promise((resolve) => {
+                        if (img.tagName === 'IMG') {
+                            if (img.complete && img.naturalHeight !== 0) {
+                                resolve();
+                            } else {
+                                const cleanup = () => {
+                                    img.removeEventListener('load', handleLoad);
+                                    img.removeEventListener('error', handleError);
+                                };
+                                
+                                const handleLoad = () => {
+                                    cleanup();
+                                    resolve();
+                                };
+                                
+                                const handleError = () => {
+                                    cleanup();
+                                    resolve();
+                                };
+                                
+                                img.addEventListener('load', handleLoad);
+                                img.addEventListener('error', handleError);
+                                setTimeout(() => {
+                                    cleanup();
+                                    resolve();
+                                }, 6000);
+                            }
+                        } else {
+                            // For background images, just wait a bit
+                            setTimeout(resolve, 1000);
+                        }
+                    });
+                }));
+
+                // Wait for JavaScript frameworks to initialize (React, Vue, Angular)
+                let jsFrameworkReady = false;
+                for (let i = 0; i < 20 && !jsFrameworkReady; i++) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Check for common framework indicators
+                    const hasReact = window.React || document.querySelector('[data-reactroot]');
+                    const hasVue = window.Vue || document.querySelector('[data-v-]');
+                    const hasAngular = window.ng || document.querySelector('[ng-version]');
+                    
+                    if (hasReact || hasVue || hasAngular) {
+                        // Give frameworks extra time to render
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        jsFrameworkReady = true;
+                    }
+                    
+                    // Check if there's still dynamic content loading
+                    const hasLoaders = document.querySelectorAll('.loading, .spinner, .loader, [class*="load"]').length > 0;
+                    if (!hasLoaders) {
+                        jsFrameworkReady = true;
+                    }
+                }
+
+                // Wait for CSS animations and transitions to stabilize
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                
+                // Final check for any remaining async operations
+                if (typeof window.requestIdleCallback !== 'undefined') {
+                    await new Promise(resolve => {
+                        window.requestIdleCallback(resolve, { timeout: 2000 });
+                    });
+                }
+            });
 
             // Wait for specific selectors if provided
             await InteractionService.waitForSelectors(page, waitForSelectors);
@@ -392,32 +548,114 @@ class RenderingService {
         }
     }
 
-    // Generate PDF from HTML content
-    static async generatePDF(htmlContent, options = {}) {
+    // Enhanced PDF generation with proper CSS loading and rendering
+    static async generatePDF(url, options = {}) {
         const requestId = generateRequestId();
         const browser = await browserService.getBrowser();
-        const context = await browserService.createIsolatedContext(browser);
         
         try {
-            const page = await context.newPage();
-            await page.setContent(htmlContent);
-            await page.waitForTimeout(2000); // Wait for rendering
+            logger.info(requestId, `Generating PDF with full CSS loading for: ${url}`);
             
+            // Use the same stealth context as normal rendering
+            const stealthOptions = StealthService.generateStealthContextOptions();
+            const context = await browserService.createIsolatedContext(browser, stealthOptions);
+            
+            // Setup Google consent cookies for better compatibility
+            await StealthService.setupGoogleCookies(context, url);
+            
+            const page = await context.newPage();
+            
+            // Setup request interception for perfect headers
+            await StealthService.setupRequestInterception(page);
+            
+            // Add stealth script
+            await context.addInitScript(StealthService.getStealthScript());
+            
+            // Set timeouts for PDF generation
+            page.setDefaultTimeout(60000);
+            page.setDefaultNavigationTimeout(60000);
+            
+            logger.info(requestId, `Navigating to URL for PDF: ${url}`);
+            
+            // Navigate to the actual URL to load all CSS/JS resources
+            await page.goto(url, { 
+                waitUntil: 'networkidle',
+                timeout: 60000
+            });
+            
+            // Enhanced wait for complete rendering
+            await page.waitForTimeout(3000);
+            
+            // Wait for CSS to load completely
+            await page.evaluate(async () => {
+                // Wait for all stylesheets to load
+                const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
+                await Promise.all(stylesheets.map(link => {
+                    return new Promise((resolve) => {
+                        if (link.sheet) {
+                            resolve();
+                        } else {
+                            link.addEventListener('load', resolve);
+                            link.addEventListener('error', resolve);
+                            setTimeout(resolve, 5000); // Timeout fallback
+                        }
+                    });
+                }));
+                
+                // Wait for fonts to load
+                if (document.fonts) {
+                    await document.fonts.ready;
+                }
+                
+                // Wait for any lazy-loaded images
+                const images = Array.from(document.querySelectorAll('img'));
+                await Promise.all(images.map(img => {
+                    return new Promise((resolve) => {
+                        if (img.complete) {
+                            resolve();
+                        } else {
+                            img.addEventListener('load', resolve);
+                            img.addEventListener('error', resolve);
+                            setTimeout(resolve, 3000); // Timeout fallback
+                        }
+                    });
+                }));
+            });
+            
+            // Additional wait for any dynamic content
+            await page.waitForTimeout(2000);
+            
+            // Handle Google consent if needed
+            if (url.includes('google.')) {
+                await StealthService.handleGoogleConsent(page);
+                await page.waitForTimeout(2000);
+            }
+            
+            logger.info(requestId, 'Generating PDF with complete styling...');
+            
+            // Generate PDF with enhanced options
             const pdfBuffer = await page.pdf({
                 format: options.format || 'A4',
-                printBackground: options.background !== false,
+                printBackground: true, // Always include background for better appearance
                 margin: {
                     top: options.marginTop || '20px',
                     right: options.marginRight || '20px',
                     bottom: options.marginBottom || '20px',
                     left: options.marginLeft || '20px'
-                }
+                },
+                preferCSSPageSize: true,
+                displayHeaderFooter: false,
+                scale: 1.0
             });
             
             await browserService.safeCloseContext(context, requestId);
+            logger.info(requestId, `PDF generated successfully: ${pdfBuffer.length} bytes`);
+            
             return pdfBuffer;
+            
         } catch (error) {
             await browserService.safeCloseContext(context, requestId);
+            logger.error(requestId, 'PDF generation failed', error);
             throw error;
         }
     }

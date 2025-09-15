@@ -147,7 +147,7 @@ class RenderingController {
         }
     }
 
-    // Screenshot endpoint
+    // Enhanced screenshot endpoint with full CSS support
     static async renderScreenshot(req, res) {
         const requestId = req.requestId;
         
@@ -159,50 +159,43 @@ class RenderingController {
                 return res.status(400).send(validation.error);
             }
 
-            logger.info(requestId, `Taking screenshot for: ${url}`);
+            logger.info(requestId, `Taking screenshot with full CSS for: ${url}`);
 
-            // Build options from query parameters
-            const options = {
-                url,
-                timeout: parseInt(req.query.timeout) || 30000,
+            // Build screenshot options from query parameters
+            const screenshotOptions = {
                 fullPage: req.query.fullPage === 'true',
+                format: req.query.format === 'jpeg' ? 'jpeg' : 'png',
                 viewport: {
                     width: parseInt(req.query.width) || 1920,
                     height: parseInt(req.query.height) || 1080
-                },
-                returnPartialOnTimeout: req.query.returnPartial === 'true'
+                }
             };
 
-            const result = await RenderingService.renderPageAdvanced(options);
+            // Generate screenshot directly from URL (not HTML content)
+            const screenshotBuffer = await RenderingService.generateScreenshot(url, screenshotOptions);
             
-            // Generate screenshot
-            const screenshotBuffer = await RenderingService.generateScreenshot(result.html, {
-                fullPage: options.fullPage,
-                format: req.query.format === 'jpeg' ? 'jpeg' : 'png'
-            });
-            
-            logger.info(requestId, `Screenshot taken: ${url}`);
+            logger.info(requestId, `Screenshot generated successfully: ${url} (${screenshotBuffer.length} bytes)`);
             
             // Return screenshot with proper headers
-            const format = req.query.format === 'jpeg' ? 'jpeg' : 'png';
+            const format = screenshotOptions.format;
             res.set({
                 'Content-Type': `image/${format}`,
-                'X-Rendered-URL': result.url,
-                'X-Page-Title': result.title,
-                'X-Timestamp': result.timestamp,
-                'X-Was-Timeout': result.wasTimeout.toString(),
-                'Content-Disposition': `inline; filename="screenshot-${Date.now()}.${format}"`
+                'X-Rendered-URL': url,
+                'X-Timestamp': new Date().toISOString(),
+                'X-Screenshot-Size': screenshotBuffer.length.toString(),
+                'Content-Disposition': `inline; filename="screenshot-${Date.now()}.${format}"`,
+                'Content-Length': screenshotBuffer.length.toString()
             });
             res.send(screenshotBuffer);
 
         } catch (error) {
-            logger.error(requestId, 'Screenshot error', error);
+            logger.error(requestId, 'Screenshot generation error', error);
             const { statusCode } = createErrorResponse(error, req.query?.url);
-            res.status(statusCode).send(`Error: ${error.message}`);
+            res.status(statusCode).send(`Screenshot Error: ${error.message}`);
         }
     }
 
-    // PDF endpoint
+    // Enhanced PDF endpoint with full CSS support
     static async renderPdf(req, res) {
         const requestId = req.requestId;
         
@@ -214,44 +207,37 @@ class RenderingController {
                 return res.status(400).send(validation.error);
             }
 
-            logger.info(requestId, `Generating PDF for: ${url}`);
+            logger.info(requestId, `Generating PDF with full CSS for: ${url}`);
 
-            // Build options from query parameters
-            const options = {
-                url,
-                timeout: parseInt(req.query.timeout) || 30000,
-                returnPartialOnTimeout: req.query.returnPartial === 'true'
-            };
-
-            const result = await RenderingService.renderPageAdvanced(options);
-            
-            // Generate PDF
-            const pdfBuffer = await RenderingService.generatePDF(result.html, {
+            // Build PDF options from query parameters
+            const pdfOptions = {
                 format: req.query.format || 'A4',
-                background: req.query.background !== 'false',
                 marginTop: req.query.marginTop || '20px',
                 marginRight: req.query.marginRight || '20px',
                 marginBottom: req.query.marginBottom || '20px',
                 marginLeft: req.query.marginLeft || '20px'
-            });
+            };
+
+            // Generate PDF directly from URL (not HTML content)
+            const pdfBuffer = await RenderingService.generatePDF(url, pdfOptions);
             
-            logger.info(requestId, `PDF generated: ${url}`);
+            logger.info(requestId, `PDF generated successfully: ${url} (${pdfBuffer.length} bytes)`);
             
             // Return PDF with proper headers
             res.set({
                 'Content-Type': 'application/pdf',
-                'X-Rendered-URL': result.url,
-                'X-Page-Title': result.title,
-                'X-Timestamp': result.timestamp,
-                'X-Was-Timeout': result.wasTimeout.toString(),
-                'Content-Disposition': `inline; filename="page-${Date.now()}.pdf"`
+                'X-Rendered-URL': url,
+                'X-Timestamp': new Date().toISOString(),
+                'X-PDF-Size': pdfBuffer.length.toString(),
+                'Content-Disposition': `inline; filename="page-${Date.now()}.pdf"`,
+                'Content-Length': pdfBuffer.length.toString()
             });
             res.send(pdfBuffer);
 
         } catch (error) {
-            logger.error(requestId, 'PDF error', error);
+            logger.error(requestId, 'PDF generation error', error);
             const { statusCode } = createErrorResponse(error, req.query?.url);
-            res.status(statusCode).send(`Error: ${error.message}`);
+            res.status(statusCode).send(`PDF Error: ${error.message}`);
         }
     }
 }
