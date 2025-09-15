@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.7.17",
+    "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.45",
@@ -34,7 +35,6 @@
     "typescript": "^5.3.3"
   },
   "devDependencies": {
-    "@tailwindcss/forms": "^0.5.10",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.0.4"
   },
