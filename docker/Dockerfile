@@ -19,7 +19,7 @@ COPY website/ ./
 RUN npm run build
 
 # Stage 2: Production runtime
-FROM mcr.microsoft.com/playwright:v1.40.0-focal
+FROM mcr.microsoft.com/playwright:v1.55.0-noble
 
 # Install additional system dependencies
 RUN apt-get update && apt-get install -y \
