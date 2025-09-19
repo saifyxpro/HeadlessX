@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   headlessx:
     build: 
@@ -9,7 +7,7 @@ services:
     ports:
       - "3000:3000"    # Direct access to Node.js server (no nginx proxy needed)
     environment:
-      - AUTH_TOKEN=${AUTH_TOKEN:-}             # REQUIRED: Set in .env file
+      - AUTH_TOKEN=${AUTH_TOKEN}               # REQUIRED: Set in .env file
       - DOMAIN=${DOMAIN:-localhost}            # Your domain
       - SUBDOMAIN=${SUBDOMAIN:-headlessx}      # Your subdomain
       - PORT=3000
@@ -17,7 +15,7 @@ services:
       - UV_THREADPOOL_SIZE=128
       - NODE_OPTIONS=--max-old-space-size=4096
     env_file:
-      - ../.env                            # Load from .env file
+      - ../.env                            # Load from .env file in parent directory
     restart: unless-stopped
     volumes:
       - ../logs:/app/logs                  # Persistent logs
