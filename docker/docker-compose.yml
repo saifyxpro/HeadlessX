@@ -7,7 +7,6 @@ services:
     ports:
       - "3000:3000"    # Direct access to Node.js server (no nginx proxy needed)
     environment:
-      - AUTH_TOKEN=${AUTH_TOKEN}               # REQUIRED: Set in .env file
       - DOMAIN=${DOMAIN:-localhost}            # Your domain
       - SUBDOMAIN=${SUBDOMAIN:-headlessx}      # Your subdomain
       - PORT=3000
