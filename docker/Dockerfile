@@ -21,9 +21,8 @@ RUN npm run build
 # Stage 2: Production runtime
 FROM mcr.microsoft.com/playwright:v1.55.0-noble
 
-# Install additional system dependencies
+# Install essential system dependencies (removed nginx - not needed in container)
 RUN apt-get update && apt-get install -y \
-    nginx \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -44,14 +43,8 @@ RUN if [ -f "package-lock.json" ]; then \
 # Copy modular application source
 COPY src/ ./src/
 
-# Copy PM2 ecosystem configuration (now in root)
-COPY ecosystem.config.js ./
-
 # Copy built website from previous stage
 COPY --from=website-builder /app/website/out/ ./website/out/
-
-# Copy nginx configuration for unified architecture
-COPY nginx/headlessx.conf /etc/nginx/sites-available/default
 
 # Create logs directory
 RUN mkdir -p logs
@@ -67,21 +60,15 @@ ENV AUTH_TOKEN=""
 ENV DOMAIN=localhost
 ENV SUBDOMAIN=headlessx
 
-# Create startup script for simplified server architecture
-RUN echo '#!/bin/bash\n\
-# Configure nginx to proxy to Node.js\n\
-sed -i "s/SUBDOMAIN.DOMAIN.COM/$SUBDOMAIN.$DOMAIN/g" /etc/nginx/sites-available/default\n\
-service nginx start\n\
-\n\
-# Start HeadlessX server\n\
-exec su headlessx -c "node src/server.js"' > /start.sh && chmod +x /start.sh
+# Expose the application port directly (no nginx proxy needed)
+EXPOSE 3000
 
-# Expose ports
-EXPOSE 80 3000
-
-# Health check for modular server
+# Health check targets the Node.js application directly
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-  CMD curl -f http://localhost/api/health || exit 1
+  CMD curl -f http://localhost:3000/api/health || exit 1
 
-# Start modular server with nginx proxy
-CMD ["/start.sh"]
+# Switch to non-root user for security
+USER headlessx
+
+# Start the Node.js application directly (no PM2 needed in container)
+CMD ["node", "src/server.js"]

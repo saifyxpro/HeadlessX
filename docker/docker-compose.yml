@@ -7,8 +7,7 @@ services:
       dockerfile: docker/Dockerfile
     container_name: headlessx
     ports:
-      - "80:80"        # Nginx proxy to unified Node.js server
-      - "3000:3000"    # Direct access to Node.js server (optional)
+      - "3000:3000"    # Direct access to Node.js server (no nginx proxy needed)
     environment:
       - AUTH_TOKEN=${AUTH_TOKEN:-}             # REQUIRED: Set in .env file
       - DOMAIN=${DOMAIN:-localhost}            # Your domain
@@ -24,7 +23,7 @@ services:
       - ../logs:/app/logs                  # Persistent logs
       - /tmp:/tmp                          # Temporary files
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -41,7 +40,6 @@ services:
       - headlessx-network
     security_opt:
       - no-new-privileges:true
-    user: headlessx
 
 networks:
   headlessx-network:
