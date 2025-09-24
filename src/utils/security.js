@@ -65,8 +65,11 @@ function getSecurityHeaders(contentType = 'text/html') {
  */
 function sendSecureResponse(res, content, contentType = 'text/html; charset=utf-8', customHeaders = {}) {
     try {
+        // Extract base content type for validation
+        const baseType = contentType.split('/')[1]?.split(';')[0] || 'html';
+        
         // Validate content
-        const validatedContent = validateContent(content, contentType.split('/')[1]);
+        const validatedContent = validateContent(content, baseType);
         
         // Get security headers
         const securityHeaders = getSecurityHeaders(contentType);

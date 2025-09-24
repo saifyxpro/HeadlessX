@@ -178,7 +178,7 @@ Please pay special attention to:
 
 By submitting this pull request, I confirm that:
 
-- [ ] I have read and agree to the [Code of Conduct](../CODE_OF_CONDUCT.md)
+- [ ] I have read and agree to the [Code of Conduct](../docs/CODE_OF_CONDUCT.md)
 - [ ] I have read the [Contributing Guidelines](../docs/CONTRIBUTING.md)
 - [ ] I understand this project's [Ethics Policy](../docs/ETHICS.md)
 - [ ] My contribution is compatible with the MIT license

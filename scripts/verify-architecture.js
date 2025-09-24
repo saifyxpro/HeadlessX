@@ -20,24 +20,24 @@ class ArchitectureVerifier {
         };
     }
 
-  /**
-   * Run complete architecture verification
-   */
-  async verify() {
-    console.log('🔍 HeadlessX v1.3.0 Architecture Verification');
-    console.log('==============================================\n');
+    /**
+     * Run complete architecture verification
+     */
+    async verify() {
+        console.log('🔍 HeadlessX v1.3.0 Architecture Verification');
+        console.log('==============================================\n');
 
-    try {
-      // Verify project structure
-      await this.verifyProjectStructure();
-      
-      // Verify core features
-      await this.verifyCoreFeatures();
-      
-      // Verify v1.3.0 enhancements
-      await this.verifyV13Enhancements();
-      
-      // Verify configuration files
+        try {
+            // Verify project structure
+            await this.verifyProjectStructure();
+
+            // Verify core features
+            await this.verifyCoreFeatures();
+
+            // Verify v1.3.0 enhancements
+            await this.verifyV13Enhancements();
+
+            // Verify configuration files
       await this.verifyConfigurationFiles();
       
       // Verify API endpoints

@@ -228,7 +228,7 @@ If you become aware of HeadlessX being used inappropriately:
 ### Privacy Research Resources
 - **Electronic Frontier Foundation:** https://eff.org
 - **Privacy International:** https://privacyinternational.org
-- **Mozilla Privacy Blog:** https://blog.mozilla.org/privacy/
+- **Mozilla Privacy:** https://www.mozilla.org/privacy/
 - **GDPR.eu:** https://gdpr.eu
 
 ### Security Research Guidelines
@@ -242,7 +242,7 @@ If you become aware of HeadlessX being used inappropriately:
 - **Research Ethics Guidelines:** Various institutional resources
 
 ### Legal Guidance
-- **EFF Legal Resources:** https://eff.org/issues/know-your-rights
+- **EFF Legal Resources:** https://www.eff.org/issues/privacy
 - **GDPR Compliance Guide:** https://gdpr.eu/compliance/
 - **Terms of Service Analysis:** https://tosdr.org
 

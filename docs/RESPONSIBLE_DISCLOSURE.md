@@ -256,7 +256,8 @@ We commit to:
 ### Security Advisories
 All security advisories will be published at:
 - **GitHub:** https://github.com/saifyxpro/headlessx/security/advisories
-- **Website:** https://headlessx.dev/security (if applicable)
+- **Email:** security@github.com (if applicable)
+- **Website:** Contact through GitHub Issues for security concerns
 
 ---
 

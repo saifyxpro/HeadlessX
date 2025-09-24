@@ -357,7 +357,7 @@ If you discover a security vulnerability, please send an email to security@headl
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](../LICENSE) file for details.
 
 ---
 

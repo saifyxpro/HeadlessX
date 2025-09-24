@@ -7,7 +7,7 @@
 const FingerprintManager = require('../config/fingerprints');
 const EnhancedStealthService = require('../services/enhanced-stealth');
 const { logger } = require('../utils/logger');
-const { HeadlessXError, ERROR_CATEGORIES } = require('../utils/errors');
+// const { HeadlessXError, ERROR_CATEGORIES } = require('../utils/errors'); // Not used in current implementation
 
 class AntiDetectionController {
     constructor() {
@@ -171,8 +171,8 @@ class AntiDetectionController {
         try {
             const {
                 profileId = 'windows-chrome-high-end',
-                testUrls = [],
-                options = {}
+                testUrls = []
+                // options = {} // Not currently used
             } = req.body;
 
             const defaultTestUrls = [

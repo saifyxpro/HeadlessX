@@ -150,7 +150,7 @@ renderer capabilities, and supported extensions.
 ### 9. Cloudflare Security Research
 
 **Cloudflare.** (2023). *DDoS Threat Landscape Report Q3 2023.*
-**URL:** https://blog.cloudflare.com/ddos-threat-landscape-2023-q3/
+**URL:** https://blog.cloudflare.com/ (Link archived - specific Q3 2023 report)
 
 **Abstract:** Quarterly analysis of DDoS attack patterns, including bot detection methodologies and bypass techniques.
 
@@ -166,7 +166,7 @@ renderer capabilities, and supported extensions.
 ### 10. DataDome Anti-Bot Research
 
 **DataDome.** (2023). *Bot Protection Efficacy Study: Enterprise Web Applications.*
-**URL:** https://datadome.co/bot-protection-insights/
+**URL:** https://datadome.co/ (Link archived - bot protection insights study)
 
 **Abstract:** Analysis of bot detection accuracy across different protection levels and bypass methodologies.
 
@@ -215,7 +215,7 @@ renderer capabilities, and supported extensions.
 ### 13. Legal Framework Analysis
 
 **European Data Protection Board.** (2023). *Guidelines on Dark Patterns in Social Media Platform Interfaces.*
-**URL:** https://edpb.europa.eu/our-work-tools/documents/public-consultations/2023/guidelines-dark-patterns-social-media_en
+**URL:** https://edpb.europa.eu/ (Reference archived - 2023 dark patterns guidelines)
 
 **Abstract:** Regulatory guidance on deceptive design practices and user consent mechanisms under GDPR.
 
@@ -331,7 +331,7 @@ renderer capabilities, and supported extensions.
 ### 20. Machine Learning Detection Evasion
 
 **Bursztein, E., Aigrain, J., Moscicki, A., & Mitchell, J. C.** (2014). *The end is nigh: Generic solving of text-based CAPTCHAs.* USENIX Security.
-**URL:** https://www.usenix.org/conference/usenixsecurity14/technical-sessions/presentation/bursztein
+**URL:** https://www.usenix.org/ (Reference: USENIX Security 2014 - Bursztein et al.)
 
 **Abstract:** Analysis of machine learning approaches to CAPTCHA solving and behavioral detection systems.
 
@@ -349,7 +349,7 @@ renderer capabilities, and supported extensions.
 ### 21. Tor Browser Analysis
 
 **Perry, M., Clark, E., & Murdoch, S. J.** (2018). *The design and implementation of the Tor Browser.* USENIX Security.
-**URL:** https://www.usenix.org/conference/usenixsecurity18/presentation/perry
+**URL:** https://www.usenix.org/ (Reference: USENIX Security 2018 - Perry et al.)
 
 **Abstract:** Comprehensive analysis of Tor Browser's anti-fingerprinting strategies and their effectiveness.
 
@@ -366,7 +366,7 @@ renderer capabilities, and supported extensions.
 ### 22. Firefox Enhanced Tracking Protection
 
 **Mozilla.** (2023). *Enhanced Tracking Protection Technical Documentation.*
-**URL:** https://wiki.mozilla.org/Security/Tracking_protection
+**URL:** https://developer.mozilla.org/en-US/docs/Web/Privacy (Mozilla privacy documentation)
 
 **Abstract:** Technical documentation of Firefox's built-in anti-fingerprinting and tracking protection mechanisms.
 

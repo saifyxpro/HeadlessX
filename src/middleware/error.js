@@ -7,7 +7,7 @@ const { logger } = require('../utils/logger');
 const { createErrorResponse } = require('../utils/errors');
 
 // Global error handler middleware
-function errorHandler(err, req, res, next) {
+function errorHandler(err, req, res, _next) {
     const requestId = req.requestId || 'unknown';
 
     logger.error(requestId, 'Unhandled error occurred', err, {

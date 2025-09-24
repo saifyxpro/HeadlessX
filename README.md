@@ -11,7 +11,7 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/saifyxpro/HeadlessX?style=for-the-badge&logo=github)](https://github.com/saifyxpro/HeadlessX/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/saifyxpro/HeadlessX?style=for-the-badge&logo=github)](https://github.com/saifyxpro/HeadlessX/network/members)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/headlessx/headlessx)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg?style=for-the-badge&logo=docker)](#-docker-deployment)
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/saifyxpro/HeadlessX/ci.yml?style=for-the-badge&logo=github-actions&label=CI%2FCD)](https://github.com/saifyxpro/HeadlessX/actions)
 
 [![Open Source](https://img.shields.io/badge/Open%20Source-100%25-brightgreen.svg?style=for-the-badge&logo=open-source-initiative)](https://github.com/saifyxpro/HeadlessX)
@@ -155,7 +155,7 @@ HeadlessX v1.3.0 introduces advanced anti-detection capabilities with comprehens
 - Enhanced API endpoints for profile management and detection testing
 - Backward compatible with all existing configurations and scripts
 
-📖 **Detailed Documentation**: [MODULAR_ARCHITECTURE.md](MODULAR_ARCHITECTURE.md)
+📖 **Detailed Documentation**: [MODULAR_ARCHITECTURE.md](docs/MODULAR_ARCHITECTURE.md)
 
 ---
 
@@ -567,7 +567,8 @@ HeadlessX v1.3.0 - Enhanced Anti-Detection Architecture/
 ├── ecosystem.config.js            # PM2 configuration (moved to root)
 ├── .env.example                   # Environment template (updated)
 ├── package.json                   # Server dependencies (updated)
-├── MODULAR_ARCHITECTURE.md        # Architecture documentation
+├── docs/
+│   └── MODULAR_ARCHITECTURE.md   # Architecture documentation
 └── README.md                      # This file
 ```
 
@@ -817,7 +818,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **📖 Documentation**: Visit your deployed website for full API docs
 - **🐛 Issues**: [GitHub Issues](https://github.com/SaifyXPRO/HeadlessX/issues)
-- **💬 Discussions**: [GitHub Discussions](https://github.com/SaifyXPRO/HeadlessX/discussions)
+- **💬 Community**: [GitHub Discussions](https://github.com/SaifyXPRO/HeadlessX/discussions) (Coming Soon)
 
 ---
 

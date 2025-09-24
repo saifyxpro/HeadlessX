@@ -8,6 +8,7 @@ const RenderingService = require('../services/rendering');
 const { validateUrl } = require('../utils/helpers');
 const { extractCleanText } = require('../utils/helpers');
 const { logger } = require('../utils/logger');
+const { sendSecureResponse } = require('../utils/security');
 const { createErrorResponse } = require('../utils/errors');
 const browserService = require('../services/browser');
 
@@ -114,14 +115,19 @@ class RenderingController {
             res.set('X-Frame-Options', 'SAMEORIGIN');
             
             // Return raw HTML with proper headers
-            res.set({
-                'Content-Type': 'text/html; charset=utf-8',
+            const customHeaders = {
                 'X-Rendered-URL': result.url,
                 'X-Page-Title': result.title,
                 'X-Timestamp': result.timestamp,
                 'X-Was-Timeout': result.wasTimeout.toString(),
                 'X-Content-Length': result.contentLength.toString(),
                 'X-Is-Emergency': (result.isEmergencyContent || false).toString()
+            };
+            res.set({
+                'Content-Type': 'text/html; charset=utf-8',
+                'X-Content-Type-Options': 'nosniff',
+                'X-Frame-Options': 'SAMEORIGIN',
+                ...customHeaders
             });
             res.send(result.html);
         } catch (error) {
@@ -170,17 +176,15 @@ class RenderingController {
             logger.info(requestId, `Content length: ${textContent.length} characters`);
 
             // Return plain text with proper headers
-            res.set({
-                'Content-Type': 'text/plain; charset=utf-8',
+            const customHeaders = {
                 'X-Rendered-URL': result.url,
                 'X-Page-Title': result.title,
                 'X-Content-Length': textContent.length,
                 'X-Timestamp': result.timestamp,
                 'X-Was-Timeout': result.wasTimeout.toString(),
-                'X-Is-Emergency': (result.isEmergencyContent || false).toString(),
-                'X-Content-Type-Options': 'nosniff'
-            });
-            res.send(textContent);
+                'X-Is-Emergency': (result.isEmergencyContent || false).toString()
+            };
+            sendSecureResponse(res, textContent, 'text/plain; charset=utf-8', customHeaders);
         } catch (error) {
             logger.error(requestId, 'Content extraction error', error);
             const { statusCode, errorResponse } = createErrorResponse(error, req.body?.url);
@@ -220,16 +224,14 @@ class RenderingController {
 
             // Return screenshot with proper headers
             const format = screenshotOptions.format;
-            res.set({
-                'Content-Type': `image/${format === 'jpg' ? 'jpeg' : format}`,
+            const customHeaders = {
                 'X-Rendered-URL': url,
                 'X-Timestamp': new Date().toISOString(),
                 'X-Screenshot-Size': screenshotBuffer.length.toString(),
                 'Content-Disposition': `inline; filename="screenshot-${Date.now()}.${format}"`,
-                'Content-Length': screenshotBuffer.length.toString(),
-                'X-Content-Type-Options': 'nosniff'
-            });
-            res.send(screenshotBuffer);
+                'Content-Length': screenshotBuffer.length.toString()
+            };
+            sendSecureResponse(res, screenshotBuffer, `image/${format === 'jpg' ? 'jpeg' : format}`, customHeaders);
         } catch (error) {
             logger.error(requestId, 'Screenshot generation error', error);
             const { statusCode, errorResponse } = createErrorResponse(error, req.query?.url);
@@ -266,16 +268,14 @@ class RenderingController {
             logger.info(requestId, `PDF generated successfully: ${url} (${pdfBuffer.length} bytes)`);
 
             // Return PDF with proper headers
-            res.set({
-                'Content-Type': 'application/pdf',
+            const customHeaders = {
                 'X-Rendered-URL': url,
                 'X-Timestamp': new Date().toISOString(),
                 'X-PDF-Size': pdfBuffer.length.toString(),
                 'Content-Disposition': `inline; filename="page-${Date.now()}.pdf"`,
-                'Content-Length': pdfBuffer.length.toString(),
-                'X-Content-Type-Options': 'nosniff'
-            });
-            res.send(pdfBuffer);
+                'Content-Length': pdfBuffer.length.toString()
+            };
+            sendSecureResponse(res, pdfBuffer, 'application/pdf', customHeaders);
         } catch (error) {
             logger.error(requestId, 'PDF generation error', error);
             const { statusCode, errorResponse } = createErrorResponse(error, req.query?.url);

@@ -134,7 +134,7 @@ class BatchController {
 
     // Get batch processing status (if we implement async batch processing in the future)
     static async getBatchStatus(req, res) {
-        const requestId = req.requestId;
+        // const requestId = req.requestId; // Not currently used
         const { batchId } = req.params;
 
         // This could be implemented with a job queue system like Bull or Agenda

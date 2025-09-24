@@ -610,6 +610,6 @@ Include this information:
 
 ---
 
-**Need immediate help?** Check the [GitHub Discussions](https://github.com/saifyxpro/headlessx/discussions) for community support!
+**Need immediate help?** Check the [GitHub Issues](https://github.com/SaifyXPRO/HeadlessX/issues) for community support!
 
 *This troubleshooting guide is continuously updated based on community feedback and common issues. Contributions and improvements are welcome!*

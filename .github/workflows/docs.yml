@@ -111,6 +111,7 @@ jobs:
             "docs/RESPONSIBLE_DISCLOSURE.md"
             "docs/TROUBLESHOOTING.md"
             "docs/MODULAR_ARCHITECTURE.md"
+            "docs/CODE_OF_CONDUCT"
             "LICENSE"
           )
           

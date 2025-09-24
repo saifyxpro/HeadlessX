@@ -8,6 +8,7 @@ const { validateUrl, extractOptionsFromQuery, extractCleanText } = require('../u
 const { logger } = require('../utils/logger');
 const { createErrorResponse } = require('../utils/errors');
 const browserService = require('../services/browser');
+const { sendSecureResponse } = require('../utils/security');
 
 class GetController {
     // HTML endpoint (GET version - returns raw HTML directly)
@@ -32,19 +33,15 @@ class GetController {
             logger.info(requestId, `Successfully rendered HTML (GET): ${url} (${result.wasTimeout ? 'with timeouts' : 'complete'})`);
 
             // Return raw HTML with proper headers
-            res.set({
-                'Content-Type': 'text/html; charset=utf-8',
+            const customHeaders = {
                 'X-Rendered-URL': result.url,
                 'X-Page-Title': result.title,
                 'X-Timestamp': result.timestamp,
                 'X-Was-Timeout': result.wasTimeout.toString(),
                 'X-Content-Length': result.contentLength.toString(),
-                'X-Is-Emergency': (result.isEmergencyContent || false).toString(),
-                'Content-Type': 'text/html; charset=utf-8',
-                'X-Content-Type-Options': 'nosniff',
-                'X-Frame-Options': 'SAMEORIGIN'
-            });
-            res.send(result.html);
+                'X-Is-Emergency': (result.isEmergencyContent || false).toString()
+            };
+            sendSecureResponse(res, result.html, 'text/html; charset=utf-8', customHeaders);
         } catch (error) {
             logger.error(requestId, 'HTML rendering error (GET)', error);
             const { statusCode, errorResponse } = createErrorResponse(error, req.query?.url);
@@ -78,17 +75,15 @@ class GetController {
             logger.info(requestId, `Content length: ${textContent.length} characters`);
 
             // Return plain text with proper headers
-            res.set({
-                'Content-Type': 'text/plain; charset=utf-8',
+            const customHeaders = {
                 'X-Rendered-URL': result.url,
                 'X-Page-Title': result.title,
                 'X-Content-Length': textContent.length,
                 'X-Timestamp': result.timestamp,
                 'X-Was-Timeout': result.wasTimeout.toString(),
-                'X-Is-Emergency': (result.isEmergencyContent || false).toString(),
-                'X-Content-Type-Options': 'nosniff'
-            });
-            res.send(textContent);
+                'X-Is-Emergency': (result.isEmergencyContent || false).toString()
+            };
+            sendSecureResponse(res, textContent, 'text/plain; charset=utf-8', customHeaders);
         } catch (error) {
             logger.error(requestId, 'Content extraction error (GET)', error);
             const { statusCode, errorResponse } = createErrorResponse(error, req.query?.url);

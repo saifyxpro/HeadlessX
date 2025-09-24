@@ -26,7 +26,7 @@ We love your input! We want to make contributing to HeadlessX as easy and transp
 - Ensures HeadlessX remains open source
 - Allows us to accept and use your contributions safely
 
-For questions about the CLA, see our [CLA Document](../CLA.md).
+For questions about the CLA, please contact the maintainers through GitHub issues.
 
 ## We Develop with Github
 
@@ -127,4 +127,4 @@ By contributing, you agree that your contributions will be licensed under its MI
 
 ## References
 
-This document was adapted from the open-source contribution guidelines for [Facebook's Draft](https://github.com/facebook/draft-js/blob/a9316a723f9e918afde44dea68b5f9f39b7d9b00/CONTRIBUTING.md)
+This document was adapted from standard open-source contribution guidelines and best practices.

@@ -6,13 +6,13 @@
 console.log('🔍 PM2: Starting PM2-optimized server...');
 
 // Basic requires with error handling
-let express, bodyParser, config;
+let express, config;
 
 try {
     express = require('express');
     console.log('🔍 PM2: Express loaded');
 
-    bodyParser = require('body-parser');
+    // bodyParser = require('body-parser'); // Not used
     console.log('🔍 PM2: BodyParser loaded');
 
     config = require('./config');
@@ -72,7 +72,7 @@ app.get('/', (req, res) => {
 console.log('🔍 PM2: Home endpoint configured');
 
 // Error handler
-app.use((error, req, res, next) => {
+app.use((error, req, res, _next) => {
     console.error('❌ PM2: Request error:', error);
     res.status(500).json({ error: 'Internal Server Error', pm2_mode: true });
 });

@@ -26,7 +26,7 @@ app.get('/api/health', (req, res) => {
 console.log('🔍 STEP 5: Health endpoint configured');
 
 // Error handler
-app.use((error, req, res, next) => {
+app.use((error, req, res, _next) => {
     console.error('Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
 });
