@@ -29,9 +29,17 @@
     "pm2:reset": "bash scripts/pm2-manager.sh reset",
     "pm2:save": "pm2 save",
     "pm2:startup": "pm2 startup",
-    "test": "bash scripts/test-integration.sh",
+    "test": "jest",
+    "test:unit": "jest --testMatch='**/test/**/*.test.js'",
+    "test:integration": "jest --testMatch='**/test/**/*.integration.test.js'",
     "test:domain": "bash scripts/verify-domain.sh",
-    "test:routing": "bash scripts/test-routing.sh"
+    "test:routing": "bash scripts/test-routing.sh",
+    "lint": "eslint src/ --ext .js",
+    "lint:fix": "eslint src/ --ext .js --fix",
+    "format": "prettier --write 'src/**/*.js'",
+    "format:check": "prettier --check 'src/**/*.js'",
+    "docs:lint": "markdownlint docs/ README.md",
+    "docs:lint:fix": "markdownlint docs/ README.md --fix"
   },
   "keywords": [
     "headlessx",
@@ -66,7 +74,19 @@
     "winston": "^3.11.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-security": "^1.7.1",
+    "prettier": "^3.2.5",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.4",
+    "@playwright/test": "^1.40.0",
+    "markdownlint-cli": "^0.39.0",
+    "jsdoc": "^4.0.2"
   },
   "engines": {
     "node": ">=18.0.0",

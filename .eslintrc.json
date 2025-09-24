@@ -1,0 +1,35 @@
+{
+  "extends": [
+    "standard",
+    "plugin:security/recommended"
+  ],
+  "plugins": [
+    "security"
+  ],
+  "env": {
+    "node": true,
+    "es2022": true,
+    "jest": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "rules": {
+    "indent": ["error", 4],
+    "quotes": ["error", "single"],
+    "semi": ["error", "always"],
+    "no-console": "off",
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "security/detect-object-injection": "off",
+    "security/detect-non-literal-fs-filename": "off",
+    "security/detect-child-process": "warn"
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "website/",
+    "logs/",
+    "*.min.js",
+    "coverage/"
+  ]
+}

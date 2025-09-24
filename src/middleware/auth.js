@@ -5,6 +5,20 @@
 
 const config = require('../config');
 const { logger, generateRequestId } = require('../utils/logger');
+const crypto = require('crypto');
+
+// Secure token comparison to prevent timing attacks
+function secureCompare(a, b) {
+    if (typeof a !== 'string' || typeof b !== 'string') {
+        return false;
+    }
+    
+    if (a.length !== b.length) {
+        return false;
+    }
+    
+    return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
 
 // Authentication middleware
 function authenticate(req, res, next) {
@@ -16,7 +30,7 @@ function authenticate(req, res, next) {
                   req.headers['x-token'] || 
                   req.headers['authorization']?.replace('Bearer ', '');
     
-    if (token !== config.server.authToken) {
+    if (!secureCompare(token || '', config.server.authToken || '')) {
         logger.warn(requestId, 'Authentication failed', { 
             ip: req.ip,
             userAgent: req.get('User-Agent'),
@@ -46,7 +60,7 @@ function authenticateText(req, res, next) {
                   req.headers['x-token'] || 
                   req.headers['authorization']?.replace('Bearer ', '');
     
-    if (token !== config.server.authToken) {
+    if (!secureCompare(token || '', config.server.authToken || '')) {
         logger.warn(requestId, 'Authentication failed (text endpoint)', { 
             ip: req.ip,
             userAgent: req.get('User-Agent'),

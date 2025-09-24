@@ -1,0 +1,15 @@
+node_modules/
+website/
+logs/
+*.log
+coverage/
+.env
+.env.local
+*.min.js
+dist/
+build/
+.nyc_output/
+.vscode/
+.idea/
+*.tmp
+*.temp

@@ -8,6 +8,26 @@ We love your input! We want to make contributing to HeadlessX as easy and transp
 - Proposing new features
 - Becoming a maintainer
 
+## 📝 Contributor License Agreement (CLA)
+
+**Before contributing, you must sign our Contributor License Agreement (CLA).**
+
+🚀 **Quick & Easy Process:**
+1. Submit your first pull request
+2. The CLA Assistant bot will automatically comment on your PR
+3. Click the link and sign electronically: **https://cla-assistant.io/saifyxpro/headlessx**
+4. Comment on your PR: `I have read the CLA Document and I hereby sign the CLA`
+5. The bot will automatically verify and approve your CLA
+
+✅ **One-time process** - Once signed, all future contributions are covered!
+
+**Why do we need a CLA?**
+- Protects both you and the project legally
+- Ensures HeadlessX remains open source
+- Allows us to accept and use your contributions safely
+
+For questions about the CLA, see our [CLA Document](../CLA.md).
+
 ## We Develop with Github
 
 We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
