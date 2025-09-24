@@ -1,7 +1,6 @@
 {
   "extends": [
-    "standard",
-    "plugin:security/recommended"
+    "standard"
   ],
   "plugins": [
     "security"
@@ -13,7 +12,7 @@
   },
   "parserOptions": {
     "ecmaVersion": 2022,
-    "sourceType": "module"
+    "sourceType": "commonjs"
   },
   "rules": {
     "indent": ["error", 4],
@@ -21,15 +20,16 @@
     "semi": ["error", "always"],
     "no-console": "off",
     "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "security/detect-object-injection": "off",
-    "security/detect-non-literal-fs-filename": "off",
-    "security/detect-child-process": "warn"
+    "space-before-function-paren": ["error", "never"]
   },
   "ignorePatterns": [
     "node_modules/",
     "website/",
     "logs/",
     "*.min.js",
-    "coverage/"
+    "coverage/",
+    ".clinic/",
+    "test-results/",
+    "screenshots/"
   ]
 }

@@ -10,42 +10,51 @@
 
 ### 1. Browser Fingerprinting Fundamentals
 
-**Eckersley, P.** (2010). *How unique is your web browser?* Electronic Frontier Foundation. 
-**URL:** https://coveryourtracks.eff.org/static/browser-uniqueness.pdf
+**Eckersley, P.** (2010). *How unique is your web browser?* Electronic Frontier Foundation.  
+**URL:** <https://coveryourtracks.eff.org/static/browser-uniqueness.pdf>
 
-**Abstract:** Seminal work establishing browser fingerprinting as a privacy threat. Demonstrates how combination of browser attributes creates unique signatures for 84% of browsers tested.
+**Abstract:** Seminal work establishing browser fingerprinting as a privacy threat. 
+Demonstrates how combination of browser attributes creates unique signatures for 84% of browsers tested.
 
 **Key Findings:**
+
 - Canvas fingerprinting provides high entropy (8-12 bits)
-- Plugin enumeration highly identifying
+- Plugin enumeration highly identifying  
 - Screen resolution correlation with device profiles
 
-**Relevance to HeadlessX:** Foundational understanding of fingerprinting vectors requiring mitigation. Directly informs canvas noise injection and plugin spoofing strategies.
+**Relevance to HeadlessX:** Foundational understanding of fingerprinting vectors requiring mitigation.
+Directly informs canvas noise injection and plugin spoofing strategies.
 
 ---
 
 ### 2. Canvas Fingerprinting Analysis
 
-**Mowery, K., & Shacham, H.** (2012). *Pixel perfect: Fingerprinting canvas in HTML5.* Proceedings of W2SP.
-**URL:** https://hovav.net/ucsd/dist/canvas.pdf
+**Mowery, K., & Shacham, H.** (2012). *Pixel perfect: Fingerprinting canvas in HTML5.*
+Proceedings of W2SP.  
+**URL:** <https://hovav.net/ucsd/dist/canvas.pdf>
 
-**Abstract:** Detailed analysis of HTML5 Canvas fingerprinting techniques, demonstrating high uniqueness across browsers and operating systems.
+**Abstract:** Detailed analysis of HTML5 Canvas fingerprinting techniques, demonstrating high 
+uniqueness across browsers and operating systems.
 
 **Key Findings:**
+
 - Canvas renders text differently across systems
 - GPU drivers create unique rendering patterns
 - Noise injection effectiveness varies by implementation
 
-**Implementation Impact:** Informs HeadlessX's canvas noise injection algorithm. Recommends consistent seeding for reproducible fingerprints across sessions.
+**Implementation Impact:** Informs HeadlessX's canvas noise injection algorithm. Recommends 
+consistent seeding for reproducible fingerprints across sessions.
 
 ---
 
 ### 3. WebGL Fingerprinting Vectors
 
-**Cao, Y., Li, S., & Wijmans, E.** (2017). *Cross-browser fingerprinting via OS and hardware level features.* Proceedings of NDSS.
+**Cao, Y., Li, S., & Wijmans, E.** (2017). *Cross-browser fingerprinting via OS and hardware
+level features.* Proceedings of NDSS.  
 **DOI:** 10.14722/ndss.2017.23152
 
-**Abstract:** Comprehensive study of WebGL-based fingerprinting, analyzing GPU vendor strings, renderer capabilities, and supported extensions.
+**Abstract:** Comprehensive study of WebGL-based fingerprinting, analyzing GPU vendor strings,
+renderer capabilities, and supported extensions.
 
 **Key Findings:**
 - WebGL provides 15+ bits of entropy
