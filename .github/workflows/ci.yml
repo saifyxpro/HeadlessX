@@ -1,0 +1,462 @@
+name: 🔄 Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run daily at 2 AM UTC to catch dependency issues
+    - cron: '0 2 * * *'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+
+jobs:
+  # === LINT AND STYLE CHECKS ===
+  lint:
+    name: 🎨 Lint & Style Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🎨 Check code style (ESLint)
+        run: |
+          npx eslint . --ext .js,.json --format=stylish --max-warnings=0
+        continue-on-error: false
+
+      - name: 🎨 Check code formatting (Prettier)
+        run: |
+          npx prettier --check "**/*.{js,json,md,yml,yaml}"
+        continue-on-error: false
+
+      - name: 📋 Check JSDoc documentation
+        run: |
+          npx jsdoc -c .jsdoc.json --dry-run
+        continue-on-error: true
+
+  # === SECURITY SCANNING ===
+  security:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🔍 Run npm audit
+        run: |
+          npm audit --audit-level=moderate
+          npm audit --json > audit-results.json || true
+        continue-on-error: true
+
+      - name: 🔍 CodeQL Analysis
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+          queries: security-and-quality
+
+      - name: 🔍 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      - name: 🔍 Run Semgrep (SAST)
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: auto
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+        continue-on-error: true
+
+      - name: 📤 Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-results
+          path: audit-results.json
+          retention-days: 30
+        if: always()
+
+  # === UNIT TESTS ===
+  unit-tests:
+    name: 🧪 Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      matrix:
+        node-version: ['18', '20', '21']
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🧪 Run unit tests
+        run: |
+          npm run test:unit -- --coverage --verbose
+        env:
+          NODE_ENV: test
+
+      - name: 📊 Upload coverage reports
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/lcov.info
+          flags: unit-tests
+          name: unit-tests-node-${{ matrix.node-version }}
+        continue-on-error: true
+
+  # === INTEGRATION TESTS ===
+  integration-tests:
+    name: 🔗 Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      nginx:
+        image: nginx:alpine
+        ports:
+          - 80:80
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🌐 Install Playwright browsers
+        run: |
+          npx playwright install chromium --with-deps
+
+      - name: ⚙️ Setup test environment
+        run: |
+          cp .env.example .env
+          echo "AUTH_TOKEN=$(openssl rand -hex 32)" >> .env
+          echo "NODE_ENV=test" >> .env
+          echo "PORT=3001" >> .env
+
+      - name: 🔄 Start HeadlessX server
+        run: |
+          npm start &
+          sleep 10
+          curl --retry 5 --retry-delay 2 http://localhost:3001/api/health
+        env:
+          PORT: 3001
+
+      - name: 🧪 Run integration tests
+        run: |
+          npm run test:integration
+        env:
+          NODE_ENV: test
+          PORT: 3001
+
+      - name: 🧪 Run API endpoint tests
+        run: |
+          npm run test:api
+        env:
+          PORT: 3001
+
+      - name: 📸 Upload test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-artifacts
+          path: |
+            test-results/
+            screenshots/
+            logs/
+          retention-days: 7
+        if: always()
+
+  # === BROWSER COMPATIBILITY TESTS ===
+  browser-tests:
+    name: 🌐 Browser Compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      matrix:
+        browser: ['chromium', 'firefox', 'webkit']
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🌐 Install Playwright browsers
+        run: |
+          npx playwright install ${{ matrix.browser }} --with-deps
+
+      - name: ⚙️ Setup test environment
+        run: |
+          cp .env.example .env
+          echo "AUTH_TOKEN=$(openssl rand -hex 32)" >> .env
+          echo "BROWSER_TYPE=${{ matrix.browser }}" >> .env
+
+      - name: 🧪 Run browser-specific tests
+        run: |
+          npm run test:browser -- --browser=${{ matrix.browser }}
+        env:
+          BROWSER_TYPE: ${{ matrix.browser }}
+
+  # === PERFORMANCE TESTS ===
+  performance:
+    name: ⚡ Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: |
+          npm ci --prefer-offline --no-audit
+          npm install -g clinic autocannon
+
+      - name: 🌐 Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: ⚙️ Setup performance environment
+        run: |
+          cp .env.example .env
+          echo "AUTH_TOKEN=$(openssl rand -hex 32)" >> .env
+          echo "NODE_ENV=production" >> .env
+
+      - name: 🔄 Start server for performance testing
+        run: |
+          npm start &
+          sleep 15
+        env:
+          NODE_ENV: production
+
+      - name: ⚡ Run performance benchmarks
+        run: |
+          # API performance test
+          autocannon -c 10 -d 30 http://localhost:3000/api/health
+          
+          # Memory profiling
+          clinic doctor -- node src/app.js &
+          PID=$!
+          sleep 30
+          kill $PID
+        continue-on-error: true
+
+      - name: 📊 Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: |
+            .clinic/
+            performance-*.json
+          retention-days: 7
+        if: always()
+
+  # === DOCKER BUILD TEST ===
+  docker:
+    name: 🐳 Docker Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔧 Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: false
+          tags: headlessx:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 🧪 Test Docker image
+        run: |
+          docker run -d --name headlessx-test \
+            -e AUTH_TOKEN=test_token_123 \
+            -p 3000:3000 \
+            headlessx:test
+          
+          sleep 15
+          
+          # Test health endpoint
+          curl --retry 5 --retry-delay 3 http://localhost:3000/api/health
+          
+          # Check container logs
+          docker logs headlessx-test
+          
+          # Cleanup
+          docker stop headlessx-test
+          docker rm headlessx-test
+
+  # === BUILD VERIFICATION ===
+  build:
+    name: 🏗️ Build Verification
+    runs-on: ubuntu-latest
+    needs: [lint, security, unit-tests]
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: 🏗️ Build website
+        run: |
+          cd website
+          npm ci --prefer-offline --no-audit
+          npm run build
+          cd ..
+
+      - name: ✅ Validate build outputs
+        run: |
+          # Check that all required files are present
+          test -f src/app.js
+          test -f src/server.js
+          test -d website/out
+          
+          # Syntax check
+          node -c src/app.js
+          node -c src/server.js
+
+      - name: 📤 Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            website/out/
+            dist/
+          retention-days: 7
+
+  # === DEPLOYMENT READINESS ===
+  deploy-check:
+    name: 🚀 Deployment Readiness
+    runs-on: ubuntu-latest
+    needs: [build, integration-tests, docker]
+    if: github.ref == 'refs/heads/main'
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: ✅ Pre-deployment checks
+        run: |
+          # Version check
+          node -e "console.log('Version:', require('./package.json').version)"
+          
+          # Security configuration check
+          npm audit --production
+          
+          # Environment validation
+          npm run validate:deployment
+
+      - name: 📋 Generate deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Security scan completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Docker build successful" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Ready for deployment" >> $GITHUB_STEP_SUMMARY
+
+# === NOTIFICATION ON FAILURE ===
+  notify-failure:
+    name: 📢 Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [lint, security, unit-tests, integration-tests, browser-tests, docker]
+    if: failure() && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: 📢 Create failure issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `CI Pipeline Failed - ${context.sha.substring(0, 7)}`,
+              body: `The CI pipeline failed for commit ${context.sha}.
+              
+              **Workflow:** ${context.workflow}
+              **Run:** ${context.runNumber}
+              **Branch:** ${context.ref}
+              
+              Please check the [workflow run](${context.payload.repository.html_url}/actions/runs/${context.runId}) for details.`,
+              labels: ['bug', 'ci-failure', 'urgent']
+            })

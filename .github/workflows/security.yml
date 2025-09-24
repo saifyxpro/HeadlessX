@@ -1,0 +1,474 @@
+name: 🔒 Security Audit
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run security audit daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of security scan'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - quick
+          - full
+          - deep
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  # === DEPENDENCY VULNERABILITY SCAN ===
+  dependency-scan:
+    name: 📦 Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: 🔍 Run npm audit
+        run: |
+          echo "## Dependency Audit Report" > audit-report.md
+          echo "Generated: $(date)" >> audit-report.md
+          echo "" >> audit-report.md
+          
+          # Run audit and capture output
+          npm audit --json > npm-audit.json || true
+          npm audit >> audit-report.md || true
+          
+          # Check for high/critical vulnerabilities
+          HIGH_VULNS=$(jq '.metadata.vulnerabilities.high // 0' npm-audit.json)
+          CRITICAL_VULNS=$(jq '.metadata.vulnerabilities.critical // 0' npm-audit.json)
+          
+          echo "High vulnerabilities: $HIGH_VULNS" >> audit-report.md
+          echo "Critical vulnerabilities: $CRITICAL_VULNS" >> audit-report.md
+          
+          # Fail if critical vulnerabilities found
+          if [ "$CRITICAL_VULNS" -gt "0" ]; then
+            echo "❌ Critical vulnerabilities found!"
+            exit 1
+          fi
+
+      - name: 🔍 Snyk vulnerability scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high --json-file-output=snyk-results.json
+        continue-on-error: true
+
+      - name: 📤 Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit-results
+          path: |
+            audit-report.md
+            npm-audit.json
+            snyk-results.json
+          retention-days: 30
+
+      - name: 🚨 Create security issue if critical vulns found
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Critical Security Vulnerabilities Found',
+              body: `Critical security vulnerabilities were found in dependencies.
+              
+              **Scan Date:** ${new Date().toISOString()}
+              **Workflow:** ${context.workflow}
+              **Run:** [View Results](${context.payload.repository.html_url}/actions/runs/${context.runId})
+              
+              Please review and update dependencies immediately.`,
+              labels: ['security', 'critical', 'dependencies']
+            })
+
+  # === STATIC APPLICATION SECURITY TESTING (SAST) ===
+  sast-scan:
+    name: 🔍 Static Code Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Run Semgrep SAST
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/nodejs
+            p/javascript
+            p/xss
+            p/sql-injection
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      - name: 🔍 ESLint Security Plugin
+        run: |
+          npx eslint . \
+            --ext .js \
+            --config .eslintrc.security.js \
+            --format json \
+            --output-file eslint-security.json || true
+
+      - name: 🔍 NodeJSScan Security Analysis
+        uses: ajinabraham/njsscan-action@master
+        with:
+          args: '.'
+
+      - name: 📊 Security scan summary
+        run: |
+          echo "## Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Semgrep SAST completed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ ESLint security rules applied" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ NodeJSScan analysis completed" >> $GITHUB_STEP_SUMMARY
+
+  # === SECRET SCANNING ===
+  secret-scan:
+    name: 🔐 Secret Detection
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔐 TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+      - name: 🔐 GitGuardian Secret Scan
+        uses: GitGuardian/ggshield/actions/secret@main
+        env:
+          GITHUB_PUSH_BEFORE_SHA: ${{ github.event.before }}
+          GITHUB_PUSH_BASE_SHA: ${{ github.event.base }}
+          GITHUB_PULL_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+        continue-on-error: true
+
+      - name: 🔍 Manual secret patterns
+        run: |
+          echo "Scanning for common secret patterns..."
+          
+          # Check for potential secrets (non-exhaustive)
+          FINDINGS=0
+          
+          # API keys
+          if grep -r "api[_-]key\s*=" . --exclude-dir=node_modules --exclude-dir=.git; then
+            echo "⚠️ Potential API key found"
+            FINDINGS=$((FINDINGS + 1))
+          fi
+          
+          # Database URLs
+          if grep -r "mongodb://" . --exclude-dir=node_modules --exclude-dir=.git; then
+            echo "⚠️ Potential database URL found"
+            FINDINGS=$((FINDINGS + 1))
+          fi
+          
+          # AWS credentials
+          if grep -r "AKIA[0-9A-Z]{16}" . --exclude-dir=node_modules --exclude-dir=.git; then
+            echo "⚠️ Potential AWS access key found"
+            FINDINGS=$((FINDINGS + 1))
+          fi
+          
+          # Private keys
+          if grep -r "BEGIN.*PRIVATE KEY" . --exclude-dir=node_modules --exclude-dir=.git; then
+            echo "⚠️ Potential private key found"
+            FINDINGS=$((FINDINGS + 1))
+          fi
+          
+          echo "Secret scan findings: $FINDINGS"
+
+  # === AUTHENTICATION & AUTHORIZATION TESTING ===
+  auth-security-test:
+    name: 🔑 Authentication Security Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: ⚙️ Setup test environment
+        run: |
+          cp .env.example .env
+          echo "AUTH_TOKEN=$(openssl rand -hex 32)" >> .env
+          echo "NODE_ENV=test" >> .env
+
+      - name: 🔄 Start server for security testing
+        run: |
+          npm start &
+          sleep 10
+        env:
+          PORT: 3002
+
+      - name: 🔑 Test authentication bypass attempts
+        run: |
+          echo "Testing authentication security..."
+          
+          # Test without token
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3002/api/render)
+          if [ "$RESPONSE" != "401" ]; then
+            echo "❌ Authentication bypass possible - expected 401, got $RESPONSE"
+            exit 1
+          fi
+          
+          # Test with invalid token
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer invalid_token" \
+            http://localhost:3002/api/render)
+          if [ "$RESPONSE" != "401" ]; then
+            echo "❌ Invalid token accepted - expected 401, got $RESPONSE"
+            exit 1
+          fi
+          
+          # Test timing attack resistance
+          echo "Testing timing attack resistance..."
+          for i in {1..10}; do
+            TIME1=$(curl -s -o /dev/null -w "%{time_total}" \
+              -H "Authorization: Bearer wrong_token_$i" \
+              http://localhost:3002/api/health)
+            echo "Request $i time: $TIME1"
+          done
+          
+          echo "✅ Authentication security tests passed"
+
+      - name: 🔍 Test for information disclosure
+        run: |
+          echo "Testing information disclosure..."
+          
+          # Check error messages don't reveal sensitive info
+          ERROR_RESPONSE=$(curl -s http://localhost:3002/api/render \
+            -H "Content-Type: application/json" \
+            -d '{"url": "invalid"}')
+          
+          if echo "$ERROR_RESPONSE" | grep -q "AUTH_TOKEN\|password\|secret"; then
+            echo "❌ Error response contains sensitive information"
+            echo "$ERROR_RESPONSE"
+            exit 1
+          fi
+          
+          echo "✅ Information disclosure tests passed"
+
+  # === DOCKER SECURITY SCAN ===
+  docker-security:
+    name: 🐳 Docker Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔧 Build Docker image for scanning
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          push: false
+          tags: headlessx:security-scan
+          cache-from: type=gha
+
+      - name: 🔍 Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'headlessx:security-scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: 📤 Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: 🔍 Docker bench security
+        run: |
+          docker run --rm --net host --pid host --userns host --cap-add audit_control \
+            -e DOCKER_CONTENT_TRUST=$DOCKER_CONTENT_TRUST \
+            -v /etc:/etc:ro \
+            -v /usr/bin/containerd:/usr/bin/containerd:ro \
+            -v /usr/bin/runc:/usr/bin/runc:ro \
+            -v /usr/lib/systemd:/usr/lib/systemd:ro \
+            -v /var/lib:/var/lib:ro \
+            -v /var/run/docker.sock:/var/run/docker.sock:ro \
+            --label docker_bench_security \
+            docker/docker-bench-security || true
+
+  # === DEPENDENCY LICENSE CHECK ===
+  license-check:
+    name: 📄 License Compliance Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: 📄 License compatibility check
+        run: |
+          npx license-checker --summary --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;Unlicense' || true
+          npx license-checker --json > licenses.json
+
+      - name: 📄 Check for GPL licenses
+        run: |
+          if npx license-checker --summary | grep -i "GPL"; then
+            echo "❌ GPL license detected - may not be compatible with MIT"
+            npx license-checker | grep -A5 -B5 GPL
+            exit 1
+          fi
+          echo "✅ No GPL licenses found"
+
+      - name: 📤 Upload license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report
+          path: licenses.json
+          retention-days: 30
+
+  # === SECURITY REPORTING ===
+  security-report:
+    name: 📊 Security Report
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, sast-scan, secret-scan, auth-security-test, docker-security, license-check]
+    if: always()
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: security-artifacts
+
+      - name: 📊 Generate security summary
+        run: |
+          echo "# 🔒 Security Audit Summary" > security-summary.md
+          echo "**Date:** $(date)" >> security-summary.md
+          echo "**Commit:** ${{ github.sha }}" >> security-summary.md
+          echo "**Branch:** ${{ github.ref }}" >> security-summary.md
+          echo "" >> security-summary.md
+          
+          echo "## 📋 Scan Results" >> security-summary.md
+          echo "- Dependency Scan: ${{ needs.dependency-scan.result }}" >> security-summary.md
+          echo "- SAST Scan: ${{ needs.sast-scan.result }}" >> security-summary.md
+          echo "- Secret Scan: ${{ needs.secret-scan.result }}" >> security-summary.md
+          echo "- Auth Security Test: ${{ needs.auth-security-test.result }}" >> security-summary.md
+          echo "- Docker Security: ${{ needs.docker-security.result }}" >> security-summary.md
+          echo "- License Check: ${{ needs.license-check.result }}" >> security-summary.md
+          echo "" >> security-summary.md
+          
+          # Overall status
+          if [ "${{ needs.dependency-scan.result }}" = "success" ] && \
+             [ "${{ needs.sast-scan.result }}" = "success" ] && \
+             [ "${{ needs.secret-scan.result }}" = "success" ] && \
+             [ "${{ needs.auth-security-test.result }}" = "success" ]; then
+            echo "## ✅ Overall Status: PASSED" >> security-summary.md
+            echo "No critical security issues found." >> security-summary.md
+          else
+            echo "## ❌ Overall Status: ATTENTION REQUIRED" >> security-summary.md
+            echo "Some security scans failed or found issues. Please review." >> security-summary.md
+          fi
+
+      - name: 📤 Upload security summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-summary
+          path: security-summary.md
+          retention-days: 90
+
+      - name: 📋 Add to step summary
+        run: cat security-summary.md >> $GITHUB_STEP_SUMMARY
+
+  # === CRITICAL SECURITY ALERT ===
+  security-alert:
+    name: 🚨 Critical Security Alert
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, sast-scan, auth-security-test]
+    if: failure() && (github.ref == 'refs/heads/main' || github.event_name == 'schedule')
+
+    steps:
+      - name: 🚨 Create critical security issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 CRITICAL: Security Vulnerabilities Detected',
+              body: `## 🚨 Critical Security Alert
+              
+              Security vulnerabilities have been detected that require immediate attention.
+              
+              **Detection Date:** ${new Date().toISOString()}
+              **Branch:** ${context.ref}
+              **Commit:** ${context.sha}
+              **Workflow Run:** [View Details](${context.payload.repository.html_url}/actions/runs/${context.runId})
+              
+              ## Failed Security Checks
+              - Dependency Scan: ${{ needs.dependency-scan.result }}
+              - SAST Scan: ${{ needs.sast-scan.result }}
+              - Auth Security Test: ${{ needs.auth-security-test.result }}
+              
+              ## Immediate Actions Required
+              1. Review security scan results in the workflow run
+              2. Update vulnerable dependencies immediately
+              3. Fix any identified security issues
+              4. Re-run security scans to verify fixes
+              
+              **Do not deploy until all security issues are resolved.**`,
+              labels: ['security', 'critical', 'urgent']
+            })

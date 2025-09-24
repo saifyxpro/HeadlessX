@@ -1,0 +1,457 @@
+name: 📚 Documentation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths: ['docs/**', '*.md', 'website/**']
+  pull_request:
+    branches: [ main ]
+    paths: ['docs/**', '*.md', 'website/**']
+  workflow_dispatch:
+
+jobs:
+  # === MARKDOWN LINTING ===
+  markdown-lint:
+    name: 📝 Markdown Linting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Lint Markdown files
+        uses: articulate/actions-markdownlint@v1
+        with:
+          config: .markdownlint.json
+          files: '**/*.md'
+          ignore: 'node_modules/**'
+
+      - name: 🔍 Check Markdown formatting
+        run: |
+          # Check for common markdown issues
+          echo "Checking for markdown formatting issues..."
+          
+          # Check for trailing spaces
+          if grep -r " $" docs/ *.md 2>/dev/null; then
+            echo "❌ Trailing spaces found"
+            exit 1
+          fi
+          
+          # Check for mixed line endings
+          if find docs/ -name "*.md" -exec file {} \; | grep -q CRLF; then
+            echo "❌ Windows line endings (CRLF) found"
+            exit 1
+          fi
+          
+          echo "✅ Markdown formatting checks passed"
+
+  # === LINK CHECKING ===
+  link-check:
+    name: 🔗 Link Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔗 Check internal links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'yes'
+          use-verbose-mode: 'yes'
+          config-file: '.markdown-link-check.json'
+
+      - name: 🔗 Check external links (rate limited)
+        run: |
+          # More conservative external link checking
+          echo "Checking external links..."
+          
+          # Extract unique external URLs
+          grep -roh "http[s]*://[^)]*" docs/ *.md | \
+            grep -v localhost | \
+            grep -v 127.0.0.1 | \
+            sort | uniq > external_urls.txt
+          
+          # Check each URL with timeout and retries
+          while read -r url; do
+            echo "Checking: $url"
+            if ! curl --max-time 10 --retry 2 --retry-delay 1 -s -f "$url" > /dev/null; then
+              echo "⚠️ Failed to reach: $url"
+            else
+              echo "✅ OK: $url"
+            fi
+          done < external_urls.txt
+        continue-on-error: true
+
+  # === DOCUMENTATION COMPLETENESS ===
+  docs-completeness:
+    name: 📋 Documentation Completeness
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📋 Check required documentation
+        run: |
+          echo "Checking for required documentation files..."
+          
+          MISSING_FILES=0
+          
+          # Required documentation files
+          REQUIRED_DOCS=(
+            "README.md"
+            "docs/CONTRIBUTING.md"
+            "docs/CHANGELOG.md" 
+            "docs/SECURITY.md"
+            "docs/ETHICS.md"
+            "docs/RESPONSIBLE_DISCLOSURE.md"
+            "docs/troubleshooting.md"
+            "docs/architecture.md"
+            "CODE_OF_CONDUCT.md"
+            "LICENSE"
+          )
+          
+          for file in "${REQUIRED_DOCS[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Missing: $file"
+              MISSING_FILES=$((MISSING_FILES + 1))
+            else
+              echo "✅ Found: $file"
+            fi
+          done
+          
+          if [ $MISSING_FILES -gt 0 ]; then
+            echo "❌ $MISSING_FILES required documentation files are missing"
+            exit 1
+          fi
+          
+          echo "✅ All required documentation files present"
+
+      - name: 📋 Check API documentation completeness
+        run: |
+          echo "Checking API documentation completeness..."
+          
+          # Check if all API endpoints are documented
+          if [ -f "src/routes/api.js" ]; then
+            ENDPOINTS=$(grep -o "router\.[a-z]*.*'" src/routes/api.js | wc -l)
+            echo "Found $ENDPOINTS API endpoints in code"
+            
+            # Check if docs mention these endpoints
+            if [ $ENDPOINTS -gt 0 ]; then
+              DOCUMENTED=$(grep -c "/api/" docs/*.md || echo "0")
+              echo "Found $DOCUMENTED endpoint references in documentation"
+              
+              if [ $DOCUMENTED -lt $ENDPOINTS ]; then
+                echo "⚠️ Some API endpoints may not be documented"
+              else
+                echo "✅ API endpoints appear to be documented"
+              fi
+            fi
+          fi
+
+      - name: 📋 Check code documentation
+        run: |
+          echo "Checking inline code documentation..."
+          
+          # Check for JSDoc coverage
+          TOTAL_FUNCTIONS=$(grep -r "function \|const .* = (" src/ | wc -l)
+          DOCUMENTED_FUNCTIONS=$(grep -rB1 "function \|const .* = (" src/ | grep -c "/\*\*" || echo "0")
+          
+          echo "Total functions: $TOTAL_FUNCTIONS"
+          echo "Documented functions: $DOCUMENTED_FUNCTIONS"
+          
+          if [ $TOTAL_FUNCTIONS -gt 0 ]; then
+            COVERAGE=$((DOCUMENTED_FUNCTIONS * 100 / TOTAL_FUNCTIONS))
+            echo "Documentation coverage: $COVERAGE%"
+            
+            if [ $COVERAGE -lt 50 ]; then
+              echo "⚠️ Low documentation coverage ($COVERAGE%)"
+            else
+              echo "✅ Good documentation coverage ($COVERAGE%)"
+            fi
+          fi
+
+  # === DOCUMENTATION BUILD TEST ===
+  docs-build:
+    name: 🏗️ Documentation Build Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 🔧 Install documentation tools
+        run: |
+          npm install -g @vuepress/cli jsdoc
+          npm install --no-save jsdoc-to-markdown
+
+      - name: 🏗️ Generate API documentation
+        run: |
+          # Generate JSDoc
+          mkdir -p build/docs
+          jsdoc -r src/ -d build/docs/api || true
+          
+          # Generate markdown API docs
+          jsdoc2md "src/**/*.js" > docs/api-reference.md || true
+          
+          echo "✅ API documentation generated"
+
+      - name: 📤 Upload generated docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-documentation
+          path: |
+            build/docs/
+            docs/api-reference.md
+          retention-days: 7
+
+  # === WEBSITE BUILD TEST ===
+  website-build:
+    name: 🌐 Website Build Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'website/package-lock.json'
+
+      - name: 📥 Install website dependencies
+        run: |
+          cd website
+          npm ci --prefer-offline
+
+      - name: ⚙️ Setup environment for build
+        run: |
+          cd website
+          echo "NEXT_PUBLIC_DOMAIN=headlessx.dev" > .env.local
+          echo "NEXT_PUBLIC_SUBDOMAIN=www" >> .env.local
+          echo "NEXT_PUBLIC_API_URL=https://api.headlessx.dev" >> .env.local
+          echo "NEXT_PUBLIC_SITE_URL=https://www.headlessx.dev" >> .env.local
+
+      - name: 🏗️ Build website
+        run: |
+          cd website
+          npm run build
+
+      - name: 🧪 Test website build
+        run: |
+          cd website
+          # Check that build output exists
+          test -d out
+          test -f out/index.html
+          
+          # Check for broken links in built HTML
+          if command -v linkchecker >/dev/null; then
+            linkchecker out/index.html || true
+          fi
+          
+          echo "✅ Website build successful"
+
+      - name: 📤 Upload website build
+        uses: actions/upload-artifact@v4
+        with:
+          name: website-build
+          path: website/out/
+          retention-days: 7
+
+  # === DOCUMENTATION QUALITY CHECK ===
+  docs-quality:
+    name: 📊 Documentation Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📊 Analyze documentation quality
+        run: |
+          echo "## Documentation Quality Report" > quality-report.md
+          echo "Generated: $(date)" >> quality-report.md
+          echo "" >> quality-report.md
+          
+          # Count total words
+          TOTAL_WORDS=$(find docs/ -name "*.md" -exec wc -w {} + | tail -n1 | awk '{print $1}')
+          echo "Total documentation words: $TOTAL_WORDS" >> quality-report.md
+          
+          # Count files
+          TOTAL_FILES=$(find docs/ -name "*.md" | wc -l)
+          echo "Total documentation files: $TOTAL_FILES" >> quality-report.md
+          
+          # Check for TODO items
+          TODO_COUNT=$(grep -ri "TODO\|FIXME\|XXX" docs/ | wc -l || echo "0")
+          echo "TODO items found: $TODO_COUNT" >> quality-report.md
+          
+          # Check for broken internal references
+          BROKEN_REFS=$(grep -r "\[.*\](.*)" docs/ | grep -v "http" | grep -c "404\|broken" || echo "0")
+          echo "Potentially broken references: $BROKEN_REFS" >> quality-report.md
+          
+          # Language and readability checks
+          echo "" >> quality-report.md
+          echo "## Readability Analysis" >> quality-report.md
+          
+          # Simple readability metrics
+          for file in docs/*.md; do
+            if [ -f "$file" ]; then
+              SENTENCES=$(grep -o "\." "$file" | wc -l)
+              WORDS=$(wc -w < "$file")
+              if [ $SENTENCES -gt 0 ]; then
+                AVG_SENTENCE_LENGTH=$((WORDS / SENTENCES))
+                echo "- $(basename "$file"): $AVG_SENTENCE_LENGTH words/sentence" >> quality-report.md
+              fi
+            fi
+          done
+          
+          cat quality-report.md
+
+      - name: 📊 Check spelling
+        run: |
+          # Install spell checker
+          sudo apt-get update && sudo apt-get install -y aspell
+          
+          # Check spelling in markdown files
+          echo "Checking spelling in documentation..."
+          SPELLING_ERRORS=0
+          
+          for file in docs/*.md README.md; do
+            if [ -f "$file" ]; then
+              # Extract text and check spelling
+              aspell --mode=html --personal=.aspell.en.pws list < "$file" > "${file}.spelling" || true
+              
+              if [ -s "${file}.spelling" ]; then
+                echo "Potential spelling issues in $file:"
+                cat "${file}.spelling" | head -10
+                SPELLING_ERRORS=$((SPELLING_ERRORS + 1))
+              fi
+            fi
+          done
+          
+          if [ $SPELLING_ERRORS -gt 0 ]; then
+            echo "⚠️ Potential spelling issues found in $SPELLING_ERRORS files"
+          else
+            echo "✅ No obvious spelling issues found"
+          fi
+        continue-on-error: true
+
+      - name: 📤 Upload quality report
+        uses: actions/upload-artifact@v4
+        with:
+          name: documentation-quality-report
+          path: quality-report.md
+          retention-days: 30
+
+  # === ACCESSIBILITY CHECK ===
+  accessibility:
+    name: ♿ Accessibility Check
+    runs-on: ubuntu-latest
+    needs: website-build
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Download website build
+        uses: actions/download-artifact@v4
+        with:
+          name: website-build
+          path: website-build/
+
+      - name: ♿ Check accessibility
+        run: |
+          npm install -g pa11y-ci
+          
+          # Start a simple HTTP server
+          cd website-build
+          python3 -m http.server 8080 &
+          SERVER_PID=$!
+          sleep 5
+          
+          # Run accessibility tests
+          pa11y-ci --sitemap http://localhost:8080/sitemap.xml || \
+          pa11y-ci http://localhost:8080/ || true
+          
+          # Cleanup
+          kill $SERVER_PID
+        continue-on-error: true
+
+  # === DOCUMENTATION SUMMARY ===
+  docs-summary:
+    name: 📋 Documentation Summary
+    runs-on: ubuntu-latest
+    needs: [markdown-lint, link-check, docs-completeness, docs-build, website-build, docs-quality]
+    if: always()
+
+    steps:
+      - name: 📋 Generate summary
+        run: |
+          echo "## 📚 Documentation Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Build Results:" >> $GITHUB_STEP_SUMMARY
+          echo "- Markdown Linting: ${{ needs.markdown-lint.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Link Validation: ${{ needs.link-check.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Completeness Check: ${{ needs.docs-completeness.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Documentation Build: ${{ needs.docs-build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Website Build: ${{ needs.website-build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Quality Analysis: ${{ needs.docs-quality.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Overall status
+          if [ "${{ needs.markdown-lint.result }}" = "success" ] && \
+             [ "${{ needs.docs-completeness.result }}" = "success" ] && \
+             [ "${{ needs.website-build.result }}" = "success" ]; then
+            echo "### ✅ Overall Status: Documentation is ready!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⚠️ Overall Status: Issues found that need attention" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: 📢 Comment on PR (if applicable)
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const results = {
+              'markdown-lint': '${{ needs.markdown-lint.result }}',
+              'link-check': '${{ needs.link-check.result }}',
+              'docs-completeness': '${{ needs.docs-completeness.result }}',
+              'docs-build': '${{ needs.docs-build.result }}',
+              'website-build': '${{ needs.website-build.result }}',
+              'docs-quality': '${{ needs.docs-quality.result }}'
+            };
+            
+            let comment = '## 📚 Documentation Review Results\n\n';
+            let allPassed = true;
+            
+            for (const [check, result] of Object.entries(results)) {
+              const emoji = result === 'success' ? '✅' : '❌';
+              comment += `- ${emoji} ${check}: ${result}\n`;
+              if (result !== 'success') allPassed = false;
+            }
+            
+            if (allPassed) {
+              comment += '\n🎉 All documentation checks passed!';
+            } else {
+              comment += '\n⚠️ Some documentation issues need to be addressed.';
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+        continue-on-error: true

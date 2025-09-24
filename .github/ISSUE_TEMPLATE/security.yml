@@ -1,0 +1,197 @@
+name: 🔐 Security Vulnerability
+description: Report a security vulnerability (please use responsibly)
+title: '[Security]: '
+labels: ['security', 'critical']
+assignees: ['saifyxpro']
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🔐 Security Vulnerability Report
+        
+        **IMPORTANT:** If this is a critical security vulnerability that could be exploited, 
+        please consider reporting it privately to security@headlessx.dev instead of creating 
+        a public issue.
+        
+        For our full responsible disclosure policy, see [RESPONSIBLE_DISCLOSURE.md](../docs/RESPONSIBLE_DISCLOSURE.md).
+
+  - type: checkboxes
+    id: disclosure-acknowledgment
+    attributes:
+      label: Disclosure Acknowledgment
+      description: Please confirm your understanding of responsible disclosure
+      options:
+        - label: I have read the responsible disclosure policy
+          required: true
+        - label: I understand this issue will be public immediately upon submission
+          required: true
+        - label: I have considered reporting this privately first if it's critical
+          required: true
+
+  - type: dropdown
+    id: severity-assessment
+    attributes:
+      label: Severity Assessment
+      description: How severe do you assess this vulnerability?
+      options:
+        - Critical (Remote code execution, authentication bypass)
+        - High (Privilege escalation, significant data exposure)
+        - Medium (Limited information disclosure, DoS)
+        - Low (Minor information leaks, configuration issues)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: vulnerability-type
+    attributes:
+      label: Vulnerability Type
+      description: What type of vulnerability is this?
+      options:
+        - Authentication/Authorization
+        - Input Validation/Injection
+        - Information Disclosure
+        - Denial of Service
+        - Cryptographic Issue
+        - Configuration Error
+        - Anti-detection Bypass
+        - Other (specify below)
+    validations:
+      required: true
+
+  - type: input
+    id: affected-version
+    attributes:
+      label: Affected Version(s)
+      description: Which versions are affected?
+      placeholder: "v1.3.0, v1.2.0"
+    validations:
+      required: true
+
+  - type: input
+    id: affected-component
+    attributes:
+      label: Affected Component
+      description: Which component/file is affected?
+      placeholder: "src/middleware/auth.js, API endpoint /api/render"
+    validations:
+      required: true
+
+  - type: textarea
+    id: vulnerability-description
+    attributes:
+      label: Vulnerability Description
+      description: Detailed description of the vulnerability
+      placeholder: |
+        Provide a clear, detailed description of the security issue:
+        - What is the vulnerability?
+        - How does it work?
+        - What are the prerequisites for exploitation?
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact-assessment
+    attributes:
+      label: Impact Assessment
+      description: What is the potential impact if exploited?
+      placeholder: |
+        Describe the potential impact:
+        - What data could be compromised?
+        - What systems could be affected?
+        - What privileges could an attacker gain?
+        - How many users could be impacted?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the vulnerability
+      placeholder: |
+        1. Set up HeadlessX with...
+        2. Send a request to...
+        3. Observe that...
+        4. This allows an attacker to...
+        
+        **Note:** Only include steps that demonstrate the issue without causing harm.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proof-of-concept
+    attributes:
+      label: Proof of Concept
+      description: Non-harmful proof of concept (if applicable)
+      placeholder: |
+        Include code, requests, or other evidence that demonstrates the vulnerability.
+        Please ensure your PoC is responsible and doesn't cause damage.
+      render: shell
+
+  - type: textarea
+    id: mitigation-suggestions
+    attributes:
+      label: Suggested Mitigation
+      description: Do you have suggestions for fixing this vulnerability?
+      placeholder: |
+        If you have ideas for how to fix this issue:
+        - Code changes that could address the vulnerability
+        - Configuration changes that could mitigate the issue
+        - Additional security controls that should be implemented
+
+  - type: dropdown
+    id: disclosure-preference
+    attributes:
+      label: Disclosure Preference
+      description: How would you prefer to handle disclosure?
+      options:
+        - Public disclosure immediately (this issue)
+        - Coordinated disclosure (90-day timeline)
+        - Private disclosure first (move to private channel)
+        - Follow project's standard process
+    validations:
+      required: true
+
+  - type: input
+    id: researcher-credit
+    attributes:
+      label: Researcher Credit
+      description: How would you like to be credited? (optional)
+      placeholder: "Your name, organization, or handle"
+
+  - type: checkboxes
+    id: ethical-testing
+    attributes:
+      label: Ethical Testing Confirmation
+      description: Please confirm your testing was conducted ethically
+      options:
+        - label: I tested only on my own systems or with explicit permission
+        - label: I did not access or modify data belonging to others
+        - label: I did not perform actions that could harm service availability
+        - label: I followed responsible disclosure principles
+
+  - type: textarea
+    id: additional-notes
+    attributes:
+      label: Additional Notes
+      description: Any other relevant information
+      placeholder: |
+        - References to similar vulnerabilities
+        - Tools used for discovery
+        - Timeline considerations
+        - Any attempts at responsible disclosure via other channels
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        **After submitting this issue:**
+        
+        1. **Critical vulnerabilities:** Consider also emailing security@headlessx.dev
+        2. **Response time:** We aim to respond within 24 hours
+        3. **Updates:** You'll receive updates on our progress
+        4. **Credit:** You'll be credited appropriately once the issue is resolved
+        
+        Thank you for helping keep HeadlessX secure!

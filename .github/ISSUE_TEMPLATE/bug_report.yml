@@ -1,0 +1,168 @@
+name: 🐛 Bug Report
+description: Report a bug to help us improve HeadlessX
+title: '[Bug]: '
+labels: ['bug', 'triage']
+assignees: ['saifyxpro']
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 Bug Report
+        
+        Thank you for taking the time to report a bug! This helps us improve HeadlessX for everyone.
+        
+        **Before submitting:** Please search existing issues to avoid duplicates.
+
+  - type: checkboxes
+    id: preliminary-checks
+    attributes:
+      label: Preliminary Checks
+      description: Please confirm you have completed these steps
+      options:
+        - label: I have searched existing issues for similar problems
+          required: true
+        - label: I have read the troubleshooting documentation
+          required: true
+        - label: I am using a supported version of HeadlessX
+          required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: HeadlessX Version
+      description: Which version are you using?
+      placeholder: "v1.3.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: installation-method
+    attributes:
+      label: Installation Method
+      description: How did you install HeadlessX?
+      options:
+        - npm install
+        - Docker
+        - Manual installation
+        - Git clone
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: What environment are you running on?
+      placeholder: "Ubuntu 22.04, Node.js 20.5.0, Docker 24.0.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of the bug
+      placeholder: Describe what happened...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: Describe what should have happened...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe what actually happened...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Provide step-by-step instructions to reproduce the issue
+      placeholder: |
+        1. Start HeadlessX with...
+        2. Make a request to...
+        3. Observe error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-logs
+    attributes:
+      label: Error Logs
+      description: Include relevant error messages and logs
+      placeholder: |
+        Paste error logs here. For PM2 logs, use: pm2 logs headlessx --lines 20
+        For Docker logs, use: docker logs container-name
+      render: shell
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration
+      description: Relevant configuration (sanitize sensitive data like tokens)
+      placeholder: |
+        Include relevant parts of your .env file (remove sensitive information):
+        NODE_ENV=production
+        PORT=3000
+        STEALTH_MODE=advanced
+      render: shell
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this bug?
+      options:
+        - Critical (application crashes, security vulnerability)
+        - High (major functionality broken)
+        - Medium (some functionality impaired)
+        - Low (minor issue, workaround available)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser-context
+    attributes:
+      label: Browser Context
+      description: Is this related to browser automation?
+      options:
+        - Not browser related
+        - Browser launch issues
+        - Page rendering problems
+        - Anti-detection issues
+        - Authentication/authorization
+        - Performance issues
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any other information that might be helpful
+      placeholder: |
+        - Screenshots
+        - Network requests/responses
+        - System resource usage
+        - Workarounds you've tried
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to help?
+      options:
+        - label: I am willing to help fix this bug
+        - label: I can provide additional testing
+        - label: I can help with documentation updates

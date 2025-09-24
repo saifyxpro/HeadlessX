@@ -1,6 +1,7 @@
 /**
- * Rendering Controller
- * Handles page rendering requests with various output formats
+ * Enhanced Rendering Controller v1.3.0
+ * Handles page rendering with advanced anti-detection, fingerprinting, and behavioral simulation
+ * Features: Device profiles, geolocation spoofing, behavioral patterns, advanced stealth
  */
 
 const RenderingService = require('../services/rendering');
@@ -12,7 +13,9 @@ const browserService = require('../services/browser');
 
 class RenderingController {
     
-    // Main rendering endpoint (JSON response)
+    /**
+     * Enhanced main rendering endpoint with advanced anti-detection
+     */
     static async renderPage(req, res) {
         const requestId = req.requestId;
         
@@ -27,21 +30,58 @@ class RenderingController {
                 });
             }
 
-            logger.info(requestId, `Advanced rendering request for: ${url}`);
+            logger.info(requestId, `Advanced v1.3.0 rendering request for: ${url}`);
 
-            // Disable partial content return by default - prioritize complete execution
+            // Enhanced options with v1.3.0 features
             const options = { 
                 ...req.body, 
-                returnPartialOnTimeout: req.body.returnPartialOnTimeout === true 
+                returnPartialOnTimeout: req.body.returnPartialOnTimeout === true,
+                
+                // v1.3.0 Anti-detection features
+                deviceProfile: req.body.deviceProfile || 'mid-range-desktop',
+                geoProfile: req.body.geoProfile || 'us-east',
+                behaviorProfile: req.body.behaviorProfile || 'natural',
+                enableCanvasSpoofing: req.body.enableCanvasSpoofing !== false,
+                enableWebGLSpoofing: req.body.enableWebGLSpoofing !== false,
+                enableAudioSpoofing: req.body.enableAudioSpoofing !== false,
+                enableWebRTCBlocking: req.body.enableWebRTCBlocking !== false,
+                enableAdvancedStealth: req.body.enableAdvancedStealth !== false,
+                
+                // Behavioral simulation
+                simulateMouseMovement: req.body.simulateMouseMovement !== false,
+                simulateScrolling: req.body.simulateScrolling !== false,
+                simulateTyping: req.body.simulateTyping !== false,
+                
+                // Timing and performance
+                humanDelays: req.body.humanDelays !== false,
+                randomizeTimings: req.body.randomizeTimings !== false
             };
             
             const result = await RenderingService.renderPageAdvanced(options);
             
-            logger.info(requestId, `Successfully rendered: ${url} (${result.wasTimeout ? 'with timeouts' : 'complete'})`);
+            // Enhanced logging with v1.3.0 metrics
+            logger.info(requestId, `Successfully rendered: ${url} (${result.wasTimeout ? 'with timeouts' : 'complete'}) - Profile: ${options.deviceProfile}/${options.geoProfile}`);
+            
+            // Add v1.3.0 metadata to response
+            result.metadata = {
+                ...result.metadata,
+                version: '1.3.0',
+                deviceProfile: options.deviceProfile,
+                geoProfile: options.geoProfile,
+                behaviorProfile: options.behaviorProfile,
+                antiDetectionFeatures: {
+                    canvasSpoof: options.enableCanvasSpoofing,
+                    webglSpoof: options.enableWebGLSpoofing,
+                    audioSpoof: options.enableAudioSpoofing,
+                    webrtcBlock: options.enableWebRTCBlocking,
+                    advancedStealth: options.enableAdvancedStealth
+                }
+            };
+            
             res.json(result);
 
         } catch (error) {
-            logger.error(requestId, 'Rendering error', error);
+            logger.error(requestId, 'Enhanced rendering error', error);
             const { statusCode, errorResponse } = createErrorResponse(error, req.body?.url);
             res.status(statusCode).json(errorResponse);
         }

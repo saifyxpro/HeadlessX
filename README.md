@@ -1,6 +1,6 @@
-# 🚀 HeadlessX v1.2.0
+# 🚀 HeadlessX v1.3.0
 
-**Open Source Browserless Web Scraping API with Human-like Behavior**
+**Advanced Anti-Detection Web Scraping API with Comprehensive Fingerprinting Control**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg)](https://nodejs.org/)
@@ -9,19 +9,39 @@
 [![Open Source](https://img.shields.io/badge/Open%20Source-100%25%20Free-green.svg)](https://github.com/SaifyXPRO/HeadlessX)
 
 > 🎯 **Unified Solution**: Website + API on a single domain  
-> 🧠 **Human-like Behavior**: 40+ anti-detection techniques  
+> 🛡️ **Advanced Anti-Detection**: Canvas/WebGL/Audio spoofing, behavioral simulation  
+> 🧠 **Human-like Behavior**: Bezier mouse movements, keyboard dynamics, natural scrolling  
 > 🚀 **Deploy Anywhere**: Docker, Node.js+PM2, or Development
 
 ---
 
-## ✨ Key Features
+## ✨ v1.3.0 Key Features
 
-- **🌐 Unified Architecture**: Website and API on one domain
-- **🧠 Human-like Intelligence**: Natural mouse movements, smart scrolling, behavioral randomization
-- **📊 Multiple Formats**: HTML, text, screenshots, PDFs
-- **⚡ Batch Processing**: Handle multiple URLs efficiently
-- **🔒 Production Ready**: Docker, PM2, Nginx, SSL support
-- **🛡️ Anti-Detection**: 40+ stealth techniques for reliable scraping
+### 🛡️ **Advanced Anti-Detection Engine**
+- **Canvas Fingerprinting Control** - Dynamic noise injection with consistent seeds
+- **WebGL Spoofing** - GPU vendor/model spoofing with realistic profiles
+- **Audio Context Manipulation** - Hardware audio fingerprint database
+- **WebRTC Leak Prevention** - Complete IP leak protection
+- **Hardware Fingerprint Spoofing** - CPU, memory, and performance masking
+
+### 🧠 **Human-like Behavioral Simulation**
+- **Bezier Mouse Movement** - Natural acceleration and deceleration patterns
+- **Keyboard Dynamics** - Realistic dwell time and flight time variations
+- **Natural Scroll Patterns** - Reader, scanner, browser behavioral profiles
+- **Attention Model Simulation** - Human-like focus and interaction patterns
+- **Micro-movement Injection** - Sub-pixel accuracy for maximum realism
+
+### 🌐 **WAF Bypass Capabilities**
+- **Cloudflare Bypass** - Advanced challenge solving and TLS fingerprinting
+- **DataDome Evasion** - Resource blocking and behavioral pattern matching
+- **Incapsula/Akamai** - Generic WAF bypass with adaptive techniques
+- **HTTP/2 Fingerprinting** - Stream prioritization and header ordering
+
+### 📊 **Comprehensive Device Profiles**
+- **50+ Chrome Profiles** - Desktop, mobile, and tablet configurations
+- **Hardware Consistency** - CPU, GPU, memory, and sensor correlation
+- **Geolocation Intelligence** - Timezone, language, and locale matching
+- **Profile Validation** - Real-time consistency checking and scoring
 
 ---
 
@@ -32,9 +52,9 @@
 git clone https://github.com/SaifyXPRO/HeadlessX.git
 cd HeadlessX
 
-# Quick setup (makes scripts executable + creates .env)
+# Quick setup with v1.3.0 anti-detection features
 chmod +x scripts/quick-setup.sh && ./scripts/quick-setup.sh
-# Then edit: nano .env  # Update DOMAIN, SUBDOMAIN, and AUTH_TOKEN
+# Then edit: nano .env  # Update DOMAIN, SUBDOMAIN, AUTH_TOKEN, and FINGERPRINT_PROFILE
 ```
 
 **Choose your deployment:**
@@ -45,46 +65,76 @@ chmod +x scripts/quick-setup.sh && ./scripts/quick-setup.sh
 | 🔧 **Auto Setup** | `chmod +x scripts/setup.sh && sudo ./scripts/setup.sh` | VPS/Server with full control |
 | 💻 **Development** | `npm install && npm start` | Local development, testing |
 
-**Access your HeadlessX:**
+**Access your HeadlessX v1.3.0:**
 ```
 🌐 Website:  https://your-subdomain.yourdomain.com
+🔗 API:      https://your-subdomain.yourdomain.com/api
+🛡️ Stealth:  https://your-subdomain.yourdomain.com/api/render/stealth
+🧪 Testing:  https://your-subdomain.yourdomain.com/api/test-fingerprint
+📱 Profiles: https://your-subdomain.yourdomain.com/api/profiles
 🔧 Health:   https://your-subdomain.yourdomain.com/api/health
 📊 Status:   https://your-subdomain.yourdomain.com/api/status?token=YOUR_AUTH_TOKEN
 ```
 
 ---
 
-## 🏗️ New Modular Architecture v1.2.0
+## 🏗️ Enhanced Anti-Detection Architecture v1.3.0
 
-HeadlessX v1.2.0 introduces a completely refactored modular architecture for better maintainability, scalability, and development experience.
+HeadlessX v1.3.0 introduces advanced anti-detection capabilities with comprehensive fingerprinting control, behavioral simulation, and WAF bypass techniques while maintaining the modular architecture from v1.2.0.
 
-### Key Improvements:
-- **🔧 Separation of Concerns**: Distinct modules for configuration, services, controllers, and middleware
-- **🚀 Better Performance**: Optimized browser management and resource usage
-- **🛠️ Developer Experience**: Clear module boundaries and dependency injection
-- **📦 Production Ready**: Enhanced error handling and logging with correlation IDs
-- **🔒 Security**: Improved authentication and rate limiting
-- **📊 Monitoring**: Structured logging and health monitoring
+### v1.3.0 Key Enhancements:
+- **🛡️ Advanced Anti-Detection**: Canvas, WebGL, Audio, WebRTC fingerprinting control
+- **🎭 Behavioral Simulation**: Human-like mouse movement with Bezier curves and keyboard dynamics
+- **🌐 WAF Bypass**: Cloudflare, DataDome, and advanced evasion techniques
+- **📱 Device Profiling**: Comprehensive desktop and mobile device profiles with hardware spoofing
+- **🧪 Testing Framework**: Comprehensive anti-detection testing and validation
+- **🔧 Separation of Concerns**: Enhanced modules for fingerprinting, behavioral, and evasion services
+- **🚀 Better Performance**: Optimized browser management with intelligent profile-based pooling
+- **🛠️ Developer Experience**: Development tools, profile generators, and interactive testing
+- **📦 Production Ready**: Enhanced error handling, detection analytics, and profile validation
+- **🔒 Security**: Advanced authentication, profile management, and secure fingerprint storage
+- **📊 Monitoring**: Real-time detection monitoring, success rate analytics, and performance benchmarking
 
-### Architecture Overview:
+### v1.3.0 Architecture Overview:
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Routes        │───▶│   Controllers   │───▶│   Services      │
 │   (api.js)      │    │   (rendering.js)│    │   (browser.js)  │
+│   (admin.js)    │    │   (profiles.js) │    │   (stealth.js)  │
+└─────────────────┘    │   (detection.js)│    │   (interaction.js)
+         │              └─────────────────┘    └─────────────────┘
+         ▼                       │                       │
+┌─────────────────┐              ▼                       ▼
+│   Middleware    │    ┌─────────────────┐    ┌─────────────────┐
+│   (auth.js)     │    │   Utils         │    │   Config        │
+│   (error.js)    │    │   (logger.js)   │    │   (index.js)    │
+│   (analyzer.js) │    │   (helpers.js)  │    │   (browser.js)  │
+└─────────────────┘    │   (validator.js)│    │   (profiles/)   │
+         │              └─────────────────┘    └─────────────────┘
+         ▼                       │                       │
+┌─────────────────┐              ▼                       ▼
+│ Fingerprinting  │    ┌─────────────────┐    ┌─────────────────┐
+│ (canvas-spoof)  │    │   Behavioral    │    │    Evasion      │
+│ (webgl-spoof)   │    │ (mouse-movement)│    │ (cloudflare)    │
+│ (audio-context) │    │ (keyboard-dyn)  │    │ (datadome)      │
+│ (webrtc-ctrl)   │    │ (scroll-pattern)│    │ (waf-bypass)    │
+│ (hardware-noise)│    │ (attention-mod) │    │ (tls-fingerpr)  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Middleware    │    │   Utils         │    │   Config        │
-│   (auth.js)     │    │   (logger.js)   │    │   (index.js)    │
+│    Testing      │    │  Development    │    │    Profiles     │
+│ (test-framework)│    │   (dev-tools)   │    │ (chrome-prof)   │
+│ (detection-test)│    │ (profile-gen)   │    │ (mobile-prof)   │
+│ (performance)   │    │ (fingerpr-test) │    │ (firefox-prof)  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-**Quick Migration from v1.1.0:**
-- The original `src/server.js` (3079 lines) has been broken down into 20+ focused modules
-- Environment variable `TOKEN` is now `AUTH_TOKEN` 
-- PM2 config moved from `config/ecosystem.config.js` to `ecosystem.config.js`
-- All functionality preserved with improved performance and maintainability
+**Migration from v1.2.0:**
+- All v1.2.0 functionality preserved with enhanced anti-detection capabilities
+- New environment variables for fingerprint control and stealth configuration
+- Enhanced API endpoints for profile management and detection testing
+- Backward compatible with all existing configurations and scripts
 
 📖 **Detailed Documentation**: [MODULAR_ARCHITECTURE.md](MODULAR_ARCHITECTURE.md)
 
@@ -224,6 +274,63 @@ curl https://your-subdomain.yourdomain.com/api/health
 ```
 
 ### 🔧 cURL Examples
+
+#### 🛡️ v1.3.0 Anti-Detection Rendering (Maximum Stealth)
+```bash
+curl -X POST "https://your-subdomain.yourdomain.com/api/render/stealth?token=YOUR_AUTH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "profile": "desktop-chrome",
+    "stealthMode": "maximum",
+    "behaviorSimulation": true,
+    "timeout": 30000
+  }'
+```
+
+#### 📱 Mobile Device Simulation
+```bash
+curl -X POST "https://your-subdomain.yourdomain.com/api/render?token=YOUR_AUTH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "profile": "iphone-14-pro",
+    "geolocation": {"latitude": 40.7128, "longitude": -74.0060},
+    "behaviorSimulation": true
+  }'
+```
+
+#### 🧪 Test Anti-Detection Capabilities
+```bash
+curl -X POST "https://your-subdomain.yourdomain.com/api/test-fingerprint?token=YOUR_AUTH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "profile": "desktop-chrome",
+    "testCanvas": true,
+    "testWebGL": true,
+    "testAudio": true
+  }'
+```
+
+#### 📊 Get Available Device Profiles
+```bash
+curl "https://your-subdomain.yourdomain.com/api/profiles?token=YOUR_AUTH_TOKEN"
+```
+
+#### 🎭 Behavioral Simulation with WAF Bypass
+```bash
+curl -X POST "https://your-subdomain.yourdomain.com/api/render?token=YOUR_AUTH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "profile": "desktop-firefox",
+    "cloudflareBypass": true,
+    "datadomeBypass": true,
+    "mouseMovement": "natural",
+    "keyboardDynamics": "human",
+    "timeout": 45000
+  }'
+```
 
 #### Extract HTML Content
 ```bash
@@ -394,7 +501,7 @@ curl -X POST "https://your-subdomain.yourdomain.com/api/batch?token=YOUR_AUTH_TO
 ## 📁 Project Structure
 
 ```
-HeadlessX v1.2.0 - Modular Architecture/
+HeadlessX v1.3.0 - Enhanced Anti-Detection Architecture/
 ├── 📂 src/                         # Modular application source
 │   ├── 📂 config/                  # Configuration management
 │   │   ├── index.js               # Main configuration loader

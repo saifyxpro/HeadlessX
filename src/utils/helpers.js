@@ -4,11 +4,11 @@
  */
 
 // Enhanced timeout handler function with anti-bot detection fallback
-async function withTimeoutFallback(asyncOperation, fallbackOperation = null, timeoutMs = 30000) {
+async function withTimeoutFallback(asyncOperation, fallbackOperation = null, timeoutMs = 60000) {
     return new Promise(async (resolve, reject) => {
         let completed = false;
         
-        // Set timeout with shorter intervals for anti-bot sites
+        // Set timeout with more reasonable intervals for anti-bot sites
         const timeoutId = setTimeout(() => {
             if (!completed) {
                 completed = true;
@@ -44,10 +44,17 @@ async function withTimeoutFallback(asyncOperation, fallbackOperation = null, tim
                 const isAntiBotError = error.message.includes('net::ERR_FAILED') || 
                                      error.message.includes('Navigation timeout') ||
                                      error.message.includes('Timeout') ||
-                                     error.message.includes('blocked');
+                                     error.message.includes('blocked') ||
+                                     error.message.includes('ERR_TIMED_OUT') ||
+                                     error.message.includes('ERR_CONNECTION_REFUSED');
                 
                 if (isAntiBotError) {
-                    console.log(`🤖 Possible anti-bot detection: ${error.message}, attempting fallback...`);
+                    console.log(`🤖 Possible anti-bot detection detected: ${error.message}`);
+                    if (fallbackOperation) {
+                        console.log(`🔄 Attempting fallback operation...`);
+                    } else {
+                        console.log(`⚠️ No fallback available, returning partial content if possible`);
+                    }
                 } else {
                     console.log(`❌ Operation failed: ${error.message}, attempting fallback...`);
                 }

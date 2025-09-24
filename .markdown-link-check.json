@@ -1,0 +1,18 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^https?://localhost"
+    },
+    {
+      "pattern": "^https?://127\\.0\\.0\\.1"
+    },
+    {
+      "pattern": "^https?://192\\.168\\."
+    }
+  ],
+  "timeout": "10s",
+  "retryOn429": true,
+  "retryCount": 3,
+  "fallbackRetryDelay": "30s",
+  "aliveStatusCodes": [200, 206]
+}

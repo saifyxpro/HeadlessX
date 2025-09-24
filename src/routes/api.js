@@ -1,6 +1,6 @@
 /**
- * API Routes
- * Defines all API endpoints and their handlers
+ * Enhanced API Routes v1.3.0
+ * Defines all API endpoints including new anti-detection and fingerprint testing features
  */
 
 const express = require('express');
@@ -11,6 +11,7 @@ const SystemController = require('../controllers/system');
 const RenderingController = require('../controllers/rendering');
 const GetController = require('../controllers/get');
 const BatchController = require('../controllers/batch');
+const ProfilesController = require('../controllers/profiles');
 
 // Import middleware
 const { authenticate, authenticateText, addRequestId } = require('../middleware/auth');
@@ -24,8 +25,16 @@ router.get('/docs', addRequestId, GetController.getApiDocs);
 router.get('/status', authenticate, SystemController.getStatus);
 router.get('/metrics', authenticate, SystemController.getMetrics);
 
-// Main rendering endpoints
+// v1.3.0 New anti-detection endpoints
+router.post('/test-fingerprint', authenticate, asyncHandler(SystemController.testFingerprint));
+router.get('/profiles', authenticate, asyncHandler(ProfilesController.getProfiles));
+router.post('/profiles/validate', authenticate, asyncHandler(ProfilesController.validateProfile));
+router.post('/profiles/generate-fingerprint', authenticate, asyncHandler(ProfilesController.generateFingerprint));
+router.get('/stealth/status', authenticate, ProfilesController.getStealthStatus);
+
+// Main rendering endpoints (enhanced with v1.3.0 features)
 router.post('/render', authenticate, asyncHandler(RenderingController.renderPage));
+router.post('/render/stealth', authenticate, asyncHandler(RenderingController.renderPage)); // Alias for maximum stealth
 router.post('/html', authenticateText, asyncHandler(RenderingController.renderHtml));
 router.post('/content', authenticateText, asyncHandler(RenderingController.renderContent));
 

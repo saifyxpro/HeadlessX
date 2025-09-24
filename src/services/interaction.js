@@ -1,117 +1,258 @@
 /**
- * Page Interaction Service
- * Handles human-like interactions, scrolling, and behavior simulation
+ * Enhanced Page Interaction Service v1.3.0
+ * Handles advanced human-like interactions, behavioral simulation, and anti-detection
+ * Features: Bezier curve mouse movement, keyboard dynamics, scroll patterns, timing variations
  */
 
+const crypto = require('crypto');
+
+// Behavioral profiles for different user types
+const BEHAVIORAL_PROFILES = {
+    confident: {
+        mouseSpeed: { min: 800, max: 1500 },
+        acceleration: { min: 0.8, max: 1.2 },
+        pauseBetweenActions: { min: 100, max: 300 },
+        scrollPattern: 'aggressive',
+        typingSpeed: { min: 80, max: 120 }
+    },
+    natural: {
+        mouseSpeed: { min: 600, max: 1000 },
+        acceleration: { min: 0.6, max: 0.9 },
+        pauseBetweenActions: { min: 200, max: 500 },
+        scrollPattern: 'smooth',
+        typingSpeed: { min: 60, max: 90 }
+    },
+    cautious: {
+        mouseSpeed: { min: 400, max: 700 },
+        acceleration: { min: 0.4, max: 0.7 },
+        pauseBetweenActions: { min: 300, max: 800 },
+        scrollPattern: 'careful',
+        typingSpeed: { min: 40, max: 70 }
+    }
+};
+
 class InteractionService {
+
+    /**
+     * Generate Bezier curve points for natural mouse movement
+     */
+    static generateBezierPath(start, end, complexity = 2) {
+        const points = [];
+        const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+        const steps = Math.max(10, Math.floor(distance / 20));
+        
+        // Generate control points for natural curves
+        const controlPoints = [];
+        for (let i = 0; i < complexity; i++) {
+            const factor = (i + 1) / (complexity + 1);
+            const deviation = (Math.random() - 0.5) * distance * 0.3;
+            controlPoints.push({
+                x: start.x + (end.x - start.x) * factor + deviation,
+                y: start.y + (end.y - start.y) * factor + deviation
+            });
+        }
+        
+        // Calculate Bezier curve points
+        for (let t = 0; t <= 1; t += 1/steps) {
+            const point = this.calculateBezierPoint(t, [start, ...controlPoints, end]);
+            points.push(point);
+        }
+        
+        return points;
+    }
     
-    // Realistic auto scroll function with human-like behavior
-    static async autoScroll(page) {
+    /**
+     * Calculate point on Bezier curve
+     */
+    static calculateBezierPoint(t, points) {
+        if (points.length === 1) return points[0];
+        
+        const newPoints = [];
+        for (let i = 0; i < points.length - 1; i++) {
+            newPoints.push({
+                x: points[i].x + t * (points[i + 1].x - points[i].x),
+                y: points[i].y + t * (points[i + 1].y - points[i].y)
+            });
+        }
+        
+        return this.calculateBezierPoint(t, newPoints);
+    }
+
+    /**
+     * Enhanced mouse movement with Bezier curves and behavioral profiles
+     */
+    static async moveMouseNaturally(page, targetX, targetY, profile = 'natural') {
+        const behavior = BEHAVIORAL_PROFILES[profile];
+        const currentPos = await page.evaluate(() => ({ x: window.mouseX || 0, y: window.mouseY || 0 }));
+        
+        const path = this.generateBezierPath(currentPos, { x: targetX, y: targetY });
+        const totalDuration = Math.random() * (behavior.mouseSpeed.max - behavior.mouseSpeed.min) + behavior.mouseSpeed.min;
+        const stepDuration = totalDuration / path.length;
+        
+        for (let i = 0; i < path.length; i++) {
+            const point = path[i];
+            
+            // Add micro-movements for realism
+            const jitterX = (Math.random() - 0.5) * 2;
+            const jitterY = (Math.random() - 0.5) * 2;
+            
+            await page.mouse.move(point.x + jitterX, point.y + jitterY);
+            await page.evaluate((x, y) => {
+                window.mouseX = x;
+                window.mouseY = y;
+            }, point.x, point.y);
+            
+            // Variable timing between movements
+            const variation = (Math.random() - 0.5) * stepDuration * 0.3;
+            await this.randomDelay(Math.max(5, stepDuration + variation));
+        }
+    }
+
+    /**
+     * Advanced typing simulation with keystroke dynamics
+     */
+    static async typeNaturally(page, selector, text, profile = 'natural') {
+        const behavior = BEHAVIORAL_PROFILES[profile];
+        
+        // Clear existing text first
+        await page.click(selector);
+        await page.keyboard.down('Control');
+        await page.keyboard.press('KeyA');
+        await page.keyboard.up('Control');
+        
+        await this.randomDelay(100, 200);
+        
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            
+            // Realistic keystroke timing variations
+            let keyDelay;
+            if (char === ' ') {
+                keyDelay = Math.random() * 100 + 150; // Longer pause for spaces
+            } else if (char.match(/[A-Z]/)) {
+                keyDelay = Math.random() * 80 + 120; // Slightly longer for capitals
+            } else {
+                keyDelay = Math.random() * (1000 / behavior.typingSpeed.max - 1000 / behavior.typingSpeed.min) + 1000 / behavior.typingSpeed.max;
+            }
+            
+            // Simulate occasional hesitation or correction
+            if (Math.random() < 0.05) { // 5% chance
+                await this.randomDelay(300, 800); // Thinking pause
+            }
+            
+            // Press and hold timing variation
+            const holdTime = Math.random() * 50 + 20;
+            await page.keyboard.down(char);
+            await this.randomDelay(holdTime);
+            await page.keyboard.up(char);
+            
+            await this.randomDelay(keyDelay);
+        }
+    }
+
+    /**
+     * Generate random delay with optional range
+     */
+    static async randomDelay(min = 100, max = null) {
+        const delay = max ? Math.random() * (max - min) + min : min;
+        return new Promise(resolve => setTimeout(resolve, delay));
+    }
+
+    /**
+     * Enhanced auto scroll with behavioral patterns
+     */
+    static async autoScroll(page, profile = 'natural', targetPercentage = 0.8) {
+        const behavior = BEHAVIORAL_PROFILES[profile];
+        
         try {
-            await page.evaluate(async () => {
+            await page.evaluate(async (scrollPattern, targetPct) => {
                 await new Promise((resolve) => {
-                    let totalHeight = 0;
                     let currentPosition = 0;
                     let scrollAttempts = 0;
                     const maxScrollAttempts = 50;
                     
-                    // Human-like scrolling with variable speeds and pauses
+                    const getScrollDistance = () => {
+                        switch (scrollPattern) {
+                            case 'aggressive':
+                                return Math.random() * 150 + 100; // 100-250px
+                            case 'careful':
+                                return Math.random() * 80 + 40;   // 40-120px
+                            default: // smooth
+                                return Math.random() * 120 + 80;  // 80-200px
+                        }
+                    };
+                    
+                    const getPauseTime = () => {
+                        switch (scrollPattern) {
+                            case 'aggressive':
+                                return Math.random() * 200 + 100; // 100-300ms
+                            case 'careful':
+                                return Math.random() * 400 + 300; // 300-700ms
+                            default: // smooth
+                                return Math.random() * 300 + 200; // 200-500ms
+                        }
+                    };
+                    
+                    // Enhanced human-like scrolling with behavioral patterns
                     const humanScroll = () => {
                         const scrollHeight = document.body.scrollHeight;
+                        const targetHeight = scrollHeight * targetPct;
                         
-                        // Variable scroll distance (humans don't scroll perfectly)
-                        const baseDistance = 100;
-                        const variation = Math.random() * 50 - 25; // -25 to +25
-                        const distance = Math.max(50, baseDistance + variation);
+                        if (currentPosition >= targetHeight || scrollAttempts >= maxScrollAttempts) {
+                            resolve();
+                            return;
+                        }
                         
-                        // Scroll with easing (like mouse wheel)
+                        const distance = getScrollDistance();
                         const startPos = window.pageYOffset;
-                        const targetPos = startPos + distance;
-                        const duration = 150 + Math.random() * 100; // 150-250ms
+                        const targetPos = Math.min(startPos + distance, targetHeight);
+                        const duration = 150 + Math.random() * 100;
                         const startTime = performance.now();
                         
                         const scroll = (currentTime) => {
                             const elapsed = currentTime - startTime;
                             const progress = Math.min(elapsed / duration, 1);
                             
-                            // Easing function (ease-out)
-                            const easeOut = 1 - Math.pow(1 - progress, 3);
-                            const currentPos = startPos + (distance * easeOut);
+                            const easeOut = 1 - Math.pow(1 - progress, 2.5 + Math.random() * 0.5);
+                            let currentPos = startPos + ((targetPos - startPos) * easeOut);
+                            
+                            if (Math.random() < 0.3) {
+                                currentPos += (Math.random() - 0.5) * 5;
+                            }
                             
                             window.scrollTo(0, currentPos);
                             
                             if (progress < 1) {
                                 requestAnimationFrame(scroll);
                             } else {
-                                totalHeight = currentPos;
                                 currentPosition = currentPos;
                                 scrollAttempts++;
                                 
-                                // Human-like pause between scrolls
-                                const pauseTime = 200 + Math.random() * 300; // 200-500ms
+                                const baseReadingPause = getPauseTime();
+                                const readingPause = Math.random() < 0.2 ? baseReadingPause * 2 : baseReadingPause;
+                                
                                 setTimeout(() => {
-                                    if (currentPosition >= scrollHeight - window.innerHeight - 100 || 
-                                        scrollAttempts >= maxScrollAttempts) {
-                                        resolve();
+                                    if (Math.random() < 0.1) {
+                                        const backScroll = Math.random() * 30 + 10;
+                                        window.scrollTo(0, Math.max(0, currentPosition - backScroll));
+                                        setTimeout(humanScroll, 500 + Math.random() * 500);
                                     } else {
                                         humanScroll();
                                     }
-                                }, pauseTime);
+                                }, readingPause);
                             }
                         };
                         
                         requestAnimationFrame(scroll);
                     };
                     
-                    // Start scrolling
                     humanScroll();
-                    
-                    // Safety timeout
-                    setTimeout(() => {
-                        resolve();
-                    }, 15000);
                 });
-            });
-            
-            // Human-like pause before scrolling back to top
-            await page.waitForTimeout(500 + Math.random() * 1000);
-            
-            // Scroll back to top with animation
-            await page.evaluate(() => {
-                const startPos = window.pageYOffset;
-                const duration = 800;
-                const startTime = performance.now();
-                
-                const scrollToTop = (currentTime) => {
-                    const elapsed = currentTime - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    
-                    // Smooth scroll to top
-                    const easeInOut = progress < 0.5 
-                        ? 2 * progress * progress 
-                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-                        
-                    const currentPos = startPos * (1 - easeInOut);
-                    window.scrollTo(0, currentPos);
-                    
-                    if (progress < 1) {
-                        requestAnimationFrame(scrollToTop);
-                    }
-                };
-                
-                requestAnimationFrame(scrollToTop);
-            });
-            
-            // Wait for scroll animation to complete
-            await page.waitForTimeout(1000);
-            
-            // Final pause for any lazy-loaded content
-            await page.waitForTimeout(1500 + Math.random() * 1000);
+            }, behavior.scrollPattern, targetPercentage);
             
             console.log('✅ Auto-scroll completed');
         } catch (error) {
             console.log('⚠️ Human-like auto scroll failed:', error.message);
-            // Don't throw error, just log it
         }
     }
 

@@ -1,7 +1,7 @@
 {
   "name": "headlessx",
-  "version": "1.2.0",
-  "description": "HeadlessX v1.2.0 - Open Source Browserless Web Scraping API by Saify with integrated website, human-like behavior simulation, and comprehensive anti-detection features",
+  "version": "1.3.0",
+  "description": "HeadlessX v1.3.0 - Advanced Anti-Detection Web Scraping API with Canvas Fingerprinting, WebGL Spoofing, Audio Context Control, WebRTC Blocking, Bezier Mouse Movement, Keyboard Dynamics, Hardware Emulation, and Comprehensive Behavioral Simulation",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
@@ -62,7 +62,8 @@
     "body-parser": "^1.20.2",
     "playwright": "^1.40.0",
     "dotenv": "^16.3.1",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

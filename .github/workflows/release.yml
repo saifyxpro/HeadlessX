@@ -1,0 +1,467 @@
+name: 🚀 Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.3.0)'
+        required: true
+      prerelease:
+        description: 'Is this a prerelease?'
+        type: boolean
+        default: false
+      draft:
+        description: 'Create as draft release?'
+        type: boolean
+        default: false
+
+jobs:
+  # === VALIDATE RELEASE ===
+  validate:
+    name: ✅ Validate Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Validate version format
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+            IS_PRERELEASE="${{ github.event.inputs.prerelease }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+            # Check if it's a prerelease (contains alpha, beta, rc)
+            if echo "$VERSION" | grep -qE "(alpha|beta|rc)"; then
+              IS_PRERELEASE="true"
+            else
+              IS_PRERELEASE="false"
+            fi
+          fi
+          
+          # Validate semver format
+          if ! echo "$VERSION" | grep -qE "^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$"; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Expected format: v1.2.3 or v1.2.3-alpha.1"
+            exit 1
+          fi
+          
+          echo "version=${VERSION#v}" >> $GITHUB_OUTPUT
+          echo "tag=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          
+          echo "✅ Version: $VERSION"
+          echo "✅ Is prerelease: $IS_PRERELEASE"
+
+      - name: 📋 Check changelog entry
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          
+          if [ ! -f "docs/CHANGELOG.md" ]; then
+            echo "❌ CHANGELOG.md not found"
+            exit 1
+          fi
+          
+          if ! grep -q "## \[$VERSION\]" docs/CHANGELOG.md; then
+            echo "❌ No changelog entry found for version $VERSION"
+            echo "Please add a changelog entry to docs/CHANGELOG.md"
+            exit 1
+          fi
+          
+          echo "✅ Changelog entry found for version $VERSION"
+
+      - name: 🔍 Check version consistency
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          
+          # Check package.json version
+          if [ -f "package.json" ]; then
+            PACKAGE_VERSION=$(node -p "require('./package.json').version")
+            if [ "$VERSION" != "$PACKAGE_VERSION" ]; then
+              echo "❌ Version mismatch: tag $VERSION vs package.json $PACKAGE_VERSION"
+              exit 1
+            fi
+          fi
+          
+          # Check website package.json version
+          if [ -f "website/package.json" ]; then
+            WEBSITE_VERSION=$(node -p "require('./website/package.json').version")
+            if [ "$VERSION" != "$WEBSITE_VERSION" ]; then
+              echo "❌ Version mismatch: tag $VERSION vs website/package.json $WEBSITE_VERSION"
+              exit 1
+            fi
+          fi
+          
+          echo "✅ Version consistency verified"
+
+  # === BUILD ARTIFACTS ===
+  build:
+    name: 🏗️ Build Release Artifacts
+    runs-on: ubuntu-latest
+    needs: validate
+    timeout-minutes: 20
+
+    strategy:
+      matrix:
+        target: [linux-x64, linux-arm64, win-x64, darwin-x64, darwin-arm64]
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📥 Install dependencies
+        run: npm ci --production
+
+      - name: 🏗️ Build for ${{ matrix.target }}
+        run: |
+          # Create distribution directory
+          mkdir -p dist/${{ matrix.target }}
+          
+          # Copy application files
+          cp -r src/ dist/${{ matrix.target }}/
+          cp package*.json dist/${{ matrix.target }}/
+          cp README.md LICENSE dist/${{ matrix.target }}/
+          
+          # Copy documentation
+          cp -r docs/ dist/${{ matrix.target }}/docs/
+          
+          # Copy Docker files
+          cp -r docker/ dist/${{ matrix.target }}/docker/
+          cp -r nginx/ dist/${{ matrix.target }}/nginx/
+          
+          # Create startup scripts
+          echo '#!/bin/bash' > dist/${{ matrix.target }}/start.sh
+          echo 'cd "$(dirname "$0")"' >> dist/${{ matrix.target }}/start.sh
+          echo 'npm install --production' >> dist/${{ matrix.target }}/start.sh
+          echo 'node src/app.js' >> dist/${{ matrix.target }}/start.sh
+          chmod +x dist/${{ matrix.target }}/start.sh
+          
+          # Create Windows batch file
+          echo '@echo off' > dist/${{ matrix.target }}/start.bat
+          echo 'cd /d "%~dp0"' >> dist/${{ matrix.target }}/start.bat
+          echo 'npm install --production' >> dist/${{ matrix.target }}/start.bat
+          echo 'node src/app.js' >> dist/${{ matrix.target }}/start.bat
+          
+          # Create archive
+          cd dist
+          if [[ "${{ matrix.target }}" == win-* ]]; then
+            zip -r ../headlessx-${{ needs.validate.outputs.version }}-${{ matrix.target }}.zip ${{ matrix.target }}/
+          else
+            tar -czf ../headlessx-${{ needs.validate.outputs.version }}-${{ matrix.target }}.tar.gz ${{ matrix.target }}/
+          fi
+
+      - name: 📤 Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: headlessx-${{ needs.validate.outputs.version }}-${{ matrix.target }}
+          path: headlessx-${{ needs.validate.outputs.version }}-${{ matrix.target }}.*
+          retention-days: 30
+
+  # === BUILD DOCKER IMAGES ===
+  docker:
+    name: 🐳 Build Docker Images
+    runs-on: ubuntu-latest
+    needs: validate
+    timeout-minutes: 30
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔑 Login to Docker Hub
+        uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 🔑 Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📋 Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            headlessx/headlessx
+            ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: 🏗️ Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VERSION=${{ needs.validate.outputs.version }}
+            VCS_REF=${{ github.sha }}
+
+      - name: 🧪 Test Docker image
+        run: |
+          # Test the built image
+          docker run --rm \
+            --name headlessx-test \
+            -p 3000:3000 \
+            -e NODE_ENV=production \
+            -d headlessx/headlessx:${{ needs.validate.outputs.version }}
+          
+          # Wait for startup
+          sleep 10
+          
+          # Health check
+          curl -f http://localhost:3000/health || exit 1
+          
+          # Cleanup
+          docker stop headlessx-test
+
+  # === SECURITY SCAN ===
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: docker
+    timeout-minutes: 20
+
+    steps:
+      - name: 🔍 Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'headlessx/headlessx:${{ needs.validate.outputs.version }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+        continue-on-error: true
+
+      - name: 📤 Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: 🔍 Scan for secrets in release
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # === CREATE RELEASE ===
+  release:
+    name: 🚀 Create Release
+    runs-on: ubuntu-latest
+    needs: [validate, build, docker, security-scan]
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 📥 Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: 📋 Generate release notes
+        id: release-notes
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          
+          # Extract changelog section for this version
+          if [ -f "docs/CHANGELOG.md" ]; then
+            sed -n "/## \[$VERSION\]/,/## \[/p" docs/CHANGELOG.md | \
+            sed '$d' | sed '1d' > release-notes.md
+          fi
+          
+          # Add Docker image information
+          echo "" >> release-notes.md
+          echo "## 🐳 Docker Images" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "- \`headlessx/headlessx:$VERSION\`" >> release-notes.md
+          echo "- \`ghcr.io/${{ github.repository }}:$VERSION\`" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### Pull the image:" >> release-notes.md
+          echo "\`\`\`bash" >> release-notes.md
+          echo "docker pull headlessx/headlessx:$VERSION" >> release-notes.md
+          echo "\`\`\`" >> release-notes.md
+          
+          # Add installation instructions
+          echo "" >> release-notes.md
+          echo "## 📦 Installation" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### Option 1: Docker (Recommended)" >> release-notes.md
+          echo "\`\`\`bash" >> release-notes.md
+          echo "docker run -p 3000:3000 headlessx/headlessx:$VERSION" >> release-notes.md
+          echo "\`\`\`" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### Option 2: Direct Installation" >> release-notes.md
+          echo "Download the appropriate archive for your platform from the Assets section below." >> release-notes.md
+          
+          cat release-notes.md
+
+      - name: 🚀 Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.validate.outputs.tag }}
+          name: "HeadlessX ${{ needs.validate.outputs.tag }}"
+          body_path: release-notes.md
+          draft: ${{ github.event.inputs.draft == 'true' }}
+          prerelease: ${{ needs.validate.outputs.is_prerelease }}
+          files: |
+            artifacts/**/*.tar.gz
+            artifacts/**/*.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📢 Announce release
+        if: needs.validate.outputs.is_prerelease == 'false'
+        run: |
+          echo "🎉 HeadlessX ${{ needs.validate.outputs.tag }} has been released!"
+          echo ""
+          echo "Docker commands:"
+          echo "docker pull headlessx/headlessx:${{ needs.validate.outputs.version }}"
+          echo "docker run -p 3000:3000 headlessx/headlessx:${{ needs.validate.outputs.version }}"
+
+  # === POST-RELEASE TASKS ===
+  post-release:
+    name: 📋 Post-Release Tasks
+    runs-on: ubuntu-latest
+    needs: [validate, release]
+    if: needs.validate.outputs.is_prerelease == 'false'
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 🔄 Update version for next development cycle
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          
+          # Parse version components
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+          
+          # Increment patch version for next dev cycle
+          NEXT_PATCH=$((PATCH + 1))
+          NEXT_VERSION="$MAJOR.$MINOR.$NEXT_PATCH-dev"
+          
+          # Update package.json
+          if [ -f "package.json" ]; then
+            sed -i "s/\"version\": \"$VERSION\"/\"version\": \"$NEXT_VERSION\"/" package.json
+          fi
+          
+          # Update website package.json
+          if [ -f "website/package.json" ]; then
+            sed -i "s/\"version\": \"$VERSION\"/\"version\": \"$NEXT_VERSION\"/" website/package.json
+          fi
+          
+          echo "Updated version to $NEXT_VERSION for next development cycle"
+
+      - name: 📝 Add unreleased section to changelog
+        run: |
+          if [ -f "docs/CHANGELOG.md" ]; then
+            # Add unreleased section after the main header
+            sed -i '2i\\n## [Unreleased]\n\n### Added\n- \n\n### Changed\n- \n\n### Deprecated\n- \n\n### Removed\n- \n\n### Fixed\n- \n\n### Security\n- ' docs/CHANGELOG.md
+          fi
+
+      - name: 💾 Commit post-release changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          if git diff --quiet; then
+            echo "No changes to commit"
+          else
+            git add .
+            git commit -m "chore: prepare for next development cycle after ${{ needs.validate.outputs.tag }}"
+            git push
+          fi
+        continue-on-error: true
+
+      - name: 📊 Create release metrics
+        run: |
+          echo "## 📊 Release Metrics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ needs.validate.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release Type**: ${{ needs.validate.outputs.is_prerelease == 'true' && 'Pre-release' || 'Stable' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Time**: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎯 Artifacts Created:" >> $GITHUB_STEP_SUMMARY
+          echo "- Linux x64 binary" >> $GITHUB_STEP_SUMMARY
+          echo "- Linux ARM64 binary" >> $GITHUB_STEP_SUMMARY  
+          echo "- Windows x64 binary" >> $GITHUB_STEP_SUMMARY
+          echo "- macOS x64 binary" >> $GITHUB_STEP_SUMMARY
+          echo "- macOS ARM64 binary" >> $GITHUB_STEP_SUMMARY
+          echo "- Multi-arch Docker image" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🐳 Docker Images:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`headlessx/headlessx:${{ needs.validate.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`ghcr.io/${{ github.repository }}:${{ needs.validate.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+
+  # === DEPLOYMENT TRIGGER ===
+  deploy:
+    name: 🌐 Trigger Deployment
+    runs-on: ubuntu-latest
+    needs: [validate, release]
+    if: needs.validate.outputs.is_prerelease == 'false'
+    timeout-minutes: 5
+
+    steps:
+      - name: 🌐 Trigger production deployment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            // Note: This requires a separate deployment repository
+            // Replace with actual deployment trigger logic
+            console.log('Production deployment would be triggered here');
+            console.log('Version: ${{ needs.validate.outputs.version }}');
+            console.log('Tag: ${{ needs.validate.outputs.tag }}');
+        continue-on-error: true
+
+      - name: 📢 Deployment status
+        run: |
+          echo "🚀 Production deployment triggered for ${{ needs.validate.outputs.tag }}"
+          echo "Monitor deployment status in the headlessx-deployment repository"

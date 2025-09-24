@@ -1,6 +1,7 @@
 /**
- * Browser Management Service
- * Handles browser instance lifecycle, context management, and cleanup
+ * Enhanced Browser Management Service v1.3.0
+ * Handles browser instance lifecycle, context management, advanced fingerprinting, and cleanup
+ * Features: Device profiles, geolocation spoofing, timezone management, hardware emulation
  */
 
 const { chromium } = require('playwright');
@@ -8,6 +9,43 @@ const config = require('../config');
 const { BROWSER_LAUNCH_OPTIONS } = require('../config/browser');
 const { logger, generateRequestId } = require('../utils/logger');
 const { HeadlessXError, ERROR_CATEGORIES, handleError } = require('../utils/errors');
+
+// Enhanced geolocation database for IP-based location spoofing
+const GEOLOCATION_PROFILES = {
+    'us-east': { latitude: 40.7128, longitude: -74.0060, timezone: 'America/New_York' },     // New York
+    'us-west': { latitude: 34.0522, longitude: -118.2437, timezone: 'America/Los_Angeles' }, // Los Angeles
+    'us-central': { latitude: 41.8781, longitude: -87.6298, timezone: 'America/Chicago' },   // Chicago
+    'uk': { latitude: 51.5074, longitude: -0.1278, timezone: 'Europe/London' },              // London
+    'germany': { latitude: 52.5200, longitude: 13.4050, timezone: 'Europe/Berlin' },        // Berlin
+    'france': { latitude: 48.8566, longitude: 2.3522, timezone: 'Europe/Paris' },           // Paris
+    'canada': { latitude: 45.5017, longitude: -73.5673, timezone: 'America/Toronto' },      // Montreal
+    'australia': { latitude: -33.8688, longitude: 151.2093, timezone: 'Australia/Sydney' }  // Sydney
+};
+
+// Device profile templates for consistent hardware emulation
+const DEVICE_PROFILES = {
+    'high-end-desktop': {
+        viewport: { width: 1920, height: 1080 },
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        hardware: { cores: 8, memory: 16, devicePixelRatio: 1 },
+        screen: { width: 1920, height: 1080, availWidth: 1920, availHeight: 1040 },
+        behavioral: 'confident'
+    },
+    'mid-range-desktop': {
+        viewport: { width: 1366, height: 768 },
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        hardware: { cores: 4, memory: 8, devicePixelRatio: 1 },
+        screen: { width: 1366, height: 768, availWidth: 1366, availHeight: 728 },
+        behavioral: 'natural'
+    },
+    'business-laptop': {
+        viewport: { width: 1280, height: 720 },
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        hardware: { cores: 4, memory: 8, devicePixelRatio: 1 },
+        screen: { width: 1280, height: 720, availWidth: 1280, availHeight: 680 },
+        behavioral: 'cautious'
+    }
+};
 
 class BrowserService {
     constructor() {
@@ -46,17 +84,96 @@ class BrowserService {
         return this.browserInstance;
     }
 
-    // Clean context management function
+    /**
+     * Enhanced context creation with advanced fingerprinting profiles
+     */
     async createIsolatedContext(browser = null, options = {}) {
         const requestId = generateRequestId();
         
         if (!browser) {
             browser = await this.getBrowser();
         }
+
+        // Enhanced context options with fingerprint profiles
+        const deviceProfile = options.deviceProfile || 'mid-range-desktop';
+        const geoProfile = options.geoProfile || 'us-east';
+        const profile = DEVICE_PROFILES[deviceProfile];
+        const geoLocation = GEOLOCATION_PROFILES[geoProfile];
+
+        const enhancedOptions = {
+            viewport: profile.viewport,
+            userAgent: profile.userAgent,
+            deviceScaleFactor: profile.hardware.devicePixelRatio,
+            hasTouch: false,
+            isMobile: false,
+            
+            // Enhanced permissions and features
+            permissions: [],
+            
+            // Geolocation spoofing
+            geolocation: {
+                latitude: geoLocation.latitude,
+                longitude: geoLocation.longitude,
+                accuracy: 20 + Math.random() * 30 // 20-50m accuracy variation
+            },
+            
+            // Timezone consistency with geolocation
+            timezoneId: geoLocation.timezone,
+            
+            // Locale settings
+            locale: geoProfile.startsWith('us') ? 'en-US' : 'en-GB',
+            
+            // Enhanced browser features
+            reducedMotion: 'no-preference',
+            forcedColors: 'none',
+            colorScheme: 'light',
+            
+            // Additional security settings
+            acceptDownloads: false,
+            bypassCSP: false,
+            
+            // Override default options with user provided
+            ...options
+        };
         
         try {
-            const context = await browser.newContext(options);
+            const context = await browser.newContext(enhancedOptions);
             this.activeContexts.add(context);
+            
+            // Enhanced context setup with device profile injection
+            await context.addInitScript(({ profile, geoLocation, deviceProfile }) => {
+                // Inject device profile data
+                window.__DEVICE_PROFILE__ = profile;
+                window.__GEO_PROFILE__ = geoLocation;
+                window.__PROFILE_TYPE__ = deviceProfile;
+                
+                // Enhanced navigator properties
+                Object.defineProperty(navigator, 'hardwareConcurrency', {
+                    get: () => profile.hardware.cores
+                });
+                
+                Object.defineProperty(navigator, 'deviceMemory', {
+                    get: () => profile.hardware.memory
+                });
+                
+                // Screen resolution consistency
+                Object.defineProperty(screen, 'width', {
+                    get: () => profile.screen.width
+                });
+                
+                Object.defineProperty(screen, 'height', {
+                    get: () => profile.screen.height
+                });
+                
+                Object.defineProperty(screen, 'availWidth', {
+                    get: () => profile.screen.availWidth
+                });
+                
+                Object.defineProperty(screen, 'availHeight', {
+                    get: () => profile.screen.availHeight
+                });
+                
+            }, { profile, geoLocation, deviceProfile });
             
             // Auto-cleanup on close
             context.on('close', () => {

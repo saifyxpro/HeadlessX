@@ -1,13 +1,15 @@
 #!/bin/bash
 
-# HeadlessX Complete Setup Script v1.2.0
-# Sets up HeadlessX from scratch on Ubuntu/Debian servers
+# HeadlessX Complete Setup Script v1.3.0
+# Sets up HeadlessX with advanced anti-detection features
 # Run with: bash scripts/setup.sh
 
 set -e
 
-echo "🚀 Setting up HeadlessX v1.2.0 - Open Source Browserless Web Scraping API"
-echo "=========================================================================="
+echo "🚀 Setting up HeadlessX v1.3.0 - Advanced Anti-Detection Web Scraping API"
+echo "============================================================================="
+echo "🛡️ Features: Canvas/WebGL/Audio spoofing, Behavioral simulation, WAF bypass"
+echo "============================================================================="
 
 # Colors for output
 RED='\033[0;31m'
@@ -89,13 +91,42 @@ NEXT_PUBLIC_SUBDOMAIN=headlessx
 NEXT_PUBLIC_API_URL=https://headlessx.saify.me
 NEXT_PUBLIC_SITE_URL=https://headlessx.saify.me
 
-# Browser configuration
-BROWSER_TIMEOUT=30000
-EXTRA_WAIT_TIME=2000
-MAX_CONCURRENCY=2
+# Browser configuration (Enhanced v1.3.0)
+BROWSER_TIMEOUT=60000
+EXTRA_WAIT_TIME=3000
+MAX_CONCURRENCY=3
+BROWSER_POOL_SIZE=5
+CONTEXT_REUSE=true
 
 # API configuration
 BODY_LIMIT=10mb
+MAX_BATCH_URLS=10
+
+# ==============================================
+# 🚀 v1.3.0 ANTI-DETECTION CONFIGURATION 🚀
+# ==============================================
+
+# Fingerprint Profile Configuration
+FINGERPRINT_PROFILE=desktop-chrome
+STEALTH_MODE=advanced
+BEHAVIORAL_SIMULATION=enabled
+
+# Advanced Fingerprinting Control
+WEBRTC_LEAK_PROTECTION=enabled
+CANVAS_NOISE_LEVEL=medium
+WEBGL_SPOOFING=enabled
+AUDIO_FINGERPRINT_NOISE=enabled
+HARDWARE_SPOOFING=enabled
+
+# WAF Bypass Configuration
+CLOUDFLARE_BYPASS=enabled
+DATADOME_EVASION=enabled
+TLS_FINGERPRINT_MASKING=enabled
+
+# Monitoring and Testing
+PERFORMANCE_MONITORING=enabled
+AUDIT_TRAILS=enabled
+LOG_LEVEL=info
 MAX_BATCH_URLS=5
 
 # Website configuration
@@ -190,6 +221,27 @@ export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 npx playwright install chromium
 npx playwright install-deps chromium
 print_status "Playwright browsers installed"
+
+# v1.3.0: Validate anti-detection setup
+echo "🛡️ Validating v1.3.0 anti-detection setup..."
+if [ -f "verify-architecture.js" ]; then
+    if node verify-architecture.js > /dev/null 2>&1; then
+        print_status "v1.3.0 architecture validation passed"
+    else
+        print_warning "v1.3.0 architecture validation found issues (check logs for details)"
+    fi
+else
+    print_info "Architecture validator not found, skipping validation"
+fi
+
+# Create necessary directories for v1.3.0
+echo "📁 Creating v1.3.0 directory structure..."
+mkdir -p logs/reports logs/profiles
+mkdir -p src/config/profiles
+mkdir -p src/services/fingerprinting
+mkdir -p src/services/behavioral
+mkdir -p src/services/evasion
+print_status "v1.3.0 directories created"
 
 # Build website
 echo "🌐 Building website..."
@@ -488,15 +540,16 @@ pm2 save
 print_status "PM2 startup configured"
 
 echo ""
-echo "🎉 HeadlessX v1.2.0 Setup Complete!"
+echo "🎉 HeadlessX v1.3.0 Setup Complete!"
 echo "==================================="
 echo ""
 echo -e "${GREEN}✅ Installation Summary:${NC}"
-echo "   - Server: HeadlessX v1.2.0"
+echo "   - Server: HeadlessX v1.3.0 with advanced anti-detection"
 echo "   - Website: Built and integrated"
 echo "   - Process Manager: PM2"
 echo "   - Web Server: Nginx"
 echo "   - Domain: $FULL_DOMAIN"
+echo "   - Anti-Detection: Canvas/WebGL/Audio spoofing, Behavioral simulation"
 echo ""
 echo -e "${GREEN}✅ Service Status:${NC}"
 pm2 status headlessx || echo "   PM2 status unavailable"

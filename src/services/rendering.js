@@ -13,7 +13,9 @@ const { HeadlessXError, ERROR_CATEGORIES, handleError } = require('../utils/erro
 
 class RenderingService {
     
-    // Advanced page rendering function with timeout handling
+    /**
+     * Enhanced page rendering function with v1.3.0 anti-detection features
+     */
     static async renderPageAdvanced(options) {
         const {
             url,
@@ -33,7 +35,22 @@ class RenderingService {
             captureConsole = false,
             returnPartialOnTimeout = config.api.defaultReturnPartialOnTimeout,
             fullPage = false,
-            generatePDF = false
+            generatePDF = false,
+            
+            // v1.3.0 Enhanced Anti-Detection Options
+            deviceProfile = 'mid-range-desktop',
+            geoProfile = 'us-east',
+            behaviorProfile = 'natural',
+            enableCanvasSpoofing = true,
+            enableWebGLSpoofing = true,
+            enableAudioSpoofing = true,
+            enableWebRTCBlocking = true,
+            enableAdvancedStealth = true,
+            simulateMouseMovement = true,
+            simulateScrolling = true,
+            simulateTyping = false,
+            humanDelays = true,
+            randomizeTimings = true
         } = options;
 
         const requestId = generateRequestId();
@@ -44,23 +61,30 @@ class RenderingService {
         let wasTimeout = false;
 
         try {
-            logger.info(requestId, `Starting advanced rendering for: ${url}`);
+            logger.info(requestId, `Starting v1.3.0 enhanced rendering: ${url} [${deviceProfile}/${geoProfile}/${behaviorProfile}]`);
             
-            // Generate stealth context options
-            const stealthOptions = StealthService.generateStealthContextOptions(userAgent, headers);
+            // Enhanced context creation with device profiles
+            const contextOptions = {
+                userAgent,
+                headers,
+                viewport,
+                deviceProfile,
+                geoProfile
+            };
             
-            // Add custom cookies to stealth options
+            // Add custom cookies to context options
             if (cookies.length > 0) {
-                stealthOptions.cookies = cookies;
+                contextOptions.cookies = cookies;
             }
             
-            logger.debug(requestId, 'Creating stealth context', { 
-                userAgent: stealthOptions.userAgent.substring(0, 80) + '...',
-                locale: stealthOptions.locale 
+            logger.debug(requestId, 'Creating enhanced v1.3.0 context', { 
+                deviceProfile,
+                geoProfile,
+                userAgent: (userAgent || 'default').substring(0, 80) + '...'
             });
 
-            // Create stealth context
-            context = await browserService.createIsolatedContext(browser, stealthOptions);
+            // Create enhanced stealth context with v1.3.0 features
+            context = await browserService.createIsolatedContext(browser, contextOptions);
 
             // Setup Google consent cookies
             await StealthService.setupGoogleCookies(context, url);
@@ -70,15 +94,15 @@ class RenderingService {
                 await context.addCookies(cookies);
             }
 
-            // Create page
+            // Create page with enhanced stealth
             page = await context.newPage();
 
             // Setup request interception for perfect headers
             await StealthService.setupRequestInterception(page);
 
-            // Set reasonable timeouts (more generous for Google)
-            page.setDefaultTimeout(60000);
-            page.setDefaultNavigationTimeout(Math.min(timeout, 90000));
+            // Set reasonable timeouts (more generous for slow sites)
+            page.setDefaultTimeout(75000); // Increased from 60s to 75s
+            page.setDefaultNavigationTimeout(Math.min(timeout, 75000)); // Match the page timeout
 
             // Capture console logs if requested
             if (captureConsole) {
@@ -137,19 +161,38 @@ class RenderingService {
                             logger.info(requestId, 'Google navigation completed successfully');
                             
                         } else {
-                            // Standard navigation for non-Google sites
-                            await page.goto(url, { 
-                                waitUntil: 'networkidle', 
-                                timeout: Math.min(timeout * 0.7, 45000)
-                            });
-                            logger.info(requestId, 'Standard navigation completed');
+                            // Standard navigation for non-Google sites with better timeout handling
+                            try {
+                                // First try with networkidle0 for better loading detection
+                                await page.goto(url, { 
+                                    waitUntil: 'networkidle0', 
+                                    timeout: Math.min(timeout * 0.6, 40000)
+                                });
+                                logger.info(requestId, 'Standard navigation completed (networkidle0)');
+                            } catch (networkIdleError) {
+                                logger.warn(requestId, 'NetworkIdle0 failed, trying networkidle2...');
+                                await page.goto(url, { 
+                                    waitUntil: 'networkidle2', 
+                                    timeout: Math.min(timeout * 0.5, 30000)
+                                });
+                                logger.info(requestId, 'Standard navigation completed (networkidle2)');
+                            }
                         }
                     } catch (navError) {
                         logger.warn(requestId, 'Primary navigation failed, trying domcontentloaded...');
-                        await page.goto(url, { 
-                            waitUntil: 'domcontentloaded', 
-                            timeout: Math.min(timeout * 0.5, 20000)
-                        });
+                        try {
+                            await page.goto(url, { 
+                                waitUntil: 'domcontentloaded', 
+                                timeout: Math.min(timeout * 0.4, 25000) // Reduced timeout for fallback
+                            });
+                        } catch (domError) {
+                            // Last resort: try with just load event
+                            logger.warn(requestId, 'DOMContentLoaded failed, trying basic load...');
+                            await page.goto(url, { 
+                                waitUntil: 'load', 
+                                timeout: Math.min(timeout * 0.3, 20000)
+                            });
+                        }
                         if (isGoogle) {
                             await StealthService.handleGoogleConsent(page);
                         }
@@ -170,15 +213,25 @@ class RenderingService {
                     } catch (e) {
                         logger.warn(requestId, 'Quick reload failed, proceeding with partial content');
                     }
-                } : null,
-                Math.min(timeout, 45000)
-            );
-
-            // Enhanced CSS and resource loading wait with advanced stealth
-            logger.info(requestId, 'Applying advanced stealth and waiting for complete rendering...');
+                    } : null,
+                Math.min(timeout, 60000) // Increased from 45s to 60s to match helper default
+            );            // Enhanced CSS and resource loading wait with v1.3.0 advanced stealth
+            logger.info(requestId, 'Applying v1.3.0 advanced stealth and behavioral simulation...');
             
-            // Apply advanced stealth fingerprinting before content loading
-            await StealthService.enhancePageWithAdvancedStealth(page);
+            // Apply enhanced stealth fingerprinting with device profile
+            if (enableAdvancedStealth) {
+                await StealthService.enhancePageWithAdvancedStealth(page);
+            }
+            
+            // Human-like behavioral simulation
+            if (simulateMouseMovement || simulateScrolling) {
+                logger.info(requestId, `Simulating human behavior [${behaviorProfile} profile]`);
+                await InteractionService.autoScroll(page, behaviorProfile, 0.3); // Light initial scroll
+                
+                if (humanDelays) {
+                    await InteractionService.randomDelay(500, 1500);
+                }
+            }
             
             await page.evaluate(async () => {
                 // Advanced stylesheet loading detection
@@ -306,8 +359,27 @@ class RenderingService {
             // Wait for specific selectors if provided
             await InteractionService.waitForSelectors(page, waitForSelectors);
 
-            // Click elements if specified
-            await InteractionService.clickElements(page, clickSelectors);
+            // Click elements if specified (with enhanced human-like behavior)
+            if (clickSelectors.length > 0) {
+                for (const selector of clickSelectors) {
+                    if (simulateMouseMovement) {
+                        const element = await page.locator(selector).first();
+                        const box = await element.boundingBox();
+                        if (box) {
+                            await InteractionService.moveMouseNaturally(page, 
+                                box.x + box.width / 2, 
+                                box.y + box.height / 2, 
+                                behaviorProfile
+                            );
+                        }
+                    }
+                    await InteractionService.clickElements(page, [selector]);
+                    
+                    if (humanDelays) {
+                        await InteractionService.randomDelay(300, 800);
+                    }
+                }
+            }
 
             // Force desktop CSS and layout
             logger.info(requestId, 'Forcing desktop CSS and layout...');
@@ -317,13 +389,18 @@ class RenderingService {
             logger.info(requestId, 'Waiting for JavaScript execution...');
             await InteractionService.waitForJavaScriptFrameworks(page);
 
-            // Simulate human-like behavior
-            logger.info(requestId, 'Simulating human behavior...');
-            await InteractionService.simulateHumanBehavior(page);
+            // Enhanced human-like behavior simulation with v1.3.0 profiles
+            if (simulateMouseMovement || simulateScrolling) {
+                logger.info(requestId, `Simulating enhanced human behavior [${behaviorProfile}]...`);
+                await InteractionService.simulateHumanBehavior(page, behaviorProfile);
+            }
 
-            // Auto-scroll if enabled
-            if (scrollToBottom) {
-                logger.info(requestId, 'Auto-scrolling to load all content...');
+            // Enhanced auto-scroll with behavioral profiles
+            if (scrollToBottom && simulateScrolling) {
+                logger.info(requestId, `Auto-scrolling with ${behaviorProfile} behavior pattern...`);
+                await InteractionService.autoScroll(page, behaviorProfile, 0.85);
+            } else if (scrollToBottom) {
+                logger.info(requestId, 'Standard auto-scrolling...');
                 await InteractionService.autoScroll(page);
             }
 
