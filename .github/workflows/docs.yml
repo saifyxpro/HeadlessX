@@ -109,9 +109,8 @@ jobs:
             "docs/SECURITY.md"
             "docs/ETHICS.md"
             "docs/RESPONSIBLE_DISCLOSURE.md"
-            "docs/troubleshooting.md"
-            "docs/architecture.md"
-            "CODE_OF_CONDUCT.md"
+            "docs/TROUBLESHOOTING.md"
+            "docs/MODULAR_ARCHITECTURE.md"
             "LICENSE"
           )
           
