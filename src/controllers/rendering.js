@@ -109,6 +109,10 @@ class RenderingController {
 
             logger.info(requestId, `Successfully rendered HTML: ${url} (${result.wasTimeout ? 'with timeouts' : 'complete'})`);
 
+            // Set security headers first
+            res.set('X-Content-Type-Options', 'nosniff');
+            res.set('X-Frame-Options', 'SAMEORIGIN');
+            
             // Return raw HTML with proper headers
             res.set({
                 'Content-Type': 'text/html; charset=utf-8',
@@ -117,9 +121,7 @@ class RenderingController {
                 'X-Timestamp': result.timestamp,
                 'X-Was-Timeout': result.wasTimeout.toString(),
                 'X-Content-Length': result.contentLength.toString(),
-                'X-Is-Emergency': (result.isEmergencyContent || false).toString(),
-                'X-Content-Type-Options': 'nosniff',
-                'X-Frame-Options': 'SAMEORIGIN'
+                'X-Is-Emergency': (result.isEmergencyContent || false).toString()
             });
             res.send(result.html);
         } catch (error) {

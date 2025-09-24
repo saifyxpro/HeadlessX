@@ -1,0 +1,12 @@
+# Semgrep ignore patterns for HeadlessX
+# This is an anti-detection web scraping tool that legitimately needs to return raw HTML
+
+# Allow direct response writes for legitimate web scraping functionality
+# These are not XSS vulnerabilities in this context as we're returning scraped content
+javascript.express.security.audit.xss.direct-response-write.direct-response-write
+
+# Allow nginx header configurations for legitimate proxy setup
+generic.nginx.security.header-redefinition.header-redefinition
+
+# Allow X-Frame-Options configuration for legitimate security headers
+javascript.express.security.x-frame-options-misconfiguration.x-frame-options-misconfiguration

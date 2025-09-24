@@ -270,9 +270,20 @@ class BrowserService {
 // Create singleton instance
 const browserService = new BrowserService();
 
-// Set up periodic cleanup
-setInterval(() => {
-    browserService.cleanupStaleContexts();
-}, 5 * 60 * 1000); // Every 5 minutes
+// Set up periodic cleanup only in production
+let cleanupInterval = null;
+if (process.env.NODE_ENV !== 'test') {
+    cleanupInterval = setInterval(() => {
+        browserService.cleanupStaleContexts();
+    }, 5 * 60 * 1000); // Every 5 minutes
+}
+
+// Cleanup function for tests
+browserService._stopCleanup = () => {
+    if (cleanupInterval) {
+        clearInterval(cleanupInterval);
+        cleanupInterval = null;
+    }
+};
 
 module.exports = browserService;

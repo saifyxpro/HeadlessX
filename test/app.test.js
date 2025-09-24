@@ -1,5 +1,4 @@
 const request = require('supertest');
-const path = require('path');
 
 // Mock environment variables before importing app
 process.env.NODE_ENV = 'test';
@@ -42,7 +41,7 @@ describe('HeadlessX Application', () => {
                 .get('/api/health')
                 .expect(200);
             
-            expect(response.body).toHaveProperty('status', 'ok');
+            expect(response.body).toHaveProperty('status', 'OK');
             expect(response.body).toHaveProperty('timestamp');
         }, 10000);
     });

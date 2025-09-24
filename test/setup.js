@@ -1,5 +1,4 @@
 // Test setup file
-const { logger } = require('../src/utils/logger');
 
 // Mock console during tests to reduce noise
 global.console = {
@@ -28,3 +27,17 @@ process.env.PORT = '3001';
 
 // Global test timeout
 jest.setTimeout(30000);
+
+// Cleanup after all tests
+afterAll(async() => {
+    // Clear any running timers/intervals
+    const browserService = require('../src/services/browser');
+    if (browserService._stopCleanup) {
+        browserService._stopCleanup();
+    }
+
+    // Close any open browser instances
+    if (browserService.browser) {
+        await browserService.closeBrowser();
+    }
+});

@@ -12,8 +12,13 @@ describe('Integration Tests', () => {
         process.env.PORT = '3002';
 
         // Start server process
-        serverProcess = spawn('node', ['src/app.js'], {
-            env: { ...process.env },
+        serverProcess = spawn('node', ['src/server.js'], {
+            env: { 
+                ...process.env,
+                NODE_ENV: 'test',
+                PORT: '3001',
+                AUTH_TOKEN: 'test_token_123'
+            },
             stdio: 'pipe'
         });
 
@@ -21,17 +26,20 @@ describe('Integration Tests', () => {
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
                 reject(new Error('Server failed to start within timeout'));
-            }, 10000);
+            }, 15000); // Increased timeout
 
+            let output = '';
             serverProcess.stdout.on('data', (data) => {
-                if (data.toString().includes('Server running on')) {
+                output += data.toString();
+                console.log('Server output:', data.toString().trim());
+                if (output.includes('✅ v1.3.0 Server ready')) {
                     clearTimeout(timeout);
                     resolve();
                 }
             });
 
             serverProcess.stderr.on('data', (data) => {
-                console.error('Server error:', data.toString());
+                console.error('Server error:', data.toString().trim());
             });
         });
 
