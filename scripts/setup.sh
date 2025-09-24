@@ -215,12 +215,40 @@ else
     print_status "NPM dependencies installed"
 fi
 
-# Install Playwright browsers (single step)
+# Install Playwright browsers (enhanced installation)
 echo "🌐 Installing Playwright browsers..."
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
-npx playwright install chromium
-npx playwright install-deps chromium
-print_status "Playwright browsers installed"
+
+# First ensure playwright is installed as a dependency
+if ! command -v npx &> /dev/null; then
+    print_error "npx not found. Please ensure Node.js is properly installed."
+    exit 1
+fi
+
+# Install playwright package if not already installed
+if ! npm list playwright &> /dev/null; then
+    echo "📦 Installing Playwright package..."
+    npm install playwright
+fi
+
+# Install browsers with error handling
+echo "🌐 Installing Chromium browser..."
+if npx playwright install chromium; then
+    print_status "Chromium browser installed"
+else
+    print_warning "Chromium installation failed, trying alternative method..."
+    ./node_modules/.bin/playwright install chromium || print_error "Failed to install Chromium"
+fi
+
+# Install browser dependencies
+echo "🔧 Installing browser system dependencies..."
+if npx playwright install-deps chromium; then
+    print_status "Browser system dependencies installed"
+else
+    print_warning "System dependencies installation failed - continuing anyway"
+fi
+
+print_status "Playwright browsers installation completed"
 
 # v1.3.0: Validate anti-detection setup
 echo "🛡️ Validating v1.3.0 anti-detection setup..."
