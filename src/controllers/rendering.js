@@ -110,12 +110,8 @@ class RenderingController {
 
             logger.info(requestId, `Successfully rendered HTML: ${url} (${result.wasTimeout ? 'with timeouts' : 'complete'})`);
 
-            // Set security headers first
-            res.set('X-Content-Type-Options', 'nosniff');
-            res.set('X-Frame-Options', 'SAMEORIGIN');
-            
-            // Return raw HTML with proper headers
-            const customHeaders = {
+            // Set informational headers (security headers handled by sendSecureResponse)
+            const infoHeaders = {
                 'X-Rendered-URL': result.url,
                 'X-Page-Title': result.title,
                 'X-Timestamp': result.timestamp,
@@ -123,13 +119,9 @@ class RenderingController {
                 'X-Content-Length': result.contentLength.toString(),
                 'X-Is-Emergency': (result.isEmergencyContent || false).toString()
             };
-            res.set({
-                'Content-Type': 'text/html; charset=utf-8',
-                'X-Content-Type-Options': 'nosniff',
-                'X-Frame-Options': 'SAMEORIGIN',
-                ...customHeaders
-            });
-            res.send(result.html);
+
+            // Use secure response handler (includes XSS protection and security headers)
+            sendSecureResponse(res, result.html, 'text/html; charset=utf-8', infoHeaders);
         } catch (error) {
             logger.error(requestId, 'HTML rendering error', error);
 
