@@ -2,11 +2,30 @@
 
 **Advanced Anti-Detection Web Scraping API with Comprehensive Fingerprinting Control**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg)](https://nodejs.org/)
-[![Playwright](https://img.shields.io/badge/Playwright-Latest-blue.svg)](https://playwright.dev/)
-[![GitHub](https://img.shields.io/badge/GitHub-SaifyXPRO%2FHeadlessX-blue.svg)](https://github.com/SaifyXPRO/HeadlessX)
-[![Open Source](https://img.shields.io/badge/Open%20Source-100%25%20Free-green.svg)](https://github.com/SaifyXPRO/HeadlessX)
+<div align="center">
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/Version-v1.3.0-blue.svg?style=for-the-badge)](https://github.com/saifyxpro/HeadlessX/releases)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-success.svg?style=for-the-badge&logo=node.js)](https://nodejs.org/)
+[![Playwright](https://img.shields.io/badge/Playwright-Latest-orange.svg?style=for-the-badge&logo=playwright)](https://playwright.dev/)
+
+[![GitHub Stars](https://img.shields.io/github/stars/saifyxpro/HeadlessX?style=for-the-badge&logo=github)](https://github.com/saifyxpro/HeadlessX/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/saifyxpro/HeadlessX?style=for-the-badge&logo=github)](https://github.com/saifyxpro/HeadlessX/network/members)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/headlessx/headlessx)
+[![CI/CD](https://img.shields.io/github/actions/workflow/status/saifyxpro/HeadlessX/ci.yml?style=for-the-badge&logo=github-actions&label=CI%2FCD)](https://github.com/saifyxpro/HeadlessX/actions)
+
+[![Open Source](https://img.shields.io/badge/Open%20Source-100%25-brightgreen.svg?style=for-the-badge&logo=open-source-initiative)](https://github.com/saifyxpro/HeadlessX)
+[![Contributors](https://img.shields.io/github/contributors/saifyxpro/HeadlessX?style=for-the-badge&logo=github)](https://github.com/saifyxpro/HeadlessX/graphs/contributors)
+[![Issues](https://img.shields.io/github/issues/saifyxpro/HeadlessX?style=for-the-badge&logo=github)](https://github.com/saifyxpro/HeadlessX/issues)
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge&logo=github)](http://makeapullrequest.com)
+
+</div>
+
+<div align="center">
+
+![HeadlessX Demo](assets/main.gif)
+
+</div>
 
 > 🎯 **Unified Solution**: Website + API on a single domain  
 > 🛡️ **Advanced Anti-Detection**: Canvas/WebGL/Audio spoofing, behavioral simulation  
