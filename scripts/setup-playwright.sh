@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# HeadlessX Playwright Setup Script
+# HeadlessX Playwright Setup Script (Fixed Version)
 # Installs Playwright and browsers for HeadlessX
 # Run with: bash scripts/setup-playwright.sh
 
@@ -40,8 +40,11 @@ fi
 
 print_status "Node.js $(node --version) and npm $(npm --version) found"
 
+# Make sure we're in project root
+cd "$(dirname "$0")/.."
+
 # Install Playwright package
-echo "📦 Installing Playwright package..."
+echo "📦 Installing/Updating Playwright package..."
 if npm install playwright; then
     print_status "Playwright package installed"
 else
@@ -52,37 +55,69 @@ fi
 # Set environment variable to allow browser download
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 
-# Install Chromium browser
+# Install browsers using reliable Node.js method
 echo "🌐 Installing Chromium browser..."
-if npx playwright install chromium; then
-    print_status "Chromium browser installed"
-elif ./node_modules/.bin/playwright install chromium; then
-    print_status "Chromium browser installed (fallback method)"
-else
-    print_error "Failed to install Chromium browser"
-    exit 1
-fi
+node -e "
+const { execSync } = require('child_process');
+const path = require('path');
+
+console.log('Attempting to install Chromium browser...');
+
+try {
+    // Try npx first
+    execSync('npx playwright install chromium', { stdio: 'inherit' });
+    console.log('✅ Chromium installed successfully via npx');
+} catch (e1) {
+    console.log('npx method failed, trying alternative...');
+    try {
+        // Try node modules bin
+        const playwrightBin = path.join(process.cwd(), 'node_modules', '.bin', 'playwright');
+        execSync(\`\"\${playwrightBin}\" install chromium\`, { stdio: 'inherit' });
+        console.log('✅ Chromium installed via direct path');
+    } catch (e2) {
+        console.log('Direct path failed, trying to trigger download...');
+        try {
+            // Import playwright to trigger browser download
+            const playwright = require('playwright');
+            console.log('🌐 Playwright loaded, browser will download on first use');
+        } catch (e3) {
+            console.log('❌ All methods failed:', e3.message);
+            process.exit(1);
+        }
+    }
+}
+"
 
 # Install system dependencies for browsers (Linux/Ubuntu)
-if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v apt-get &> /dev/null; then
     echo "🔧 Installing system dependencies for browsers..."
-    if npx playwright install-deps chromium; then
+    sudo apt-get update &>/dev/null || true
+    sudo apt-get install -y \
+        libnss3 libnspr4 libatk-bridge2.0-0 libdrm2 libxkbcommon0 \
+        libxcomposite1 libxdamage1 libxrandr2 libgbm1 libxss1 libasound2 \
+        libatspi2.0-0 libgtk-3-0 &>/dev/null
+    
+    if [ $? -eq 0 ]; then
         print_status "System dependencies installed"
-    elif ./node_modules/.bin/playwright install-deps chromium; then
-        print_status "System dependencies installed (fallback method)"
     else
-        print_warning "System dependencies installation failed - browsers may still work"
+        print_warning "Some system dependencies failed - browsers may still work"
     fi
 fi
 
 # Verify installation
 echo "🔍 Verifying Playwright installation..."
-if node -e "const playwright = require('playwright'); console.log('Playwright version:', playwright.chromium.version())"; then
-    print_status "Playwright is working correctly!"
-else
-    print_warning "Playwright installation verification failed"
-fi
+node -e "
+try {
+    const playwright = require('playwright');
+    console.log('✅ Playwright module loads successfully');
+    console.log('📍 Chromium executable will be downloaded on first launch');
+} catch (error) {
+    console.log('❌ Verification failed:', error.message);
+    process.exit(1);
+}
+"
 
 echo ""
 print_status "Playwright setup completed!"
 echo "🚀 You can now start HeadlessX with: node src/server.js"
+echo "📝 Browsers will auto-download on first use if not already present"

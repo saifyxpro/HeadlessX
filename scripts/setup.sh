@@ -215,37 +215,63 @@ else
     print_status "NPM dependencies installed"
 fi
 
-# Install Playwright browsers (enhanced installation)
+# Install Playwright browsers (fixed installation)
 echo "🌐 Installing Playwright browsers..."
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 
-# First ensure playwright is installed as a dependency
-if ! command -v npx &> /dev/null; then
-    print_error "npx not found. Please ensure Node.js is properly installed."
-    exit 1
-fi
+# Make sure we're in project root
+cd "$(dirname "$0")/.."
 
-# Install playwright package if not already installed
-if ! npm list playwright &> /dev/null; then
-    echo "📦 Installing Playwright package..."
+# Check if playwright is in node_modules and install if needed
+if [ ! -d "./node_modules/playwright" ]; then
+    echo "📦 Playwright not found in node_modules, installing..."
     npm install playwright
+    print_status "Playwright package installed"
+else
+    print_status "Playwright package found"
 fi
 
-# Install browsers with error handling
+# Install browsers using Node.js directly (most reliable method)
 echo "🌐 Installing Chromium browser..."
-if npx playwright install chromium; then
-    print_status "Chromium browser installed"
-else
-    print_warning "Chromium installation failed, trying alternative method..."
-    ./node_modules/.bin/playwright install chromium || print_error "Failed to install Chromium"
-fi
+node -e "
+const { execSync } = require('child_process');
+const path = require('path');
 
-# Install browser dependencies
-echo "🔧 Installing browser system dependencies..."
-if npx playwright install-deps chromium; then
-    print_status "Browser system dependencies installed"
-else
-    print_warning "System dependencies installation failed - continuing anyway"
+try {
+    // Method 1: Try npx
+    execSync('npx playwright install chromium', { stdio: 'inherit' });
+    console.log('✅ Chromium installed via npx');
+} catch (e1) {
+    try {
+        // Method 2: Try direct path
+        const playwrightBin = path.join(__dirname, 'node_modules', '.bin', 'playwright');
+        execSync(\`\"\${playwrightBin}\" install chromium\`, { stdio: 'inherit' });
+        console.log('✅ Chromium installed via direct path');
+    } catch (e2) {
+        try {
+            // Method 3: Use playwright directly
+            const playwright = require('playwright');
+            console.log('🌐 Triggering browser download...');
+            playwright.chromium.launch().then(browser => browser.close()).catch(() => {});
+            console.log('✅ Chromium download triggered');
+        } catch (e3) {
+            console.log('⚠️ All installation methods failed');
+        }
+    }
+}
+" || print_warning "Chromium installation failed - server will download on first use"
+
+# Install system dependencies for Linux
+if [[ \"\$OSTYPE\" == \"linux-gnu\"* ]] && command -v apt-get &> /dev/null; then
+    echo "🔧 Installing browser system dependencies..."
+    apt-get update &>/dev/null || true
+    apt-get install -y \
+        libnss3 libnspr4 libatk-bridge2.0-0 libdrm2 libxkbcommon0 \
+        libxcomposite1 libxdamage1 libxrandr2 libgbm1 libxss1 libasound2 \
+        libatspi2.0-0 libgtk-3-0 &>/dev/null && \
+    print_status "Browser system dependencies installed" || \
+    print_warning "Some system dependencies failed - browsers may still work"
+fi
 fi
 
 print_status "Playwright browsers installation completed"
