@@ -72,7 +72,12 @@
     "playwright": "^1.40.0",
     "dotenv": "^16.3.1",
     "cors": "^2.8.5",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
+    "express-rate-limit": "^7.1.5",
+    "express-slow-down": "^2.0.1",
+    "commander": "^11.1.0",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.1",

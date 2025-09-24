@@ -34,9 +34,12 @@ try {
 // Import enhanced routes (v1.3.0)
 const apiRoutes = require('./routes/api');
 const staticRoutes = require('./routes/static');
+const adminRoutes = require('./routes/admin');
 
 // Import enhanced middleware (v1.3.0)
 const { errorHandler, notFoundHandler } = require('./middleware/error');
+const { apiLimiter, requestAnalyzer } = require('./middleware/rate-limiter');
+const { analyzeRequest } = require('./middleware/request-analyzer');
 
 // Create Express application
 const app = express();
@@ -44,6 +47,10 @@ const app = express();
 // Basic middleware (essential only)
 app.use(express.json({ limit: config.api.bodyLimit || '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: config.api.bodyLimit || '10mb' }));
+
+// v1.3.0: Enhanced request analysis and rate limiting
+app.use(analyzeRequest);
+app.use(apiLimiter);
 
 // CORS middleware
 if (config.security.corsEnabled) {
@@ -65,6 +72,9 @@ app.use((req, res, next) => {
 
 // Mount API routes
 app.use('/api', apiRoutes);
+
+// Mount admin routes (v1.3.0)
+app.use('/admin', adminRoutes);
 
 // Mount static routes (if available)
 try {

@@ -69,7 +69,7 @@ function generateAdvancedFingerprint(buid = crypto.randomUUID(), profileType = '
     const audioProfile = AUDIO_PROFILES['windows-chrome'];
 
     const fingerprint = {
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
         platform: 'Win32',
         appName: 'Netscape',
         screenWidth: profile.screen.width,
@@ -143,12 +143,33 @@ class StealthService {
 
             // Advanced fingerprint injection script
             await page.addInitScript((fp) => {
-                // Remove webdriver property completely
+                // Remove webdriver property completely (enhanced for Google 2025)
                 delete navigator.webdriver;
                 Object.defineProperty(navigator, 'webdriver', {
                     get: () => undefined,
                     configurable: true
                 });
+
+                // Remove other automation indicators
+                delete window.webdriver;
+                delete navigator.webdriver;
+                delete window.chrome_asyncScriptInfo;
+                delete document.$cdc_asdjflasutopfhvcZLmcfl_;
+                delete document.$chrome_asyncScriptInfo;
+
+                // Hide automation from window.chrome object
+                if (window.chrome && window.chrome.runtime && window.chrome.runtime.onConnect) {
+                    delete window.chrome.runtime.onConnect;
+                }
+
+                // Enhanced plugins and webdriver hiding
+                Object.defineProperty(navigator, 'plugins', {
+                    get: () => [1, 2, 3, 4, 5].map(() => 'Plugin')
+                });
+
+                // Override automation detection methods
+                window.outerHeight = window.innerHeight;
+                window.outerWidth = window.innerWidth;
 
                 // Enhanced screen and window properties with fingerprint consistency
                 Object.defineProperty(screen, 'width', { get: () => fp.screenWidth });
@@ -207,20 +228,16 @@ class StealthService {
                         const originalGetSupportedExtensions = context.getSupportedExtensions;
                         if (originalGetSupportedExtensions) {
                             context.getSupportedExtensions = function() {
-                                try {
-                                    return [
-                                        'ANGLE_instanced_arrays', 'EXT_blend_minmax', 'EXT_color_buffer_half_float',
-                                        'EXT_frag_depth', 'EXT_shader_texture_lod', 'EXT_texture_filter_anisotropic',
-                                        'WEBKIT_EXT_texture_filter_anisotropic', 'EXT_sRGB', 'OES_element_index_uint',
-                                        'OES_standard_derivatives', 'OES_texture_float', 'OES_texture_float_linear',
-                                        'OES_texture_half_float', 'OES_texture_half_float_linear', 'OES_vertex_array_object',
-                                        'WEBGL_color_buffer_float', 'WEBGL_compressed_texture_s3tc', 'WEBKIT_WEBGL_compressed_texture_s3tc',
-                                        'WEBGL_compressed_texture_s3tc_srgb', 'WEBGL_debug_renderer_info', 'WEBGL_debug_shaders',
-                                        'WEBGL_depth_texture', 'WEBKIT_WEBGL_depth_texture', 'WEBGL_draw_buffers', 'WEBGL_lose_context'
-                                    ];
-                                } catch (e) {
-                                    return originalGetSupportedExtensions.call(this);
-                                }
+                                return [
+                                    'ANGLE_instanced_arrays', 'EXT_blend_minmax', 'EXT_color_buffer_half_float',
+                                    'EXT_frag_depth', 'EXT_shader_texture_lod', 'EXT_texture_filter_anisotropic',
+                                    'WEBKIT_EXT_texture_filter_anisotropic', 'EXT_sRGB', 'OES_element_index_uint',
+                                    'OES_standard_derivatives', 'OES_texture_float', 'OES_texture_float_linear',
+                                    'OES_texture_half_float', 'OES_texture_half_float_linear', 'OES_vertex_array_object',
+                                    'WEBGL_color_buffer_float', 'WEBGL_compressed_texture_s3tc', 'WEBKIT_WEBGL_compressed_texture_s3tc',
+                                    'WEBGL_compressed_texture_s3tc_srgb', 'WEBGL_debug_renderer_info', 'WEBGL_debug_shaders',
+                                    'WEBGL_depth_texture', 'WEBKIT_WEBGL_depth_texture', 'WEBGL_draw_buffers', 'WEBGL_lose_context'
+                                ];
                             };
                         }
                     }
@@ -493,7 +510,7 @@ class StealthService {
                 'Accept-Language': fingerprint.languages.join(',') + ';q=0.9',
                 'Accept-Encoding': 'gzip, deflate, br',
                 'Cache-Control': 'max-age=0',
-                'Sec-Ch-Ua': '"Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
+                'Sec-Ch-Ua': '"Google Chrome";v="131", "Chromium";v="131", "Not?A_Brand";v="99"',
                 'Sec-Ch-Ua-Mobile': '?0',
                 'Sec-Ch-Ua-Platform': `"${fingerprint.platform === 'Win32' ? 'Windows' : 'Linux'}"`,
                 'Sec-Fetch-Dest': 'document',

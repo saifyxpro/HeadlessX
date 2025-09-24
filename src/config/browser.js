@@ -3,12 +3,13 @@
  * Realistic Windows Chrome user agents and locale settings
  */
 
-// DESKTOP-ONLY Chrome User Agents Pool - Latest versions for Google compatibility
+// DESKTOP-ONLY Chrome User Agents Pool - Latest versions for Google compatibility (Updated 2025)
 const REALISTIC_USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebL/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36'
 ];
 
 // Realistic Windows locales and languages
@@ -17,14 +18,14 @@ const REALISTIC_LOCALES = [
     { locale: 'en-GB', timezone: 'Europe/London', languages: ['en-GB', 'en'] }
 ];
 
-// Browser launch arguments for stealth and performance (Google-optimized)
+// Browser launch arguments for stealth and performance (Google-optimized 2025)
 const BROWSER_ARGS = [
     // Security & Sandboxing (required for servers)
     '--no-sandbox',
     '--disable-setuid-sandbox',
     '--disable-dev-shm-usage',
 
-    // CRITICAL: Primary anti-detection flags for Google
+    // CRITICAL: Enhanced anti-detection flags for Google 2025
     '--disable-blink-features=AutomationControlled',
     '--exclude-switches=enable-automation',
     '--disable-automation',
@@ -33,11 +34,15 @@ const BROWSER_ARGS = [
     '--disable-default-apps',
     '--disable-extensions',
     '--disable-component-extensions-with-background-pages',
+    '--disable-component-update',
 
-    // Google-specific optimizations
+    // Google-specific enhanced optimizations
     '--disable-features=VizDisplayCompositor',
     '--disable-features=TranslateUI',
     '--disable-features=BlinkGenPropertyTrees',
+    '--disable-features=ScriptStreaming',
+    '--disable-features=V8Orinoco',
+    '--disable-features=VizHitTestSurfaceLayer',
     '--disable-ipc-flooding-protection',
     '--disable-hang-monitor',
     '--disable-popup-blocking',
@@ -48,7 +53,7 @@ const BROWSER_ARGS = [
     '--disable-field-trial-config',
     '--disable-back-forward-cache',
 
-    // Performance & Memory (lighter for better detection avoidance)
+    // Enhanced performance for stealth (Google 2025)
     '--memory-pressure-off',
     '--disable-client-side-phishing-detection',
     '--disable-sync',
@@ -56,15 +61,20 @@ const BROWSER_ARGS = [
     '--disable-background-networking',
     '--disable-domain-reliability',
     '--disable-component-update',
+    '--disable-plugins-discovery',
+    '--disable-print-preview',
+    '--disable-spell-checking',
 
-    // Media & Hardware (minimal GPU usage for stealth)
+    // Media & Hardware (enhanced for 2025)
     '--disable-accelerated-2d-canvas',
     '--disable-gpu',
     '--disable-gpu-sandbox',
     '--disable-software-rasterizer',
     '--disable-gl-drawing-for-tests',
+    '--disable-accelerated-video-decode',
+    '--disable-accelerated-video-encode',
 
-    // Network & Privacy
+    // Network & Privacy (enhanced)
     '--disable-web-security',
     '--disable-features=VizDisplayCompositor,VizHitTestSurfaceLayer',
     '--disable-breakpad',
@@ -72,24 +82,29 @@ const BROWSER_ARGS = [
     '--disable-metrics',
     '--disable-metrics-reporting',
     '--no-report-upload',
+    '--disable-shared-workers',
 
-    // Realistic Chrome behavior
+    // Realistic Chrome behavior (updated 2025)
     '--enable-features=NetworkService,NetworkServiceInProcess',
     '--password-store=basic',
     '--use-mock-keychain',
     '--force-device-scale-factor=1',
     '--hide-scrollbars',
     '--mute-audio',
+    '--disable-notifications',
+    '--disable-gesture-typing',
 
-    // Logging (minimal for stealth)
+    // Enhanced logging control (minimal for stealth)
     '--disable-logging',
     '--disable-gpu-logging',
     '--silent',
     '--log-level=3',
     '--disable-dev-tools',
 
-    // IMPORTANT: Remove telltale automation headers
+    // CRITICAL: Remove telltale automation headers (2025)
     '--user-agent-override-header',
+    '--disable-plugins-discovery',
+    '--disable-bundled-ppapi-flash',
     '--disable-plugins-discovery'
 ];
 

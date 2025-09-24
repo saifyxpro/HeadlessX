@@ -99,9 +99,9 @@ class RenderingService {
             // Setup request interception for perfect headers
             await StealthService.setupRequestInterception(page);
 
-            // Set reasonable timeouts (more generous for slow sites)
-            page.setDefaultTimeout(75000); // Increased from 60s to 75s
-            page.setDefaultNavigationTimeout(Math.min(timeout, 75000)); // Match the page timeout
+            // Set reasonable timeouts (more generous for Google and slow sites)
+            page.setDefaultTimeout(90000); // Increased from 75s to 90s for Google
+            page.setDefaultNavigationTimeout(Math.min(timeout + 15000, 90000)); // Add 15s buffer
 
             // Capture console logs if requested
             if (captureConsole) {
@@ -128,14 +128,14 @@ class RenderingService {
                             // Special Google navigation strategy
                             logger.info(requestId, 'Using Google-optimized navigation strategy');
 
-                            // First, navigate with minimal timeout
+                            // First, navigate with minimal timeout but allow for longer waits
                             await page.goto(url, {
                                 waitUntil: 'domcontentloaded',
-                                timeout: 30000
+                                timeout: 40000 // Increased from 30s
                             });
 
-                            // Wait a bit for any redirects
-                            await page.waitForTimeout(2000);
+                            // Longer wait for any redirects or anti-bot checks
+                            await page.waitForTimeout(5000); // Increased from 2s
 
                             // Check for anti-bot detection
                             const bodyText = await page.evaluate(() => {
@@ -143,58 +143,79 @@ class RenderingService {
                             });
 
                             if (/unusual traffic|automated queries|are you a robot|captcha/i.test(bodyText)) {
-                                logger.warn(requestId, 'Google anti-bot detection triggered');
-                                // Try waiting longer and check again
-                                await page.waitForTimeout(5000);
-
-                                // Sometimes Google shows a temporary block, try refreshing
-                                await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
-                                await page.waitForTimeout(3000);
+                                logger.warn(requestId, 'Google anti-bot detection triggered, using enhanced evasion...');
+                                
+                                // Enhanced wait and retry strategy
+                                await page.waitForTimeout(15000); // Longer wait
+                                
+                                // Check if we can proceed anyway or need to refresh
+                                const stillBlocked = await page.evaluate(() => {
+                                    return /unusual traffic|automated queries|are you a robot/i.test(document.body ? document.body.innerText : '');
+                                });
+                                
+                                if (stillBlocked) {
+                                    // Try to refresh with a different approach
+                                    logger.warn(requestId, 'Still detected, attempting page refresh...');
+                                    await page.reload({ waitUntil: 'networkidle2', timeout: 45000 });
+                                    await page.waitForTimeout(8000); // Wait longer after refresh
+                                    
+                                    // If still blocked, we'll continue but may get timeout error
+                                    const finalCheck = await page.evaluate(() => {
+                                        return /unusual traffic|automated queries|are you a robot/i.test(document.body ? document.body.innerText : '');
+                                    });
+                                    
+                                    if (finalCheck) {
+                                        logger.error(requestId, 'Google anti-bot detection persists after refresh');
+                                        // Don't throw error here - let it timeout naturally
+                                    }
+                                } else {
+                                    logger.info(requestId, 'Google anti-bot detection resolved');
+                                }
                             }
 
                             // Handle Google consent if present
                             await StealthService.handleGoogleConsent(page);
 
                             // Wait for content to stabilize
-                            await page.waitForTimeout(2000);
+                            await page.waitForTimeout(3000); // Slightly longer wait
                             logger.info(requestId, 'Google navigation completed successfully');
                         } else {
                             // Standard navigation for non-Google sites with better timeout handling
                             try {
-                                // First try with networkidle0 for better loading detection
-                                await page.goto(url, {
-                                    waitUntil: 'networkidle0',
-                                    timeout: Math.min(timeout * 0.6, 40000)
-                                });
-                                logger.info(requestId, 'Standard navigation completed (networkidle0)');
-                            } catch (networkIdleError) {
-                                logger.warn(requestId, 'NetworkIdle0 failed, trying networkidle2...');
+                                // First try with networkidle2 which is more reliable than networkidle0
                                 await page.goto(url, {
                                     waitUntil: 'networkidle2',
-                                    timeout: Math.min(timeout * 0.5, 30000)
+                                    timeout: Math.min(timeout * 0.7, 50000) // Increased timeout allocation
                                 });
                                 logger.info(requestId, 'Standard navigation completed (networkidle2)');
+                            } catch (networkIdleError) {
+                                logger.warn(requestId, 'NetworkIdle2 failed, trying domcontentloaded...');
+                                await page.goto(url, {
+                                    waitUntil: 'domcontentloaded',
+                                    timeout: Math.min(timeout * 0.5, 35000)
+                                });
+                                logger.info(requestId, 'Standard navigation completed (domcontentloaded)');
                             }
                         }
                     } catch (navError) {
-                        logger.warn(requestId, 'Primary navigation failed, trying domcontentloaded...');
+                        logger.warn(requestId, `Primary navigation failed (${navError.message.slice(0, 100)}), trying fallback...`);
                         try {
                             await page.goto(url, {
                                 waitUntil: 'domcontentloaded',
-                                timeout: Math.min(timeout * 0.4, 25000) // Reduced timeout for fallback
+                                timeout: Math.min(timeout * 0.4, 30000) // Slightly longer fallback
                             });
                         } catch (domError) {
                             // Last resort: try with just load event
                             logger.warn(requestId, 'DOMContentLoaded failed, trying basic load...');
                             await page.goto(url, {
                                 waitUntil: 'load',
-                                timeout: Math.min(timeout * 0.3, 20000)
+                                timeout: Math.min(timeout * 0.3, 25000) // Increased from 20s
                             });
                         }
                         if (isGoogle) {
                             await StealthService.handleGoogleConsent(page);
                         }
-                        logger.info(requestId, 'Page navigation completed (domcontentloaded)');
+                        logger.info(requestId, 'Page navigation completed (fallback)');
                     }
 
                     // Wait for page to load

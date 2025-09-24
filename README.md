@@ -64,17 +64,6 @@
 
 ---
 
-## 🎯 Quick Start
-
-```bash
-# 1. Clone and configure
-git clone https://github.com/SaifyXPRO/HeadlessX.git
-cd HeadlessX
-
-# Quick setup with v1.3.0 anti-detection features
-chmod +x scripts/quick-setup.sh && ./scripts/quick-setup.sh
-# Then edit: nano .env  # Update DOMAIN, SUBDOMAIN, AUTH_TOKEN, and FINGERPRINT_PROFILE
-```
 
 **Choose your deployment:**
 

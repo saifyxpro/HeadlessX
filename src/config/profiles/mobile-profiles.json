@@ -1,0 +1,340 @@
+{
+  "profiles": {
+    "mobile-android-chrome": {
+      "userAgent": "Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.193 Mobile Safari/537.36",
+      "viewport": {
+        "width": 412,
+        "height": 915,
+        "isMobile": true,
+        "hasTouch": true
+      },
+      "screen": {
+        "width": 412,
+        "height": 915,
+        "colorDepth": 24,
+        "pixelDepth": 24,
+        "devicePixelRatio": 2.75
+      },
+      "webgl": {
+        "vendor": "Qualcomm",
+        "renderer": "Adreno (TM) 660",
+        "version": "WebGL 1.0 (OpenGL ES 2.0 (4.6.0 COMPAT-V))",
+        "extensions": [
+          "WEBGL_debug_renderer_info",
+          "EXT_texture_filter_anisotropic",
+          "WEBKIT_WEBGL_lose_context",
+          "WEBGL_compressed_texture_s3tc",
+          "WEBGL_compressed_texture_etc1",
+          "WEBGL_depth_texture",
+          "OES_element_index_uint",
+          "OES_standard_derivatives",
+          "OES_vertex_array_object",
+          "OES_texture_float",
+          "OES_texture_half_float"
+        ],
+        "parameters": {
+          "MAX_TEXTURE_SIZE": 8192,
+          "MAX_RENDERBUFFER_SIZE": 8192,
+          "MAX_VERTEX_ATTRIBS": 16,
+          "MAX_VARYING_VECTORS": 15,
+          "MAX_VERTEX_UNIFORM_VECTORS": 256,
+          "MAX_FRAGMENT_UNIFORM_VECTORS": 256
+        }
+      },
+      "hardware": {
+        "cores": 8,
+        "memory": 8192,
+        "platform": "Linux armv8l",
+        "architecture": "arm64",
+        "hardwareConcurrency": 8
+      },
+      "navigator": {
+        "platform": "Linux armv8l",
+        "language": "en-US",
+        "languages": ["en-US", "en"],
+        "cookieEnabled": true,
+        "doNotTrack": null,
+        "maxTouchPoints": 5,
+        "pdfViewerEnabled": false,
+        "webdriver": false,
+        "deviceMemory": 8,
+        "connection": {
+          "effectiveType": "4g",
+          "type": "cellular"
+        }
+      },
+      "geolocation": {
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "locale": "en-US",
+        "currency": "USD"
+      },
+      "device": {
+        "type": "mobile",
+        "model": "SM-G998B",
+        "brand": "Samsung",
+        "os": "Android",
+        "osVersion": "13"
+      },
+      "canvas": {
+        "noise": 0.2,
+        "textMetrics": {
+          "baseline": "alphabetic",
+          "font": "11px sans-serif"
+        }
+      },
+      "audio": {
+        "context": {
+          "sampleRate": 48000,
+          "maxChannelCount": 2,
+          "numberOfInputs": 1,
+          "numberOfOutputs": 1,
+          "channelCount": 2,
+          "channelCountMode": "max",
+          "channelInterpretation": "speakers"
+        },
+        "fingerprint": "124.04347527516074"
+      },
+      "webrtc": {
+        "enabled": false,
+        "publicIP": false,
+        "localIPs": false
+      },
+      "touchSupport": {
+        "maxTouchPoints": 5,
+        "touchEvent": true,
+        "touchStart": true
+      },
+      "sensors": {
+        "accelerometer": true,
+        "gyroscope": true,
+        "magnetometer": true,
+        "proximity": true,
+        "ambientLight": true
+      }
+    },
+    "mobile-iphone-safari": {
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "isMobile": true,
+        "hasTouch": true
+      },
+      "screen": {
+        "width": 390,
+        "height": 844,
+        "colorDepth": 24,
+        "pixelDepth": 24,
+        "devicePixelRatio": 3
+      },
+      "webgl": {
+        "vendor": "Apple",
+        "renderer": "Apple GPU",
+        "version": "WebGL 1.0",
+        "extensions": [
+          "WEBGL_debug_renderer_info",
+          "EXT_texture_filter_anisotropic",
+          "WEBKIT_WEBGL_lose_context",
+          "WEBGL_compressed_texture_s3tc",
+          "WEBGL_compressed_texture_pvrtc",
+          "WEBGL_depth_texture",
+          "OES_element_index_uint",
+          "OES_standard_derivatives",
+          "OES_vertex_array_object",
+          "OES_texture_float"
+        ],
+        "parameters": {
+          "MAX_TEXTURE_SIZE": 8192,
+          "MAX_RENDERBUFFER_SIZE": 8192,
+          "MAX_VERTEX_ATTRIBS": 16,
+          "MAX_VARYING_VECTORS": 15,
+          "MAX_VERTEX_UNIFORM_VECTORS": 256,
+          "MAX_FRAGMENT_UNIFORM_VECTORS": 256
+        }
+      },
+      "hardware": {
+        "cores": 6,
+        "memory": 6144,
+        "platform": "iPhone",
+        "architecture": "arm64",
+        "hardwareConcurrency": 6
+      },
+      "navigator": {
+        "platform": "iPhone",
+        "language": "en-US",
+        "languages": ["en-US", "en"],
+        "cookieEnabled": true,
+        "doNotTrack": null,
+        "maxTouchPoints": 5,
+        "pdfViewerEnabled": false,
+        "webdriver": false,
+        "standalone": false,
+        "deviceMemory": 6
+      },
+      "geolocation": {
+        "timezone": "America/Los_Angeles",
+        "language": "en-US",
+        "locale": "en-US",
+        "currency": "USD"
+      },
+      "device": {
+        "type": "mobile",
+        "model": "iPhone 15 Pro",
+        "brand": "Apple",
+        "os": "iOS",
+        "osVersion": "17.2"
+      },
+      "canvas": {
+        "noise": 0.15,
+        "textMetrics": {
+          "baseline": "alphabetic",
+          "font": "11px -apple-system"
+        }
+      },
+      "audio": {
+        "context": {
+          "sampleRate": 44100,
+          "maxChannelCount": 2,
+          "numberOfInputs": 1,
+          "numberOfOutputs": 1,
+          "channelCount": 2,
+          "channelCountMode": "max",
+          "channelInterpretation": "speakers"
+        },
+        "fingerprint": "124.04347527516074"
+      },
+      "webrtc": {
+        "enabled": false,
+        "publicIP": false,
+        "localIPs": false
+      },
+      "touchSupport": {
+        "maxTouchPoints": 5,
+        "touchEvent": true,
+        "touchStart": true,
+        "forceTouch": true
+      },
+      "sensors": {
+        "accelerometer": true,
+        "gyroscope": true,
+        "magnetometer": true,
+        "proximity": true,
+        "ambientLight": true
+      }
+    },
+    "mobile-tablet-android": {
+      "userAgent": "Mozilla/5.0 (Linux; Android 13; SM-T870) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.193 Safari/537.36",
+      "viewport": {
+        "width": 1138,
+        "height": 712,
+        "isMobile": true,
+        "hasTouch": true
+      },
+      "screen": {
+        "width": 1138,
+        "height": 712,
+        "colorDepth": 24,
+        "pixelDepth": 24,
+        "devicePixelRatio": 2.2
+      },
+      "webgl": {
+        "vendor": "Qualcomm",
+        "renderer": "Adreno (TM) 650",
+        "version": "WebGL 1.0 (OpenGL ES 2.0 (4.6.0 COMPAT-V))",
+        "extensions": [
+          "WEBGL_debug_renderer_info",
+          "EXT_texture_filter_anisotropic",
+          "WEBKIT_WEBGL_lose_context",
+          "WEBGL_compressed_texture_s3tc",
+          "WEBGL_compressed_texture_etc1",
+          "WEBGL_depth_texture",
+          "OES_element_index_uint",
+          "OES_standard_derivatives",
+          "OES_vertex_array_object",
+          "OES_texture_float",
+          "OES_texture_half_float"
+        ],
+        "parameters": {
+          "MAX_TEXTURE_SIZE": 16384,
+          "MAX_RENDERBUFFER_SIZE": 16384,
+          "MAX_VERTEX_ATTRIBS": 16,
+          "MAX_VARYING_VECTORS": 15,
+          "MAX_VERTEX_UNIFORM_VECTORS": 512,
+          "MAX_FRAGMENT_UNIFORM_VECTORS": 512
+        }
+      },
+      "hardware": {
+        "cores": 8,
+        "memory": 12288,
+        "platform": "Linux armv8l",
+        "architecture": "arm64",
+        "hardwareConcurrency": 8
+      },
+      "navigator": {
+        "platform": "Linux armv8l",
+        "language": "en-US",
+        "languages": ["en-US", "en"],
+        "cookieEnabled": true,
+        "doNotTrack": null,
+        "maxTouchPoints": 10,
+        "pdfViewerEnabled": true,
+        "webdriver": false,
+        "deviceMemory": 12,
+        "connection": {
+          "effectiveType": "4g",
+          "type": "wifi"
+        }
+      },
+      "geolocation": {
+        "timezone": "Europe/London",
+        "language": "en-GB",
+        "locale": "en-GB",
+        "currency": "GBP"
+      },
+      "device": {
+        "type": "tablet",
+        "model": "SM-T870",
+        "brand": "Samsung",
+        "os": "Android",
+        "osVersion": "13"
+      },
+      "canvas": {
+        "noise": 0.25,
+        "textMetrics": {
+          "baseline": "alphabetic",
+          "font": "11px sans-serif"
+        }
+      },
+      "audio": {
+        "context": {
+          "sampleRate": 48000,
+          "maxChannelCount": 2,
+          "numberOfInputs": 1,
+          "numberOfOutputs": 1,
+          "channelCount": 2,
+          "channelCountMode": "max",
+          "channelInterpretation": "speakers"
+        },
+        "fingerprint": "124.07347527516074"
+      },
+      "webrtc": {
+        "enabled": false,
+        "publicIP": false,
+        "localIPs": false
+      },
+      "touchSupport": {
+        "maxTouchPoints": 10,
+        "touchEvent": true,
+        "touchStart": true
+      },
+      "sensors": {
+        "accelerometer": true,
+        "gyroscope": true,
+        "magnetometer": true,
+        "proximity": false,
+        "ambientLight": true
+      }
+    }
+  }
+}

@@ -1,6 +1,136 @@
-# POST Endpoints Documentation
+# POST Endpoints Documentation - v1.3.0 Enhanced Anti-Detection
 
-This document provides detailed information about all POST endpoints available in HeadlessX v1.2.0 (Modular Architecture).
+This document provides detailed information about all POST endpoints available in HeadlessX v1.3.0 with advanced anti-detection features.
+
+## 🚀 New in v1.3.0: Advanced Anti-Detection Examples
+
+### Enhanced Google Scraping (Anti-Bot Evasion)
+```bash
+curl -X POST http://localhost:3000/api/render \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_AUTH_TOKEN" \
+  -d '{
+    "url": "https://google.com",
+    "timeout": 120000,
+    "returnPartialOnTimeout": true,
+    "deviceProfile": "high-end-desktop",
+    "geoProfile": "us-east", 
+    "behaviorProfile": "natural",
+    "humanDelays": true,
+    "simulateScrolling": true,
+    "simulateMouseMovement": true,
+    "enableAdvancedStealth": true,
+    "enableCanvasSpoofing": true,
+    "enableWebGLSpoofing": true,
+    "enableWebRTCBlocking": true,
+    "randomizeTimings": true
+  }'
+```
+
+### Maximum Stealth Configuration
+```json
+{
+  "url": "https://protected-site.com",
+  "timeout": 90000,
+  "deviceProfile": "business-laptop",
+  "geoProfile": "us-central",
+  "behaviorProfile": "cautious",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+  "enableAdvancedStealth": true,
+  "enableCanvasSpoofing": true,
+  "enableWebGLSpoofing": true,
+  "enableAudioSpoofing": true,
+  "enableWebRTCBlocking": true,
+  "simulateMouseMovement": true,
+  "simulateScrolling": true,
+  "simulateTyping": false,
+  "humanDelays": true,
+  "randomizeTimings": true,
+  "returnPartialOnTimeout": true,
+  "headers": {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Cache-Control": "max-age=0",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1"
+  }
+}
+```
+
+### High-Performance Gaming Profile
+```json
+{
+  "url": "https://target-site.com",
+  "deviceProfile": "gaming-laptop",
+  "geoProfile": "us-west",
+  "behaviorProfile": "confident",
+  "viewport": { "width": 1920, "height": 1080 },
+  "timeout": 75000,
+  "enableAdvancedStealth": true,
+  "simulateMouseMovement": true,
+  "humanDelays": true,
+  "scrollToBottom": true,
+  "waitForSelectors": [".content", "#main"],
+  "removeElements": [".ads", ".popup"]
+}
+```
+
+### E-commerce Site Scraping
+```json
+{
+  "url": "https://ecommerce-site.com/products",
+  "deviceProfile": "mid-range-desktop", 
+  "geoProfile": "us-east",
+  "behaviorProfile": "natural",
+  "timeout": 60000,
+  "enableAdvancedStealth": true,
+  "enableCanvasSpoofing": true,
+  "simulateScrolling": true,
+  "humanDelays": true,
+  "cookies": [
+    {
+      "name": "currency",
+      "value": "USD",
+      "domain": ".ecommerce-site.com"
+    },
+    {
+      "name": "location",
+      "value": "US",
+      "domain": ".ecommerce-site.com"
+    }
+  ],
+  "headers": {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9"
+  }
+}
+```
+
+## 🌍 Available Device Profiles (v1.3.0)
+
+- **`high-end-desktop`**: 1920x1080, 8 cores, 16GB RAM, NVIDIA RTX, confident behavior
+- **`mid-range-desktop`**: 1920x1080, 4 cores, 8GB RAM, Intel UHD, natural behavior  
+- **`business-laptop`**: 1366x768, 4 cores, 8GB RAM, Intel HD, cautious behavior
+- **`gaming-laptop`**: 1920x1080, 6 cores, 16GB RAM, NVIDIA GTX, confident behavior
+
+## 🌍 Available Geolocation Profiles (v1.3.0)
+
+- **`us-east`**: New York (EST timezone)
+- **`us-west`**: Los Angeles (PST timezone)
+- **`us-central`**: Chicago (CST timezone)
+- **`uk`**: London (GMT timezone)
+- **`germany`**: Berlin (CET timezone)
+- **`france`**: Paris (CET timezone)
+- **`canada`**: Montreal (EST timezone)
+- **`australia`**: Sydney (AEDT timezone)
+
+## 🎭 Behavioral Profiles (v1.3.0)
+
+- **`confident`**: Fast mouse movements, quick scrolling, fast typing
+- **`natural`**: Moderate speeds, realistic patterns, balanced timing
+- **`cautious`**: Slower movements, careful scrolling, deliberate actions
 
 ## Authentication
 
@@ -91,6 +221,21 @@ Content-Type: application/json
 - `screenshotFormat`: Screenshot format ('png'/'jpeg')
 - `pdfPath`: Path to save PDF (server-side)
 - `pdfFormat`: PDF paper format
+
+**🆕 v1.3.0 Enhanced Anti-Detection Parameters:**
+- `deviceProfile`: Device fingerprint profile ('high-end-desktop', 'mid-range-desktop', 'business-laptop', 'gaming-laptop') - default: 'mid-range-desktop'
+- `geoProfile`: Geolocation profile ('us-east', 'us-west', 'us-central', 'uk', 'germany', 'france', 'canada', 'australia') - default: 'us-east'
+- `behaviorProfile`: Behavioral simulation profile ('confident', 'natural', 'cautious') - default: 'natural'
+- `enableCanvasSpoofing`: Enable canvas fingerprint spoofing - default: true
+- `enableWebGLSpoofing`: Enable WebGL fingerprint spoofing - default: true
+- `enableAudioSpoofing`: Enable audio context spoofing - default: true
+- `enableWebRTCBlocking`: Block WebRTC to prevent IP leaks - default: true
+- `enableAdvancedStealth`: Enable comprehensive stealth mode - default: true
+- `simulateMouseMovement`: Simulate natural mouse movement - default: true
+- `simulateScrolling`: Simulate human-like scrolling patterns - default: true
+- `simulateTyping`: Simulate typing with natural delays - default: false
+- `humanDelays`: Add random human-like delays - default: true
+- `randomizeTimings`: Randomize interaction timings - default: true
 
 **Response:**
 ```json
@@ -406,3 +551,261 @@ For issues with POST endpoints:
 4. Check server logs for detailed errors
 5. Use `/api/health` to verify server status
 6. Create GitHub issues for bugs or feature requests
+
+---
+
+## 🌟 Real-World Use Case Examples (v1.3.0)
+
+### 1. Scraping Google Search Results (Anti-Bot Evasion)
+```bash
+curl -X POST "https://your-domain.com/api/render" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_AUTH_TOKEN" \
+  -d '{
+    "url": "https://www.google.com/search?q=nodejs+web+scraping",
+    "timeout": 120000,
+    "returnPartialOnTimeout": true,
+    "deviceProfile": "high-end-desktop",
+    "geoProfile": "us-east",
+    "behaviorProfile": "natural",
+    "enableAdvancedStealth": true,
+    "enableCanvasSpoofing": true,
+    "enableWebGLSpoofing": true,
+    "enableWebRTCBlocking": true,
+    "simulateMouseMovement": true,
+    "simulateScrolling": true,
+    "humanDelays": true,
+    "randomizeTimings": true,
+    "waitForSelectors": ["#search", ".g"],
+    "removeElements": [".ads", "[data-ad-slot]"]
+  }'
+```
+
+### 2. E-commerce Product Data
+```bash
+curl -X POST "https://your-domain.com/api/render" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_AUTH_TOKEN" \
+  -d '{
+    "url": "https://store.example.com/products/laptop",
+    "timeout": 75000,
+    "deviceProfile": "business-laptop",
+    "geoProfile": "us-central",
+    "behaviorProfile": "natural",
+    "enableAdvancedStealth": true,
+    "simulateScrolling": true,
+    "humanDelays": true,
+    "scrollToBottom": true,
+    "waitForSelectors": [".price", ".product-title", ".reviews"],
+    "waitForNetworkIdle": true,
+    "extraWaitTime": 5000,
+    "removeElements": [".cookie-banner", ".newsletter-popup"],
+    "headers": {
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  }'
+```
+
+### 3. Social Media Content (Advanced Stealth)
+```bash
+curl -X POST "https://your-domain.com/api/render" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_AUTH_TOKEN" \
+  -d '{
+    "url": "https://social-platform.com/user/profile",
+    "timeout": 90000,
+    "deviceProfile": "gaming-laptop", 
+    "geoProfile": "us-west",
+    "behaviorProfile": "confident",
+    "enableAdvancedStealth": true,
+    "enableCanvasSpoofing": true,
+    "enableWebGLSpoofing": true,
+    "enableAudioSpoofing": true,
+    "enableWebRTCBlocking": true,
+    "simulateMouseMovement": true,
+    "simulateScrolling": true,
+    "humanDelays": true,
+    "randomizeTimings": true,
+    "waitForSelectors": [".posts", ".profile-info"],
+    "scrollToBottom": true,
+    "customScript": "window.scrollTo(0, document.body.scrollHeight/2); await new Promise(r => setTimeout(r, 2000));"
+  }'
+```
+
+### 4. News Article Extraction
+```bash
+curl -X POST "https://your-domain.com/api/content" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_AUTH_TOKEN" \
+  -d '{
+    "url": "https://news.example.com/article/123",
+    "timeout": 45000,
+    "deviceProfile": "mid-range-desktop",
+    "geoProfile": "us-east", 
+    "behaviorProfile": "natural",
+    "enableAdvancedStealth": true,
+    "simulateScrolling": true,
+    "humanDelays": true,
+    "waitForSelectors": ["article", ".article-body", "h1"],
+    "removeElements": [".ads", ".sidebar", ".comments", ".related-articles", ".newsletter-signup"],
+    "extraWaitTime": 3000
+  }'
+```
+
+### 5. JavaScript-Heavy SPA (Single Page Application)
+```bash
+curl -X POST "https://your-domain.com/api/render" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_AUTH_TOKEN" \
+  -d '{
+    "url": "https://spa-app.com/dashboard",
+    "timeout": 60000,
+    "deviceProfile": "high-end-desktop",
+    "geoProfile": "us-central",
+    "behaviorProfile": "confident",
+    "enableAdvancedStealth": true,
+    "simulateMouseMovement": true,
+    "simulateScrolling": true,
+    "humanDelays": true,
+    "waitUntil": "networkidle0",
+    "waitForNetworkIdle": true,
+    "waitForSelectors": [".dashboard-loaded", "[data-testid=\"content\"]"],
+    "extraWaitTime": 8000,
+    "customScript": "document.querySelectorAll(\".loading\").forEach(el => el.style.display = \"none\");"
+  }'
+```
+
+### 6. Multi-URL Batch Processing
+```bash
+curl -X POST "https://your-domain.com/api/batch" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_AUTH_TOKEN" \
+  -d '{
+    "urls": [
+      "https://example1.com/page1",
+      "https://example2.com/page2", 
+      "https://example3.com/page3"
+    ],
+    "concurrency": 2,
+    "timeout": 45000,
+    "outputFormat": "json",
+    "deviceProfile": "business-laptop",
+    "geoProfile": "us-east",
+    "behaviorProfile": "natural",
+    "enableAdvancedStealth": true,
+    "humanDelays": true,
+    "simulateScrolling": true,
+    "returnPartialOnTimeout": true,
+    "waitForSelectors": [".content"],
+    "removeElements": [".ads", ".popup"]
+  }'
+```
+
+### 7. API Testing with Maximum Stealth
+```javascript
+// Node.js example
+const fetch = require('node-fetch');
+
+const scrapeWithMaxStealth = async (url) => {
+  const response = await fetch('https://your-domain.com/api/render', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer YOUR_AUTH_TOKEN'
+    },
+    body: JSON.stringify({
+      url: url,
+      timeout: 90000,
+      deviceProfile: 'high-end-desktop',
+      geoProfile: 'us-east',
+      behaviorProfile: 'natural',
+      enableAdvancedStealth: true,
+      enableCanvasSpoofing: true,
+      enableWebGLSpoofing: true,
+      enableAudioSpoofing: true,
+      enableWebRTCBlocking: true,
+      simulateMouseMovement: true,
+      simulateScrolling: true,
+      simulateTyping: false,
+      humanDelays: true,
+      randomizeTimings: true,
+      returnPartialOnTimeout: true,
+      waitForNetworkIdle: true,
+      scrollToBottom: true,
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      headers: {
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'max-age=0'
+      }
+    })
+  });
+  
+  return await response.json();
+};
+
+// Usage
+scrapeWithMaxStealth('https://protected-site.com')
+  .then(result => console.log(result.html))
+  .catch(error => console.error(error));
+```
+
+### 8. Python Example with Requests
+```python
+import requests
+import json
+
+def scrape_with_headlessx(url, auth_token):
+    endpoint = "https://your-domain.com/api/render"
+    
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {auth_token}"
+    }
+    
+    payload = {
+        "url": url,
+        "timeout": 75000,
+        "deviceProfile": "mid-range-desktop",
+        "geoProfile": "us-east", 
+        "behaviorProfile": "natural",
+        "enableAdvancedStealth": True,
+        "enableCanvasSpoofing": True,
+        "enableWebGLSpoofing": True,
+        "enableWebRTCBlocking": True,
+        "simulateMouseMovement": True,
+        "simulateScrolling": True,
+        "humanDelays": True,
+        "randomizeTimings": True,
+        "returnPartialOnTimeout": True,
+        "waitForNetworkIdle": True,
+        "scrollToBottom": True
+    }
+    
+    response = requests.post(endpoint, headers=headers, json=payload)
+    return response.json()
+
+# Usage
+result = scrape_with_headlessx("https://example.com", "YOUR_AUTH_TOKEN")
+print(f"Title: {result['title']}")
+print(f"Content length: {result['contentLength']}")
+```
+
+## 📊 Performance Tips for v1.3.0
+
+### Optimal Settings by Site Type:
+- **Google/Search Engines**: `timeout: 120000`, `deviceProfile: "high-end-desktop"`, full stealth enabled
+- **E-commerce Sites**: `timeout: 75000`, `deviceProfile: "business-laptop"`, moderate stealth
+- **News Sites**: `timeout: 45000`, `deviceProfile: "mid-range-desktop"`, basic stealth
+- **Social Media**: `timeout: 90000`, `deviceProfile: "gaming-laptop"`, full stealth + behavioral simulation
+- **SPAs/Heavy JS**: `timeout: 60000`, `waitUntil: "networkidle0"`, longer `extraWaitTime`
+
+### Best Practices for Anti-Detection:
+1. Always use realistic device profiles matching your target audience
+2. Match geolocation profiles with your server location when possible
+3. Enable `returnPartialOnTimeout` for better reliability
+4. Use `humanDelays` and `randomizeTimings` for better stealth
+5. Customize user agents to match your device profile
+6. Remove unnecessary elements early with `removeElements`
+7. Use appropriate behavioral profiles for your use case

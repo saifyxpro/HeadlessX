@@ -12,6 +12,7 @@ const RenderingController = require('../controllers/rendering');
 const GetController = require('../controllers/get');
 const BatchController = require('../controllers/batch');
 const ProfilesController = require('../controllers/profiles');
+const DetectionTestController = require('../controllers/detection-test');
 
 // Import middleware
 const { authenticate, authenticateText, addRequestId } = require('../middleware/auth');
@@ -31,6 +32,18 @@ router.get('/profiles', authenticate, asyncHandler(ProfilesController.getProfile
 router.post('/profiles/validate', authenticate, asyncHandler(ProfilesController.validateProfile));
 router.post('/profiles/generate-fingerprint', authenticate, asyncHandler(ProfilesController.generateFingerprint));
 router.get('/stealth/status', authenticate, ProfilesController.getStealthStatus);
+
+// v1.3.0 Detection testing endpoints
+const detectionTestController = new DetectionTestController();
+router.post('/detection/test', authenticate, asyncHandler(async (req, res) => {
+    return await detectionTestController.runDetectionTest(req, res);
+}));
+router.get('/detection/suites', authenticate, asyncHandler(async (req, res) => {
+    return await detectionTestController.getTestSuites(req, res);
+}));
+router.get('/detection/status', authenticate, asyncHandler(async (req, res) => {
+    return await detectionTestController.getDetectionStatus(req, res);
+}));
 
 // Main rendering endpoints (enhanced with v1.3.0 features)
 router.post('/render', authenticate, asyncHandler(RenderingController.renderPage));

@@ -1,0 +1,277 @@
+{
+  "profiles": {
+    "firefox-windows-high-end": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "screen": {
+        "width": 1920,
+        "height": 1080,
+        "colorDepth": 24,
+        "pixelDepth": 24,
+        "devicePixelRatio": 1
+      },
+      "webgl": {
+        "vendor": "Mozilla",
+        "renderer": "Mozilla -- ANGLE (NVIDIA, NVIDIA GeForce RTX 3080 (0x00002206) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "extensions": [
+          "WEBGL_debug_renderer_info",
+          "EXT_texture_filter_anisotropic",
+          "WEBKIT_WEBGL_lose_context",
+          "MOZ_WEBGL_lose_context",
+          "WEBGL_compressed_texture_s3tc",
+          "WEBGL_depth_texture"
+        ],
+        "parameters": {
+          "MAX_TEXTURE_SIZE": 16384,
+          "MAX_RENDERBUFFER_SIZE": 16384,
+          "MAX_VERTEX_ATTRIBS": 16,
+          "MAX_VARYING_VECTORS": 30,
+          "MAX_VERTEX_UNIFORM_VECTORS": 1024,
+          "MAX_FRAGMENT_UNIFORM_VECTORS": 1024
+        }
+      },
+      "hardware": {
+        "cores": 8,
+        "memory": 8192,
+        "platform": "Win32",
+        "architecture": "x86_64",
+        "hardwareConcurrency": 8
+      },
+      "navigator": {
+        "platform": "Win32",
+        "language": "en-US",
+        "languages": ["en-US", "en"],
+        "cookieEnabled": true,
+        "doNotTrack": null,
+        "maxTouchPoints": 0,
+        "pdfViewerEnabled": true,
+        "webdriver": false
+      },
+      "geolocation": {
+        "timezone": "America/New_York",
+        "language": "en-US",
+        "locale": "en-US",
+        "currency": "USD"
+      },
+      "fonts": {
+        "system": [
+          "Arial", "Arial Black", "Arial Unicode MS", "Book Antiqua", 
+          "Bookman Old Style", "Calibri", "Cambria", "Century", 
+          "Century Gothic", "Comic Sans MS", "Courier", "Courier New",
+          "Garamond", "Georgia", "Impact", "Lucida Console", "Lucida Grande",
+          "Lucida Sans Unicode", "Microsoft Sans Serif", "Monotype Corsiva",
+          "MS Gothic", "MS PGothic", "MS Reference Sans Serif", "MS Sans Serif",
+          "MS Serif", "Palatino Linotype", "Segoe Print", "Segoe Script",
+          "Segoe UI", "Segoe UI Light", "Segoe UI Semibold", "Segoe UI Symbol",
+          "Tahoma", "Times", "Times New Roman", "Trebuchet MS", "Verdana",
+          "Wingdings", "Wingdings 2", "Wingdings 3"
+        ]
+      },
+      "canvas": {
+        "noise": 0.3,
+        "textMetrics": {
+          "baseline": "alphabetic",
+          "font": "11px Arial"
+        }
+      },
+      "audio": {
+        "context": {
+          "sampleRate": 44100,
+          "maxChannelCount": 2,
+          "numberOfInputs": 1,
+          "numberOfOutputs": 1,
+          "channelCount": 2,
+          "channelCountMode": "max",
+          "channelInterpretation": "speakers"
+        },
+        "fingerprint": "124.04347527516074"
+      },
+      "webrtc": {
+        "enabled": false,
+        "publicIP": false,
+        "localIPs": false
+      },
+      "permissions": {
+        "notifications": "default",
+        "geolocation": "default",
+        "camera": "default",
+        "microphone": "default"
+      }
+    },
+    "firefox-windows-mid-range": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:119.0) Gecko/20100101 Firefox/119.0",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "screen": {
+        "width": 1366,
+        "height": 768,
+        "colorDepth": 24,
+        "pixelDepth": 24,
+        "devicePixelRatio": 1
+      },
+      "webgl": {
+        "vendor": "Mozilla",
+        "renderer": "Mozilla -- ANGLE (Intel, Intel(R) HD Graphics 620 (0x00005916) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "extensions": [
+          "WEBGL_debug_renderer_info",
+          "EXT_texture_filter_anisotropic",
+          "WEBKIT_WEBGL_lose_context",
+          "MOZ_WEBGL_lose_context",
+          "WEBGL_compressed_texture_s3tc"
+        ],
+        "parameters": {
+          "MAX_TEXTURE_SIZE": 8192,
+          "MAX_RENDERBUFFER_SIZE": 8192,
+          "MAX_VERTEX_ATTRIBS": 16,
+          "MAX_VARYING_VECTORS": 15,
+          "MAX_VERTEX_UNIFORM_VECTORS": 512,
+          "MAX_FRAGMENT_UNIFORM_VECTORS": 512
+        }
+      },
+      "hardware": {
+        "cores": 4,
+        "memory": 4096,
+        "platform": "Win32",
+        "architecture": "x86_64",
+        "hardwareConcurrency": 4
+      },
+      "navigator": {
+        "platform": "Win32",
+        "language": "en-US",
+        "languages": ["en-US", "en"],
+        "cookieEnabled": true,
+        "doNotTrack": null,
+        "maxTouchPoints": 0,
+        "pdfViewerEnabled": true,
+        "webdriver": false
+      },
+      "geolocation": {
+        "timezone": "America/Chicago",
+        "language": "en-US",
+        "locale": "en-US",
+        "currency": "USD"
+      },
+      "canvas": {
+        "noise": 0.25,
+        "textMetrics": {
+          "baseline": "alphabetic",
+          "font": "11px Arial"
+        }
+      },
+      "audio": {
+        "context": {
+          "sampleRate": 44100,
+          "maxChannelCount": 2,
+          "numberOfInputs": 1,
+          "numberOfOutputs": 1,
+          "channelCount": 2,
+          "channelCountMode": "max",
+          "channelInterpretation": "speakers"
+        },
+        "fingerprint": "124.05234527516074"
+      },
+      "webrtc": {
+        "enabled": false,
+        "publicIP": false,
+        "localIPs": false
+      }
+    },
+    "firefox-linux-developer": {
+      "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0",
+      "viewport": {
+        "width": 1920,
+        "height": 1200
+      },
+      "screen": {
+        "width": 1920,
+        "height": 1200,
+        "colorDepth": 24,
+        "pixelDepth": 24,
+        "devicePixelRatio": 1
+      },
+      "webgl": {
+        "vendor": "Mozilla",
+        "renderer": "Mozilla -- Mesa Intel(R) UHD Graphics 630 (CFL GT2)",
+        "version": "WebGL 1.0 (OpenGL ES 2.0 Mesa 21.2.6)",
+        "extensions": [
+          "WEBGL_debug_renderer_info",
+          "EXT_texture_filter_anisotropic",
+          "WEBKIT_WEBGL_lose_context",
+          "MOZ_WEBGL_lose_context",
+          "WEBGL_compressed_texture_s3tc",
+          "WEBGL_depth_texture",
+          "OES_element_index_uint"
+        ],
+        "parameters": {
+          "MAX_TEXTURE_SIZE": 16384,
+          "MAX_RENDERBUFFER_SIZE": 16384,
+          "MAX_VERTEX_ATTRIBS": 16,
+          "MAX_VARYING_VECTORS": 32,
+          "MAX_VERTEX_UNIFORM_VECTORS": 1024,
+          "MAX_FRAGMENT_UNIFORM_VECTORS": 1024
+        }
+      },
+      "hardware": {
+        "cores": 6,
+        "memory": 16384,
+        "platform": "Linux x86_64",
+        "architecture": "x86_64",
+        "hardwareConcurrency": 12
+      },
+      "navigator": {
+        "platform": "Linux x86_64",
+        "language": "en-US",
+        "languages": ["en-US", "en"],
+        "cookieEnabled": true,
+        "doNotTrack": null,
+        "maxTouchPoints": 0,
+        "pdfViewerEnabled": true,
+        "webdriver": false
+      },
+      "geolocation": {
+        "timezone": "America/Los_Angeles",
+        "language": "en-US",
+        "locale": "en-US",
+        "currency": "USD"
+      },
+      "fonts": {
+        "system": [
+          "Liberation Sans", "Liberation Serif", "Liberation Mono",
+          "DejaVu Sans", "DejaVu Serif", "DejaVu Sans Mono",
+          "Ubuntu", "Ubuntu Mono", "Noto Sans", "Noto Serif"
+        ]
+      },
+      "canvas": {
+        "noise": 0.4,
+        "textMetrics": {
+          "baseline": "alphabetic",
+          "font": "11px Liberation Sans"
+        }
+      },
+      "audio": {
+        "context": {
+          "sampleRate": 48000,
+          "maxChannelCount": 2,
+          "numberOfInputs": 1,
+          "numberOfOutputs": 1,
+          "channelCount": 2,
+          "channelCountMode": "max",
+          "channelInterpretation": "speakers"
+        },
+        "fingerprint": "124.08347527516074"
+      },
+      "webrtc": {
+        "enabled": false,
+        "publicIP": false,
+        "localIPs": false
+      }
+    }
+  }
+}
