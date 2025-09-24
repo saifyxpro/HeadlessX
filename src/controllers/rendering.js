@@ -117,7 +117,9 @@ class RenderingController {
                 'X-Timestamp': result.timestamp,
                 'X-Was-Timeout': result.wasTimeout.toString(),
                 'X-Content-Length': result.contentLength.toString(),
-                'X-Is-Emergency': (result.isEmergencyContent || false).toString()
+                'X-Is-Emergency': (result.isEmergencyContent || false).toString(),
+                'X-Content-Type-Options': 'nosniff',
+                'X-Frame-Options': 'SAMEORIGIN'
             });
             res.send(result.html);
         } catch (error) {
@@ -173,13 +175,14 @@ class RenderingController {
                 'X-Content-Length': textContent.length,
                 'X-Timestamp': result.timestamp,
                 'X-Was-Timeout': result.wasTimeout.toString(),
-                'X-Is-Emergency': (result.isEmergencyContent || false).toString()
+                'X-Is-Emergency': (result.isEmergencyContent || false).toString(),
+                'X-Content-Type-Options': 'nosniff'
             });
             res.send(textContent);
         } catch (error) {
             logger.error(requestId, 'Content extraction error', error);
             const { statusCode, errorResponse } = createErrorResponse(error, req.body?.url);
-            res.status(statusCode).send(`Error: ${error.message}`);
+            res.status(statusCode).json(errorResponse);
         }
     }
 
@@ -216,18 +219,19 @@ class RenderingController {
             // Return screenshot with proper headers
             const format = screenshotOptions.format;
             res.set({
-                'Content-Type': `image/${format}`,
+                'Content-Type': `image/${format === 'jpg' ? 'jpeg' : format}`,
                 'X-Rendered-URL': url,
                 'X-Timestamp': new Date().toISOString(),
                 'X-Screenshot-Size': screenshotBuffer.length.toString(),
                 'Content-Disposition': `inline; filename="screenshot-${Date.now()}.${format}"`,
-                'Content-Length': screenshotBuffer.length.toString()
+                'Content-Length': screenshotBuffer.length.toString(),
+                'X-Content-Type-Options': 'nosniff'
             });
             res.send(screenshotBuffer);
         } catch (error) {
             logger.error(requestId, 'Screenshot generation error', error);
-            const { statusCode } = createErrorResponse(error, req.query?.url);
-            res.status(statusCode).send(`Screenshot Error: ${error.message}`);
+            const { statusCode, errorResponse } = createErrorResponse(error, req.query?.url);
+            res.status(statusCode).json(errorResponse);
         }
     }
 
@@ -266,13 +270,14 @@ class RenderingController {
                 'X-Timestamp': new Date().toISOString(),
                 'X-PDF-Size': pdfBuffer.length.toString(),
                 'Content-Disposition': `inline; filename="page-${Date.now()}.pdf"`,
-                'Content-Length': pdfBuffer.length.toString()
+                'Content-Length': pdfBuffer.length.toString(),
+                'X-Content-Type-Options': 'nosniff'
             });
             res.send(pdfBuffer);
         } catch (error) {
             logger.error(requestId, 'PDF generation error', error);
-            const { statusCode } = createErrorResponse(error, req.query?.url);
-            res.status(statusCode).send(`PDF Error: ${error.message}`);
+            const { statusCode, errorResponse } = createErrorResponse(error, req.query?.url);
+            res.status(statusCode).json(errorResponse);
         }
     }
 }

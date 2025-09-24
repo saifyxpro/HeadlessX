@@ -39,13 +39,16 @@ class GetController {
                 'X-Timestamp': result.timestamp,
                 'X-Was-Timeout': result.wasTimeout.toString(),
                 'X-Content-Length': result.contentLength.toString(),
-                'X-Is-Emergency': (result.isEmergencyContent || false).toString()
+                'X-Is-Emergency': (result.isEmergencyContent || false).toString(),
+                'Content-Type': 'text/html; charset=utf-8',
+                'X-Content-Type-Options': 'nosniff',
+                'X-Frame-Options': 'SAMEORIGIN'
             });
             res.send(result.html);
         } catch (error) {
             logger.error(requestId, 'HTML rendering error (GET)', error);
             const { statusCode, errorResponse } = createErrorResponse(error, req.query?.url);
-            res.status(statusCode).send(`Error: ${error.message}`);
+            res.status(statusCode).json(errorResponse);
         }
     }
 
@@ -82,13 +85,14 @@ class GetController {
                 'X-Content-Length': textContent.length,
                 'X-Timestamp': result.timestamp,
                 'X-Was-Timeout': result.wasTimeout.toString(),
-                'X-Is-Emergency': (result.isEmergencyContent || false).toString()
+                'X-Is-Emergency': (result.isEmergencyContent || false).toString(),
+                'X-Content-Type-Options': 'nosniff'
             });
             res.send(textContent);
         } catch (error) {
             logger.error(requestId, 'Content extraction error (GET)', error);
-            const { statusCode } = createErrorResponse(error, req.query?.url);
-            res.status(statusCode).send(`Error: ${error.message}`);
+            const { statusCode, errorResponse } = createErrorResponse(error, req.query?.url);
+            res.status(statusCode).json(errorResponse);
         }
     }
 

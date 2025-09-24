@@ -437,20 +437,11 @@ jobs:
     if: failure() && github.ref == 'refs/heads/main'
 
     steps:
-      - name: 📢 Create failure issue
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `CI Pipeline Failed - ${context.sha.substring(0, 7)}`,
-              body: `The CI pipeline failed for commit ${context.sha}.
-              
-              **Workflow:** ${context.workflow}
-              **Run:** ${context.runNumber}
-              **Branch:** ${context.ref}
-              
-              Please check the [workflow run](${context.payload.repository.html_url}/actions/runs/${context.runId}) for details.`,
-              labels: ['bug', 'ci-failure', 'urgent']
-            })
+      - name: 📢 Log failure details
+        run: |
+          echo "🚨 CI PIPELINE FAILURE 🚨"
+          echo "Commit: ${GITHUB_SHA:0:7}"
+          echo "Workflow: ${GITHUB_WORKFLOW}"
+          echo "Run: ${GITHUB_RUN_NUMBER}"
+          echo "Branch: ${GITHUB_REF}"
+          echo "Please check the workflow logs for details."
