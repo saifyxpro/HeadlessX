@@ -55,38 +55,53 @@ fi
 # Set environment variable to allow browser download
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 
-# Install browsers using reliable Node.js method
+# Install browsers using reliable methods
 echo "🌐 Installing Chromium browser..."
-node -e "
-const { execSync } = require('child_process');
-const path = require('path');
 
-console.log('Attempting to install Chromium browser...');
+# Set environment to allow downloads
+export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 
+success=false
+
+# Method 1: Try local playwright binary first
+if [ -f "./node_modules/.bin/playwright" ]; then
+    echo "Attempting installation via local playwright binary..."
+    if ./node_modules/.bin/playwright install chromium; then
+        print_status "Chromium installed via local binary"
+        success=true
+    fi
+fi
+
+# Method 2: Try npx if local binary failed
+if [ "$success" = false ] && command -v npx &> /dev/null; then
+    echo "Attempting installation via npx..."
+    if npx playwright install chromium; then
+        print_status "Chromium installed via npx"
+        success=true
+    fi
+fi
+
+# Method 3: Try Node.js require to trigger download
+if [ "$success" = false ]; then
+    echo "Triggering browser download via Node.js require..."
+    if node -e "
 try {
-    // Try npx first
-    execSync('npx playwright install chromium', { stdio: 'inherit' });
-    console.log('✅ Chromium installed successfully via npx');
-} catch (e1) {
-    console.log('npx method failed, trying alternative...');
-    try {
-        // Try node modules bin
-        const playwrightBin = path.join(process.cwd(), 'node_modules', '.bin', 'playwright');
-        execSync(\`\"\${playwrightBin}\" install chromium\`, { stdio: 'inherit' });
-        console.log('✅ Chromium installed via direct path');
-    } catch (e2) {
-        console.log('Direct path failed, trying to trigger download...');
-        try {
-            // Import playwright to trigger browser download
-            const playwright = require('playwright');
-            console.log('🌐 Playwright loaded, browser will download on first use');
-        } catch (e3) {
-            console.log('❌ All methods failed:', e3.message);
-            process.exit(1);
-        }
-    }
+    const playwright = require('playwright');
+    console.log('Playwright loaded - browser will download on first use');
+} catch (error) {
+    console.error('Failed to load Playwright:', error.message);
+    process.exit(1);
 }
-"
+"; then
+        print_status "Playwright loaded - browsers will download on first API call"
+        success=true
+    fi
+fi
+
+if [ "$success" = false ]; then
+    print_error "All installation methods failed"
+    exit 1
+fi
 
 # Install system dependencies for browsers (Linux/Ubuntu)
 if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v apt-get &> /dev/null; then

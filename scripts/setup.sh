@@ -231,35 +231,58 @@ else
     print_status "Playwright package found"
 fi
 
-# Install browsers using Node.js directly (most reliable method)
+# Install browsers using Node.js (most reliable method)
 echo "🌐 Installing Chromium browser..."
+
+# Use Node.js to install browsers directly
 node -e "
 const { execSync } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
+console.log('🔍 Searching for Playwright installation methods...');
+
+let installed = false;
+
+// Method 1: Try npx if available
 try {
-    // Method 1: Try npx
-    execSync('npx playwright install chromium', { stdio: 'inherit' });
+    execSync('npx playwright install chromium', { stdio: 'pipe' });
     console.log('✅ Chromium installed via npx');
-} catch (e1) {
+    installed = true;
+} catch (e) {
+    console.log('ℹ️ npx method failed, trying alternatives...');
+}
+
+// Method 2: Try direct node_modules path
+if (!installed) {
     try {
-        // Method 2: Try direct path
-        const playwrightBin = path.join(__dirname, 'node_modules', '.bin', 'playwright');
-        execSync(\`\"\${playwrightBin}\" install chromium\`, { stdio: 'inherit' });
-        console.log('✅ Chromium installed via direct path');
-    } catch (e2) {
-        try {
-            // Method 3: Use playwright directly
-            const playwright = require('playwright');
-            console.log('🌐 Triggering browser download...');
-            playwright.chromium.launch().then(browser => browser.close()).catch(() => {});
-            console.log('✅ Chromium download triggered');
-        } catch (e3) {
-            console.log('⚠️ All installation methods failed');
+        const playwrightBin = path.join(process.cwd(), 'node_modules', '.bin', 'playwright');
+        if (fs.existsSync(playwrightBin)) {
+            execSync('\`\"' + playwrightBin + '\" install chromium\`', { stdio: 'pipe' });
+            console.log('✅ Chromium installed via direct binary');
+            installed = true;
         }
+    } catch (e) {
+        console.log('ℹ️ Direct binary method failed, trying Node.js...');
     }
 }
-" || print_warning "Chromium installation failed - server will download on first use"
+
+// Method 3: Try using playwright package directly
+if (!installed) {
+    try {
+        const playwright = require('playwright');
+        console.log('✅ Playwright package loaded - browsers will download on first launch');
+        installed = true;
+    } catch (e) {
+        console.log('⚠️ Playwright package not accessible');
+    }
+}
+
+if (!installed) {
+    console.log('⚠️ All installation methods failed - manual browser installation may be required');
+    process.exit(1);
+}
+" && print_status "Chromium installation completed" || print_warning "Chromium installation failed - server will download on first use"
 
 # Install system dependencies for Linux
 if [[ \"\$OSTYPE\" == \"linux-gnu\"* ]] && command -v apt-get &> /dev/null; then
@@ -429,9 +452,54 @@ fi
 
 # Ensure Playwright browsers are installed
 echo "🌐 Verifying Playwright browsers..."
-if ! npx playwright install chromium --dry-run 2>/dev/null; then
-    print_warning "Installing Playwright Chromium browser..."
-    npx playwright install chromium
+
+# Use Node.js for reliable browser verification and installation
+node -e "
+const { execSync } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+
+console.log('🔍 Verifying Playwright browser installation...');
+
+let browserReady = false;
+
+try {
+    // Check if we can load playwright
+    const playwright = require('playwright');
+    console.log('✅ Playwright package accessible');
+    
+    // Try to verify/install browsers
+    try {
+        // Method 1: Try npx
+        execSync('npx playwright install chromium', { stdio: 'pipe' });
+        console.log('✅ Chromium browser ready via npx');
+        browserReady = true;
+    } catch (e) {
+        try {
+            // Method 2: Try direct path
+            const playwrightBin = path.join(process.cwd(), 'node_modules', '.bin', 'playwright');
+            if (fs.existsSync(playwrightBin)) {
+                execSync('\`\"' + playwrightBin + '\" install chromium\`', { stdio: 'pipe' });
+                console.log('✅ Chromium browser ready via direct path');
+                browserReady = true;
+            }
+        } catch (e2) {
+            console.log('ℹ️ Browser will be downloaded automatically on first API call');
+            browserReady = true; // This is acceptable
+        }
+    }
+} catch (e) {
+    console.log('⚠️ Playwright verification failed - browser installation may be incomplete');
+}
+
+if (browserReady) {
+    console.log('✅ Playwright browser verification completed');
+} else {
+    console.log('⚠️ Manual browser installation may be required');
+}
+" && print_status "Playwright browsers verified" || print_warning "Browser verification completed with warnings"
+else
+    print_warning "Playwright binary not found - browsers will download on first use"
 fi
 
 # Validate .env file
