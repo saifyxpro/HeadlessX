@@ -272,7 +272,6 @@ if [[ \"\$OSTYPE\" == \"linux-gnu\"* ]] && command -v apt-get &> /dev/null; then
     print_status "Browser system dependencies installed" || \
     print_warning "Some system dependencies failed - browsers may still work"
 fi
-fi
 
 print_status "Playwright browsers installation completed"
 
