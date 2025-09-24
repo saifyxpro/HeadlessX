@@ -10,10 +10,10 @@
 
 ### 1. Browser Fingerprinting Fundamentals
 
-**Eckersley, P.** (2010). *How unique is your web browser?* Electronic Frontier Foundation.  
+**Eckersley, P.** (2010). *How unique is your web browser?* Electronic Frontier Foundation.
 **URL:** <https://coveryourtracks.eff.org/static/browser-uniqueness.pdf>
 
-**Abstract:** Seminal work establishing browser fingerprinting as a privacy threat. 
+**Abstract:** Seminal work establishing browser fingerprinting as a privacy threat.
 Demonstrates how combination of browser attributes creates unique signatures for 84% of browsers tested.
 
 **Key Findings:**
@@ -30,10 +30,10 @@ Directly informs canvas noise injection and plugin spoofing strategies.
 ### 2. Canvas Fingerprinting Analysis
 
 **Mowery, K., & Shacham, H.** (2012). *Pixel perfect: Fingerprinting canvas in HTML5.*
-Proceedings of W2SP.  
+Proceedings of W2SP.
 **URL:** <https://hovav.net/ucsd/dist/canvas.pdf>
 
-**Abstract:** Detailed analysis of HTML5 Canvas fingerprinting techniques, demonstrating high 
+**Abstract:** Detailed analysis of HTML5 Canvas fingerprinting techniques, demonstrating high
 uniqueness across browsers and operating systems.
 
 **Key Findings:**
@@ -42,7 +42,7 @@ uniqueness across browsers and operating systems.
 - GPU drivers create unique rendering patterns
 - Noise injection effectiveness varies by implementation
 
-**Implementation Impact:** Informs HeadlessX's canvas noise injection algorithm. Recommends 
+**Implementation Impact:** Informs HeadlessX's canvas noise injection algorithm. Recommends
 consistent seeding for reproducible fingerprints across sessions.
 
 ---
@@ -57,11 +57,13 @@ level features.* Proceedings of NDSS.
 renderer capabilities, and supported extensions.
 
 **Key Findings:**
+
 - WebGL provides 15+ bits of entropy
 - GPU debugging info highly identifying
 - Extension lists device-specific
 
-**Privacy Implications:** Critical for HeadlessX WebGL spoofing module. Demonstrates need for consistent GPU vendor/renderer masking across browsing sessions.
+**Privacy Implications:** Critical for HeadlessX WebGL spoofing module. Demonstrates need for
+consistent GPU vendor/renderer masking across browsing sessions.
 
 ---
 
@@ -70,41 +72,51 @@ renderer capabilities, and supported extensions.
 **Englehardt, S., & Narayanan, A.** (2016). *Online tracking: A 1-million-site measurement and analysis.* ACM CCS.
 **DOI:** 10.1145/2976749.2978313
 
-**Abstract:** Large-scale study revealing audio fingerprinting on 1% of top websites, using AudioContext API for device identification.
+**Abstract:** Large-scale study revealing audio fingerprinting on 1% of top websites, using
+AudioContext API for device identification.
 
 **Key Findings:**
+
 - Audio hardware creates unique digital signatures
 - Noise patterns consistent across browser restarts
 - Mobile vs desktop distinct audio profiles
 
-**Technical Application:** Guides HeadlessX audio fingerprint noise implementation. Emphasizes importance of hardware-realistic spoofing rather than random noise.
+**Technical Application:** Guides HeadlessX audio fingerprint noise implementation. Emphasizes
+importance of hardware-realistic spoofing rather than random noise.
 
 ---
 
 ### 5. Behavioral Biometrics Research
 
-**Mondal, S., & Bours, P.** (2017). *Continuous authentication using mouse dynamics: Recent progress and future challenges.* IEEE Systems Journal.
+**Mondal, S., & Bours, P.** (2017). *Continuous authentication using mouse dynamics: Recent
+progress and future challenges.* IEEE Systems Journal.
 **DOI:** 10.1109/JSYST.2015.2472704
 
-**Abstract:** Analysis of mouse movement patterns for user identification, including velocity profiles, acceleration patterns, and click dynamics.
+**Abstract:** Analysis of mouse movement patterns for user identification, including velocity
+profiles, acceleration patterns, and click dynamics.
 
 **Key Findings:**
+
 - Mouse trajectories follow power-law distributions
 - Individual users show consistent timing patterns
 - Machine learning achieves 95%+ user identification
 
-**Behavioral Simulation:** Critical for HeadlessX's Bezier mouse movement module. Informs natural human movement simulation algorithms.
+**Behavioral Simulation:** Critical for HeadlessX's Bezier mouse movement module. Informs
+natural human movement simulation algorithms.
 
 ---
 
 ### 6. Keyboard Dynamics Analysis  
 
-**Roth, J., Liu, X., Ross, A., & Metaxas, D.** (2014). *Investigating the discriminative power of keystroke sound.* ACM Transactions on Information and System Security.
+**Roth, J., Liu, X., Ross, A., & Metaxas, D.** (2014). *Investigating the discriminative
+power of keystroke sound.* ACM Transactions on Information and System Security.
 **DOI:** 10.1145/2382448.2382450
 
-**Abstract:** Study of keyboard timing patterns (dwell time, flight time) for user authentication and identification.
+**Abstract:** Study of keyboard timing patterns (dwell time, flight time) for user
+authentication and identification.
 
 **Key Findings:**
+
 - Dwell times follow individual patterns
 - Flight times between specific keys are characteristic  
 - Typing rhythm remains consistent across sessions
@@ -115,12 +127,15 @@ renderer capabilities, and supported extensions.
 
 ### 7. TLS Fingerprinting Techniques
 
-**Anderson, B., & McGrew, D.** (2017). *TLS beyond the browser: Combining end host and network data to understand application behavior.* ACM Internet Measurement Conference.
+**Anderson, B., & McGrew, D.** (2017). *TLS beyond the browser: Combining end host and
+network data to understand application behavior.* ACM Internet Measurement Conference.
 **DOI:** 10.1145/3131365.3131402
 
-**Abstract:** Analysis of TLS handshake patterns for client identification, including cipher suite ordering and extension usage.
+**Abstract:** Analysis of TLS handshake patterns for client identification, including cipher
+suite ordering and extension usage.
 
 **Key Findings:**
+
 - TLS ClientHello messages highly identifying
 - Cipher suite preferences reveal client software
 - Extension ordering creates unique signatures
@@ -134,11 +149,12 @@ renderer capabilities, and supported extensions.
 ### 8. Bot Detection Industry Analysis
 
 **Imperva.** (2023). *Bad Bot Report 2023: The Bot Management Review.*
-**URL:** https://www.imperva.com/resources/resource-library/reports/bad-bot-report/
+**URL:** <https://www.imperva.com/resources/resource-library/reports/bad-bot-report/>
 
 **Executive Summary:** Annual analysis of bot traffic patterns, detection techniques, and evasion strategies across web properties.
 
 **Key Insights:**
+
 - 47.4% of web traffic consists of bots
 - Advanced bots mimic human behavior patterns
 - Detection relies on behavioral analysis and fingerprinting
@@ -150,11 +166,12 @@ renderer capabilities, and supported extensions.
 ### 9. Cloudflare Security Research
 
 **Cloudflare.** (2023). *DDoS Threat Landscape Report Q3 2023.*
-**URL:** https://blog.cloudflare.com/ (Link archived - specific Q3 2023 report)
+**URL:** <https://blog.cloudflare.com/> (Link archived - specific Q3 2023 report)
 
 **Abstract:** Quarterly analysis of DDoS attack patterns, including bot detection methodologies and bypass techniques.
 
 **Key Findings:**
+
 - Browser challenges increasingly sophisticated
 - JavaScript execution environments fingerprinted
 - Rate limiting patterns analyzed for automation
@@ -166,11 +183,12 @@ renderer capabilities, and supported extensions.
 ### 10. DataDome Anti-Bot Research
 
 **DataDome.** (2023). *Bot Protection Efficacy Study: Enterprise Web Applications.*
-**URL:** https://datadome.co/ (Link archived - bot protection insights study)
+**URL:** <https://datadome.co/> (Link archived - bot protection insights study)
 
 **Abstract:** Analysis of bot detection accuracy across different protection levels and bypass methodologies.
 
 **Technical Insights:**
+
 - Machine learning models detect behavioral anomalies
 - Device fingerprinting combined with behavioral analysis
 - Real-time threat intelligence integration
@@ -189,6 +207,7 @@ renderer capabilities, and supported extensions.
 **Abstract:** Comprehensive review of privacy behaviors, including the disconnect between privacy concerns and actual behavior.
 
 **Key Findings:**
+
 - Users express privacy concerns but rarely act on them
 - Convenience often outweighs privacy considerations
 - Technical privacy tools have low adoption rates
@@ -204,6 +223,7 @@ renderer capabilities, and supported extensions.
 **Abstract:** Comprehensive analysis of data collection practices by technology companies and their societal implications.
 
 **Privacy Philosophy:**
+
 - Data extraction as economic exploitation
 - Behavioral modification through personalization
 - Power asymmetries in digital interactions
@@ -215,11 +235,12 @@ renderer capabilities, and supported extensions.
 ### 13. Legal Framework Analysis
 
 **European Data Protection Board.** (2023). *Guidelines on Dark Patterns in Social Media Platform Interfaces.*
-**URL:** https://edpb.europa.eu/ (Reference archived - 2023 dark patterns guidelines)
+**URL:** <https://edpb.europa.eu/> (Reference archived - 2023 dark patterns guidelines)
 
 **Abstract:** Regulatory guidance on deceptive design practices and user consent mechanisms under GDPR.
 
 **Legal Requirements:**
+
 - Explicit consent for data collection
 - Clear privacy policy disclosure
 - Right to erasure implementation
@@ -238,6 +259,7 @@ renderer capabilities, and supported extensions.
 **Abstract:** Analysis of WebRTC local IP address disclosure vulnerabilities across browser implementations.
 
 **Technical Findings:**
+
 - STUN/TURN server requests reveal local IPs
 - ICE candidate gathering exposes network topology
 - Mobile browsers have different leak patterns
@@ -248,12 +270,15 @@ renderer capabilities, and supported extensions.
 
 ### 15. Client Hints Fingerprinting
 
-**Acar, G., Eubank, C., Englehardt, S., Juarez, M., Narayanan, A., & Diaz, C.** (2014). *The web never forgets: Persistent tracking mechanisms in the wild.* ACM CCS.
+**Acar, G., Eubank, C., Englehardt, S., Juarez, M., Narayanan, A., & Diaz, C.** (2014).
+*The web never forgets: Persistent tracking mechanisms in the wild.* ACM CCS.
 **DOI:** 10.1145/2660267.2660347
 
-**Abstract:** Comprehensive study of persistent tracking mechanisms, including early analysis of HTTP Client Hints for fingerprinting.
+**Abstract:** Comprehensive study of persistent tracking mechanisms, including early analysis of
+HTTP Client Hints for fingerprinting.
 
 **Key Findings:**
+
 - Client Hints provide device-specific information
 - Header combinations create unique signatures
 - Server-side hint requests track user preferences
@@ -270,6 +295,7 @@ renderer capabilities, and supported extensions.
 **Abstract:** Analysis of font-based fingerprinting using CSS measurement techniques and JavaScript font detection.
 
 **Technical Analysis:**
+
 - Font availability varies across systems
 - CSS font metrics provide unique measurements
 - Font rendering differences create signatures
@@ -286,6 +312,7 @@ renderer capabilities, and supported extensions.
 **Abstract:** Large-scale analysis of fingerprinting scripts, including CPU performance profiling techniques.
 
 **Performance Profiling:**
+
 - JavaScript execution timing varies by CPU
 - Mathematical operation benchmarks device-specific
 - WebWorker performance creates signatures
@@ -298,12 +325,15 @@ renderer capabilities, and supported extensions.
 
 ### 18. WebGPU Fingerprinting (Future Threat)
 
-**Laperdrix, P., Rudametkin, W., & Baudry, B.** (2016). *Beauty and the beast: Diverting modern web browsers to build unique browser fingerprints.* IEEE S&P.
+**Laperdrix, P., Rudametkin, W., & Baudry, B.** (2016). *Beauty and the beast: Diverting
+modern web browsers to build unique browser fingerprints.* IEEE S&P.
 **DOI:** 10.1109/SP.2016.57
 
-**Abstract:** Forward-looking analysis of emerging web APIs for fingerprinting, including early WebGPU considerations.
+**Abstract:** Forward-looking analysis of emerging web APIs for fingerprinting, including early
+WebGPU considerations.
 
 **Future Vectors:**
+
 - GPU compute shader capabilities
 - WebGPU adapter information exposure
 - Compute performance profiling
@@ -314,12 +344,15 @@ renderer capabilities, and supported extensions.
 
 ### 19. Speech Synthesis Fingerprinting
 
-**Pantelaios, N., Athanasopoulos, E., Portokalidis, G., & Keromytis, A. D.** (2020). *The Web Audio API Fingerprinting.* Privacy Enhancing Technologies Symposium.
+**Pantelaios, N., Athanasopoulos, E., Portokalidis, G., & Keromytis, A. D.** (2020).
+*The Web Audio API Fingerprinting.* Privacy Enhancing Technologies Symposium.
 **DOI:** 10.2478/popets-2020-0067
 
-**Abstract:** Analysis of speech synthesis and audio API fingerprinting techniques beyond traditional AudioContext methods.
+**Abstract:** Analysis of speech synthesis and audio API fingerprinting techniques beyond
+traditional AudioContext methods.
 
 **Audio Vectors:**
+
 - Speech synthesis voice availability
 - Voice characteristics variation
 - Audio processing capabilities
@@ -331,11 +364,12 @@ renderer capabilities, and supported extensions.
 ### 20. Machine Learning Detection Evasion
 
 **Bursztein, E., Aigrain, J., Moscicki, A., & Mitchell, J. C.** (2014). *The end is nigh: Generic solving of text-based CAPTCHAs.* USENIX Security.
-**URL:** https://www.usenix.org/ (Reference: USENIX Security 2014 - Bursztein et al.)
+**URL:** <https://www.usenix.org/> (Reference: USENIX Security 2014 - Bursztein et al.)
 
 **Abstract:** Analysis of machine learning approaches to CAPTCHA solving and behavioral detection systems.
 
 **ML Evasion:**
+
 - Adversarial examples in behavioral analysis
 - Feature engineering for detection avoidance
 - Ensemble model bypass strategies
@@ -349,11 +383,12 @@ renderer capabilities, and supported extensions.
 ### 21. Tor Browser Analysis
 
 **Perry, M., Clark, E., & Murdoch, S. J.** (2018). *The design and implementation of the Tor Browser.* USENIX Security.
-**URL:** https://www.usenix.org/ (Reference: USENIX Security 2018 - Perry et al.)
+**URL:** <https://www.usenix.org/> (Reference: USENIX Security 2018 - Perry et al.)
 
 **Abstract:** Comprehensive analysis of Tor Browser's anti-fingerprinting strategies and their effectiveness.
 
 **Anti-Fingerprinting Techniques:**
+
 - User-Agent standardization
 - Canvas/WebGL rendering normalization  
 - JavaScript API restriction
@@ -366,11 +401,12 @@ renderer capabilities, and supported extensions.
 ### 22. Firefox Enhanced Tracking Protection
 
 **Mozilla.** (2023). *Enhanced Tracking Protection Technical Documentation.*
-**URL:** https://developer.mozilla.org/en-US/docs/Web/Privacy (Mozilla privacy documentation)
+**URL:** <https://developer.mozilla.org/en-US/docs/Web/Privacy> (Mozilla privacy documentation)
 
 **Abstract:** Technical documentation of Firefox's built-in anti-fingerprinting and tracking protection mechanisms.
 
 **Protection Mechanisms:**
+
 - Fingerprinting resistance mode
 - Canvas data poisoning
 - WebGL parameter spoofing
@@ -404,12 +440,16 @@ renderer capabilities, and supported extensions.
 
 ---
 
-**Bibliography Compiled:** September 23, 2025  
-**Total Sources:** 22 academic papers, industry reports, and technical documentation  
-**Focus Areas:** Browser fingerprinting (9), behavioral analysis (4), privacy ethics (3), legal compliance (2), emerging threats (4)
+**Bibliography Compiled:** September 23, 2025
+**Total Sources:** 22 academic papers, industry reports, and technical documentation
+**Focus Areas:** Browser fingerprinting (9), behavioral analysis (4), privacy ethics (3),
+legal compliance (2), emerging threats (4)
 
-**Research Methodology:** Sources selected based on citation count, publication venue quality, and direct relevance to anti-detection technology. Emphasis on peer-reviewed academic work supplemented by authoritative industry research.
+**Research Methodology:** Sources selected based on citation count, publication venue quality,
+and direct relevance to anti-detection technology. Emphasis on peer-reviewed academic work
+supplemented by authoritative industry research.
 
 ---
 
-*This bibliography serves as the theoretical foundation for HeadlessX v1.3.0's anti-detection capabilities and ethical usage framework.*
+*This bibliography serves as the theoretical foundation for HeadlessX v1.3.0's anti-detection
+capabilities and ethical usage framework.*
