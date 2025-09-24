@@ -498,9 +498,6 @@ if (browserReady) {
     console.log('⚠️ Manual browser installation may be required');
 }
 " && print_status "Playwright browsers verified" || print_warning "Browser verification completed with warnings"
-else
-    print_warning "Playwright binary not found - browsers will download on first use"
-fi
 
 # Validate .env file
 if [ ! -f ".env" ]; then
