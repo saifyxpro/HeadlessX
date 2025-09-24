@@ -70,7 +70,7 @@ class AudioContextController {
      */
     getAudioContextSpoofingScript(profileId, audioProfile = 'windows-chrome') {
         const profile = this.audioProfiles[audioProfile] || this.audioProfiles['windows-chrome'];
-        
+
         return `
         (function() {
             const profileId = '${profileId}';
@@ -391,7 +391,7 @@ class AudioContextController {
      */
     generateTestFingerprint(profileId, audioProfile = 'windows-chrome') {
         const profile = this.audioProfiles[audioProfile];
-        
+
         return {
             profileId,
             audioProfile,
@@ -412,11 +412,11 @@ class AudioContextController {
      */
     addNoise(audioData, intensity = 0.001) {
         if (!audioData || !audioData.length) return audioData;
-        
+
         for (let i = 0; i < audioData.length; i++) {
             audioData[i] += (Math.random() - 0.5) * intensity;
         }
-        
+
         return audioData;
     }
 }

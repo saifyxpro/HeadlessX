@@ -40,7 +40,7 @@ class TimezoneManager {
                 dateFormat: 'MM/DD/YYYY',
                 timeFormat: '12h'
             },
-            'canada': {
+            canada: {
                 timezone: 'America/Toronto',
                 offset: -300, // EST offset in minutes
                 dst: true,
@@ -50,9 +50,9 @@ class TimezoneManager {
                 dateFormat: 'DD/MM/YYYY',
                 timeFormat: '24h'
             },
-            
+
             // Europe
-            'uk': {
+            uk: {
                 timezone: 'Europe/London',
                 offset: 0, // GMT offset in minutes
                 dst: true,
@@ -62,7 +62,7 @@ class TimezoneManager {
                 dateFormat: 'DD/MM/YYYY',
                 timeFormat: '24h'
             },
-            'germany': {
+            germany: {
                 timezone: 'Europe/Berlin',
                 offset: 60, // CET offset in minutes
                 dst: true,
@@ -72,7 +72,7 @@ class TimezoneManager {
                 dateFormat: 'DD.MM.YYYY',
                 timeFormat: '24h'
             },
-            'france': {
+            france: {
                 timezone: 'Europe/Paris',
                 offset: 60, // CET offset in minutes
                 dst: true,
@@ -82,7 +82,7 @@ class TimezoneManager {
                 dateFormat: 'DD/MM/YYYY',
                 timeFormat: '24h'
             },
-            'netherlands': {
+            netherlands: {
                 timezone: 'Europe/Amsterdam',
                 offset: 60, // CET offset in minutes
                 dst: true,
@@ -92,9 +92,9 @@ class TimezoneManager {
                 dateFormat: 'DD-MM-YYYY',
                 timeFormat: '24h'
             },
-            
+
             // Asia Pacific
-            'australia': {
+            australia: {
                 timezone: 'Australia/Sydney',
                 offset: 600, // AEST offset in minutes
                 dst: true,
@@ -104,7 +104,7 @@ class TimezoneManager {
                 dateFormat: 'DD/MM/YYYY',
                 timeFormat: '12h'
             },
-            'japan': {
+            japan: {
                 timezone: 'Asia/Tokyo',
                 offset: 540, // JST offset in minutes
                 dst: false,
@@ -114,7 +114,7 @@ class TimezoneManager {
                 dateFormat: 'YYYY/MM/DD',
                 timeFormat: '24h'
             },
-            'singapore': {
+            singapore: {
                 timezone: 'Asia/Singapore',
                 offset: 480, // SGT offset in minutes
                 dst: false,
@@ -126,7 +126,7 @@ class TimezoneManager {
             }
         };
     }
-    
+
     /**
      * Get timezone configuration for a specific region
      */
@@ -134,20 +134,20 @@ class TimezoneManager {
         const database = this.getTimezoneDatabase();
         return database[region] || database['us-east'];
     }
-    
+
     /**
      * Generate timezone-consistent Date configuration
      */
     static generateDateConfig(region) {
         const config = this.getTimezoneConfig(region);
         const now = new Date();
-        
+
         // Calculate current offset considering DST
         let currentOffset = config.offset;
         if (config.dst && this.isDSTActive(region, now)) {
             currentOffset += 60; // Add 1 hour for DST
         }
-        
+
         return {
             timezone: config.timezone,
             timezoneOffset: -currentOffset, // JavaScript uses negative values
@@ -159,49 +159,49 @@ class TimezoneManager {
             isDST: config.dst && this.isDSTActive(region, now)
         };
     }
-    
+
     /**
      * Check if Daylight Saving Time is currently active
      */
     static isDSTActive(region, date = new Date()) {
         const config = this.getTimezoneConfig(region);
         if (!config.dst) return false;
-        
+
         const year = date.getFullYear();
         const month = date.getMonth();
         const day = date.getDate();
-        
+
         // Simplified DST calculation for major regions
         if (region.startsWith('us') || region === 'canada') {
             // US/Canada DST: Second Sunday in March to first Sunday in November
             const marchSecondSunday = this.getNthWeekday(year, 2, 1, 0); // Second Sunday in March
             const novemberFirstSunday = this.getNthWeekday(year, 10, 1, 0); // First Sunday in November
-            
+
             const currentDate = month * 100 + day;
             return currentDate >= marchSecondSunday && currentDate < novemberFirstSunday;
         }
-        
+
         if (region === 'uk' || region === 'germany' || region === 'france' || region === 'netherlands') {
             // EU DST: Last Sunday in March to last Sunday in October
             const marchLastSunday = this.getLastWeekday(year, 2, 0); // Last Sunday in March
             const octoberLastSunday = this.getLastWeekday(year, 9, 0); // Last Sunday in October
-            
+
             const currentDate = month * 100 + day;
             return currentDate >= marchLastSunday && currentDate < octoberLastSunday;
         }
-        
+
         if (region === 'australia') {
             // Australia DST: First Sunday in October to first Sunday in April (reversed seasons)
             const octoberFirstSunday = this.getNthWeekday(year, 9, 1, 0);
             const aprilFirstSunday = this.getNthWeekday(year, 3, 1, 0);
-            
+
             const currentDate = month * 100 + day;
             return currentDate >= octoberFirstSunday || currentDate < aprilFirstSunday;
         }
-        
+
         return false;
     }
-    
+
     /**
      * Get the nth occurrence of a weekday in a month
      */
@@ -212,7 +212,7 @@ class TimezoneManager {
         const day = 1 + offset + (nth - 1) * 7;
         return month * 100 + day;
     }
-    
+
     /**
      * Get the last occurrence of a weekday in a month
      */
@@ -223,17 +223,17 @@ class TimezoneManager {
         const day = lastDay - offset;
         return month * 100 + day;
     }
-    
+
     /**
      * Generate browser headers consistent with timezone
      */
     static generateConsistentHeaders(region) {
         const config = this.getTimezoneConfig(region);
-        
+
         return {
             'Accept-Language': config.languages.join(','),
             'Accept-Encoding': 'gzip, deflate, br',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
             'Cache-Control': 'max-age=0',
             'Upgrade-Insecure-Requests': '1',
             'Sec-Fetch-Site': 'none',
@@ -242,13 +242,13 @@ class TimezoneManager {
             'Sec-Fetch-Dest': 'document'
         };
     }
-    
+
     /**
      * Inject timezone configuration into page
      */
     static getTimezoneInjectionScript(region) {
         const dateConfig = this.generateDateConfig(region);
-        
+
         return `
         // Override Date object for timezone consistency
         (() => {

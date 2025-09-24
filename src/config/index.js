@@ -17,15 +17,15 @@ function loadEnvironmentVariables() {
                 if (line.trim() === '' || line.trim().startsWith('#')) {
                     return;
                 }
-                
+
                 const equalIndex = line.indexOf('=');
                 if (equalIndex > 0) {
                     const key = line.substring(0, equalIndex).trim();
                     const value = line.substring(equalIndex + 1).trim();
-                    
+
                     // Remove quotes if present
                     const cleanValue = value.replace(/^["']|["']$/g, '');
-                    
+
                     if (key && !process.env[key]) {
                         process.env[key] = cleanValue;
                     }
@@ -89,13 +89,13 @@ const config = {
         stealthMode: process.env.STEALTH_MODE || 'advanced', // basic, advanced, maximum
         consistencyCheck: process.env.STEALTH_CONSISTENCY_CHECK !== 'false',
         validation: process.env.STEALTH_VALIDATION !== 'false',
-        
+
         // Fingerprint settings
         fingerprintProfile: process.env.FINGERPRINT_PROFILE || 'desktop-chrome',
         profileRotation: process.env.PROFILE_ROTATION_ENABLED === 'true',
         profileRotationInterval: parseInt(process.env.PROFILE_ROTATION_INTERVAL) || 3600000,
         customProfilesPath: process.env.CUSTOM_PROFILES_PATH || './src/config/profiles',
-        
+
         // Behavioral simulation
         behavioralSimulation: process.env.BEHAVIORAL_SIMULATION !== 'disabled',
         mouseMovementNatural: process.env.MOUSE_MOVEMENT_NATURAL !== 'false',
@@ -103,7 +103,7 @@ const config = {
         scrollBehavior: process.env.SCROLL_BEHAVIOR || 'natural',
         attentionSimulation: process.env.ATTENTION_SIMULATION !== 'false',
         microMovements: process.env.MICRO_MOVEMENTS !== 'false',
-        
+
         // Advanced fingerprinting controls
         webrtcLeakProtection: process.env.WEBRTC_LEAK_PROTECTION !== 'disabled',
         canvasNoiseLevel: process.env.CANVAS_NOISE_LEVEL || 'medium',
@@ -111,14 +111,14 @@ const config = {
         audioFingerprintNoise: process.env.AUDIO_FINGERPRINT_NOISE !== 'disabled',
         hardwareSpoofing: process.env.HARDWARE_SPOOFING !== 'disabled',
         timezoneIntelligence: process.env.TIMEZONE_INTELLIGENCE !== 'disabled',
-        
+
         // Geolocation intelligence
         geolocationConsistency: process.env.GEOLOCATION_CONSISTENCY !== 'disabled',
         autoTimezoneMatching: process.env.AUTO_TIMEZONE_MATCHING !== 'false',
         languageHeaderCorrelation: process.env.LANGUAGE_HEADER_CORRELATION !== 'false',
         currencyLocaleMatching: process.env.CURRENCY_LOCALE_MATCHING !== 'false',
         ispFingerprintProfiles: process.env.ISP_FINGERPRINT_PROFILES !== 'false',
-        
+
         // Additional spoofing controls
         fontFingerprintControl: process.env.FONT_FINGERPRINT_CONTROL !== 'disabled',
         mediaDeviceSpoofing: process.env.MEDIA_DEVICE_SPOOFING !== 'disabled',
@@ -135,14 +135,14 @@ const config = {
         akamaiBypass: process.env.AKAMAI_BYPASS !== 'disabled',
         tlsFingerprintMasking: process.env.TLS_FINGERPRINT_MASKING !== 'disabled',
         http2FingerprintSpoofing: process.env.HTTP2_FINGERPRINT_SPOOFING !== 'disabled',
-        
+
         // Header manipulation
         userAgentRotation: process.env.USER_AGENT_ROTATION !== 'disabled',
         headerOrderRandomization: process.env.HEADER_ORDER_RANDOMIZATION !== 'false',
         acceptHeaderVariation: process.env.ACCEPT_HEADER_VARIATION !== 'false',
         acceptLanguageIntelligence: process.env.ACCEPT_LANGUAGE_INTELLIGENCE !== 'false',
         secChUaSpoofing: process.env.SEC_CH_UA_SPOOFING !== 'disabled',
-        
+
         // Timing controls
         requestTimingRandomization: process.env.REQUEST_TIMING_RANDOMIZATION !== 'false',
         responseDelaySimulation: process.env.RESPONSE_DELAY_SIMULATION !== 'false',
@@ -199,7 +199,7 @@ const config = {
         memoryOptimization: process.env.MEMORY_OPTIMIZATION || 'normal', // normal, aggressive
         cpuUsageControl: process.env.CPU_USAGE_CONTROL || 'adaptive', // fixed, adaptive
         networkOptimization: process.env.NETWORK_OPTIMIZATION !== 'disabled',
-        
+
         // Scaling and concurrency
         smartLoadBalancing: process.env.SMART_LOAD_BALANCING !== 'false',
         adaptiveScaling: process.env.ADAPTIVE_SCALING !== 'false',
@@ -214,13 +214,13 @@ const config = {
         rotation: process.env.LOG_ROTATION !== 'false',
         maxSize: process.env.LOG_MAX_SIZE || '10MB',
         maxFiles: parseInt(process.env.LOG_MAX_FILES) || 5,
-        
+
         // Advanced logging features
         fingerprintChangeTracking: process.env.FINGERPRINT_CHANGE_TRACKING !== 'false',
         detectionAttemptLogging: process.env.DETECTION_ATTEMPT_LOGGING !== 'false',
         profileUsageAnalytics: process.env.PROFILE_USAGE_ANALYTICS !== 'false',
         errorCategorization: process.env.ERROR_CATEGORIZATION || 'basic', // basic, enhanced
-        
+
         // Debug configurations
         verboseLogging: process.env.VERBOSE_LOGGING === 'true',
         fingerprintDebug: process.env.FINGERPRINT_DEBUG === 'true',

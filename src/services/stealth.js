@@ -67,7 +67,7 @@ function generateAdvancedFingerprint(buid = crypto.randomUUID(), profileType = '
     const buidHash = crypto.createHash('sha512').update(buid).digest();
     const profile = DEVICE_PROFILES[profileType] || DEVICE_PROFILES['mid-range-desktop'];
     const audioProfile = AUDIO_PROFILES['windows-chrome'];
-    
+
     const fingerprint = {
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
         platform: 'Win32',
@@ -127,7 +127,6 @@ function generateAdvancedFingerprint(buid = crypto.randomUUID(), profileType = '
 }
 
 class StealthService {
-
     /**
      * Generate advanced fingerprint with enhanced profiles
      */
@@ -139,9 +138,9 @@ class StealthService {
     static async enhancePageWithAdvancedStealth(page) {
         try {
             console.log('🎭 Applying advanced playwright-stealth fingerprinting...');
-            
+
             const fingerprint = generateAdvancedFingerprint();
-            
+
             // Advanced fingerprint injection script
             await page.addInitScript((fp) => {
                 // Remove webdriver property completely
@@ -173,15 +172,15 @@ class StealthService {
                 const getContext = HTMLCanvasElement.prototype.getContext;
                 HTMLCanvasElement.prototype.getContext = function(contextType, ...args) {
                     const context = getContext.call(this, contextType, ...args);
-                    
+
                     if (context && (contextType === 'webgl' || contextType === 'experimental-webgl')) {
                         const originalGetParameter = context.getParameter;
                         context.getParameter = function(parameter) {
                             try {
-                                // WEBGL_debug_renderer_info constants  
+                                // WEBGL_debug_renderer_info constants
                                 if (parameter === 37445) return fp.webgl.vendor; // UNMASKED_VENDOR_WEBGL
                                 if (parameter === 37446) return fp.webgl.renderer; // UNMASKED_RENDERER_WEBGL
-                                
+
                                 // Enhanced WebGL parameters with fingerprint consistency
                                 if (parameter === 7938) return fp.webgl.version; // VERSION
                                 if (parameter === 35724) return fp.webgl.shadingLanguageVersion; // SHADING_LANGUAGE_VERSION
@@ -195,7 +194,7 @@ class StealthService {
                                 if (parameter === 34024) return 16384;
                                 if (parameter === 34921) return 16;
                                 if (parameter === 36347) return 1024;
-                                
+
                                 // Use original function for other parameters
                                 return originalGetParameter.call(this, parameter);
                             } catch (e) {
@@ -203,7 +202,7 @@ class StealthService {
                                 return null;
                             }
                         };
-                        
+
                         // Enhanced extension spoofing with consistent extensions
                         const originalGetSupportedExtensions = context.getSupportedExtensions;
                         if (originalGetSupportedExtensions) {
@@ -225,7 +224,7 @@ class StealthService {
                             };
                         }
                     }
-                    
+
                     return context;
                 };
 
@@ -276,19 +275,19 @@ class StealthService {
                             // Add consistent noise based on canvas fingerprint
                             const imageData = context.getImageData(0, 0, this.width, this.height);
                             const data = imageData.data;
-                            
+
                             // Parse canvas noise from hex string
                             const noiseBuffer = Buffer.from(fp.canvas.noise, 'hex');
-                            
+
                             for (let i = 0; i < data.length; i += 4) {
                                 const noiseIdx = i % noiseBuffer.length;
                                 const noise = (noiseBuffer[noiseIdx] % 3) - 1; // -1, 0, or 1
-                                data[i] = Math.max(0, Math.min(255, data[i] + noise));     // R
+                                data[i] = Math.max(0, Math.min(255, data[i] + noise)); // R
                                 data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise)); // G
                                 data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise)); // B
                                 // Alpha channel unchanged
                             }
-                            
+
                             context.putImageData(imageData, 0, 0);
                         }
                         return originalToDataURL.apply(this, args);
@@ -305,11 +304,11 @@ class StealthService {
                         // Apply canvas fingerprint properties
                         this.textBaseline = fp.canvas.textBaseline;
                         this.textAlign = fp.canvas.textAlign;
-                        
+
                         // Add subtle positioning variations based on BUID
                         const xOffset = (fp.random(text.length) - 0.5) * 0.1;
                         const yOffset = (fp.random(text.length + 1) - 0.5) * 0.1;
-                        
+
                         return originalFillText.call(this, text, x + xOffset, y + yOffset, maxWidth);
                     } catch (e) {
                         // Fallback to original on error
@@ -320,39 +319,39 @@ class StealthService {
                 // Advanced AudioContext fingerprinting with consistent values
                 if (window.AudioContext || window.webkitAudioContext) {
                     const OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
-                    
+
                     function StealthAudioContext(...args) {
                         const context = new OriginalAudioContext(...args);
-                        
+
                         // Override sampleRate with fingerprint value
                         Object.defineProperty(context, 'sampleRate', {
                             get: () => fp.audioContext.sampleRate
                         });
-                        
+
                         Object.defineProperty(context, 'baseLatency', {
                             get: () => fp.audioContext.baseLatency
                         });
-                        
+
                         Object.defineProperty(context, 'outputLatency', {
                             get: () => fp.audioContext.outputLatency
                         });
-                        
+
                         // Override destination properties
                         Object.defineProperty(context.destination, 'maxChannelCount', {
                             get: () => fp.audioContext.maxChannelCount
                         });
-                        
+
                         Object.defineProperty(context.destination, 'numberOfInputs', {
                             get: () => fp.audioContext.numberOfInputs
                         });
-                        
+
                         Object.defineProperty(context.destination, 'numberOfOutputs', {
                             get: () => fp.audioContext.numberOfOutputs
                         });
-                        
+
                         return context;
                     }
-                    
+
                     window.AudioContext = StealthAudioContext;
                     if (window.webkitAudioContext) {
                         window.webkitAudioContext = StealthAudioContext;
@@ -363,29 +362,29 @@ class StealthService {
                 const mockRTCPeerConnection = function() {
                     throw new Error('WebRTC is disabled for privacy');
                 };
-                
-                Object.defineProperty(window, 'RTCPeerConnection', { 
+
+                Object.defineProperty(window, 'RTCPeerConnection', {
                     get: () => mockRTCPeerConnection,
-                    configurable: false 
+                    configurable: false
                 });
-                Object.defineProperty(window, 'webkitRTCPeerConnection', { 
+                Object.defineProperty(window, 'webkitRTCPeerConnection', {
                     get: () => mockRTCPeerConnection,
-                    configurable: false 
+                    configurable: false
                 });
-                Object.defineProperty(window, 'mozRTCPeerConnection', { 
+                Object.defineProperty(window, 'mozRTCPeerConnection', {
                     get: () => mockRTCPeerConnection,
-                    configurable: false 
+                    configurable: false
                 });
-                
+
                 // Block getUserMedia to prevent media device enumeration
                 const mockGetUserMedia = () => Promise.reject(new DOMException('Permission denied', 'NotAllowedError'));
                 Object.defineProperty(navigator, 'getUserMedia', { get: () => mockGetUserMedia });
                 Object.defineProperty(navigator, 'webkitGetUserMedia', { get: () => mockGetUserMedia });
                 Object.defineProperty(navigator, 'mozGetUserMedia', { get: () => mockGetUserMedia });
-                
+
                 if (navigator.mediaDevices) {
                     Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { get: () => mockGetUserMedia });
-                    Object.defineProperty(navigator.mediaDevices, 'enumerateDevices', { 
+                    Object.defineProperty(navigator.mediaDevices, 'enumerateDevices', {
                         get: () => () => Promise.resolve([])
                     });
                 }
@@ -393,17 +392,17 @@ class StealthService {
                 // Enhanced Timezone spoofing
                 const originalDate = Date;
                 const timezoneOffset = -300; // EST offset in minutes
-                
+
                 window.Date = class extends originalDate {
                     getTimezoneOffset() {
                         return timezoneOffset;
                     }
-                    
+
                     toString() {
                         return super.toString().replace(/GMT[+-]\d{4} \(.+\)/, 'GMT-0500 (Eastern Standard Time)');
                     }
                 };
-                
+
                 // Copy static methods
                 Object.getOwnPropertyNames(originalDate).forEach(prop => {
                     if (prop !== 'prototype' && prop !== 'name' && prop !== 'length') {
@@ -415,15 +414,15 @@ class StealthService {
                     const originalQuery = navigator.permissions.query;
                     navigator.permissions.query = (parameters) => {
                         const permissionStates = {
-                            'notifications': 'default',
-                            'geolocation': 'denied',
-                            'camera': 'denied',
-                            'microphone': 'denied',
-                            'midi': 'denied',
-                            'push': 'denied',
+                            notifications: 'default',
+                            geolocation: 'denied',
+                            camera: 'denied',
+                            microphone: 'denied',
+                            midi: 'denied',
+                            push: 'denied',
                             'background-sync': 'denied'
                         };
-                        
+
                         const state = permissionStates[parameters.name] || 'denied';
                         return Promise.resolve({ state });
                     };
@@ -441,7 +440,7 @@ class StealthService {
                 if ('getBattery' in navigator) delete navigator.getBattery;
                 if ('getGamepads' in navigator) delete navigator.getGamepads;
                 if ('sendBeacon' in navigator) delete navigator.sendBeacon;
-                
+
                 // Speech synthesis spoofing for consistency
                 if (window.speechSynthesis && window.speechSynthesis.getVoices) {
                     const originalGetVoices = window.speechSynthesis.getVoices;
@@ -480,18 +479,17 @@ class StealthService {
                     audio: `${fp.audioContext.sampleRate}Hz`,
                     buid: fp.BUID.slice(0, 8) + '...'
                 });
-
             }, fingerprint);
 
             // Set realistic viewport
-            await page.setViewportSize({ 
-                width: fingerprint.viewportWidth, 
-                height: fingerprint.viewportHeight 
+            await page.setViewportSize({
+                width: fingerprint.viewportWidth,
+                height: fingerprint.viewportHeight
             });
 
             // Enhanced headers with fingerprint data
             await page.setExtraHTTPHeaders({
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
                 'Accept-Language': fingerprint.languages.join(',') + ';q=0.9',
                 'Accept-Encoding': 'gzip, deflate, br',
                 'Cache-Control': 'max-age=0',
@@ -508,19 +506,18 @@ class StealthService {
 
             console.log('✅ Advanced playwright-stealth fingerprinting complete');
             return fingerprint;
-
         } catch (error) {
             console.error('❌ Error applying advanced stealth:', error);
             return null;
         }
     }
-    
+
     // Generate stealth context options optimized for datacenter IPs and Google bypass
     static generateStealthContextOptions(userAgent = null, customHeaders = {}) {
         const realisticUserAgent = userAgent || getRandomUserAgent();
         const realisticLocale = getRandomLocale();
         const realisticHeaders = generateRealisticHeaders(realisticUserAgent, customHeaders);
-        
+
         return {
             viewport: { width: 1920, height: 1080 }, // Standard desktop viewport
             userAgent: realisticUserAgent,
@@ -540,23 +537,23 @@ class StealthService {
                 'sec-ch-ua-wow64': '?0',
                 'Upgrade-Insecure-Requests': '1',
                 'User-Agent': realisticUserAgent,
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                 'Sec-Fetch-Site': 'none',
                 'Sec-Fetch-Mode': 'navigate',
                 'Sec-Fetch-User': '?1',
                 'Sec-Fetch-Dest': 'document',
                 'Accept-Encoding': 'gzip, deflate, br, zstd',
                 'Accept-Language': 'en-US,en;q=0.9',
-                'Connection': 'keep-alive',
+                Connection: 'keep-alive',
                 // DATACENTER FRIENDLY: Additional headers to appear more residential
                 'sec-ch-viewport-width': '1920',
                 'sec-ch-viewport-height': '1080',
                 'sec-ch-device-memory': '8',
                 'sec-ch-dpr': '1',
                 'sec-gpc': '1',
-                'dnt': '1',
+                dnt: '1',
                 'Cache-Control': 'max-age=0',
-                'Pragma': 'no-cache',
+                Pragma: 'no-cache',
                 // GOOGLE BYPASS: Additional enterprise-like headers
                 'sec-ch-prefers-color-scheme': 'light',
                 'sec-ch-prefers-reduced-motion': 'no-preference',
@@ -588,10 +585,10 @@ class StealthService {
             try {
                 // === CORE AUTOMATION DETECTION REMOVAL ===
                 // Remove all possible webdriver traces
-                ['webdriver', '__webdriver_evaluate', '__selenium_evaluate', '__webdriver_script_function', 
-                 '__webdriver_script_func', '__webdriver_script_fn', '__fxdriver_evaluate', '__driver_unwrapped', 
-                 '__webdriver_unwrapped', '__driver_evaluate', '__selenium_unwrapped', '__fxdriver_unwrapped',
-                 'webdriver', '__webdriver_script_fn', '__webdriver_script_func'].forEach(prop => {
+                ['webdriver', '__webdriver_evaluate', '__selenium_evaluate', '__webdriver_script_function',
+                    '__webdriver_script_func', '__webdriver_script_fn', '__fxdriver_evaluate', '__driver_unwrapped',
+                    '__webdriver_unwrapped', '__driver_evaluate', '__selenium_unwrapped', '__fxdriver_unwrapped',
+                    'webdriver', '__webdriver_script_fn', '__webdriver_script_func'].forEach(prop => {
                     try {
                         delete window[prop];
                         delete navigator[prop];
@@ -604,7 +601,7 @@ class StealthService {
 
                 // Chrome DevTools Protocol indicators
                 ['cdc_adoQpoasnfa76pfcZLmcfl_Array', 'cdc_adoQpoasnfa76pfcZLmcfl_Promise', 'cdc_adoQpoasnfa76pfcZLmcfl_Symbol',
-                 'cdc_adoQpoasnfa76pfcZLmcfl_JSON', 'cdc_adoQpoasnfa76pfcZLmcfl_Object'].forEach(prop => {
+                    'cdc_adoQpoasnfa76pfcZLmcfl_JSON', 'cdc_adoQpoasnfa76pfcZLmcfl_Object'].forEach(prop => {
                     try {
                         delete window[prop];
                     } catch (e) {}
@@ -641,7 +638,7 @@ class StealthService {
                         ],
                         mobile: false,
                         platform: 'Windows',
-                        getHighEntropyValues: async (hints) => ({
+                        getHighEntropyValues: async(hints) => ({
                             architecture: 'x86',
                             bitness: '64',
                             brands: [
@@ -770,14 +767,14 @@ class StealthService {
                     window._mouseHistory = [];
                     window._keyHistory = [];
                     window._scrollHistory = [];
-                    
+
                     // Add realistic event listeners
                     ['mousedown', 'mouseup', 'click', 'mousemove'].forEach(event => {
                         document.addEventListener(event, (e) => {
-                            window._mouseHistory.push({ 
-                                type: event, 
-                                timestamp: Date.now(), 
-                                x: e.clientX, 
+                            window._mouseHistory.push({
+                                type: event,
+                                timestamp: Date.now(),
+                                x: e.clientX,
                                 y: e.clientY,
                                 isTrusted: true
                             });
@@ -787,9 +784,9 @@ class StealthService {
 
                     ['keydown', 'keyup', 'keypress'].forEach(event => {
                         document.addEventListener(event, (e) => {
-                            window._keyHistory.push({ 
-                                type: event, 
-                                timestamp: Date.now(), 
+                            window._keyHistory.push({
+                                type: event,
+                                timestamp: Date.now(),
                                 key: e.key,
                                 isTrusted: true
                             });
@@ -859,7 +856,7 @@ class StealthService {
                 // Override toString to hide modifications
                 const descriptors = Object.getOwnPropertyDescriptors(Function.prototype);
                 const originalToString = descriptors.toString.value;
-                
+
                 Function.prototype.toString = function() {
                     if (this === navigator.permissions.query) {
                         return 'function query() { [native code] }';
@@ -875,7 +872,6 @@ class StealthService {
                     ...descriptors.toString,
                     value: Function.prototype.toString
                 });
-
             } catch (e) {
                 // Silently fail to avoid detection
             }
@@ -887,7 +883,7 @@ class StealthService {
         try {
             // Wait for any dynamic content to load
             await page.waitForTimeout(2000);
-            
+
             // Check for CAPTCHA or anti-bot pages first
             const pageContent = await page.evaluate(() => {
                 return {
@@ -897,11 +893,11 @@ class StealthService {
                     hasUnusualTraffic: /unusual traffic|automated queries|are you a robot/i.test(document.body ? document.body.innerText : '')
                 };
             });
-            
+
             if (pageContent.hasUnusualTraffic || pageContent.hasRecaptcha) {
                 console.log('⚠️ Google anti-bot detection detected, attempting to wait it out...');
                 await page.waitForTimeout(10000); // Wait longer for potential auto-resolution
-                
+
                 // Try refreshing the page once
                 try {
                     await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -910,7 +906,7 @@ class StealthService {
                     console.log('⚠️ Page refresh failed during anti-bot handling');
                 }
             }
-            
+
             // Enhanced consent button detection
             const consentSelectors = [
                 'button[id*="accept"]',
@@ -928,13 +924,13 @@ class StealthService {
                 '[role="button"]:has-text("Accept")',
                 '[role="button"]:has-text("I agree")'
             ];
-            
+
             let consentHandled = false;
             for (const selector of consentSelectors) {
                 try {
                     const elements = await page.locator(selector);
                     const count = await elements.count();
-                    
+
                     for (let i = 0; i < count; i++) {
                         const element = elements.nth(i);
                         if (await element.isVisible({ timeout: 1000 })) {
@@ -950,13 +946,12 @@ class StealthService {
                     // Continue to next selector
                 }
             }
-            
+
             // Additional wait after consent
             if (consentHandled) {
                 await page.waitForTimeout(3000);
                 console.log('✅ Google consent handling completed');
             }
-            
         } catch (error) {
             console.log('⚠️ Google consent handling failed (continuing):', error.message);
         }
@@ -964,14 +959,14 @@ class StealthService {
 
     // Set up request interception for perfect headers
     static async setupRequestInterception(page) {
-        await page.route('**/*', async (route) => {
+        await page.route('**/*', async(route) => {
             const request = route.request();
-            
+
             // CRITICAL: Perfect Chrome headers for Schema.org detection bypass
             const perfectChromeHeaders = {
                 ...request.headers(),
                 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-                'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                 'accept-language': 'en-US,en;q=0.9',
                 'accept-encoding': 'gzip, deflate, br, zstd',
                 'sec-ch-ua': '"Google Chrome";v="131", "Not=A?Brand";v="8", "Chromium";v="131"',
@@ -983,21 +978,22 @@ class StealthService {
                 'sec-ch-ua-platform-version': '"15.0.0"',
                 'sec-ch-ua-full-version': '"131.0.6778.86"',
                 'sec-ch-ua-wow64': '?0',
-                'sec-fetch-dest': request.url().includes('.css') ? 'style' : 
-                                 request.url().includes('.js') ? 'script' : 'document',
+                'sec-fetch-dest': request.url().includes('.css')
+                    ? 'style'
+                    : request.url().includes('.js') ? 'script' : 'document',
                 'sec-fetch-mode': 'navigate',
                 'sec-fetch-site': 'none',
                 'sec-fetch-user': '?1',
                 'upgrade-insecure-requests': '1',
                 'cache-control': 'max-age=0',
-                'dnt': '1',
-                'connection': 'keep-alive'
+                dnt: '1',
+                connection: 'keep-alive'
             };
 
             // Remove automation headers that might leak
             delete perfectChromeHeaders['x-requested-with'];
-            delete perfectChromeHeaders['pragma'];
-            
+            delete perfectChromeHeaders.pragma;
+
             await route.continue({
                 headers: perfectChromeHeaders
             });

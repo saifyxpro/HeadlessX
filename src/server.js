@@ -1,6 +1,6 @@
 /**
  * HeadlessX v1.2.0 Server Entry Point
- * 
+ *
  * Main entry point for PM2 and production deployments
  */
 

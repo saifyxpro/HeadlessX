@@ -10,7 +10,7 @@ class WebRTCController {
     constructor() {
         this.leakPreventionModes = {
             disabled: 'Disable WebRTC completely',
-            proxy: 'Route through proxy only', 
+            proxy: 'Route through proxy only',
             local: 'Local IP only',
             minimal: 'Minimal functionality'
         };
@@ -51,7 +51,7 @@ class WebRTCController {
      */
     getWebRTCControlScript(mode = 'disabled', profileType = 'desktop') {
         const mediaProfile = this.mediaDeviceProfiles[profileType] || this.mediaDeviceProfiles.desktop;
-        
+
         return `
         (function() {
             const mode = '${mode}';

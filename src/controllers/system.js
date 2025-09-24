@@ -10,17 +10,16 @@ const StealthService = require('../services/stealth');
 const { logger } = require('../utils/logger');
 
 class SystemController {
-    
     /**
      * Enhanced health check with v1.3.0 features status
      */
     static getHealth(req, res) {
         const requestId = req.requestId;
-        
+
         try {
             const uptime = Math.floor((Date.now() - config.server.startTime.getTime()) / 1000);
             const memoryUsage = process.memoryUsage();
-            
+
             const healthStatus = {
                 status: 'OK',
                 timestamp: new Date().toISOString(),
@@ -47,10 +46,9 @@ class SystemController {
                     behavior: ['confident', 'natural', 'cautious']
                 }
             };
-            
+
             logger.info(requestId, 'Enhanced health check requested', { status: 'healthy', version: '1.3.0' });
             res.json(healthStatus);
-            
         } catch (error) {
             logger.error(requestId, 'Health check failed', error);
             res.status(503).json({
@@ -68,15 +66,15 @@ class SystemController {
      */
     static async testFingerprint(req, res) {
         const requestId = req.requestId;
-        
+
         try {
             const { deviceProfile, geoProfile } = req.body;
-            
+
             logger.info(requestId, `Testing fingerprint with profile: ${deviceProfile}/${geoProfile}`);
-            
+
             // Generate test fingerprint
             const fingerprint = StealthService.generateAdvancedFingerprint(undefined, deviceProfile);
-            
+
             // Test fingerprint consistency
             const fingerprintTest = {
                 timestamp: new Date().toISOString(),
@@ -119,10 +117,9 @@ class SystemController {
                     uniqueness: fingerprint.id.substring(0, 8)
                 }
             };
-            
+
             logger.info(requestId, 'Fingerprint test completed successfully');
             res.json(fingerprintTest);
-            
         } catch (error) {
             logger.error(requestId, 'Fingerprint test failed', error);
             res.status(500).json({
@@ -132,20 +129,20 @@ class SystemController {
             });
         }
     }
-    
+
     // Status endpoint with server information (requires authentication)
     static getStatus(req, res) {
         const requestId = req.requestId;
-        
+
         try {
             const uptime = Math.floor((Date.now() - config.server.startTime.getTime()) / 1000);
             const browserStatus = browserService.getStatus();
-            
+
             const statusInfo = {
                 server: {
                     name: 'HeadlessX - Advanced Browserless Web Scraping API',
                     version: '1.2.0',
-                    uptime: uptime,
+                    uptime,
                     startTime: config.server.startTime.toISOString(),
                     environment: process.env.NODE_ENV || 'development'
                 },
@@ -176,34 +173,33 @@ class SystemController {
                 memory: process.memoryUsage(),
                 timestamp: new Date().toISOString()
             };
-            
-            logger.info(requestId, 'Status check requested', { 
+
+            logger.info(requestId, 'Status check requested', {
                 uptime: statusInfo.server.uptime,
                 browserConnected: statusInfo.browser.connected,
                 activeContexts: statusInfo.browser.activeContexts
             });
-            
+
             res.json(statusInfo);
-            
         } catch (error) {
             logger.error(requestId, 'Status endpoint error', error);
-            res.status(500).json({ 
-                error: 'Failed to get server status', 
+            res.status(500).json({
+                error: 'Failed to get server status',
                 details: error.message,
                 timestamp: new Date().toISOString()
             });
         }
     }
-    
+
     // Get system metrics for monitoring
     static getMetrics(req, res) {
         const requestId = req.requestId;
-        
+
         try {
             const uptime = Math.floor((Date.now() - config.server.startTime.getTime()) / 1000);
             const memoryUsage = process.memoryUsage();
             const browserStatus = browserService.getStatus();
-            
+
             const metrics = {
                 timestamp: new Date().toISOString(),
                 uptime_seconds: uptime,
@@ -218,10 +214,9 @@ class SystemController {
                 process_id: process.pid,
                 node_version: process.version
             };
-            
+
             logger.debug(requestId, 'Metrics requested', metrics);
             res.json(metrics);
-            
         } catch (error) {
             logger.error(requestId, 'Metrics endpoint error', error);
             res.status(500).json({

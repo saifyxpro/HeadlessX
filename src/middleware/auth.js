@@ -12,11 +12,11 @@ function secureCompare(a, b) {
     if (typeof a !== 'string' || typeof b !== 'string') {
         return false;
     }
-    
+
     if (a.length !== b.length) {
         return false;
     }
-    
+
     return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
 
@@ -24,30 +24,30 @@ function secureCompare(a, b) {
 function authenticate(req, res, next) {
     const requestId = generateRequestId();
     req.requestId = requestId;
-    
+
     // Extract token from various sources
-    const token = req.query.token || 
-                  req.headers['x-token'] || 
-                  req.headers['authorization']?.replace('Bearer ', '');
-    
+    const token = req.query.token ||
+                  req.headers['x-token'] ||
+                  req.headers.authorization?.replace('Bearer ', '');
+
     if (!secureCompare(token || '', config.server.authToken || '')) {
-        logger.warn(requestId, 'Authentication failed', { 
+        logger.warn(requestId, 'Authentication failed', {
             ip: req.ip,
             userAgent: req.get('User-Agent'),
-            path: req.path 
+            path: req.path
         });
-        return res.status(401).json({ 
+        return res.status(401).json({
             error: 'Unauthorized: Invalid token',
             timestamp: new Date().toISOString()
         });
     }
-    
-    logger.info(requestId, 'Authentication successful', { 
+
+    logger.info(requestId, 'Authentication successful', {
         ip: req.ip,
         path: req.path,
-        method: req.method 
+        method: req.method
     });
-    
+
     next();
 }
 
@@ -55,26 +55,26 @@ function authenticate(req, res, next) {
 function authenticateText(req, res, next) {
     const requestId = generateRequestId();
     req.requestId = requestId;
-    
-    const token = req.query.token || 
-                  req.headers['x-token'] || 
-                  req.headers['authorization']?.replace('Bearer ', '');
-    
+
+    const token = req.query.token ||
+                  req.headers['x-token'] ||
+                  req.headers.authorization?.replace('Bearer ', '');
+
     if (!secureCompare(token || '', config.server.authToken || '')) {
-        logger.warn(requestId, 'Authentication failed (text endpoint)', { 
+        logger.warn(requestId, 'Authentication failed (text endpoint)', {
             ip: req.ip,
             userAgent: req.get('User-Agent'),
-            path: req.path 
+            path: req.path
         });
         return res.status(401).send('Unauthorized: Invalid token');
     }
-    
-    logger.info(requestId, 'Authentication successful (text endpoint)', { 
+
+    logger.info(requestId, 'Authentication successful (text endpoint)', {
         ip: req.ip,
         path: req.path,
-        method: req.method 
+        method: req.method
     });
-    
+
     next();
 }
 

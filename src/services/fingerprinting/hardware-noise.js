@@ -11,7 +11,7 @@ class HardwareNoise {
      */
     static generateHardwareNoise(seed = crypto.randomBytes(16)) {
         const noiseGenerator = this.createSeededRandom(seed);
-        
+
         return {
             performanceNoise: this.generatePerformanceNoise(noiseGenerator),
             timingNoise: this.generateTimingNoise(noiseGenerator),
@@ -20,7 +20,7 @@ class HardwareNoise {
             gpuNoise: this.generateGPUNoise(noiseGenerator)
         };
     }
-    
+
     /**
      * Create seeded random number generator
      */
@@ -29,13 +29,13 @@ class HardwareNoise {
         for (let i = 0; i < seed.length; i++) {
             seedValue += seed[i] * (i + 1);
         }
-        
+
         return () => {
             seedValue = (seedValue * 9301 + 49297) % 233280;
             return seedValue / 233280;
         };
     }
-    
+
     /**
      * Generate performance timing variations
      */
@@ -58,7 +58,7 @@ class HardwareNoise {
             loadEventEnd: Math.floor(random() * 30) + 1420
         };
     }
-    
+
     /**
      * Generate memory allocation noise
      */
@@ -70,7 +70,7 @@ class HardwareNoise {
             heapFragmentation: random() * 0.3 + 0.1
         };
     }
-    
+
     /**
      * Generate CPU timing noise
      */
@@ -86,7 +86,7 @@ class HardwareNoise {
             l3Cache: Math.floor(random() * 5000) + 8000000
         };
     }
-    
+
     /**
      * Generate GPU rendering noise
      */
@@ -119,7 +119,7 @@ class HardwareNoise {
             }
         };
     }
-    
+
     /**
      * Apply noise to existing hardware fingerprint
      */
@@ -130,9 +130,9 @@ class HardwareNoise {
             medium: 0.15,
             high: 0.25
         };
-        
+
         const factor = levels[noiseLevel] || levels.medium;
-        
+
         // Apply subtle variations to performance metrics
         if (fingerprint.performance) {
             Object.keys(fingerprint.performance).forEach(key => {
@@ -142,7 +142,7 @@ class HardwareNoise {
                 }
             });
         }
-        
+
         // Apply memory variations
         if (fingerprint.memory) {
             Object.keys(fingerprint.memory).forEach(key => {
@@ -152,7 +152,7 @@ class HardwareNoise {
                 }
             });
         }
-        
+
         // Apply timing jitter
         if (fingerprint.timing) {
             Object.keys(fingerprint.timing).forEach(key => {
@@ -162,10 +162,10 @@ class HardwareNoise {
                 }
             });
         }
-        
+
         return fingerprint;
     }
-    
+
     /**
      * Generate consistent hardware noise for a session
      */

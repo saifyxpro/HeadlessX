@@ -20,7 +20,7 @@ class FingerprintManager {
         this.webglSpoofing = new WebGLSpoofing();
         this.webrtcController = new WebRTCController();
         this.audioSpoofing = new AudioContextSpoofing();
-        
+
         this.activeProfiles = new Map(); // Track active profiles per context
         this.consistencyCache = new Map(); // Cache for validation results
     }
@@ -84,7 +84,7 @@ class FingerprintManager {
         }
 
         const canvasScript = this.canvasSpoofing.getCanvasSpoofingScript(
-            profileId, 
+            profileId,
             options.canvasNoiseLevel || 'medium'
         );
 
@@ -312,7 +312,7 @@ class FingerprintManager {
      */
     validateFingerprintConsistency(profileId, testResults) {
         const cacheKey = profileId + JSON.stringify(testResults);
-        
+
         if (this.consistencyCache.has(cacheKey)) {
             return this.consistencyCache.get(cacheKey);
         }
@@ -380,12 +380,12 @@ class FingerprintManager {
 
         // Determine consistency
         validation.consistent = validation.score >= 80;
-        
+
         // Generate recommendations
         if (validation.score < 90) {
             validation.recommendations.push('Consider using a different fingerprint profile');
         }
-        
+
         if (validation.issues.some(i => i.severity === 'critical')) {
             validation.recommendations.push('Critical detection issues found - review stealth configuration');
         }

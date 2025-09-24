@@ -17,10 +17,10 @@ console.log('🔍 STEP 4: Basic middleware configured');
 
 // Simple health endpoint
 app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
+    res.json({
+        status: 'OK',
         timestamp: new Date().toISOString(),
-        minimal: true 
+        minimal: true
     });
 });
 console.log('🔍 STEP 5: Health endpoint configured');
@@ -35,13 +35,13 @@ console.log('🔍 STEP 6: Error handler configured');
 // Start server function
 function startMinimalServer() {
     console.log('🔍 STEP 7: Starting HTTP server...');
-    
+
     const server = app.listen(3000, '0.0.0.0', () => {
         console.log('🔍 STEP 8: ✅ MINIMAL SERVER STARTED SUCCESSFULLY!');
         console.log('🔍 STEP 9: Server running on http://localhost:3000');
         console.log('🔍 STEP 10: Health check: http://localhost:3000/api/health');
     });
-    
+
     server.on('error', (error) => {
         console.error('🔍 STEP ERROR: Server error:', error);
         process.exit(1);

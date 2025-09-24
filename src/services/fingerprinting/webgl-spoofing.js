@@ -283,7 +283,7 @@ class WebGLSpoofing {
      */
     generateTestFingerprint(profileId, vendorProfile = 'nvidia-gtx') {
         const profile = this.vendorProfiles[vendorProfile];
-        
+
         return {
             profileId,
             vendorProfile,
@@ -322,7 +322,7 @@ class WebGLSpoofing {
      */
     spoofRenderer(profileId = 'nvidia-gtx') {
         const profile = this.vendorProfiles[profileId] || this.vendorProfiles['nvidia-gtx'];
-        
+
         return {
             vendor: profile.vendor,
             renderer: profile.renderer,

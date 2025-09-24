@@ -5,9 +5,9 @@
 
 // Enhanced timeout handler function with anti-bot detection fallback
 async function withTimeoutFallback(asyncOperation, fallbackOperation = null, timeoutMs = 60000) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
         let completed = false;
-        
+
         // Set timeout with more reasonable intervals for anti-bot sites
         const timeoutId = setTimeout(() => {
             if (!completed) {
@@ -27,7 +27,7 @@ async function withTimeoutFallback(asyncOperation, fallbackOperation = null, tim
                 }
             }
         }, timeoutMs);
-        
+
         try {
             const result = await asyncOperation();
             if (!completed) {
@@ -39,26 +39,26 @@ async function withTimeoutFallback(asyncOperation, fallbackOperation = null, tim
             if (!completed) {
                 completed = true;
                 clearTimeout(timeoutId);
-                
+
                 // Check if this is an anti-bot detection error
-                const isAntiBotError = error.message.includes('net::ERR_FAILED') || 
+                const isAntiBotError = error.message.includes('net::ERR_FAILED') ||
                                      error.message.includes('Navigation timeout') ||
                                      error.message.includes('Timeout') ||
                                      error.message.includes('blocked') ||
                                      error.message.includes('ERR_TIMED_OUT') ||
                                      error.message.includes('ERR_CONNECTION_REFUSED');
-                
+
                 if (isAntiBotError) {
                     console.log(`🤖 Possible anti-bot detection detected: ${error.message}`);
                     if (fallbackOperation) {
-                        console.log(`🔄 Attempting fallback operation...`);
+                        console.log('🔄 Attempting fallback operation...');
                     } else {
-                        console.log(`⚠️ No fallback available, returning partial content if possible`);
+                        console.log('⚠️ No fallback available, returning partial content if possible');
                     }
                 } else {
                     console.log(`❌ Operation failed: ${error.message}, attempting fallback...`);
                 }
-                
+
                 if (fallbackOperation) {
                     try {
                         const fallbackResult = await fallbackOperation();
@@ -79,7 +79,7 @@ function validateUrl(url) {
     if (!url) {
         return { valid: false, error: 'Missing required field: url' };
     }
-    
+
     try {
         new URL(url);
         return { valid: true };
@@ -105,7 +105,7 @@ function validateUrls(urls, maxUrls = 10) {
             return { valid: false, error: `Invalid URL format: ${url}` };
         }
     }
-    
+
     return { valid: true };
 }
 
@@ -122,14 +122,14 @@ function extractOptionsFromQuery(query) {
         width: query.width ? parseInt(query.width) : undefined,
         height: query.height ? parseInt(query.height) : undefined
     };
-    
+
     // Remove undefined values
     Object.keys(options).forEach(key => {
         if (options[key] === undefined) {
             delete options[key];
         }
     });
-    
+
     return options;
 }
 
@@ -143,7 +143,7 @@ async function extractCleanText(htmlContent, browserService) {
 
         // Simple text extraction for basic HTML without needing a browser
         if (htmlContent.length < 50000) { // For smaller content, use regex parsing
-            let textContent = htmlContent
+            const textContent = htmlContent
                 // Remove script and style blocks completely
                 .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
                 .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
@@ -157,7 +157,7 @@ async function extractCleanText(htmlContent, browserService) {
                 .replace(/&gt;/g, '>')
                 .replace(/&amp;/g, '&')
                 .replace(/&quot;/g, '"')
-                .replace(/&#39;/g, "'")
+                .replace(/&#39;/g, '\'')
                 // Clean up whitespace
                 .replace(/\s+/g, ' ')
                 .replace(/\n\s*\n/g, '\n\n')
@@ -171,14 +171,14 @@ async function extractCleanText(htmlContent, browserService) {
         // For complex content or when simple parsing fails, use browser
         const context = await browserService.createIsolatedContext();
         const page = await context.newPage();
-        
+
         try {
             // Set HTML content directly
             await page.setContent(htmlContent, { waitUntil: 'networkidle' });
-            
+
             // Wait a moment for any dynamic content to load
             await page.waitForTimeout(1000);
-            
+
             // Enhanced text extraction with better content detection
             const textContent = await page.evaluate(() => {
                 // Remove unwanted elements first
@@ -190,7 +190,7 @@ async function extractCleanText(htmlContent, browserService) {
                     '[role="banner"]', '[role="navigation"]', '[role="complementary"]',
                     '.cookie-banner', '.newsletter', '.subscription', '#comments'
                 ];
-                
+
                 unwantedSelectors.forEach(selector => {
                     try {
                         const elements = document.querySelectorAll(selector);
@@ -201,13 +201,13 @@ async function extractCleanText(htmlContent, browserService) {
                 // Try to find main content areas in order of preference
                 const contentSelectors = [
                     'main[role="main"]', 'main', '[role="main"]',
-                    '.main-content', '.content', '.post-content', 
+                    '.main-content', '.content', '.post-content',
                     '.article-content', '.page-content', '.entry-content',
                     'article', '.article', '.post', '.entry',
                     '#content', '#main', '#main-content',
                     '.container .content', '.wrapper .content'
                 ];
-                
+
                 let mainContent = null;
                 for (const selector of contentSelectors) {
                     try {
@@ -218,11 +218,11 @@ async function extractCleanText(htmlContent, browserService) {
                         }
                     } catch (e) {}
                 }
-                
+
                 // If no main content found, try body but filter out navigation
                 if (!mainContent) {
                     mainContent = document.body;
-                    
+
                     // Remove likely navigation elements from body
                     const navElements = document.querySelectorAll('nav, .nav, .navigation, header, footer');
                     navElements.forEach(el => {
@@ -238,7 +238,7 @@ async function extractCleanText(htmlContent, browserService) {
 
                 // Extract meaningful text with proper formatting
                 let extractedText = '';
-                
+
                 // Get all text nodes and organize them
                 const walker = document.createTreeWalker(
                     mainContent,
@@ -250,22 +250,22 @@ async function extractCleanText(htmlContent, browserService) {
                             if (!text || text.length < 3) {
                                 return NodeFilter.FILTER_REJECT;
                             }
-                            
+
                             // Skip nodes that are likely not content
                             const parent = node.parentElement;
                             if (parent) {
                                 const tagName = parent.tagName.toLowerCase();
                                 const className = parent.className || '';
                                 const id = parent.id || '';
-                                
+
                                 // Skip navigation, menu, and other non-content elements
-                                if (tagName === 'button' || tagName === 'input' || 
+                                if (tagName === 'button' || tagName === 'input' ||
                                     className.includes('nav') || className.includes('menu') ||
                                     className.includes('button') || id.includes('nav')) {
                                     return NodeFilter.FILTER_REJECT;
                                 }
                             }
-                            
+
                             return NodeFilter.FILTER_ACCEPT;
                         }
                     },
@@ -274,13 +274,13 @@ async function extractCleanText(htmlContent, browserService) {
 
                 const textBlocks = [];
                 let node;
-                
+
                 while (node = walker.nextNode()) {
                     const text = node.textContent.trim();
                     if (text && text.length >= 3) {
                         const parent = node.parentElement;
                         const tagName = parent ? parent.tagName.toLowerCase() : '';
-                        
+
                         // Add appropriate spacing based on element type
                         let formattedText = text;
                         if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
@@ -292,14 +292,14 @@ async function extractCleanText(htmlContent, browserService) {
                         } else {
                             formattedText = text + ' ';
                         }
-                        
+
                         textBlocks.push(formattedText);
                     }
                 }
-                
+
                 // Join all text blocks
                 extractedText = textBlocks.join('');
-                
+
                 // Clean up the final text
                 extractedText = extractedText
                     // Remove excessive whitespace
@@ -324,14 +324,13 @@ async function extractCleanText(htmlContent, browserService) {
 
                 return extractedText;
             });
-            
+
             await context.close();
             return textContent || 'No readable text content found';
-            
         } catch (error) {
             await context.close();
             console.error('Error in browser-based text extraction:', error);
-            
+
             // Fallback to simple regex-based extraction
             return htmlContent
                 .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
@@ -340,7 +339,6 @@ async function extractCleanText(htmlContent, browserService) {
                 .replace(/\s+/g, ' ')
                 .trim() || 'Text extraction failed - unable to parse content';
         }
-        
     } catch (error) {
         console.error('Error extracting clean text:', error);
         return 'Error extracting content: ' + error.message;

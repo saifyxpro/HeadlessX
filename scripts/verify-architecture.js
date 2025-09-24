@@ -7,19 +7,18 @@
 
 const fs = require('fs').promises;
 const path = require('path');
-const { execSync } = require('child_process');
 
 class ArchitectureVerifier {
-  constructor() {
-    this.projectRoot = process.cwd();
-    this.results = {
-      structure: {},
-      compliance: {},
-      features: {},
-      issues: [],
-      recommendations: []
-    };
-  }
+    constructor() {
+        this.projectRoot = process.cwd();
+        this.results = {
+            structure: {},
+            compliance: {},
+            features: {},
+            issues: [],
+            recommendations: []
+        };
+    }
 
   /**
    * Run complete architecture verification

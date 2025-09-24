@@ -22,7 +22,7 @@ class AntiDetectionController {
         try {
             const { category, platform, browser } = req.query;
             let profiles = this.fingerprintManager.getAllProfiles();
-            
+
             // Filter profiles based on query parameters
             if (category || platform || browser) {
                 profiles = Object.values(profiles).filter(profile => {
@@ -30,7 +30,7 @@ class AntiDetectionController {
                            (!platform || profile.platform === platform) &&
                            (!browser || profile.browser === browser);
                 });
-                
+
                 // Convert back to object format
                 const filteredProfiles = {};
                 profiles.forEach(profile => {
@@ -40,7 +40,7 @@ class AntiDetectionController {
             }
 
             const stats = this.fingerprintManager.getUsageStatistics();
-            
+
             res.json({
                 success: true,
                 profiles,
@@ -53,7 +53,6 @@ class AntiDetectionController {
                 },
                 timestamp: Date.now()
             });
-
         } catch (error) {
             logger.error('Failed to get profiles', { error: error.message });
             res.status(500).json({
@@ -71,7 +70,7 @@ class AntiDetectionController {
         try {
             const { profileId } = req.params;
             const profile = this.fingerprintManager.getProfile(profileId);
-            
+
             if (!profile) {
                 return res.status(404).json({
                     success: false,
@@ -85,11 +84,10 @@ class AntiDetectionController {
                 profile,
                 timestamp: Date.now()
             });
-
         } catch (error) {
-            logger.error('Failed to get profile', { 
+            logger.error('Failed to get profile', {
                 profileId: req.params.profileId,
-                error: error.message 
+                error: error.message
             });
             res.status(500).json({
                 success: false,
@@ -105,7 +103,7 @@ class AntiDetectionController {
     async validateFingerprint(req, res) {
         try {
             const { sessionId, profileId } = req.body;
-            
+
             if (!sessionId || !profileId) {
                 return res.status(400).json({
                     success: false,
@@ -116,7 +114,7 @@ class AntiDetectionController {
 
             // For now, simulate validation since we don't have direct page access
             const testResults = req.body.testResults || {};
-            
+
             const validation = this.fingerprintManager.validateFingerprintConsistency(
                 profileId,
                 testResults
@@ -128,7 +126,6 @@ class AntiDetectionController {
                 recommendations: validation.recommendations,
                 timestamp: Date.now()
             });
-
         } catch (error) {
             logger.error('Failed to validate fingerprint', {
                 sessionId: req.body.sessionId?.slice(0, 8),
@@ -148,16 +145,15 @@ class AntiDetectionController {
     async getFingerprintTestScript(req, res) {
         try {
             const script = this.fingerprintManager.getFingerprintTestScript();
-            
+
             res.set({
                 'Content-Type': 'application/javascript',
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
+                Pragma: 'no-cache',
+                Expires: '0'
             });
-            
-            res.send(script);
 
+            res.send(script);
         } catch (error) {
             logger.error('Failed to get test script', { error: error.message });
             res.status(500).json({
@@ -173,7 +169,7 @@ class AntiDetectionController {
      */
     async testBotDetection(req, res) {
         try {
-            const { 
+            const {
                 profileId = 'windows-chrome-high-end',
                 testUrls = [],
                 options = {}
@@ -213,7 +209,6 @@ class AntiDetectionController {
                     }
 
                     results.push(testResult);
-                    
                 } catch (testError) {
                     results.push({
                         url,
@@ -241,7 +236,6 @@ class AntiDetectionController {
                 timestamp: Date.now(),
                 note: 'This is a simulated response. In production, this would test actual bot detection services.'
             });
-
         } catch (error) {
             logger.error('Bot detection test failed', { error: error.message });
             res.status(500).json({
@@ -279,16 +273,16 @@ class AntiDetectionController {
             } else {
                 // Use a default template based on category/platform/browser
                 const availableProfiles = Object.values(this.fingerprintManager.getAllProfiles());
-                template = availableProfiles.find(p => 
-                    p.category === category && 
-                    p.platform === platform && 
+                template = availableProfiles.find(p =>
+                    p.category === category &&
+                    p.platform === platform &&
                     p.browser === browser
                 ) || availableProfiles[0];
             }
 
             // Generate new profile ID
             const profileId = 'custom-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
-            
+
             // Create variations of the template
             const newProfile = {
                 ...template,
@@ -316,7 +310,6 @@ class AntiDetectionController {
                 note: 'This profile is generated dynamically and not persisted. In production, implement profile storage.',
                 timestamp: Date.now()
             });
-
         } catch (error) {
             logger.error('Profile generation failed', { error: error.message });
             res.status(500).json({
@@ -334,7 +327,7 @@ class AntiDetectionController {
         try {
             const { sessionId } = req.query;
             const metrics = this.stealthService.getSessionMetrics(sessionId);
-            
+
             if (sessionId && !metrics) {
                 return res.status(404).json({
                     success: false,
@@ -362,7 +355,6 @@ class AntiDetectionController {
                 },
                 timestamp: Date.now()
             });
-
         } catch (error) {
             logger.error('Failed to get stealth status', { error: error.message });
             res.status(500).json({
@@ -424,7 +416,6 @@ class AntiDetectionController {
                 note: 'This endpoint shows the stealth configuration that would be applied. Integrate with main rendering service for actual execution.',
                 timestamp: Date.now()
             });
-
         } catch (error) {
             logger.error('Enhanced stealth rendering failed', { error: error.message });
             res.status(500).json({

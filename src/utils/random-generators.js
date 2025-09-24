@@ -21,15 +21,15 @@ class RandomGenerators {
      */
     seededRandom(seed, index = 0, min = 0, max = 1) {
         const fullSeed = seed + index.toString();
-        
+
         if (!this.seedCache.has(fullSeed)) {
             const hash = crypto.createHash('sha256').update(fullSeed).digest();
             this.seedCache.set(fullSeed, hash);
         }
-        
+
         const hash = this.seedCache.get(fullSeed);
         const value = hash.readUInt32BE(0) / 0xffffffff;
-        
+
         return min + value * (max - min);
     }
 
@@ -76,7 +76,7 @@ class RandomGenerators {
      */
     seededUUID(seed) {
         const hash = crypto.createHash('sha256').update(seed).digest('hex');
-        
+
         return [
             hash.slice(0, 8),
             hash.slice(8, 12),
@@ -94,7 +94,7 @@ class RandomGenerators {
      * @returns {number} Time with realistic variation
      */
     generateTimingVariation(seed, baseTime, variationPercent = 20) {
-        const variation = this.seededRandom(seed, Date.now() % 1000, 
+        const variation = this.seededRandom(seed, Date.now() % 1000,
             -variationPercent / 100, variationPercent / 100);
         return Math.max(1, Math.round(baseTime * (1 + variation)));
     }
@@ -111,10 +111,10 @@ class RandomGenerators {
         // Generate two uniform random numbers
         const u1 = this.seededRandom(seed, index * 2);
         const u2 = this.seededRandom(seed, index * 2 + 1);
-        
+
         // Box-Muller transform
         const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-        
+
         return z0 * stddev + mean;
     }
 
@@ -132,19 +132,19 @@ class RandomGenerators {
             scroll: { min: 100, max: 400, mean: 250 },
             think: { min: 500, max: 3000, mean: 1200 }
         };
-        
+
         const delayConfig = baseDelays[action] || baseDelays.click;
-        
+
         // Use Gaussian distribution for more natural timing
         const gaussianDelay = this.seededGaussian(
-            seed + action, 
+            seed + action,
             Date.now() % 100,
             delayConfig.mean,
             (delayConfig.max - delayConfig.min) / 4
         );
-        
+
         // Clamp to realistic bounds
-        return Math.max(delayConfig.min, 
+        return Math.max(delayConfig.min,
             Math.min(delayConfig.max, Math.round(gaussianDelay)));
     }
 
@@ -200,9 +200,9 @@ class RandomGenerators {
                 typingSpeed: () => this.seededRandom(seed, 4, 0.6, 0.9)
             }
         };
-        
+
         const deviceChars = characteristics[deviceType] || characteristics.desktop;
-        
+
         return {
             mousePrecision: deviceChars.mousePrecision(),
             clickVariation: deviceChars.clickVariation(),
@@ -238,9 +238,9 @@ class RandomGenerators {
                 multitaskingTendency: () => this.seededRandom(seed, 13, 0.6, 0.9)
             }
         };
-        
+
         const userPattern = patterns[userType] || patterns.casual;
-        
+
         return {
             readingSpeed: userPattern.readingSpeed(),
             impatienceLevel: userPattern.impatienceLevel(),

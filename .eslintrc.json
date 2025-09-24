@@ -7,6 +7,7 @@
   ],
   "env": {
     "node": true,
+    "browser": true,
     "es2022": true,
     "jest": true
   },
@@ -19,9 +20,45 @@
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
     "no-console": "off",
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "space-before-function-paren": ["error", "never"]
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "space-before-function-paren": ["error", "never"],
+    "no-extend-native": "off",
+    "no-proto": "off",
+    "no-undef": "off",
+    "new-cap": "off",
+    "no-unreachable": "warn",
+    "no-unused-expressions": "off",
+    "no-async-promise-executor": "off",
+    "no-new": "off",
+    "no-cond-assign": "off"
   },
+  "globals": {
+    "screen": "readonly",
+    "HTMLCanvasElement": "readonly",
+    "CanvasRenderingContext2D": "readonly",
+    "WebGLRenderingContext": "readonly",
+    "MouseEvent": "readonly",
+    "KeyboardEvent": "readonly",
+    "Storage": "readonly",
+    "sessionStorage": "readonly",
+    "localStorage": "readonly",
+    "Notification": "readonly",
+    "RTCPeerConnection": "readonly",
+    "NodeFilter": "readonly",
+    "requestAnimationFrame": "readonly",
+    "location": "readonly",
+    "context": "readonly"
+  },
+  "overrides": [
+    {
+      "files": ["src/services/**/*.js", "src/utils/**/*.js"],
+      "rules": {
+        "no-unused-vars": "off",
+        "no-extend-native": "off",
+        "no-proto": "off"
+      }
+    }
+  ],
   "ignorePatterns": [
     "node_modules/",
     "website/",

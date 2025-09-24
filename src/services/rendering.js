@@ -12,7 +12,6 @@ const { logger, generateRequestId } = require('../utils/logger');
 const { HeadlessXError, ERROR_CATEGORIES, handleError } = require('../utils/errors');
 
 class RenderingService {
-    
     /**
      * Enhanced page rendering function with v1.3.0 anti-detection features
      */
@@ -36,7 +35,7 @@ class RenderingService {
             returnPartialOnTimeout = config.api.defaultReturnPartialOnTimeout,
             fullPage = false,
             generatePDF = false,
-            
+
             // v1.3.0 Enhanced Anti-Detection Options
             deviceProfile = 'mid-range-desktop',
             geoProfile = 'us-east',
@@ -62,7 +61,7 @@ class RenderingService {
 
         try {
             logger.info(requestId, `Starting v1.3.0 enhanced rendering: ${url} [${deviceProfile}/${geoProfile}/${behaviorProfile}]`);
-            
+
             // Enhanced context creation with device profiles
             const contextOptions = {
                 userAgent,
@@ -71,13 +70,13 @@ class RenderingService {
                 deviceProfile,
                 geoProfile
             };
-            
+
             // Add custom cookies to context options
             if (cookies.length > 0) {
                 contextOptions.cookies = cookies;
             }
-            
-            logger.debug(requestId, 'Creating enhanced v1.3.0 context', { 
+
+            logger.debug(requestId, 'Creating enhanced v1.3.0 context', {
                 deviceProfile,
                 geoProfile,
                 userAgent: (userAgent || 'default').substring(0, 80) + '...'
@@ -122,57 +121,56 @@ class RenderingService {
 
             // Enhanced navigation with Google-specific handling
             await withTimeoutFallback(
-                async () => {
+                async() => {
                     const isGoogle = url.includes('google.');
                     try {
                         if (isGoogle) {
                             // Special Google navigation strategy
                             logger.info(requestId, 'Using Google-optimized navigation strategy');
-                            
+
                             // First, navigate with minimal timeout
-                            await page.goto(url, { 
-                                waitUntil: 'domcontentloaded', 
-                                timeout: 30000 
+                            await page.goto(url, {
+                                waitUntil: 'domcontentloaded',
+                                timeout: 30000
                             });
-                            
+
                             // Wait a bit for any redirects
                             await page.waitForTimeout(2000);
-                            
+
                             // Check for anti-bot detection
                             const bodyText = await page.evaluate(() => {
                                 return document.body ? document.body.innerText.slice(0, 2000) : '';
                             });
-                            
+
                             if (/unusual traffic|automated queries|are you a robot|captcha/i.test(bodyText)) {
                                 logger.warn(requestId, 'Google anti-bot detection triggered');
                                 // Try waiting longer and check again
                                 await page.waitForTimeout(5000);
-                                
+
                                 // Sometimes Google shows a temporary block, try refreshing
                                 await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
                                 await page.waitForTimeout(3000);
                             }
-                            
+
                             // Handle Google consent if present
                             await StealthService.handleGoogleConsent(page);
-                            
+
                             // Wait for content to stabilize
                             await page.waitForTimeout(2000);
                             logger.info(requestId, 'Google navigation completed successfully');
-                            
                         } else {
                             // Standard navigation for non-Google sites with better timeout handling
                             try {
                                 // First try with networkidle0 for better loading detection
-                                await page.goto(url, { 
-                                    waitUntil: 'networkidle0', 
+                                await page.goto(url, {
+                                    waitUntil: 'networkidle0',
                                     timeout: Math.min(timeout * 0.6, 40000)
                                 });
                                 logger.info(requestId, 'Standard navigation completed (networkidle0)');
                             } catch (networkIdleError) {
                                 logger.warn(requestId, 'NetworkIdle0 failed, trying networkidle2...');
-                                await page.goto(url, { 
-                                    waitUntil: 'networkidle2', 
+                                await page.goto(url, {
+                                    waitUntil: 'networkidle2',
                                     timeout: Math.min(timeout * 0.5, 30000)
                                 });
                                 logger.info(requestId, 'Standard navigation completed (networkidle2)');
@@ -181,15 +179,15 @@ class RenderingService {
                     } catch (navError) {
                         logger.warn(requestId, 'Primary navigation failed, trying domcontentloaded...');
                         try {
-                            await page.goto(url, { 
-                                waitUntil: 'domcontentloaded', 
+                            await page.goto(url, {
+                                waitUntil: 'domcontentloaded',
                                 timeout: Math.min(timeout * 0.4, 25000) // Reduced timeout for fallback
                             });
                         } catch (domError) {
                             // Last resort: try with just load event
                             logger.warn(requestId, 'DOMContentLoaded failed, trying basic load...');
-                            await page.goto(url, { 
-                                waitUntil: 'load', 
+                            await page.goto(url, {
+                                waitUntil: 'load',
                                 timeout: Math.min(timeout * 0.3, 20000)
                             });
                         }
@@ -198,42 +196,44 @@ class RenderingService {
                         }
                         logger.info(requestId, 'Page navigation completed (domcontentloaded)');
                     }
-                    
+
                     // Wait for page to load
                     await page.waitForTimeout(Math.max(extraWaitTime, 5000));
-                    
+
                     logger.info(requestId, 'Page loaded successfully');
                 },
-                returnPartialOnTimeout ? async () => {
-                    wasTimeout = true;
-                    logger.warn(requestId, 'Navigation timeout - trying quick reload...');
-                    try {
-                        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
-                        await page.waitForTimeout(1000);
-                    } catch (e) {
-                        logger.warn(requestId, 'Quick reload failed, proceeding with partial content');
+                returnPartialOnTimeout
+                    ? async() => {
+                        wasTimeout = true;
+                        logger.warn(requestId, 'Navigation timeout - trying quick reload...');
+                        try {
+                            await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 10000 });
+                            await page.waitForTimeout(1000);
+                        } catch (e) {
+                            logger.warn(requestId, 'Quick reload failed, proceeding with partial content');
+                        }
                     }
-                    } : null,
+                    : null,
                 Math.min(timeout, 60000) // Increased from 45s to 60s to match helper default
-            );            // Enhanced CSS and resource loading wait with v1.3.0 advanced stealth
+            ); // Enhanced CSS and resource loading wait with v1.3.0 advanced stealth
             logger.info(requestId, 'Applying v1.3.0 advanced stealth and behavioral simulation...');
-            
+
             // Apply enhanced stealth fingerprinting with device profile
             if (enableAdvancedStealth) {
                 await StealthService.enhancePageWithAdvancedStealth(page);
             }
-            
+
             // Human-like behavioral simulation
             if (simulateMouseMovement || simulateScrolling) {
                 logger.info(requestId, `Simulating human behavior [${behaviorProfile} profile]`);
                 await InteractionService.autoScroll(page, behaviorProfile, 0.3); // Light initial scroll
-                
+
                 if (humanDelays) {
                     await InteractionService.randomDelay(500, 1500);
                 }
             }
-            
-            await page.evaluate(async () => {
+
+            await page.evaluate(async() => {
                 // Advanced stylesheet loading detection
                 await new Promise((resolve) => {
                     const checkStyleSheets = () => {
@@ -241,7 +241,7 @@ class RenderingService {
                             // Check both link elements and document.styleSheets
                             const linkSheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
                             const allDocSheets = Array.from(document.styleSheets);
-                            
+
                             const linkSheetsLoaded = linkSheets.every(link => {
                                 try {
                                     return link.sheet && link.sheet.cssRules && link.sheet.cssRules.length >= 0;
@@ -250,7 +250,7 @@ class RenderingService {
                                     return link.sheet !== null;
                                 }
                             });
-                            
+
                             const docSheetsLoaded = allDocSheets.every(sheet => {
                                 try {
                                     return sheet.cssRules && sheet.cssRules.length >= 0;
@@ -258,7 +258,7 @@ class RenderingService {
                                     return true; // Cross-origin or loaded
                                 }
                             });
-                            
+
                             if ((linkSheetsLoaded && docSheetsLoaded) || Date.now() - startTime > 15000) {
                                 resolve();
                             } else {
@@ -268,11 +268,11 @@ class RenderingService {
                             resolve(); // Fallback on any error
                         }
                     };
-                    
+
                     const startTime = Date.now();
                     checkStyleSheets();
                 });
-                
+
                 // Wait for fonts with better error handling
                 if (document.fonts && document.fonts.ready) {
                     try {
@@ -284,7 +284,7 @@ class RenderingService {
                         // Font loading can fail, continue anyway
                     }
                 }
-                
+
                 // Enhanced image loading with better detection
                 const images = Array.from(document.querySelectorAll('img, picture img, [style*="background-image"]'));
                 await Promise.all(images.map(img => {
@@ -297,17 +297,17 @@ class RenderingService {
                                     img.removeEventListener('load', handleLoad);
                                     img.removeEventListener('error', handleError);
                                 };
-                                
+
                                 const handleLoad = () => {
                                     cleanup();
                                     resolve();
                                 };
-                                
+
                                 const handleError = () => {
                                     cleanup();
                                     resolve();
                                 };
-                                
+
                                 img.addEventListener('load', handleLoad);
                                 img.addEventListener('error', handleError);
                                 setTimeout(() => {
@@ -326,18 +326,18 @@ class RenderingService {
                 let jsFrameworkReady = false;
                 for (let i = 0; i < 20 && !jsFrameworkReady; i++) {
                     await new Promise(resolve => setTimeout(resolve, 500));
-                    
+
                     // Check for common framework indicators
                     const hasReact = window.React || document.querySelector('[data-reactroot]');
                     const hasVue = window.Vue || document.querySelector('[data-v-]');
                     const hasAngular = window.ng || document.querySelector('[ng-version]');
-                    
+
                     if (hasReact || hasVue || hasAngular) {
                         // Give frameworks extra time to render
                         await new Promise(resolve => setTimeout(resolve, 2000));
                         jsFrameworkReady = true;
                     }
-                    
+
                     // Check if there's still dynamic content loading
                     const hasLoaders = document.querySelectorAll('.loading, .spinner, .loader, [class*="load"]').length > 0;
                     if (!hasLoaders) {
@@ -347,7 +347,7 @@ class RenderingService {
 
                 // Wait for CSS animations and transitions to stabilize
                 await new Promise(resolve => setTimeout(resolve, 3000));
-                
+
                 // Final check for any remaining async operations
                 if (typeof window.requestIdleCallback !== 'undefined') {
                     await new Promise(resolve => {
@@ -366,15 +366,15 @@ class RenderingService {
                         const element = await page.locator(selector).first();
                         const box = await element.boundingBox();
                         if (box) {
-                            await InteractionService.moveMouseNaturally(page, 
-                                box.x + box.width / 2, 
-                                box.y + box.height / 2, 
+                            await InteractionService.moveMouseNaturally(page,
+                                box.x + box.width / 2,
+                                box.y + box.height / 2,
                                 behaviorProfile
                             );
                         }
                     }
                     await InteractionService.clickElements(page, [selector]);
-                    
+
                     if (humanDelays) {
                         await InteractionService.randomDelay(300, 800);
                     }
@@ -430,14 +430,14 @@ class RenderingService {
 
             // Final content extraction with enhanced CSS inlining for HTML endpoint
             logger.info(requestId, 'Extracting final content with inline CSS...');
-            
+
             // Inline CSS styles for better HTML rendering
             const content = await page.evaluate(() => {
                 try {
                     // Get all external stylesheets and inline them
                     const styleSheets = Array.from(document.styleSheets);
                     let inlineCSS = '';
-                    
+
                     styleSheets.forEach(sheet => {
                         try {
                             const rules = Array.from(sheet.cssRules || sheet.rules || []);
@@ -450,16 +450,16 @@ class RenderingService {
                             // Cross-origin stylesheets might throw errors, skip them
                         }
                     });
-                    
+
                     // Create a comprehensive style tag
                     let styleTag = '';
                     if (inlineCSS) {
                         styleTag = `<style type="text/css">\n${inlineCSS}\n</style>`;
                     }
-                    
+
                     // Get the document HTML
                     let htmlContent = document.documentElement.outerHTML;
-                    
+
                     // Inject the inline CSS into the head
                     if (styleTag && htmlContent.includes('<head>')) {
                         htmlContent = htmlContent.replace('<head>', `<head>\n${styleTag}`);
@@ -467,7 +467,7 @@ class RenderingService {
                         // Fallback: add after opening HTML tag
                         htmlContent = htmlContent.replace('<html>', `<html>\n<head>\n${styleTag}\n</head>`);
                     }
-                    
+
                     // Also inline computed styles for better compatibility
                     const allElements = document.querySelectorAll('*');
                     allElements.forEach(element => {
@@ -478,7 +478,7 @@ class RenderingService {
                                 'color', 'background', 'background-color', 'font-family', 'font-size',
                                 'font-weight', 'text-align', 'border', 'border-radius'
                             ];
-                            
+
                             let inlineStyle = element.getAttribute('style') || '';
                             importantStyles.forEach(prop => {
                                 const value = computedStyle.getPropertyValue(prop);
@@ -488,7 +488,7 @@ class RenderingService {
                                     }
                                 }
                             });
-                            
+
                             if (inlineStyle) {
                                 element.setAttribute('style', inlineStyle);
                             }
@@ -496,14 +496,14 @@ class RenderingService {
                             // Skip elements that can't be styled
                         }
                     });
-                    
+
                     return document.documentElement.outerHTML;
                 } catch (error) {
                     // Fallback to basic content extraction
                     return document.documentElement.outerHTML;
                 }
             });
-            
+
             const title = await page.title().catch(() => 'Unknown Title');
             const currentUrl = page.url();
 
@@ -511,7 +511,7 @@ class RenderingService {
             let screenshotBuffer = null;
             if (fullPage) {
                 try {
-                    screenshotBuffer = await page.screenshot({ 
+                    screenshotBuffer = await page.screenshot({
                         fullPage: true,
                         type: 'png'
                     });
@@ -531,7 +531,7 @@ class RenderingService {
                         displayHeaderFooter: false,
                         margin: {
                             top: '1cm',
-                            right: '1cm', 
+                            right: '1cm',
                             bottom: '1cm',
                             left: '1cm'
                         }
@@ -565,20 +565,19 @@ class RenderingService {
             }
 
             return result;
-
         } catch (error) {
             if (context) await browserService.safeCloseContext(context, requestId);
-            
+
             const categorizedError = handleError(error, requestId, 'Page rendering');
-            
+
             // Enhanced error analysis and user-friendly messages
             const isTimeoutError = error.message.includes('Timeout') || error.name === 'TimeoutError';
             const isNetworkError = error.message.includes('net::ERR_FAILED') || error.message.includes('ERR_NAME_NOT_RESOLVED');
-            const isAntiBot = error.message.includes('blocked') || error.message.includes('denied') || 
+            const isAntiBot = error.message.includes('blocked') || error.message.includes('denied') ||
                              (isTimeoutError && (url.includes('google.') || url.includes('facebook.') || url.includes('amazon.')));
-            
+
             logger.error(requestId, `Page rendering failed: ${error.message}`);
-            
+
             // Emergency fallback for timeouts
             if (returnPartialOnTimeout && isTimeoutError) {
                 logger.info(requestId, 'Attempting emergency content extraction...');
@@ -589,15 +588,15 @@ class RenderingService {
                     logger.error(requestId, 'Emergency content extraction also failed');
                 }
             }
-            
+
             // Enhance error with user-friendly information
             if (isAntiBot) {
                 throw new HeadlessXError(
                     `Site appears to be blocking automated access: ${error.message}`,
                     ERROR_CATEGORIES.NETWORK,
                     false,
-                    { 
-                        url: url,
+                    {
+                        url,
                         suggestion: 'This site has sophisticated anti-bot protection. Try using different URLs, adding delays, or using proxies.',
                         originalError: error.message,
                         errorType: 'anti-bot-protection'
@@ -608,8 +607,8 @@ class RenderingService {
                     `Network connection failed: ${error.message}`,
                     ERROR_CATEGORIES.NETWORK,
                     true,
-                    { 
-                        url: url,
+                    {
+                        url,
                         suggestion: 'Check if the URL is accessible and your internet connection is stable.',
                         originalError: error.message,
                         errorType: 'network-connectivity'
@@ -620,15 +619,15 @@ class RenderingService {
                     `Operation timed out: ${error.message}`,
                     ERROR_CATEGORIES.TIMEOUT,
                     true,
-                    { 
-                        url: url,
+                    {
+                        url,
                         suggestion: 'Site is taking too long to load. Try increasing timeout or using returnPartialOnTimeout=true.',
                         originalError: error.message,
                         errorType: 'timeout'
                     }
                 );
             }
-            
+
             throw categorizedError;
         }
     }
@@ -636,26 +635,26 @@ class RenderingService {
     // Emergency content extraction for timeout scenarios
     static async emergencyContentExtraction(url, requestId) {
         logger.info(requestId, 'Starting emergency content extraction...');
-        
+
         const browser = await browserService.getBrowser();
         const emergencyOptions = StealthService.generateStealthContextOptions();
         const context = await browserService.createIsolatedContext(browser, emergencyOptions);
-        
+
         try {
             const page = await context.newPage();
             page.setDefaultTimeout(30000);
-            
+
             await page.goto(url, { waitUntil: 'networkidle', timeout: 45000 });
             await page.waitForTimeout(5000);
-            
+
             const content = await page.content();
             const title = await page.title().catch(() => 'Unknown');
             const currentUrl = page.url();
-            
+
             await browserService.safeCloseContext(context, requestId);
-            
+
             logger.info(requestId, `Emergency content extraction successful - Length: ${content.length} chars`);
-            
+
             return {
                 html: content,
                 title,
@@ -678,18 +677,18 @@ class RenderingService {
         const requestId = generateRequestId();
         const browser = await browserService.getBrowser();
         const context = await browserService.createIsolatedContext(browser);
-        
+
         try {
             const page = await context.newPage();
             await page.setContent(htmlContent);
             await page.waitForTimeout(2000); // Wait for rendering
-            
+
             const screenshotBuffer = await page.screenshot({
                 fullPage: options.fullPage || false,
                 type: options.format || 'png',
                 quality: options.format === 'jpeg' ? 90 : undefined
             });
-            
+
             await browserService.safeCloseContext(context, requestId);
             return screenshotBuffer;
         } catch (error) {
@@ -702,60 +701,60 @@ class RenderingService {
     static async generateScreenshotFromUrl(url, options = {}) {
         const requestId = generateRequestId();
         const browser = await browserService.getBrowser();
-        
+
         try {
             logger.info(requestId, `Generating screenshot with full CSS loading for: ${url}`);
-            
+
             // Use the same stealth context as normal rendering
             const stealthOptions = StealthService.generateStealthContextOptions();
             const context = await browserService.createIsolatedContext(browser, stealthOptions);
-            
+
             // Setup Google consent cookies for better compatibility
             await StealthService.setupGoogleCookies(context, url);
-            
+
             const page = await context.newPage();
-            
+
             // Setup request interception for perfect headers
             await StealthService.setupRequestInterception(page);
-            
+
             // Add stealth script
             await context.addInitScript(StealthService.getStealthScript());
-            
+
             // Set viewport
             await page.setViewportSize({
                 width: options.viewport?.width || 1920,
                 height: options.viewport?.height || 1080
             });
-            
+
             // Set timeouts for screenshot generation
             page.setDefaultTimeout(60000);
             page.setDefaultNavigationTimeout(60000);
-            
+
             logger.info(requestId, `Navigating to URL for screenshot: ${url}`);
-            
+
             // Navigate to the actual URL to load all CSS/JS resources
-            await page.goto(url, { 
+            await page.goto(url, {
                 waitUntil: 'networkidle',
-                timeout: 60000 
+                timeout: 60000
             });
-            
+
             // Apply advanced stealth fingerprinting
             await StealthService.enhancePageWithAdvancedStealth(page);
-            
+
             // Handle Google consent if it's a Google URL
             if (url.includes('google.')) {
                 await StealthService.handleGoogleConsent(page);
             }
-            
+
             // Wait for complete CSS and content loading
-            await page.evaluate(async () => {
+            await page.evaluate(async() => {
                 // Wait for all stylesheets to load
                 await new Promise((resolve) => {
                     const checkStyleSheets = () => {
                         try {
                             const linkSheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
                             const allDocSheets = Array.from(document.styleSheets);
-                            
+
                             const linkSheetsLoaded = linkSheets.every(link => {
                                 try {
                                     return link.sheet && link.sheet.cssRules;
@@ -763,7 +762,7 @@ class RenderingService {
                                     return link.sheet !== null;
                                 }
                             });
-                            
+
                             const docSheetsLoaded = allDocSheets.every(sheet => {
                                 try {
                                     return sheet.cssRules;
@@ -771,7 +770,7 @@ class RenderingService {
                                     return true;
                                 }
                             });
-                            
+
                             if ((linkSheetsLoaded && docSheetsLoaded) || Date.now() - startTime > 10000) {
                                 resolve();
                             } else {
@@ -781,11 +780,11 @@ class RenderingService {
                             resolve();
                         }
                     };
-                    
+
                     const startTime = Date.now();
                     checkStyleSheets();
                 });
-                
+
                 // Wait for images to load
                 const images = Array.from(document.querySelectorAll('img'));
                 await Promise.all(images.map(img => {
@@ -797,17 +796,17 @@ class RenderingService {
                                 img.removeEventListener('load', handleLoad);
                                 img.removeEventListener('error', handleError);
                             };
-                            
+
                             const handleLoad = () => {
                                 cleanup();
                                 resolve();
                             };
-                            
+
                             const handleError = () => {
                                 cleanup();
                                 resolve();
                             };
-                            
+
                             img.addEventListener('load', handleLoad);
                             img.addEventListener('error', handleError);
                             setTimeout(() => {
@@ -817,7 +816,7 @@ class RenderingService {
                         }
                     });
                 }));
-                
+
                 // Wait for fonts
                 if (document.fonts && document.fonts.ready) {
                     try {
@@ -828,24 +827,23 @@ class RenderingService {
                     } catch (e) {}
                 }
             });
-            
+
             // Additional wait for content to stabilize
             await page.waitForTimeout(3000);
-            
-            logger.info(requestId, `Taking screenshot with proper CSS loading...`);
-            
+
+            logger.info(requestId, 'Taking screenshot with proper CSS loading...');
+
             // Take the screenshot
             const screenshotBuffer = await page.screenshot({
                 fullPage: options.fullPage || false,
                 type: options.format || 'png',
                 quality: options.quality || (options.format === 'jpeg' ? 90 : undefined)
             });
-            
+
             logger.info(requestId, `Screenshot completed: ${screenshotBuffer.length} bytes`);
-            
+
             await browserService.safeCloseContext(context, requestId);
             return screenshotBuffer;
-            
         } catch (error) {
             await browserService.safeCloseContext(context, requestId);
             throw error;
@@ -856,42 +854,42 @@ class RenderingService {
     static async generatePDF(url, options = {}) {
         const requestId = generateRequestId();
         const browser = await browserService.getBrowser();
-        
+
         try {
             logger.info(requestId, `Generating PDF with full CSS loading for: ${url}`);
-            
+
             // Use the same stealth context as normal rendering
             const stealthOptions = StealthService.generateStealthContextOptions();
             const context = await browserService.createIsolatedContext(browser, stealthOptions);
-            
+
             // Setup Google consent cookies for better compatibility
             await StealthService.setupGoogleCookies(context, url);
-            
+
             const page = await context.newPage();
-            
+
             // Setup request interception for perfect headers
             await StealthService.setupRequestInterception(page);
-            
+
             // Add stealth script
             await context.addInitScript(StealthService.getStealthScript());
-            
+
             // Set timeouts for PDF generation
             page.setDefaultTimeout(60000);
             page.setDefaultNavigationTimeout(60000);
-            
+
             logger.info(requestId, `Navigating to URL for PDF: ${url}`);
-            
+
             // Navigate to the actual URL to load all CSS/JS resources
-            await page.goto(url, { 
+            await page.goto(url, {
                 waitUntil: 'networkidle',
                 timeout: 60000
             });
-            
+
             // Enhanced wait for complete rendering
             await page.waitForTimeout(3000);
-            
+
             // Wait for CSS to load completely
-            await page.evaluate(async () => {
+            await page.evaluate(async() => {
                 // Wait for all stylesheets to load
                 const stylesheets = Array.from(document.querySelectorAll('link[rel="stylesheet"]'));
                 await Promise.all(stylesheets.map(link => {
@@ -905,12 +903,12 @@ class RenderingService {
                         }
                     });
                 }));
-                
+
                 // Wait for fonts to load
                 if (document.fonts) {
                     await document.fonts.ready;
                 }
-                
+
                 // Wait for any lazy-loaded images
                 const images = Array.from(document.querySelectorAll('img'));
                 await Promise.all(images.map(img => {
@@ -925,18 +923,18 @@ class RenderingService {
                     });
                 }));
             });
-            
+
             // Additional wait for any dynamic content
             await page.waitForTimeout(2000);
-            
+
             // Handle Google consent if needed
             if (url.includes('google.')) {
                 await StealthService.handleGoogleConsent(page);
                 await page.waitForTimeout(2000);
             }
-            
+
             logger.info(requestId, 'Generating PDF with complete styling...');
-            
+
             // Generate PDF with enhanced options
             const pdfBuffer = await page.pdf({
                 format: options.format || 'A4',
@@ -951,12 +949,11 @@ class RenderingService {
                 displayHeaderFooter: false,
                 scale: 1.0
             });
-            
+
             await browserService.safeCloseContext(context, requestId);
             logger.info(requestId, `PDF generated successfully: ${pdfBuffer.length} bytes`);
-            
+
             return pdfBuffer;
-            
         } catch (error) {
             await browserService.safeCloseContext(context, requestId);
             logger.error(requestId, 'PDF generation failed', error);

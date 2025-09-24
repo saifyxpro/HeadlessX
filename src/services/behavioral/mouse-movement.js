@@ -65,16 +65,16 @@ class MouseMovement {
     generateBezierPath(start, end, profile = 'natural', device = 'mouse') {
         const movementProfile = this.movementProfiles[profile] || this.movementProfiles.natural;
         const deviceChar = this.deviceCharacteristics[device] || this.deviceCharacteristics.mouse;
-        
+
         const distance = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
         const steps = Math.max(10, Math.floor(distance / 5) * deviceChar.precision);
-        
+
         // Generate control points for natural curve
         const cp1 = {
             x: start.x + (end.x - start.x) * 0.25 + (Math.random() - 0.5) * distance * 0.2,
             y: start.y + (end.y - start.y) * 0.25 + (Math.random() - 0.5) * distance * 0.2
         };
-        
+
         const cp2 = {
             x: start.x + (end.x - start.x) * 0.75 + (Math.random() - 0.5) * distance * 0.2,
             y: start.y + (end.y - start.y) * 0.75 + (Math.random() - 0.5) * distance * 0.2
@@ -82,41 +82,42 @@ class MouseMovement {
 
         const points = [];
         let totalTime = 0;
-        
+
         for (let i = 0; i <= steps; i++) {
             const t = i / steps;
-            
+
             // Bezier curve calculation
             const x = Math.pow(1 - t, 3) * start.x +
                      3 * Math.pow(1 - t, 2) * t * cp1.x +
                      3 * (1 - t) * Math.pow(t, 2) * cp2.x +
                      Math.pow(t, 3) * end.x;
-                     
+
             const y = Math.pow(1 - t, 3) * start.y +
                      3 * Math.pow(1 - t, 2) * t * cp1.y +
                      3 * (1 - t) * Math.pow(t, 2) * cp2.y +
                      Math.pow(t, 3) * end.y;
 
             // Add jitter based on profile
-            const jitterX = (Math.random() - 0.5) * movementProfile.jitter.amplitude * 
+            const jitterX = (Math.random() - 0.5) * movementProfile.jitter.amplitude *
                            (Math.random() < movementProfile.jitter.frequency ? 1 : 0);
-            const jitterY = (Math.random() - 0.5) * movementProfile.jitter.amplitude * 
+            const jitterY = (Math.random() - 0.5) * movementProfile.jitter.amplitude *
                            (Math.random() < movementProfile.jitter.frequency ? 1 : 0);
 
             // Calculate timing based on distance and speed
-            const segmentDistance = i > 0 ? 
-                Math.sqrt(Math.pow(x - points[i-1].x, 2) + Math.pow(y - points[i-1].y, 2)) : 0;
-            
-            const speed = movementProfile.speed.min + 
-                         (movementProfile.speed.max - movementProfile.speed.min) * 
+            const segmentDistance = i > 0
+                ? Math.sqrt(Math.pow(x - points[i - 1].x, 2) + Math.pow(y - points[i - 1].y, 2))
+                : 0;
+
+            const speed = movementProfile.speed.min +
+                         (movementProfile.speed.max - movementProfile.speed.min) *
                          (0.5 + 0.5 * Math.sin(t * Math.PI)); // Speed varies in sine wave
-            
+
             const timeIncrement = segmentDistance / speed * 1000; // Convert to milliseconds
             totalTime += timeIncrement;
 
             // Add pause if necessary
             if (Math.random() < movementProfile.pause.frequency && i > 0 && i < steps) {
-                totalTime += movementProfile.pause.duration.min + 
+                totalTime += movementProfile.pause.duration.min +
                            Math.random() * (movementProfile.pause.duration.max - movementProfile.pause.duration.min);
             }
 
@@ -403,7 +404,7 @@ class MouseMovement {
         const start = { x: 100, y: 100 };
         const end = { x: 400, y: 300 };
         const path = this.generateBezierPath(start, end, profile);
-        
+
         return {
             profileId,
             profile,

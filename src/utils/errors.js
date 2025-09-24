@@ -5,14 +5,14 @@
 
 // Error categories for classification
 const ERROR_CATEGORIES = {
-    NETWORK: 'network',           // Network connectivity issues
-    TIMEOUT: 'timeout',           // Operation timeouts
-    VALIDATION: 'validation',     // Input validation failures
-    RESOURCE: 'resource',         // Resource exhaustion (memory, browser contexts)
-    BROWSER: 'browser',           // Browser/page issues
-    SCRIPT: 'script',            // JavaScript execution errors
-    AUTHENTICATION: 'auth',       // Authentication failures
-    RATE_LIMIT: 'rate_limit'     // Rate limiting errors
+    NETWORK: 'network', // Network connectivity issues
+    TIMEOUT: 'timeout', // Operation timeouts
+    VALIDATION: 'validation', // Input validation failures
+    RESOURCE: 'resource', // Resource exhaustion (memory, browser contexts)
+    BROWSER: 'browser', // Browser/page issues
+    SCRIPT: 'script', // JavaScript execution errors
+    AUTHENTICATION: 'auth', // Authentication failures
+    RATE_LIMIT: 'rate_limit' // Rate limiting errors
 };
 
 // Error categorization system for proper handling
@@ -30,14 +30,14 @@ class HeadlessXError extends Error {
 // Enhanced error handler for proper categorization and response
 function handleError(error, requestId, context = '') {
     let categorizedError;
-    
+
     if (error instanceof HeadlessXError) {
         categorizedError = error;
     } else {
         // Categorize common errors
         let category = ERROR_CATEGORIES.BROWSER;
         let isRecoverable = false;
-        
+
         if (error.message.includes('timeout') || error.name === 'TimeoutError') {
             category = ERROR_CATEGORIES.TIMEOUT;
             isRecoverable = true;
@@ -51,7 +51,7 @@ function handleError(error, requestId, context = '') {
             category = ERROR_CATEGORIES.RESOURCE;
             isRecoverable = true;
         }
-        
+
         categorizedError = new HeadlessXError(
             error.message,
             category,
@@ -59,11 +59,11 @@ function handleError(error, requestId, context = '') {
             error
         );
     }
-    
+
     // Import logger here to avoid circular dependency
     const { logger } = require('./logger');
     logger.error(requestId, `${context}: ${categorizedError.message}`, categorizedError);
-    
+
     return categorizedError;
 }
 
@@ -75,51 +75,51 @@ function createErrorResponse(error, url = null) {
         details: error.message,
         timestamp: new Date().toISOString()
     };
-    
+
     // Check if this is a HeadlessXError with specific information
     if (error.category) {
         errorResponse = {
             ...errorResponse,
             errorType: error.category,
             isRecoverable: error.isRecoverable,
-            url: url
+            url
         };
-        
+
         // Set appropriate status codes
         switch (error.category) {
-            case ERROR_CATEGORIES.NETWORK:
-                statusCode = 502; // Bad Gateway
-                errorResponse.suggestion = 'Check if the URL is accessible and your internet connection is stable.';
-                break;
-            case ERROR_CATEGORIES.TIMEOUT:
-                statusCode = 408; // Request Timeout
-                errorResponse.suggestion = 'Site is taking too long to load. Try increasing timeout or using returnPartialOnTimeout=true.';
-                break;
-            case ERROR_CATEGORIES.VALIDATION:
-                statusCode = 400; // Bad Request
-                errorResponse.suggestion = 'Check your request parameters and try again.';
-                break;
-            case ERROR_CATEGORIES.AUTHENTICATION:
-                statusCode = 401; // Unauthorized
-                errorResponse.suggestion = 'Provide a valid authentication token.';
-                break;
-            case ERROR_CATEGORIES.RATE_LIMIT:
-                statusCode = 429; // Too Many Requests
-                errorResponse.suggestion = 'You are making too many requests. Please wait and try again.';
-                break;
-            case ERROR_CATEGORIES.RESOURCE:
-                statusCode = 503; // Service Unavailable
-                errorResponse.suggestion = 'Server resources are temporarily unavailable. Please try again later.';
-                break;
-            default:
-                if (error.message.includes('blocked') || error.message.includes('denied')) {
-                    statusCode = 403; // Forbidden
-                    errorResponse.errorType = 'anti-bot-protection';
-                    errorResponse.suggestion = 'This site has sophisticated anti-bot protection. Try using different URLs, adding delays, or using proxies.';
-                }
+        case ERROR_CATEGORIES.NETWORK:
+            statusCode = 502; // Bad Gateway
+            errorResponse.suggestion = 'Check if the URL is accessible and your internet connection is stable.';
+            break;
+        case ERROR_CATEGORIES.TIMEOUT:
+            statusCode = 408; // Request Timeout
+            errorResponse.suggestion = 'Site is taking too long to load. Try increasing timeout or using returnPartialOnTimeout=true.';
+            break;
+        case ERROR_CATEGORIES.VALIDATION:
+            statusCode = 400; // Bad Request
+            errorResponse.suggestion = 'Check your request parameters and try again.';
+            break;
+        case ERROR_CATEGORIES.AUTHENTICATION:
+            statusCode = 401; // Unauthorized
+            errorResponse.suggestion = 'Provide a valid authentication token.';
+            break;
+        case ERROR_CATEGORIES.RATE_LIMIT:
+            statusCode = 429; // Too Many Requests
+            errorResponse.suggestion = 'You are making too many requests. Please wait and try again.';
+            break;
+        case ERROR_CATEGORIES.RESOURCE:
+            statusCode = 503; // Service Unavailable
+            errorResponse.suggestion = 'Server resources are temporarily unavailable. Please try again later.';
+            break;
+        default:
+            if (error.message.includes('blocked') || error.message.includes('denied')) {
+                statusCode = 403; // Forbidden
+                errorResponse.errorType = 'anti-bot-protection';
+                errorResponse.suggestion = 'This site has sophisticated anti-bot protection. Try using different URLs, adding delays, or using proxies.';
+            }
         }
     }
-    
+
     return { statusCode, errorResponse };
 }
 

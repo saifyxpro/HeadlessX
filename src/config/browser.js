@@ -23,7 +23,7 @@ const BROWSER_ARGS = [
     '--no-sandbox',
     '--disable-setuid-sandbox',
     '--disable-dev-shm-usage',
-    
+
     // CRITICAL: Primary anti-detection flags for Google
     '--disable-blink-features=AutomationControlled',
     '--exclude-switches=enable-automation',
@@ -33,7 +33,7 @@ const BROWSER_ARGS = [
     '--disable-default-apps',
     '--disable-extensions',
     '--disable-component-extensions-with-background-pages',
-    
+
     // Google-specific optimizations
     '--disable-features=VizDisplayCompositor',
     '--disable-features=TranslateUI',
@@ -47,7 +47,7 @@ const BROWSER_ARGS = [
     '--disable-renderer-backgrounding',
     '--disable-field-trial-config',
     '--disable-back-forward-cache',
-    
+
     // Performance & Memory (lighter for better detection avoidance)
     '--memory-pressure-off',
     '--disable-client-side-phishing-detection',
@@ -56,14 +56,14 @@ const BROWSER_ARGS = [
     '--disable-background-networking',
     '--disable-domain-reliability',
     '--disable-component-update',
-    
+
     // Media & Hardware (minimal GPU usage for stealth)
     '--disable-accelerated-2d-canvas',
     '--disable-gpu',
     '--disable-gpu-sandbox',
     '--disable-software-rasterizer',
     '--disable-gl-drawing-for-tests',
-    
+
     // Network & Privacy
     '--disable-web-security',
     '--disable-features=VizDisplayCompositor,VizHitTestSurfaceLayer',
@@ -72,7 +72,7 @@ const BROWSER_ARGS = [
     '--disable-metrics',
     '--disable-metrics-reporting',
     '--no-report-upload',
-    
+
     // Realistic Chrome behavior
     '--enable-features=NetworkService,NetworkServiceInProcess',
     '--password-store=basic',
@@ -80,14 +80,14 @@ const BROWSER_ARGS = [
     '--force-device-scale-factor=1',
     '--hide-scrollbars',
     '--mute-audio',
-    
+
     // Logging (minimal for stealth)
     '--disable-logging',
     '--disable-gpu-logging',
     '--silent',
     '--log-level=3',
     '--disable-dev-tools',
-    
+
     // IMPORTANT: Remove telltale automation headers
     '--user-agent-override-header',
     '--disable-plugins-discovery'
@@ -103,8 +103,8 @@ const BROWSER_LAUNCH_OPTIONS = {
     ],
     env: {
         ...process.env,
-        'PLAYWRIGHT_DOWNLOAD_HOST': undefined,
-        'PLAYWRIGHT_BROWSERS_PATH': undefined
+        PLAYWRIGHT_DOWNLOAD_HOST: undefined,
+        PLAYWRIGHT_BROWSERS_PATH: undefined
     }
 };
 
@@ -123,17 +123,17 @@ function generateRealisticHeaders(userAgent, customHeaders = {}) {
     // Extract Chrome version from user agent
     const chromeMatch = userAgent.match(/Chrome\/(\d+)/);
     const chromeVersion = chromeMatch ? chromeMatch[1] : '131';
-    
+
     const baseHeaders = {
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
         'Accept-Language': 'en-US,en;q=0.9',
         'Accept-Encoding': 'gzip, deflate, br, zstd',
         'Cache-Control': 'max-age=0',
         'Upgrade-Insecure-Requests': '1',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
         // FORCE CHROME DESKTOP HEADERS ONLY
         'sec-ch-ua': `"Google Chrome";v="${chromeVersion}", "Not=A?Brand";v="8", "Chromium";v="${chromeVersion}"`,
-        'sec-ch-ua-mobile': '?0',  // CRITICAL: Force desktop
+        'sec-ch-ua-mobile': '?0', // CRITICAL: Force desktop
         'sec-ch-ua-platform': '"Windows"',
         'sec-ch-ua-platform-version': '"15.0.0"',
         'sec-ch-ua-arch': '"x86"',

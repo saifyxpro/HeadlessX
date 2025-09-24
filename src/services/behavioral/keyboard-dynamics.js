@@ -41,41 +41,57 @@ class KeyboardDynamics {
 
         this.keyboardLayouts = {
             qwerty: {
-                'q': { row: 1, finger: 'left_pinky', hand: 'left' },
-                'w': { row: 1, finger: 'left_ring', hand: 'left' },
-                'e': { row: 1, finger: 'left_middle', hand: 'left' },
-                'r': { row: 1, finger: 'left_index', hand: 'left' },
-                't': { row: 1, finger: 'left_index', hand: 'left' },
-                'y': { row: 1, finger: 'right_index', hand: 'right' },
-                'u': { row: 1, finger: 'right_index', hand: 'right' },
-                'i': { row: 1, finger: 'right_middle', hand: 'right' },
-                'o': { row: 1, finger: 'right_ring', hand: 'right' },
-                'p': { row: 1, finger: 'right_pinky', hand: 'right' },
-                'a': { row: 2, finger: 'left_pinky', hand: 'left' },
-                's': { row: 2, finger: 'left_ring', hand: 'left' },
-                'd': { row: 2, finger: 'left_middle', hand: 'left' },
-                'f': { row: 2, finger: 'left_index', hand: 'left' },
-                'g': { row: 2, finger: 'left_index', hand: 'left' },
-                'h': { row: 2, finger: 'right_index', hand: 'right' },
-                'j': { row: 2, finger: 'right_index', hand: 'right' },
-                'k': { row: 2, finger: 'right_middle', hand: 'right' },
-                'l': { row: 2, finger: 'right_ring', hand: 'right' },
-                'z': { row: 3, finger: 'left_pinky', hand: 'left' },
-                'x': { row: 3, finger: 'left_ring', hand: 'left' },
-                'c': { row: 3, finger: 'left_middle', hand: 'left' },
-                'v': { row: 3, finger: 'left_index', hand: 'left' },
-                'b': { row: 3, finger: 'left_index', hand: 'left' },
-                'n': { row: 3, finger: 'right_index', hand: 'right' },
-                'm': { row: 3, finger: 'right_index', hand: 'right' },
+                q: { row: 1, finger: 'left_pinky', hand: 'left' },
+                w: { row: 1, finger: 'left_ring', hand: 'left' },
+                e: { row: 1, finger: 'left_middle', hand: 'left' },
+                r: { row: 1, finger: 'left_index', hand: 'left' },
+                t: { row: 1, finger: 'left_index', hand: 'left' },
+                y: { row: 1, finger: 'right_index', hand: 'right' },
+                u: { row: 1, finger: 'right_index', hand: 'right' },
+                i: { row: 1, finger: 'right_middle', hand: 'right' },
+                o: { row: 1, finger: 'right_ring', hand: 'right' },
+                p: { row: 1, finger: 'right_pinky', hand: 'right' },
+                a: { row: 2, finger: 'left_pinky', hand: 'left' },
+                s: { row: 2, finger: 'left_ring', hand: 'left' },
+                d: { row: 2, finger: 'left_middle', hand: 'left' },
+                f: { row: 2, finger: 'left_index', hand: 'left' },
+                g: { row: 2, finger: 'left_index', hand: 'left' },
+                h: { row: 2, finger: 'right_index', hand: 'right' },
+                j: { row: 2, finger: 'right_index', hand: 'right' },
+                k: { row: 2, finger: 'right_middle', hand: 'right' },
+                l: { row: 2, finger: 'right_ring', hand: 'right' },
+                z: { row: 3, finger: 'left_pinky', hand: 'left' },
+                x: { row: 3, finger: 'left_ring', hand: 'left' },
+                c: { row: 3, finger: 'left_middle', hand: 'left' },
+                v: { row: 3, finger: 'left_index', hand: 'left' },
+                b: { row: 3, finger: 'left_index', hand: 'left' },
+                n: { row: 3, finger: 'right_index', hand: 'right' },
+                m: { row: 3, finger: 'right_index', hand: 'right' },
                 ' ': { row: 4, finger: 'thumb', hand: 'both' }
             }
         };
 
         this.commonBigrams = {
-            'th': 1.52, 'he': 1.28, 'in': 0.94, 'er': 0.94, 're': 0.87,
-            'an': 0.82, 'nd': 0.73, 'on': 0.73, 'en': 0.69, 'at': 0.69,
-            'ou': 0.64, 'ed': 0.63, 'ha': 0.56, 'to': 0.52, 'or': 0.52,
-            'it': 0.50, 'is': 0.50, 'hi': 0.49, 'es': 0.49, 'ng': 0.48
+            th: 1.52,
+            he: 1.28,
+            in: 0.94,
+            er: 0.94,
+            re: 0.87,
+            an: 0.82,
+            nd: 0.73,
+            on: 0.73,
+            en: 0.69,
+            at: 0.69,
+            ou: 0.64,
+            ed: 0.63,
+            ha: 0.56,
+            to: 0.52,
+            or: 0.52,
+            it: 0.50,
+            is: 0.50,
+            hi: 0.49,
+            es: 0.49,
+            ng: 0.48
         };
     }
 
@@ -89,10 +105,10 @@ class KeyboardDynamics {
     calculateTypingTiming(text, profileId, typingProfile = 'normal') {
         const profile = this.typingProfiles[typingProfile] || this.typingProfiles.normal;
         const keystrokes = [];
-        
+
         let currentTime = 0;
         let previousChar = null;
-        
+
         // Generate consistent randomness
         const generateRandom = (seed, index) => {
             let hash = 0;
@@ -106,39 +122,39 @@ class KeyboardDynamics {
         for (let i = 0; i < text.length; i++) {
             const char = text[i].toLowerCase();
             const randomSeed = profileId + i;
-            
+
             // Calculate base timing from WPM
             const baseCharTime = (60000 / (profile.wpm.min + (profile.wpm.max - profile.wpm.min) * generateRandom(randomSeed, 1))) / 5;
-            
+
             // Dwell time (how long key is held down)
-            const dwellTime = profile.dwellTime.min + 
+            const dwellTime = profile.dwellTime.min +
                              (profile.dwellTime.max - profile.dwellTime.min) * generateRandom(randomSeed, 2);
-            
+
             // Flight time (time between key releases)
-            let flightTime = profile.flightTime.min + 
+            let flightTime = profile.flightTime.min +
                            (profile.flightTime.max - profile.flightTime.min) * generateRandom(randomSeed, 3);
-            
+
             // Adjust timing based on key combinations
             if (previousChar && this.keyboardLayouts.qwerty[char] && this.keyboardLayouts.qwerty[previousChar]) {
                 const prevKey = this.keyboardLayouts.qwerty[previousChar];
                 const currKey = this.keyboardLayouts.qwerty[char];
-                
+
                 // Same finger penalty
                 if (prevKey.finger === currKey.finger) {
                     flightTime *= 1.5;
                 }
-                
+
                 // Different hand bonus
                 if (prevKey.hand !== currKey.hand && currKey.hand !== 'both') {
                     flightTime *= 0.8;
                 }
-                
+
                 // Row change penalty
                 if (Math.abs(prevKey.row - currKey.row) > 1) {
                     flightTime *= 1.2;
                 }
             }
-            
+
             // Bigram adjustments for common letter combinations
             if (previousChar) {
                 const bigram = previousChar + char;
@@ -146,24 +162,24 @@ class KeyboardDynamics {
                     flightTime *= (1.0 - this.commonBigrams[bigram] * 0.1); // Common bigrams are faster
                 }
             }
-            
+
             // Add natural variation
             const variation = 0.8 + 0.4 * generateRandom(randomSeed, 4);
             flightTime *= variation;
-            
+
             // Pause between words
             if (char === ' ') {
-                flightTime += profile.pauseBetweenWords.min + 
+                flightTime += profile.pauseBetweenWords.min +
                             (profile.pauseBetweenWords.max - profile.pauseBetweenWords.min) * generateRandom(randomSeed, 5);
             }
-            
+
             // Simulate thinking pauses (random longer pauses)
             if (generateRandom(randomSeed, 6) < 0.05) {
                 flightTime += 500 + generateRandom(randomSeed, 7) * 1500; // Thinking pause
             }
-            
+
             currentTime += flightTime;
-            
+
             keystrokes.push({
                 char: text[i], // Keep original case
                 keyDown: Math.round(currentTime),
@@ -173,11 +189,11 @@ class KeyboardDynamics {
                 finger: this.keyboardLayouts.qwerty[char]?.finger || 'unknown',
                 hand: this.keyboardLayouts.qwerty[char]?.hand || 'unknown'
             });
-            
+
             currentTime += dwellTime;
             previousChar = char;
         }
-        
+
         return keystrokes;
     }
 
@@ -189,7 +205,7 @@ class KeyboardDynamics {
      */
     getKeyboardDynamicsScript(profileId, typingProfile = 'normal') {
         const profile = this.typingProfiles[typingProfile] || this.typingProfiles.normal;
-        
+
         return `
         (function() {
             const profileId = '${profileId}';
@@ -450,7 +466,7 @@ class KeyboardDynamics {
         const totalTime = keystrokes[keystrokes.length - 1]?.keyUp || 0;
         const avgDwellTime = keystrokes.reduce((sum, k) => sum + k.dwellTime, 0) / keystrokes.length;
         const avgFlightTime = keystrokes.reduce((sum, k) => sum + k.flightTime, 0) / keystrokes.length;
-        
+
         return {
             profileId,
             typingProfile,
@@ -475,7 +491,7 @@ class KeyboardDynamics {
      */
     calculateTiming(char, profile = 'normal') {
         const typingProfile = this.typingProfiles[profile] || this.typingProfiles.normal;
-        
+
         return {
             dwellTime: this.randomBetween(typingProfile.dwellTime.min, typingProfile.dwellTime.max),
             flightTime: this.randomBetween(typingProfile.flightTime.min, typingProfile.flightTime.max)

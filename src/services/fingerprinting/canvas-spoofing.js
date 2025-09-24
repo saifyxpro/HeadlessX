@@ -24,7 +24,7 @@ class CanvasSpoofing {
     generateCanvasNoise(seed, level = 'medium') {
         const profile = this.noiseProfiles[level];
         const hash = crypto.createHash('sha256').update(seed).digest();
-        
+
         return (index) => {
             const byteIndex = index % hash.length;
             const noiseValue = (hash[byteIndex] / 255) * profile.intensity - (profile.intensity / 2);
@@ -217,7 +217,7 @@ class CanvasSpoofing {
 
         for (let i = 0; i < imageData.data.length; i += 4) {
             if (Math.random() < noiseProfile.frequency) {
-                imageData.data[i] += (Math.random() - 0.5) * noiseProfile.intensity;     // R
+                imageData.data[i] += (Math.random() - 0.5) * noiseProfile.intensity; // R
                 imageData.data[i + 1] += (Math.random() - 0.5) * noiseProfile.intensity; // G
                 imageData.data[i + 2] += (Math.random() - 0.5) * noiseProfile.intensity; // B
             }

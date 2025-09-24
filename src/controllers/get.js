@@ -10,11 +10,10 @@ const { createErrorResponse } = require('../utils/errors');
 const browserService = require('../services/browser');
 
 class GetController {
-    
     // HTML endpoint (GET version - returns raw HTML directly)
     static async getHtml(req, res) {
         const requestId = req.requestId;
-        
+
         try {
             // Validate URL (from query parameter for GET)
             const { url } = req.query;
@@ -27,11 +26,11 @@ class GetController {
 
             // Extract options from query parameters
             const options = extractOptionsFromQuery(req.query);
-            
+
             const result = await RenderingService.renderPageAdvanced(options);
-            
+
             logger.info(requestId, `Successfully rendered HTML (GET): ${url} (${result.wasTimeout ? 'with timeouts' : 'complete'})`);
-            
+
             // Return raw HTML with proper headers
             res.set({
                 'Content-Type': 'text/html; charset=utf-8',
@@ -43,7 +42,6 @@ class GetController {
                 'X-Is-Emergency': (result.isEmergencyContent || false).toString()
             });
             res.send(result.html);
-
         } catch (error) {
             logger.error(requestId, 'HTML rendering error (GET)', error);
             const { statusCode, errorResponse } = createErrorResponse(error, req.query?.url);
@@ -54,7 +52,7 @@ class GetController {
     // Content endpoint (GET version - returns clean text only)
     static async getContent(req, res) {
         const requestId = req.requestId;
-        
+
         try {
             // Validate URL (from query parameter for GET)
             const { url } = req.query;
@@ -69,13 +67,13 @@ class GetController {
             const options = extractOptionsFromQuery(req.query);
 
             const result = await RenderingService.renderPageAdvanced(options);
-            
+
             // Extract clean text content
             const textContent = await extractCleanText(result.html, browserService);
-            
+
             logger.info(requestId, `Successfully extracted content (GET): ${url} (${result.wasTimeout ? 'with timeouts' : 'complete'})`);
             logger.info(requestId, `Content length: ${textContent.length} characters`);
-            
+
             // Return plain text with proper headers
             res.set({
                 'Content-Type': 'text/plain; charset=utf-8',
@@ -87,7 +85,6 @@ class GetController {
                 'X-Is-Emergency': (result.isEmergencyContent || false).toString()
             });
             res.send(textContent);
-
         } catch (error) {
             logger.error(requestId, 'Content extraction error (GET)', error);
             const { statusCode } = createErrorResponse(error, req.query?.url);
@@ -98,7 +95,7 @@ class GetController {
     // API documentation endpoint
     static getApiDocs(req, res) {
         const requestId = req.requestId;
-        
+
         const documentation = {
             name: 'HeadlessX API',
             version: '1.2.0',
@@ -246,7 +243,7 @@ class GetController {
                 }
             }
         };
-        
+
         logger.info(requestId, 'API documentation requested');
         res.json(documentation);
     }

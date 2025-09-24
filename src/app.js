@@ -1,9 +1,9 @@
 /**
  * HeadlessX v1.3.0 - Enhanced Main Application Entry Point
- * 
+ *
  * Production-ready modular server with advanced anti-detection capabilities
  * Optimized for both direct execution and PM2 deployment
- * 
+ *
  * New v1.3.0 Features:
  * - Advanced fingerprinting control
  * - Behavioral simulation engine
@@ -21,12 +21,11 @@ try {
     config = require('./config');
     browserService = require('./services/browser');
     logger = require('./utils/logger').logger;
-    
+
     // v1.3.0: Validate anti-detection configuration
     if (config.antiDetection.stealthMode === 'maximum') {
         logger.info('🛡️ Maximum stealth mode activated');
     }
-    
 } catch (error) {
     console.error('❌ Failed to load core modules:', error.message);
     process.exit(1);
@@ -81,7 +80,7 @@ try {
     if (fs.existsSync(websitePath)) {
         console.log(`🌐 Website served from: ${websitePath}`);
         app.use(express.static(websitePath, { index: 'index.html' }));
-        
+
         // SPA fallback
         app.get('*', (req, res, next) => {
             if (req.path.startsWith('/api/')) {
@@ -123,13 +122,13 @@ let server;
 // Graceful shutdown
 async function gracefulShutdown(signal) {
     console.log(`🛑 Received ${signal}, shutting down gracefully...`);
-    
+
     try {
         if (browserService) {
             await browserService.shutdown();
             console.log('✅ Browser service closed');
         }
-        
+
         if (server) {
             server.close(() => {
                 console.log('✅ HTTP server closed');
@@ -156,27 +155,27 @@ process.on('uncaughtException', (error) => {
 function startServer() {
     const port = config.server.port || 3000;
     const host = config.server.host || '0.0.0.0';
-    
+
     server = app.listen(port, host, () => {
         console.log(`🚀 HeadlessX v1.3.0 running on http://${host}:${port}`);
         console.log(`📍 Health check: http://${host}:${port}/api/health`);
         console.log(`📊 Status: http://${host}:${port}/api/status`);
         console.log(`📖 API docs: http://${host}:${port}/api/docs`);
-        
+
         // v1.3.0 Enhanced status information
         console.log(`🛡️ Stealth mode: ${config.antiDetection.stealthMode}`);
         console.log(`🎭 Fingerprint profile: ${config.antiDetection.fingerprintProfile}`);
         console.log(`🤖 Behavioral simulation: ${config.antiDetection.behavioralSimulation ? 'Enabled' : 'Disabled'}`);
         console.log(`🔐 Auth tokens: ${config.server.authToken ? 'Configured' : 'Missing'}`);
-        
+
         // v1.3.0 New endpoints
         console.log(`🧪 Fingerprint testing: http://${host}:${port}/api/test-fingerprint`);
         console.log(`👥 Device profiles: http://${host}:${port}/api/profiles`);
         console.log(`🛡️ Stealth status: http://${host}:${port}/api/stealth/status`);
-        
+
         console.log('✅ v1.3.0 Server ready with advanced anti-detection capabilities');
     });
-    
+
     server.on('error', (error) => {
         if (error.code === 'EADDRINUSE') {
             console.error(`❌ Port ${port} is already in use`);
@@ -191,17 +190,17 @@ function startServer() {
 if (require.main === module || (require.main && require.main.filename.includes('server.js'))) {
     console.log('🔄 Initializing HeadlessX v1.3.0...');
     console.log('🚀 Loading enhanced anti-detection capabilities...');
-    
+
     // v1.3.0: Initialize performance monitoring if enabled
     if (config.performance.monitoring) {
         console.log('📊 Performance monitoring enabled');
     }
-    
+
     // v1.3.0: Initialize development tools if enabled
     if (config.development.devToolsEnabled) {
         console.log('🛠️ Development tools enabled');
     }
-    
+
     setTimeout(() => {
         try {
             startServer();

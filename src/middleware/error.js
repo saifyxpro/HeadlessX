@@ -9,17 +9,17 @@ const { createErrorResponse } = require('../utils/errors');
 // Global error handler middleware
 function errorHandler(err, req, res, next) {
     const requestId = req.requestId || 'unknown';
-    
+
     logger.error(requestId, 'Unhandled error occurred', err, {
         path: req.path,
         method: req.method,
         body: req.body,
         query: req.query
     });
-    
+
     // Create standardized error response
     const { statusCode, errorResponse } = createErrorResponse(err, req.body?.url || req.query?.url);
-    
+
     res.status(statusCode).json(errorResponse);
 }
 

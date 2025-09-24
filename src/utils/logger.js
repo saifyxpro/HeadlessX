@@ -10,29 +10,31 @@ function createStructuredLogger() {
     return {
         info: (requestId, message, data = {}) => {
             const timestamp = new Date().toISOString();
-            console.log(`[${timestamp}] [${requestId}] [INFO] ${message}`, 
+            console.log(`[${timestamp}] [${requestId}] [INFO] ${message}`,
                 Object.keys(data).length > 0 ? JSON.stringify(data) : '');
         },
         warn: (requestId, message, data = {}) => {
             const timestamp = new Date().toISOString();
-            console.log(`[${timestamp}] [${requestId}] [WARN] ${message}`, 
+            console.log(`[${timestamp}] [${requestId}] [WARN] ${message}`,
                 Object.keys(data).length > 0 ? JSON.stringify(data) : '');
         },
         error: (requestId, message, error = null, data = {}) => {
             const timestamp = new Date().toISOString();
-            const errorInfo = error ? {
-                message: error.message,
-                category: error.category || 'unknown',
-                isRecoverable: error.isRecoverable || false,
-                stack: error.stack
-            } : {};
-            console.error(`[${timestamp}] [${requestId}] [ERROR] ${message}`, 
+            const errorInfo = error
+                ? {
+                    message: error.message,
+                    category: error.category || 'unknown',
+                    isRecoverable: error.isRecoverable || false,
+                    stack: error.stack
+                }
+                : {};
+            console.error(`[${timestamp}] [${requestId}] [ERROR] ${message}`,
                 JSON.stringify({ ...errorInfo, ...data }));
         },
         debug: (requestId, message, data = {}) => {
             if (config.logging.debug) {
                 const timestamp = new Date().toISOString();
-                console.log(`[${timestamp}] [${requestId}] [DEBUG] ${message}`, 
+                console.log(`[${timestamp}] [${requestId}] [DEBUG] ${message}`,
                     Object.keys(data).length > 0 ? JSON.stringify(data) : '');
             }
         }
