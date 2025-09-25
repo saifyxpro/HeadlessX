@@ -40,7 +40,8 @@
     "format": "prettier --write 'src/**/*.js'",
     "format:check": "prettier --check 'src/**/*.js'",
     "docs:lint": "markdownlint docs/ README.md",
-    "docs:lint:fix": "markdownlint docs/ README.md --fix"
+    "docs:lint:fix": "markdownlint docs/ README.md --fix",
+    "postinstall": "npx playwright install --with-deps chromium"
   },
   "keywords": [
     "headlessx",
