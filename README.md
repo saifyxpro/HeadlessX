@@ -34,6 +34,29 @@
 
 ---
 
+<div align="center">
+
+## 🗺️ **What's Coming Next?**
+
+### 🚀 **HeadlessX v2.0** - Full-Stack AI-Powered Platform
+*The future of intelligent web scraping is here*
+
+[![Roadmap](https://img.shields.io/badge/🗺️_View_Full_Roadmap-v2.0-purple.svg?style=for-the-badge)](./docs/roadmap-v2.md)
+
+**🎯 Revolutionary Features Coming:**
+- 🤖 **AI-Powered Admin Panel** - Intelligent task management & automation
+- 🎨 **Modern React Frontend** - Sleek, responsive dashboard interface  
+- 🧠 **Smart Automation** - AI-driven scraping strategies & optimization
+- 📊 **Advanced Analytics** - Real-time insights & performance metrics
+- 🔄 **Workflow Builder** - Visual scraping pipeline creation
+- 🎛️ **Enterprise Controls** - Advanced user management & permissions
+
+*Transform your web scraping experience with the next generation of HeadlessX*
+
+</div>
+
+---
+
 ## ✨ v1.3.0 Key Features
 
 ### 🛡️ **Advanced Anti-Detection Engine**
