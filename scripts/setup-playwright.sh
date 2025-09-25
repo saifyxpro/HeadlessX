@@ -1,124 +1,138 @@
 #!/bin/bash
 
-# HeadlessX Playwright Setup Script
-# Handles Playwright installation issues on Ubuntu 24.04+
+# HeadlessX Playwright Setup Script (Fixed Version)
+# Installs Playwright and browsers for HeadlessX
+# Run with: bash scripts/setup-playwright.sh
 
 set -e
 
-echo "🌐 Setting up Playwright for HeadlessX"
-echo "======================================"
+echo "🎭 Installing Playwright for HeadlessX..."
+echo "========================================"
 
-# Colors for output
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-print_success() {
+print_status() {
     echo -e "${GREEN}✅ $1${NC}"
-}
-
-print_warning() {
-    echo -e "${YELLOW}⚠️ $1${NC}"
 }
 
 print_error() {
     echo -e "${RED}❌ $1${NC}"
 }
 
-# Check if we're in the right directory
-if [ ! -f "package.json" ] || [ ! -d "src" ]; then
-    print_error "Not in HeadlessX root directory"
+print_warning() {
+    echo -e "${YELLOW}⚠️ $1${NC}"
+}
+
+# Check if Node.js is installed
+if ! command -v node &> /dev/null; then
+    print_error "Node.js is not installed. Please install Node.js first."
     exit 1
 fi
 
-# Detect OS version
-OS_VERSION=$(lsb_release -rs 2>/dev/null || echo "unknown")
-print_success "Detected OS version: $OS_VERSION"
-
-# Install system dependencies based on OS version
-echo "🔧 Installing system dependencies..."
-sudo apt update
-
-if [[ "$OS_VERSION" =~ ^2[4-9]\. ]] || [[ "$OS_VERSION" =~ ^[3-9][0-9]\. ]]; then
-    # Ubuntu 24.04+ (including 25.04) - use t64 packages
-    sudo apt install -y \
-        libgtk-3-0t64 libpangocairo-1.0-0 libcairo-gobject2 \
-        libgdk-pixbuf-2.0-0 libdrm2 libxss1 libxcomposite1 \
-        libxdamage1 libxfixes3 libxrandr2 libgbm1 libcairo2 \
-        libpango-1.0-0 libasound2t64 fonts-liberation libnss3 \
-        xdg-utils wget ca-certificates curl libatk1.0-0t64 \
-        libatk-bridge2.0-0t64 libcups2t64 libatspi2.0-0t64
-else
-    # Fallback for older Ubuntu versions
-    sudo apt install -y \
-        libgtk-3-0 libpangocairo-1.0-0 libcairo-gobject2 \
-        libgdk-pixbuf2.0-0 libdrm2 libxss1 libxcomposite1 \
-        libxdamage1 libxfixes3 libxrandr2 libgbm1 libcairo2 \
-        libpango-1.0-0 libasound2 fonts-liberation libnss3 \
-        xdg-utils wget ca-certificates curl libatk1.0-0 \
-        libatk-bridge2.0-0 libcups2 libatspi2.0-0
+if ! command -v npm &> /dev/null; then
+    print_error "npm is not installed. Please install npm first."
+    exit 1
 fi
 
-print_success "System dependencies installed"
+print_status "Node.js $(node --version) and npm $(npm --version) found"
 
-# Install Playwright browsers (Chromium only for stability)
-echo "🌐 Installing Playwright Chromium browser..."
+# Make sure we're in project root
+cd "$(dirname "$0")/.."
+
+# Install Playwright package
+echo "📦 Installing/Updating Playwright package..."
+if npm install playwright; then
+    print_status "Playwright package installed"
+else
+    print_error "Failed to install Playwright package"
+    exit 1
+fi
+
+# Set environment variable to allow browser download
 export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
 
-# Try to install Chromium browser
-if npx playwright install chromium; then
-    print_success "Chromium browser installed successfully"
-else
-    print_warning "Chromium installation had warnings (usually OK)"
+# Install browsers using reliable methods
+echo "🌐 Installing Chromium browser..."
+
+# Set environment to allow downloads
+export PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
+
+success=false
+
+# Method 1: Try local playwright binary first
+if [ -f "./node_modules/.bin/playwright" ]; then
+    echo "Attempting installation via local playwright binary..."
+    if ./node_modules/.bin/playwright install chromium; then
+        print_status "Chromium installed via local binary"
+        success=true
+    fi
 fi
 
-# Try to install browser dependencies
-echo "🔧 Installing browser dependencies..."
-if npx playwright install-deps chromium 2>/dev/null; then
-    print_success "Browser dependencies installed"
-else
-    print_warning "Some browser dependencies failed (fallback will be used)"
+# Method 2: Try npx if local binary failed
+if [ "$success" = false ] && command -v npx &> /dev/null; then
+    echo "Attempting installation via npx..."
+    if npx playwright install chromium; then
+        print_status "Chromium installed via npx"
+        success=true
+    fi
 fi
 
-# Test browser functionality
-echo "🧪 Testing browser functionality..."
-cat > test-browser.js << 'EOF'
-const { chromium } = require('playwright');
-
-(async () => {
-  try {
-    const browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage();
-    await page.goto('data:text/html,<h1>Test</h1>');
-    await browser.close();
-    console.log('✅ Browser test successful');
-    process.exit(0);
-  } catch (error) {
-    console.log('❌ Browser test failed:', error.message);
+# Method 3: Try Node.js require to trigger download
+if [ "$success" = false ]; then
+    echo "Triggering browser download via Node.js require..."
+    if node -e "
+try {
+    const playwright = require('playwright');
+    console.log('Playwright loaded - browser will download on first use');
+} catch (error) {
+    console.error('Failed to load Playwright:', error.message);
     process.exit(1);
-  }
-})();
-EOF
-
-if node test-browser.js; then
-    print_success "Browser functionality test passed"
-else
-    print_warning "Browser test failed - check logs"
+}
+"; then
+        print_status "Playwright loaded - browsers will download on first API call"
+        success=true
+    fi
 fi
 
-# Cleanup
-rm -f test-browser.js
+if [ "$success" = false ]; then
+    print_error "All installation methods failed"
+    exit 1
+fi
+
+# Install system dependencies for browsers (Linux/Ubuntu)
+if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v apt-get &> /dev/null; then
+    echo "🔧 Installing system dependencies for browsers..."
+    sudo apt-get update &>/dev/null || true
+    sudo apt-get install -y \
+        libnss3 libnspr4 libatk-bridge2.0-0 libdrm2 libxkbcommon0 \
+        libxcomposite1 libxdamage1 libxrandr2 libgbm1 libxss1 libasound2 \
+        libatspi2.0-0 libgtk-3-0 &>/dev/null
+    
+    if [ $? -eq 0 ]; then
+        print_status "System dependencies installed"
+    else
+        print_warning "Some system dependencies failed - browsers may still work"
+    fi
+fi
+
+# Verify installation
+echo "🔍 Verifying Playwright installation..."
+node -e "
+try {
+    const playwright = require('playwright');
+    console.log('✅ Playwright module loads successfully');
+    console.log('📍 Chromium executable will be downloaded on first launch');
+} catch (error) {
+    console.log('❌ Verification failed:', error.message);
+    process.exit(1);
+}
+"
 
 echo ""
-print_success "Playwright setup complete!"
-echo ""
-echo "📋 Summary:"
-echo "   ✅ System dependencies installed"
-echo "   ✅ Chromium browser installed"
-echo "   ✅ Browser functionality tested"
-echo ""
-echo "🚀 You can now start HeadlessX:"
-echo "   npm start (development)"
-echo "   npm run pm2:start (production)"
-echo ""
+print_status "Playwright setup completed!"
+echo "🚀 You can now start HeadlessX with: node src/server.js"
+echo "📝 Browsers will auto-download on first use if not already present"

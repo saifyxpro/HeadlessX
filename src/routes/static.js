@@ -14,7 +14,7 @@ const router = express.Router();
 router.get('/favicon.ico', (req, res) => {
     const websitePath = config.website.path;
     const faviconPath = path.join(websitePath, 'favicon.ico');
-    
+
     if (fs.existsSync(faviconPath)) {
         res.sendFile(faviconPath);
     } else {
@@ -31,12 +31,12 @@ router.get('/robots.txt', (req, res) => {
 // Serve static website files if enabled and available (PM2-optimized)
 if (config.website.enabled) {
     console.log(`🌐 Website served from: ${config.website.path}`);
-    
+
     // Simple static file serving without complex headers (PM2-friendly)
     router.use(express.static(config.website.path, {
         index: 'index.html'
     }));
-    
+
     // Simple fallback for SPA routing
     router.get('*', (req, res) => {
         if (!req.path.startsWith('/api/')) {
@@ -49,8 +49,8 @@ if (config.website.enabled) {
     });
 } else {
     console.log(`⚠️ Website build not found at: ${config.website.path}`);
-    console.log(`   Run 'npm run build' in the website directory to build the website`);
-    
+    console.log('   Run \'npm run build\' in the website directory to build the website');
+
     // Fallback route for when website is not built
     router.get('/', (req, res) => {
         res.json({

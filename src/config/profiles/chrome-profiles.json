@@ -1,0 +1,181 @@
+[
+  {
+    "id": "chrome-windows-high-end",
+    "name": "Chrome Windows High-End Desktop",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    "screen": {
+      "width": 1920,
+      "height": 1080,
+      "colorDepth": 24,
+      "pixelDepth": 24,
+      "devicePixelRatio": 1,
+      "availWidth": 1920,
+      "availHeight": 1040
+    },
+    "webgl": {
+      "vendor": "Google Inc. (NVIDIA)",
+      "renderer": "ANGLE (NVIDIA GeForce RTX 4080 Direct3D11 vs_5_0 ps_5_0)",
+      "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+      "shadingLanguageVersion": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+      "extensions": [
+        "ANGLE_instanced_arrays",
+        "EXT_blend_minmax",
+        "EXT_color_buffer_half_float",
+        "EXT_disjoint_timer_query",
+        "EXT_float_blend",
+        "EXT_frag_depth",
+        "EXT_shader_texture_lod",
+        "EXT_texture_compression_bptc",
+        "EXT_texture_compression_rgtc",
+        "EXT_texture_filter_anisotropic",
+        "WEBKIT_EXT_texture_filter_anisotropic",
+        "EXT_sRGB",
+        "KHR_parallel_shader_compile",
+        "OES_element_index_uint",
+        "OES_fbo_render_mipmap",
+        "OES_standard_derivatives",
+        "OES_texture_float",
+        "OES_texture_float_linear",
+        "OES_texture_half_float",
+        "OES_texture_half_float_linear",
+        "OES_vertex_array_object",
+        "WEBGL_color_buffer_float",
+        "WEBGL_compressed_texture_s3tc",
+        "WEBKIT_WEBGL_compressed_texture_s3tc",
+        "WEBGL_compressed_texture_s3tc_srgb",
+        "WEBGL_debug_renderer_info",
+        "WEBGL_debug_shaders",
+        "WEBGL_depth_texture",
+        "WEBKIT_WEBGL_depth_texture",
+        "WEBGL_draw_buffers",
+        "WEBGL_lose_context",
+        "WEBKIT_WEBGL_lose_context"
+      ]
+    },
+    "hardware": {
+      "cores": 8,
+      "memory": 16384,
+      "platform": "Win32",
+      "architecture": "x86_64",
+      "maxTouchPoints": 0,
+      "cpuClass": null
+    },
+    "audio": {
+      "sampleRate": 44100,
+      "baseLatency": 0.01,
+      "outputLatency": 0.02,
+      "maxChannelCount": 2,
+      "numberOfInputs": 1,
+      "numberOfOutputs": 1
+    },
+    "geolocation": {
+      "timezone": "America/New_York",
+      "language": "en-US",
+      "languages": ["en-US", "en"],
+      "locale": "en-US",
+      "currency": "USD"
+    },
+    "fonts": [
+      "Arial",
+      "Arial Black",
+      "Arial Narrow",
+      "Book Antiqua",
+      "Bookman Old Style",
+      "Calibri",
+      "Cambria",
+      "Century",
+      "Century Gothic",
+      "Comic Sans MS",
+      "Consolas",
+      "Courier",
+      "Courier New",
+      "Garamond",
+      "Georgia",
+      "Impact",
+      "Lucida Console",
+      "Lucida Sans Unicode",
+      "Microsoft Sans Serif",
+      "Palatino Linotype",
+      "Segoe UI",
+      "Tahoma",
+      "Times",
+      "Times New Roman",
+      "Trebuchet MS",
+      "Verdana"
+    ],
+    "behavioral": {
+      "profile": "confident",
+      "mouseSpeed": { "min": 800, "max": 1500 },
+      "acceleration": { "min": 0.8, "max": 1.2 },
+      "pauseBetweenActions": { "min": 100, "max": 300 },
+      "scrollPattern": "aggressive",
+      "typingSpeed": { "min": 80, "max": 120 }
+    }
+  },
+  {
+    "id": "chrome-windows-mid-range",
+    "name": "Chrome Windows Mid-Range Desktop",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    "screen": {
+      "width": 1366,
+      "height": 768,
+      "colorDepth": 24,
+      "pixelDepth": 24,
+      "devicePixelRatio": 1,
+      "availWidth": 1366,
+      "availHeight": 728
+    },
+    "webgl": {
+      "vendor": "Google Inc. (Intel)",
+      "renderer": "ANGLE (Intel(R) UHD Graphics 630 Direct3D11 vs_5_0 ps_5_0)",
+      "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+      "shadingLanguageVersion": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)"
+    },
+    "hardware": {
+      "cores": 4,
+      "memory": 8192,
+      "platform": "Win32",
+      "architecture": "x86_64",
+      "maxTouchPoints": 0
+    },
+    "behavioral": {
+      "profile": "natural",
+      "mouseSpeed": { "min": 600, "max": 1000 },
+      "scrollPattern": "smooth",
+      "typingSpeed": { "min": 60, "max": 90 }
+    }
+  },
+  {
+    "id": "chrome-windows-business",
+    "name": "Chrome Windows Business Laptop",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+    "screen": {
+      "width": 1280,
+      "height": 720,
+      "colorDepth": 24,
+      "pixelDepth": 24,
+      "devicePixelRatio": 1,
+      "availWidth": 1280,
+      "availHeight": 680
+    },
+    "webgl": {
+      "vendor": "Google Inc. (Intel)",
+      "renderer": "ANGLE (Intel(R) HD Graphics 4000 Direct3D11 vs_5_0 ps_5_0)",
+      "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+      "shadingLanguageVersion": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)"
+    },
+    "hardware": {
+      "cores": 4,
+      "memory": 8192,
+      "platform": "Win32",
+      "architecture": "x86_64",
+      "maxTouchPoints": 0
+    },
+    "behavioral": {
+      "profile": "cautious",
+      "mouseSpeed": { "min": 400, "max": 700 },
+      "scrollPattern": "careful",
+      "typingSpeed": { "min": 40, "max": 70 }
+    }
+  }
+]

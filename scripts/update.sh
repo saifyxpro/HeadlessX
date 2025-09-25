@@ -1,13 +1,14 @@
 #!/bin/bash
 
-# HeadlessX Update Script v1.2.0
-# Updates HeadlessX installation with latest changes
+# HeadlessX Update Script v1.3.0
+# Updates HeadlessX installation with v1.3.0 anti-detection features
 # Run with: bash scripts/update.sh
 
 set -e
 
-echo "🔄 HeadlessX Update Script v1.2.0"
-echo "=================================="
+echo "🔄 HeadlessX Update Script v1.3.0"
+echo "==================================="
+echo "🛡️ Updating to advanced anti-detection features"
 
 # Colors for output
 RED='\033[0;31m'
@@ -59,6 +60,55 @@ if [ -f "package-lock.json" ]; then
 fi
 npm install --production
 print_status "Dependencies updated"
+
+# 3.1. v1.3.0: Create new directory structure
+echo "📁 Creating v1.3.0 directory structure..."
+mkdir -p logs/reports logs/profiles
+mkdir -p src/config/profiles
+mkdir -p src/services/fingerprinting
+mkdir -p src/services/behavioral
+mkdir -p src/services/evasion
+mkdir -p src/services/utils
+mkdir -p src/services/testing
+mkdir -p src/services/development
+print_status "v1.3.0 directories created"
+
+# 3.2. v1.3.0: Update .env with new configuration options
+echo "⚙️ Updating .env with v1.3.0 configuration options..."
+if [ -f .env ]; then
+    if ! grep -q "FINGERPRINT_PROFILE" .env; then
+        cat >> .env << 'EOF'
+
+# ==============================================
+# 🚀 v1.3.0 ANTI-DETECTION CONFIGURATION 🚀
+# ==============================================
+
+# Fingerprint Profile Configuration
+FINGERPRINT_PROFILE=desktop-chrome
+STEALTH_MODE=advanced
+BEHAVIORAL_SIMULATION=enabled
+
+# Advanced Fingerprinting Control
+WEBRTC_LEAK_PROTECTION=enabled
+CANVAS_NOISE_LEVEL=medium
+WEBGL_SPOOFING=enabled
+AUDIO_FINGERPRINT_NOISE=enabled
+HARDWARE_SPOOFING=enabled
+
+# WAF Bypass Configuration
+CLOUDFLARE_BYPASS=enabled
+DATADOME_EVASION=enabled
+TLS_FINGERPRINT_MASKING=enabled
+
+# Monitoring and Testing
+PERFORMANCE_MONITORING=enabled
+AUDIT_TRAILS=enabled
+EOF
+        print_status "v1.3.0 configuration options added to .env"
+    else
+        print_info "v1.3.0 configuration already exists in .env"
+    fi
+fi
 
 # 4. Update Playwright browsers
 echo "🌐 Updating Playwright browsers..."
@@ -259,14 +309,15 @@ else
 fi
 
 echo ""
-echo "🎉 HeadlessX v1.2.0 Update completed!"
+echo "🎉 HeadlessX v1.3.0 Update completed!"
 echo "===================================="
 echo ""
 echo -e "${GREEN}✅ Update Summary:${NC}"
-echo "   - Code updated from GitHub"
+echo "   - Code updated with v1.3.0 anti-detection features"
 echo "   - Dependencies validated and updated"
 echo "   - Website rebuilt"
 echo "   - PM2 restarted with validation"
+echo "   - New v1.3.0 directories created"
 echo ""
 echo "� Current Status:"
 pm2 status headlessx

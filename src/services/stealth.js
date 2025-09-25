@@ -1,7 +1,7 @@
 /**
- * Stealth Service
- * Advanced stealth techniques and scripts for avoiding bot detection
- * Enhanced with playwright-stealth.js techniques
+ * Stealth Service v1.3.0 - Enhanced Anti-Detection
+ * Advanced stealth techniques with comprehensive fingerprinting control
+ * Features: Canvas, WebGL, WebRTC, Audio, Hardware, Behavioral Simulation
  */
 
 const crypto = require('crypto');
@@ -9,40 +9,111 @@ const { getRandomUserAgent, getRandomLocale, generateRealisticHeaders } = requir
 
 // Enhanced WebGL renderers list for advanced fingerprint spoofing
 const WEBGL_RENDERERS = [
-    'ANGLE (NVIDIA Quadro 2000M Direct3D11 vs_5_0 ps_5_0)',
-    'ANGLE (NVIDIA Quadro K420 Direct3D9Ex vs_3_0 ps_3_0)',
+    // NVIDIA High-End Cards
+    'ANGLE (NVIDIA GeForce RTX 4080 Direct3D11 vs_5_0 ps_5_0)',
+    'ANGLE (NVIDIA GeForce RTX 3080 Direct3D11 vs_5_0 ps_5_0)',
+    'ANGLE (NVIDIA GeForce RTX 3070 Direct3D11 vs_5_0 ps_5_0)',
+    'ANGLE (NVIDIA GeForce GTX 1660 Ti Direct3D11 vs_5_0 ps_5_0)',
+    'ANGLE (NVIDIA Quadro RTX 4000 Direct3D11 vs_5_0 ps_5_0)',
     'ANGLE (NVIDIA Quadro K2000M Direct3D11 vs_5_0 ps_5_0)',
-    'ANGLE (Intel(R) HD Graphics 4000 Direct3D11 vs_5_0 ps_5_0)',
-    'ANGLE (AMD Radeon R9 200 Series Direct3D11 vs_5_0 ps_5_0)',
-    'ANGLE (Intel(R) HD Graphics Family Direct3D9Ex vs_3_0 ps_3_0)',
     'ANGLE (NVIDIA GeForce GTX 760 Direct3D11 vs_5_0 ps_5_0)',
-    'ANGLE (Intel(R) HD Graphics 4600 Direct3D9Ex vs_3_0 ps_3_0)',
     'ANGLE (NVIDIA GeForce GTX 550 Ti Direct3D9Ex vs_3_0 ps_3_0)',
-    'ANGLE (Intel(R) HD Graphics Direct3D9Ex vs_3_0 ps_3_0)',
-    'ANGLE (AMD Radeon HD 6450 Direct3D9Ex vs_3_0 ps_3_0)',
-    'ANGLE (NVIDIA GeForce GT 430 Direct3D9Ex vs_3_0 ps_3_0)'
+    'ANGLE (NVIDIA GeForce GT 430 Direct3D9Ex vs_3_0 ps_3_0)',
+    // Intel Integrated Graphics
+    'ANGLE (Intel(R) UHD Graphics 630 Direct3D11 vs_5_0 ps_5_0)',
+    'ANGLE (Intel(R) HD Graphics 4000 Direct3D11 vs_5_0 ps_5_0)',
+    'ANGLE (Intel(R) HD Graphics 4600 Direct3D9Ex vs_3_0 ps_3_0)',
+    'ANGLE (Intel(R) HD Graphics Family Direct3D9Ex vs_3_0 ps_3_0)',
+    // AMD Cards
+    'ANGLE (AMD Radeon RX 6800 XT Direct3D11 vs_5_0 ps_5_0)',
+    'ANGLE (AMD Radeon RX 580 Series Direct3D11 vs_5_0 ps_5_0)',
+    'ANGLE (AMD Radeon R9 200 Series Direct3D11 vs_5_0 ps_5_0)',
+    'ANGLE (AMD Radeon HD 6450 Direct3D9Ex vs_3_0 ps_3_0)'
 ];
 
-// Generate consistent browser fingerprint
-function generateAdvancedFingerprint(buid = crypto.randomUUID()) {
+// Enhanced device profiles for comprehensive fingerprinting
+const DEVICE_PROFILES = {
+    'high-end-desktop': {
+        screen: { width: 1920, height: 1080, devicePixelRatio: 1 },
+        hardware: { cores: 8, memory: 16, gpu: 'nvidia-rtx' },
+        behavioral: { mouseProfile: 'confident', typingSpeed: 'fast' }
+    },
+    'mid-range-desktop': {
+        screen: { width: 1920, height: 1080, devicePixelRatio: 1 },
+        hardware: { cores: 4, memory: 8, gpu: 'intel-uhd' },
+        behavioral: { mouseProfile: 'natural', typingSpeed: 'normal' }
+    },
+    'business-laptop': {
+        screen: { width: 1366, height: 768, devicePixelRatio: 1 },
+        hardware: { cores: 4, memory: 8, gpu: 'intel-hd' },
+        behavioral: { mouseProfile: 'cautious', typingSpeed: 'normal' }
+    },
+    'gaming-laptop': {
+        screen: { width: 1920, height: 1080, devicePixelRatio: 1 },
+        hardware: { cores: 6, memory: 16, gpu: 'nvidia-gtx' },
+        behavioral: { mouseProfile: 'confident', typingSpeed: 'fast' }
+    }
+};
+
+// Audio context fingerprint profiles
+const AUDIO_PROFILES = {
+    'windows-chrome': { sampleRate: 44100, baseLatency: 0.01, outputLatency: 0.02 },
+    'windows-firefox': { sampleRate: 44100, baseLatency: 0.008, outputLatency: 0.015 },
+    'macos-safari': { sampleRate: 44100, baseLatency: 0.012, outputLatency: 0.025 }
+};
+
+// Generate consistent browser fingerprint with enhanced profiles
+function generateAdvancedFingerprint(buid = crypto.randomUUID(), profileType = 'mid-range-desktop') {
     const buidHash = crypto.createHash('sha512').update(buid).digest();
-    
+    const profile = DEVICE_PROFILES[profileType] || DEVICE_PROFILES['mid-range-desktop'];
+    const audioProfile = AUDIO_PROFILES['windows-chrome'];
+
     const fingerprint = {
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
         platform: 'Win32',
         appName: 'Netscape',
-        screenWidth: 1920,
-        screenHeight: 1080,
-        viewportWidth: 1366,
-        viewportHeight: 768,
+        screenWidth: profile.screen.width,
+        screenHeight: profile.screen.height,
+        viewportWidth: Math.floor(profile.screen.width * 0.8),
+        viewportHeight: Math.floor(profile.screen.height * 0.7),
+        devicePixelRatio: profile.screen.devicePixelRatio,
         deviceCategory: 'desktop',
         WEBGL_VENDOR: 'Google Inc.',
-        WEBGL_RENDERER: WEBGL_RENDERERS[Math.floor(Math.random() * WEBGL_RENDERERS.length)],
+        WEBGL_RENDERER: WEBGL_RENDERERS[Math.floor(buidHash.readUInt32BE(0) / (2 ** 32 - 1) * WEBGL_RENDERERS.length)],
         BUID: buidHash.toString('base64'),
         languages: ['en-US', 'en'],
         timezone: 'America/New_York',
-        deviceMemory: 8,
-        hardwareConcurrency: 4
+        deviceMemory: profile.hardware.memory,
+        hardwareConcurrency: profile.hardware.cores,
+        // Enhanced fingerprint components
+        canvas: {
+            noise: buidHash.slice(0, 16).toString('hex'),
+            textBaseline: 'alphabetic',
+            textAlign: 'start'
+        },
+        webgl: {
+            vendor: 'Google Inc.',
+            renderer: WEBGL_RENDERERS[Math.floor(buidHash.readUInt32BE(4) / (2 ** 32 - 1) * WEBGL_RENDERERS.length)],
+            version: 'WebGL 1.0',
+            shadingLanguageVersion: 'WebGL GLSL ES 1.0',
+            maxTextureSize: 16384,
+            maxVertexTextureImageUnits: 16
+        },
+        audioContext: {
+            sampleRate: audioProfile.sampleRate,
+            baseLatency: audioProfile.baseLatency + (buidHash.readUInt8(8) / 255) * 0.005,
+            outputLatency: audioProfile.outputLatency + (buidHash.readUInt8(9) / 255) * 0.01,
+            maxChannelCount: 2,
+            numberOfInputs: 1,
+            numberOfOutputs: 1
+        },
+        webrtc: {
+            localIPs: [`192.168.1.${100 + (buidHash.readUInt8(10) % 155)}`, `10.0.0.${50 + (buidHash.readUInt8(11) % 205)}`],
+            publicIP: null,
+            stunDisabled: true,
+            turnDisabled: true
+        },
+        behavioral: profile.behavioral
     };
 
     // Add random function for consistent randomness
@@ -56,22 +127,49 @@ function generateAdvancedFingerprint(buid = crypto.randomUUID()) {
 }
 
 class StealthService {
+    /**
+     * Generate advanced fingerprint with enhanced profiles
+     */
+    static generateAdvancedFingerprint(buid = crypto.randomUUID(), profileType = 'mid-range-desktop') {
+        return generateAdvancedFingerprint(buid, profileType);
+    }
 
     // ADVANCED PLAYWRIGHT-STEALTH FINGERPRINTING
     static async enhancePageWithAdvancedStealth(page) {
         try {
             console.log('🎭 Applying advanced playwright-stealth fingerprinting...');
-            
+
             const fingerprint = generateAdvancedFingerprint();
-            
+
             // Advanced fingerprint injection script
             await page.addInitScript((fp) => {
-                // Remove webdriver property completely
+                // Remove webdriver property completely (enhanced for Google 2025)
                 delete navigator.webdriver;
                 Object.defineProperty(navigator, 'webdriver', {
                     get: () => undefined,
                     configurable: true
                 });
+
+                // Remove other automation indicators
+                delete window.webdriver;
+                delete navigator.webdriver;
+                delete window.chrome_asyncScriptInfo;
+                delete document.$cdc_asdjflasutopfhvcZLmcfl_;
+                delete document.$chrome_asyncScriptInfo;
+
+                // Hide automation from window.chrome object
+                if (window.chrome && window.chrome.runtime && window.chrome.runtime.onConnect) {
+                    delete window.chrome.runtime.onConnect;
+                }
+
+                // Enhanced plugins and webdriver hiding
+                Object.defineProperty(navigator, 'plugins', {
+                    get: () => [1, 2, 3, 4, 5].map(() => 'Plugin')
+                });
+
+                // Override automation detection methods
+                window.outerHeight = window.innerHeight;
+                window.outerWidth = window.innerWidth;
 
                 // Enhanced screen and window properties with fingerprint consistency
                 Object.defineProperty(screen, 'width', { get: () => fp.screenWidth });
@@ -91,30 +189,33 @@ class StealthService {
                 Object.defineProperty(navigator, 'deviceMemory', { get: () => fp.deviceMemory });
                 Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => fp.hardwareConcurrency });
 
-                // Advanced WebGL fingerprint spoofing
+                // Advanced WebGL fingerprint spoofing with enhanced consistency
                 const getContext = HTMLCanvasElement.prototype.getContext;
                 HTMLCanvasElement.prototype.getContext = function(contextType, ...args) {
                     const context = getContext.call(this, contextType, ...args);
-                    
+
                     if (context && (contextType === 'webgl' || contextType === 'experimental-webgl')) {
                         const originalGetParameter = context.getParameter;
                         context.getParameter = function(parameter) {
                             try {
-                                // WEBGL_debug_renderer_info constants  
-                                if (parameter === 37445) return fp.WEBGL_VENDOR; // UNMASKED_VENDOR_WEBGL
-                                if (parameter === 37446) return fp.WEBGL_RENDERER; // UNMASKED_RENDERER_WEBGL
-                                
-                                // Additional WebGL parameters for consistency
+                                // WEBGL_debug_renderer_info constants
+                                if (parameter === 37445) return fp.webgl.vendor; // UNMASKED_VENDOR_WEBGL
+                                if (parameter === 37446) return fp.webgl.renderer; // UNMASKED_RENDERER_WEBGL
+
+                                // Enhanced WebGL parameters with fingerprint consistency
+                                if (parameter === 7938) return fp.webgl.version; // VERSION
+                                if (parameter === 35724) return fp.webgl.shadingLanguageVersion; // SHADING_LANGUAGE_VERSION
+                                if (parameter === 3379) return fp.webgl.maxTextureSize; // MAX_TEXTURE_SIZE
+                                if (parameter === 35660) return fp.webgl.maxVertexTextureImageUnits; // MAX_VERTEX_TEXTURE_IMAGE_UNITS
                                 if (parameter === 33901) return new Float32Array([1, 8191]);
                                 if (parameter === 3386) return new Int32Array([16384, 16384]);
                                 if (parameter === 35661) return 80;
                                 if (parameter === 34076) return 16384;
                                 if (parameter === 36349) return 1024;
                                 if (parameter === 34024) return 16384;
-                                if (parameter === 3379) return 16384;
                                 if (parameter === 34921) return 16;
                                 if (parameter === 36347) return 1024;
-                                
+
                                 // Use original function for other parameters
                                 return originalGetParameter.call(this, parameter);
                             } catch (e) {
@@ -122,29 +223,25 @@ class StealthService {
                                 return null;
                             }
                         };
-                        
-                        // Enhanced extension spoofing
+
+                        // Enhanced extension spoofing with consistent extensions
                         const originalGetSupportedExtensions = context.getSupportedExtensions;
                         if (originalGetSupportedExtensions) {
                             context.getSupportedExtensions = function() {
-                                try {
-                                    return [
-                                        'ANGLE_instanced_arrays', 'EXT_blend_minmax', 'EXT_color_buffer_half_float',
-                                        'EXT_frag_depth', 'EXT_shader_texture_lod', 'EXT_texture_filter_anisotropic',
-                                        'WEBKIT_EXT_texture_filter_anisotropic', 'EXT_sRGB', 'OES_element_index_uint',
-                                        'OES_standard_derivatives', 'OES_texture_float', 'OES_texture_float_linear',
-                                        'OES_texture_half_float', 'OES_texture_half_float_linear', 'OES_vertex_array_object',
-                                        'WEBGL_color_buffer_float', 'WEBGL_compressed_texture_s3tc', 'WEBKIT_WEBGL_compressed_texture_s3tc',
-                                        'WEBGL_compressed_texture_s3tc_srgb', 'WEBGL_debug_renderer_info', 'WEBGL_debug_shaders',
-                                        'WEBGL_depth_texture', 'WEBKIT_WEBGL_depth_texture', 'WEBGL_draw_buffers', 'WEBGL_lose_context'
-                                    ];
-                                } catch (e) {
-                                    return originalGetSupportedExtensions.call(this);
-                                }
+                                return [
+                                    'ANGLE_instanced_arrays', 'EXT_blend_minmax', 'EXT_color_buffer_half_float',
+                                    'EXT_frag_depth', 'EXT_shader_texture_lod', 'EXT_texture_filter_anisotropic',
+                                    'WEBKIT_EXT_texture_filter_anisotropic', 'EXT_sRGB', 'OES_element_index_uint',
+                                    'OES_standard_derivatives', 'OES_texture_float', 'OES_texture_float_linear',
+                                    'OES_texture_half_float', 'OES_texture_half_float_linear', 'OES_vertex_array_object',
+                                    'WEBGL_color_buffer_float', 'WEBGL_compressed_texture_s3tc', 'WEBKIT_WEBGL_compressed_texture_s3tc',
+                                    'WEBGL_compressed_texture_s3tc_srgb', 'WEBGL_debug_renderer_info', 'WEBGL_debug_shaders',
+                                    'WEBGL_depth_texture', 'WEBKIT_WEBGL_depth_texture', 'WEBGL_draw_buffers', 'WEBGL_lose_context'
+                                ];
                             };
                         }
                     }
-                    
+
                     return context;
                 };
 
@@ -186,21 +283,28 @@ class StealthService {
                 };
                 Object.defineProperty(navigator, 'plugins', { get: () => plugins });
 
-                // Canvas fingerprinting protection with BUID consistency
+                // Canvas fingerprinting protection with enhanced BUID-based noise injection
                 const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
                 HTMLCanvasElement.prototype.toDataURL = function(...args) {
                     try {
                         const context = getContext.call(this, '2d'); // Use original getContext
                         if (context) {
-                            // Add consistent noise based on BUID
+                            // Add consistent noise based on canvas fingerprint
                             const imageData = context.getImageData(0, 0, this.width, this.height);
                             const data = imageData.data;
-                            
+
+                            // Parse canvas noise from hex string
+                            const noiseBuffer = Buffer.from(fp.canvas.noise, 'hex');
+
                             for (let i = 0; i < data.length; i += 4) {
-                                const noise = Math.floor(fp.random(i) * 3) - 1;
-                                data[i] = Math.max(0, Math.min(255, data[i] + noise));
+                                const noiseIdx = i % noiseBuffer.length;
+                                const noise = (noiseBuffer[noiseIdx] % 3) - 1; // -1, 0, or 1
+                                data[i] = Math.max(0, Math.min(255, data[i] + noise)); // R
+                                data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise)); // G
+                                data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise)); // B
+                                // Alpha channel unchanged
                             }
-                            
+
                             context.putImageData(imageData, 0, 0);
                         }
                         return originalToDataURL.apply(this, args);
@@ -210,75 +314,203 @@ class StealthService {
                     }
                 };
 
-                // Enhanced canvas text rendering with BUID signature
+                // Enhanced canvas text rendering with consistent fingerprint
                 const originalFillText = CanvasRenderingContext2D.prototype.fillText;
                 CanvasRenderingContext2D.prototype.fillText = function(text, x, y, maxWidth) {
                     try {
-                        // Inject BUID into canvas for consistency
-                        const modifiedText = text + fp.BUID.slice(-4);
-                        return originalFillText.call(this, modifiedText, Math.max(0, x - 2), Math.max(0, y - 2), maxWidth);
+                        // Apply canvas fingerprint properties
+                        this.textBaseline = fp.canvas.textBaseline;
+                        this.textAlign = fp.canvas.textAlign;
+
+                        // Add subtle positioning variations based on BUID
+                        const xOffset = (fp.random(text.length) - 0.5) * 0.1;
+                        const yOffset = (fp.random(text.length + 1) - 0.5) * 0.1;
+
+                        return originalFillText.call(this, text, x + xOffset, y + yOffset, maxWidth);
                     } catch (e) {
                         // Fallback to original on error
                         return originalFillText.call(this, text, x, y, maxWidth);
                     }
                 };
 
-                // Block WebRTC completely to prevent IP leaks
-                const blockWebRTC = () => undefined;
-                Object.defineProperty(window, 'RTCPeerConnection', { get: blockWebRTC });
-                Object.defineProperty(window, 'webkitRTCPeerConnection', { get: blockWebRTC });
-                Object.defineProperty(window, 'mozRTCPeerConnection', { get: blockWebRTC });
-                Object.defineProperty(navigator, 'getUserMedia', { get: blockWebRTC });
-                Object.defineProperty(navigator, 'webkitGetUserMedia', { get: blockWebRTC });
+                // Advanced AudioContext fingerprinting with consistent values
+                if (window.AudioContext || window.webkitAudioContext) {
+                    const OriginalAudioContext = window.AudioContext || window.webkitAudioContext;
 
-                // Enhanced permissions API spoofing
+                    function StealthAudioContext(...args) {
+                        const context = new OriginalAudioContext(...args);
+
+                        // Override sampleRate with fingerprint value
+                        Object.defineProperty(context, 'sampleRate', {
+                            get: () => fp.audioContext.sampleRate
+                        });
+
+                        Object.defineProperty(context, 'baseLatency', {
+                            get: () => fp.audioContext.baseLatency
+                        });
+
+                        Object.defineProperty(context, 'outputLatency', {
+                            get: () => fp.audioContext.outputLatency
+                        });
+
+                        // Override destination properties
+                        Object.defineProperty(context.destination, 'maxChannelCount', {
+                            get: () => fp.audioContext.maxChannelCount
+                        });
+
+                        Object.defineProperty(context.destination, 'numberOfInputs', {
+                            get: () => fp.audioContext.numberOfInputs
+                        });
+
+                        Object.defineProperty(context.destination, 'numberOfOutputs', {
+                            get: () => fp.audioContext.numberOfOutputs
+                        });
+
+                        return context;
+                    }
+
+                    window.AudioContext = StealthAudioContext;
+                    if (window.webkitAudioContext) {
+                        window.webkitAudioContext = StealthAudioContext;
+                    }
+                }
+
+                // Enhanced WebRTC blocking and spoofing
+                const mockRTCPeerConnection = function() {
+                    throw new Error('WebRTC is disabled for privacy');
+                };
+
+                Object.defineProperty(window, 'RTCPeerConnection', {
+                    get: () => mockRTCPeerConnection,
+                    configurable: false
+                });
+                Object.defineProperty(window, 'webkitRTCPeerConnection', {
+                    get: () => mockRTCPeerConnection,
+                    configurable: false
+                });
+                Object.defineProperty(window, 'mozRTCPeerConnection', {
+                    get: () => mockRTCPeerConnection,
+                    configurable: false
+                });
+
+                // Block getUserMedia to prevent media device enumeration
+                const mockGetUserMedia = () => Promise.reject(new DOMException('Permission denied', 'NotAllowedError'));
+                Object.defineProperty(navigator, 'getUserMedia', { get: () => mockGetUserMedia });
+                Object.defineProperty(navigator, 'webkitGetUserMedia', { get: () => mockGetUserMedia });
+                Object.defineProperty(navigator, 'mozGetUserMedia', { get: () => mockGetUserMedia });
+
+                if (navigator.mediaDevices) {
+                    Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { get: () => mockGetUserMedia });
+                    Object.defineProperty(navigator.mediaDevices, 'enumerateDevices', {
+                        get: () => () => Promise.resolve([])
+                    });
+                }
+
+                // Enhanced Timezone spoofing
+                const originalDate = Date;
+                const timezoneOffset = -300; // EST offset in minutes
+
+                window.Date = class extends originalDate {
+                    getTimezoneOffset() {
+                        return timezoneOffset;
+                    }
+
+                    toString() {
+                        return super.toString().replace(/GMT[+-]\d{4} \(.+\)/, 'GMT-0500 (Eastern Standard Time)');
+                    }
+                };
+
+                // Copy static methods
+                Object.getOwnPropertyNames(originalDate).forEach(prop => {
+                    if (prop !== 'prototype' && prop !== 'name' && prop !== 'length') {
+                        window.Date[prop] = originalDate[prop];
+                    }
+                });
+                // Enhanced permissions API spoofing with consistent responses
                 if (navigator.permissions && navigator.permissions.query) {
                     const originalQuery = navigator.permissions.query;
                     navigator.permissions.query = (parameters) => {
-                        if (parameters.name === 'notifications') {
-                            return Promise.resolve({ state: 'default' });
-                        }
-                        return originalQuery.call(navigator.permissions, parameters);
+                        const permissionStates = {
+                            notifications: 'default',
+                            geolocation: 'denied',
+                            camera: 'denied',
+                            microphone: 'denied',
+                            midi: 'denied',
+                            push: 'denied',
+                            'background-sync': 'denied'
+                        };
+
+                        const state = permissionStates[parameters.name] || 'denied';
+                        return Promise.resolve({ state });
                     };
                 }
 
-                // Remove battery API (privacy concern)
-                if ('getBattery' in navigator) {
-                    delete navigator.getBattery;
+                // Enhanced media devices spoofing
+                if (navigator.mediaDevices) {
+                    // Override getDisplayMedia
+                    Object.defineProperty(navigator.mediaDevices, 'getDisplayMedia', {
+                        get: () => () => Promise.reject(new DOMException('Permission denied', 'NotAllowedError'))
+                    });
                 }
 
-                // Chrome runtime spoofing for better compatibility
+                // Remove privacy-concerning APIs
+                if ('getBattery' in navigator) delete navigator.getBattery;
+                if ('getGamepads' in navigator) delete navigator.getGamepads;
+                if ('sendBeacon' in navigator) delete navigator.sendBeacon;
+
+                // Speech synthesis spoofing for consistency
+                if (window.speechSynthesis && window.speechSynthesis.getVoices) {
+                    const originalGetVoices = window.speechSynthesis.getVoices;
+                    window.speechSynthesis.getVoices = function() {
+                        return [
+                            { name: 'Microsoft David Desktop - English (United States)', lang: 'en-US', localService: true, default: true },
+                            { name: 'Microsoft Zira Desktop - English (United States)', lang: 'en-US', localService: true, default: false }
+                        ];
+                    };
+                }
+
+                // Enhanced Chrome runtime spoofing
                 if (!window.chrome) {
                     window.chrome = {
                         runtime: {
                             onConnect: undefined,
-                            onMessage: undefined
-                        }
+                            onMessage: undefined,
+                            connect: undefined,
+                            sendMessage: undefined
+                        },
+                        csi: undefined,
+                        loadTimes: undefined,
+                        app: undefined
                     };
                 }
 
-                console.log('🎯 Advanced fingerprint applied:', {
-                    webgl: fp.WEBGL_RENDERER,
-                    ua: fp.userAgent.slice(0, 30) + '...',
-                    viewport: `${fp.viewportWidth}x${fp.viewportHeight}`,
-                    buid: fp.BUID.slice(0, 8) + '...'
+                // Device pixel ratio consistency
+                Object.defineProperty(window, 'devicePixelRatio', {
+                    get: () => fp.devicePixelRatio
                 });
 
+                console.log('🎯 Advanced fingerprint applied:', {
+                    webgl: fp.webgl.renderer.slice(0, 40) + '...',
+                    ua: fp.userAgent.slice(0, 30) + '...',
+                    viewport: `${fp.viewportWidth}x${fp.viewportHeight}`,
+                    audio: `${fp.audioContext.sampleRate}Hz`,
+                    buid: fp.BUID.slice(0, 8) + '...'
+                });
             }, fingerprint);
 
             // Set realistic viewport
-            await page.setViewportSize({ 
-                width: fingerprint.viewportWidth, 
-                height: fingerprint.viewportHeight 
+            await page.setViewportSize({
+                width: fingerprint.viewportWidth,
+                height: fingerprint.viewportHeight
             });
 
             // Enhanced headers with fingerprint data
             await page.setExtraHTTPHeaders({
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
                 'Accept-Language': fingerprint.languages.join(',') + ';q=0.9',
                 'Accept-Encoding': 'gzip, deflate, br',
                 'Cache-Control': 'max-age=0',
-                'Sec-Ch-Ua': '"Google Chrome";v="119", "Chromium";v="119", "Not?A_Brand";v="24"',
+                'Sec-Ch-Ua': '"Google Chrome";v="131", "Chromium";v="131", "Not?A_Brand";v="99"',
                 'Sec-Ch-Ua-Mobile': '?0',
                 'Sec-Ch-Ua-Platform': `"${fingerprint.platform === 'Win32' ? 'Windows' : 'Linux'}"`,
                 'Sec-Fetch-Dest': 'document',
@@ -291,19 +523,18 @@ class StealthService {
 
             console.log('✅ Advanced playwright-stealth fingerprinting complete');
             return fingerprint;
-
         } catch (error) {
             console.error('❌ Error applying advanced stealth:', error);
             return null;
         }
     }
-    
+
     // Generate stealth context options optimized for datacenter IPs and Google bypass
     static generateStealthContextOptions(userAgent = null, customHeaders = {}) {
         const realisticUserAgent = userAgent || getRandomUserAgent();
         const realisticLocale = getRandomLocale();
         const realisticHeaders = generateRealisticHeaders(realisticUserAgent, customHeaders);
-        
+
         return {
             viewport: { width: 1920, height: 1080 }, // Standard desktop viewport
             userAgent: realisticUserAgent,
@@ -323,23 +554,23 @@ class StealthService {
                 'sec-ch-ua-wow64': '?0',
                 'Upgrade-Insecure-Requests': '1',
                 'User-Agent': realisticUserAgent,
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                 'Sec-Fetch-Site': 'none',
                 'Sec-Fetch-Mode': 'navigate',
                 'Sec-Fetch-User': '?1',
                 'Sec-Fetch-Dest': 'document',
                 'Accept-Encoding': 'gzip, deflate, br, zstd',
                 'Accept-Language': 'en-US,en;q=0.9',
-                'Connection': 'keep-alive',
+                Connection: 'keep-alive',
                 // DATACENTER FRIENDLY: Additional headers to appear more residential
                 'sec-ch-viewport-width': '1920',
                 'sec-ch-viewport-height': '1080',
                 'sec-ch-device-memory': '8',
                 'sec-ch-dpr': '1',
                 'sec-gpc': '1',
-                'dnt': '1',
+                dnt: '1',
                 'Cache-Control': 'max-age=0',
-                'Pragma': 'no-cache',
+                Pragma: 'no-cache',
                 // GOOGLE BYPASS: Additional enterprise-like headers
                 'sec-ch-prefers-color-scheme': 'light',
                 'sec-ch-prefers-reduced-motion': 'no-preference',
@@ -371,10 +602,10 @@ class StealthService {
             try {
                 // === CORE AUTOMATION DETECTION REMOVAL ===
                 // Remove all possible webdriver traces
-                ['webdriver', '__webdriver_evaluate', '__selenium_evaluate', '__webdriver_script_function', 
-                 '__webdriver_script_func', '__webdriver_script_fn', '__fxdriver_evaluate', '__driver_unwrapped', 
-                 '__webdriver_unwrapped', '__driver_evaluate', '__selenium_unwrapped', '__fxdriver_unwrapped',
-                 'webdriver', '__webdriver_script_fn', '__webdriver_script_func'].forEach(prop => {
+                ['webdriver', '__webdriver_evaluate', '__selenium_evaluate', '__webdriver_script_function',
+                    '__webdriver_script_func', '__webdriver_script_fn', '__fxdriver_evaluate', '__driver_unwrapped',
+                    '__webdriver_unwrapped', '__driver_evaluate', '__selenium_unwrapped', '__fxdriver_unwrapped',
+                    'webdriver', '__webdriver_script_fn', '__webdriver_script_func'].forEach(prop => {
                     try {
                         delete window[prop];
                         delete navigator[prop];
@@ -387,7 +618,7 @@ class StealthService {
 
                 // Chrome DevTools Protocol indicators
                 ['cdc_adoQpoasnfa76pfcZLmcfl_Array', 'cdc_adoQpoasnfa76pfcZLmcfl_Promise', 'cdc_adoQpoasnfa76pfcZLmcfl_Symbol',
-                 'cdc_adoQpoasnfa76pfcZLmcfl_JSON', 'cdc_adoQpoasnfa76pfcZLmcfl_Object'].forEach(prop => {
+                    'cdc_adoQpoasnfa76pfcZLmcfl_JSON', 'cdc_adoQpoasnfa76pfcZLmcfl_Object'].forEach(prop => {
                     try {
                         delete window[prop];
                     } catch (e) {}
@@ -424,7 +655,7 @@ class StealthService {
                         ],
                         mobile: false,
                         platform: 'Windows',
-                        getHighEntropyValues: async (hints) => ({
+                        getHighEntropyValues: async(hints) => ({
                             architecture: 'x86',
                             bitness: '64',
                             brands: [
@@ -553,14 +784,14 @@ class StealthService {
                     window._mouseHistory = [];
                     window._keyHistory = [];
                     window._scrollHistory = [];
-                    
+
                     // Add realistic event listeners
                     ['mousedown', 'mouseup', 'click', 'mousemove'].forEach(event => {
                         document.addEventListener(event, (e) => {
-                            window._mouseHistory.push({ 
-                                type: event, 
-                                timestamp: Date.now(), 
-                                x: e.clientX, 
+                            window._mouseHistory.push({
+                                type: event,
+                                timestamp: Date.now(),
+                                x: e.clientX,
                                 y: e.clientY,
                                 isTrusted: true
                             });
@@ -570,9 +801,9 @@ class StealthService {
 
                     ['keydown', 'keyup', 'keypress'].forEach(event => {
                         document.addEventListener(event, (e) => {
-                            window._keyHistory.push({ 
-                                type: event, 
-                                timestamp: Date.now(), 
+                            window._keyHistory.push({
+                                type: event,
+                                timestamp: Date.now(),
                                 key: e.key,
                                 isTrusted: true
                             });
@@ -642,7 +873,7 @@ class StealthService {
                 // Override toString to hide modifications
                 const descriptors = Object.getOwnPropertyDescriptors(Function.prototype);
                 const originalToString = descriptors.toString.value;
-                
+
                 Function.prototype.toString = function() {
                     if (this === navigator.permissions.query) {
                         return 'function query() { [native code] }';
@@ -658,7 +889,6 @@ class StealthService {
                     ...descriptors.toString,
                     value: Function.prototype.toString
                 });
-
             } catch (e) {
                 // Silently fail to avoid detection
             }
@@ -670,7 +900,7 @@ class StealthService {
         try {
             // Wait for any dynamic content to load
             await page.waitForTimeout(2000);
-            
+
             // Check for CAPTCHA or anti-bot pages first
             const pageContent = await page.evaluate(() => {
                 return {
@@ -680,11 +910,11 @@ class StealthService {
                     hasUnusualTraffic: /unusual traffic|automated queries|are you a robot/i.test(document.body ? document.body.innerText : '')
                 };
             });
-            
+
             if (pageContent.hasUnusualTraffic || pageContent.hasRecaptcha) {
                 console.log('⚠️ Google anti-bot detection detected, attempting to wait it out...');
                 await page.waitForTimeout(10000); // Wait longer for potential auto-resolution
-                
+
                 // Try refreshing the page once
                 try {
                     await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -693,7 +923,7 @@ class StealthService {
                     console.log('⚠️ Page refresh failed during anti-bot handling');
                 }
             }
-            
+
             // Enhanced consent button detection
             const consentSelectors = [
                 'button[id*="accept"]',
@@ -711,13 +941,13 @@ class StealthService {
                 '[role="button"]:has-text("Accept")',
                 '[role="button"]:has-text("I agree")'
             ];
-            
+
             let consentHandled = false;
             for (const selector of consentSelectors) {
                 try {
                     const elements = await page.locator(selector);
                     const count = await elements.count();
-                    
+
                     for (let i = 0; i < count; i++) {
                         const element = elements.nth(i);
                         if (await element.isVisible({ timeout: 1000 })) {
@@ -733,13 +963,12 @@ class StealthService {
                     // Continue to next selector
                 }
             }
-            
+
             // Additional wait after consent
             if (consentHandled) {
                 await page.waitForTimeout(3000);
                 console.log('✅ Google consent handling completed');
             }
-            
         } catch (error) {
             console.log('⚠️ Google consent handling failed (continuing):', error.message);
         }
@@ -747,14 +976,14 @@ class StealthService {
 
     // Set up request interception for perfect headers
     static async setupRequestInterception(page) {
-        await page.route('**/*', async (route) => {
+        await page.route('**/*', async(route) => {
             const request = route.request();
-            
+
             // CRITICAL: Perfect Chrome headers for Schema.org detection bypass
             const perfectChromeHeaders = {
                 ...request.headers(),
                 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-                'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
                 'accept-language': 'en-US,en;q=0.9',
                 'accept-encoding': 'gzip, deflate, br, zstd',
                 'sec-ch-ua': '"Google Chrome";v="131", "Not=A?Brand";v="8", "Chromium";v="131"',
@@ -766,21 +995,22 @@ class StealthService {
                 'sec-ch-ua-platform-version': '"15.0.0"',
                 'sec-ch-ua-full-version': '"131.0.6778.86"',
                 'sec-ch-ua-wow64': '?0',
-                'sec-fetch-dest': request.url().includes('.css') ? 'style' : 
-                                 request.url().includes('.js') ? 'script' : 'document',
+                'sec-fetch-dest': request.url().includes('.css')
+                    ? 'style'
+                    : request.url().includes('.js') ? 'script' : 'document',
                 'sec-fetch-mode': 'navigate',
                 'sec-fetch-site': 'none',
                 'sec-fetch-user': '?1',
                 'upgrade-insecure-requests': '1',
                 'cache-control': 'max-age=0',
-                'dnt': '1',
-                'connection': 'keep-alive'
+                dnt: '1',
+                connection: 'keep-alive'
             };
 
             // Remove automation headers that might leak
             delete perfectChromeHeaders['x-requested-with'];
-            delete perfectChromeHeaders['pragma'];
-            
+            delete perfectChromeHeaders.pragma;
+
             await route.continue({
                 headers: perfectChromeHeaders
             });
