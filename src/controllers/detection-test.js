@@ -15,10 +15,10 @@ const { HeadlessXError, ERROR_CATEGORIES } = require('../utils/errors');
 class DetectionTestController {
     constructor() {
         this.fingerprintManager = new FingerprintManager();
-        this.browserService = BrowserService;
-        this.stealthService = new StealthService();
-        this.wafBypass = new WAFBypass();
-        this.tlsFingerprinting = new TLSFingerprintMasking();
+        this.browserService = BrowserService; // Using singleton instance
+        this.stealthService = StealthService; // Using class (has static methods)
+        this.wafBypass = new WAFBypass(); // Needs instantiation
+        this.tlsFingerprinting = new TLSFingerprintMasking(); // Needs instantiation
         this.logger = logger;
         
         // Test suites configuration

@@ -5,14 +5,14 @@
  */
 
 const FingerprintManager = require('../config/fingerprints');
-const EnhancedStealthService = require('../services/enhanced-stealth');
+const StealthService = require('../services/stealth');
 const { logger } = require('../utils/logger');
 // const { HeadlessXError, ERROR_CATEGORIES } = require('../utils/errors'); // Not used in current implementation
 
 class AntiDetectionController {
     constructor() {
         this.fingerprintManager = new FingerprintManager();
-        this.stealthService = new EnhancedStealthService();
+        this.stealthService = StealthService; // Using class with static methods
     }
 
     /**

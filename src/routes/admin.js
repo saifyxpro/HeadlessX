@@ -30,8 +30,15 @@ const adminRateLimit = rateLimit({
 // Apply rate limiting to all admin routes
 router.use(adminRateLimit);
 
-// Initialize controllers and services
-const detectionTestController = new DetectionTestController();
+// Initialize controllers and services (lazy initialization)
+let detectionTestController = null;
+function getDetectionTestController() {
+    if (!detectionTestController) {
+        detectionTestController = new DetectionTestController();
+    }
+    return detectionTestController;
+}
+
 const browserService = BrowserService;
 const fingerprintManager = new FingerprintManager();
 

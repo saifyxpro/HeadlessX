@@ -74,3 +74,4 @@ config.local.js
 # Backup files
 *.backup
 *.bak
+ARCHITECTURE-FIX.md

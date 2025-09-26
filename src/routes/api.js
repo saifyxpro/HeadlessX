@@ -33,16 +33,26 @@ router.post('/profiles/validate', authenticate, asyncHandler(ProfilesController.
 router.post('/profiles/generate-fingerprint', authenticate, asyncHandler(ProfilesController.generateFingerprint));
 router.get('/stealth/status', authenticate, ProfilesController.getStealthStatus);
 
-// v1.3.0 Detection testing endpoints
-const detectionTestController = new DetectionTestController();
+// v1.3.0 Detection testing endpoints (lazy initialization to avoid constructor issues)
+let detectionTestController = null;
+function getDetectionTestController() {
+    if (!detectionTestController) {
+        detectionTestController = new DetectionTestController();
+    }
+    return detectionTestController;
+}
+
 router.post('/detection/test', authenticate, asyncHandler(async (req, res) => {
-    return await detectionTestController.runDetectionTest(req, res);
+    const controller = getDetectionTestController();
+    return await controller.runDetectionTest(req, res);
 }));
 router.get('/detection/suites', authenticate, asyncHandler(async (req, res) => {
-    return await detectionTestController.getTestSuites(req, res);
+    const controller = getDetectionTestController();
+    return await controller.getTestSuites(req, res);
 }));
 router.get('/detection/status', authenticate, asyncHandler(async (req, res) => {
-    return await detectionTestController.getDetectionStatus(req, res);
+    const controller = getDetectionTestController();
+    return await controller.getDetectionStatus(req, res);
 }));
 
 // Main rendering endpoints (enhanced with v1.3.0 features)

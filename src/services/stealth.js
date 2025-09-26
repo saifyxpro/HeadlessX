@@ -293,6 +293,16 @@ class StealthService {
                     0: { type: 'application/x-ppapi-widevine-cdm', suffixes: '', description: 'Widevine Content Decryption Module', enabledPlugin: null }
                 };
                 
+                // CRITICAL: Add the 5th plugin to match expected results (WebKit built-in PDF)
+                plugins[4] = {
+                    name: 'WebKit built-in PDF',
+                    filename: 'internal-pdf-viewer',
+                    description: 'Portable Document Format',
+                    length: 2,
+                    0: mimeTypes[0],
+                    1: mimeTypes[1]
+                };
+                
                 // Set up bi-directional references
                 mimeTypes[0].enabledPlugin = plugins[1];
                 mimeTypes[1].enabledPlugin = plugins[0];
