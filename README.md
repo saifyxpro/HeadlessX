@@ -190,8 +190,8 @@ nano .env  # Configure DOMAIN, SUBDOMAIN, AUTH_TOKEN
 docker-compose up -d
 
 # Optional: Setup SSL
-sudo apt install certbot
-sudo certbot --standalone -d your-subdomain.yourdomain.com
+apt install certbot python3-certbot-nginx
+certbot --nginx -d your-subdomain.yourdomain.com
 ```
 
 **Docker Management:**
