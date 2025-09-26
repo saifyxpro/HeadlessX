@@ -5,7 +5,7 @@
  */
 
 const FingerprintManager = require('../config/fingerprints');
-const { BrowserService } = require('../services/browser');
+const BrowserService = require('../services/browser');
 const { StealthService } = require('../services/stealth');
 const WAFBypass = require('../services/evasion/waf-bypass');
 const TLSFingerprintMasking = require('../services/evasion/tls-fingerprint');

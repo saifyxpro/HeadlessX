@@ -7,7 +7,7 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const DetectionTestController = require('../controllers/detection-test');
-const { BrowserService } = require('../services/browser');
+const BrowserService = require('../services/browser');
 const FingerprintManager = require('../config/fingerprints');
 const { logger } = require('../utils/logger');
 const { HeadlessXError, ERROR_CATEGORIES } = require('../utils/errors');

@@ -6,7 +6,7 @@
 const request = require('supertest');
 const { describe, test, expect, beforeAll, afterAll, beforeEach, jest } = require('@jest/globals');
 const app = require('../../src/app');
-const { BrowserService } = require('../../src/services/browser');
+const BrowserService = require('../../src/services/browser');
 const FingerprintManager = require('../../src/config/fingerprints');
 
 describe('Anti-Detection Integration Tests', () => {

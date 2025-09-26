@@ -4,7 +4,7 @@
  */
 
 const { logger } = require('../../utils/logger');
-const { BrowserService } = require('../browser');
+const BrowserService = require('../browser');
 const { TestingFramework } = require('../testing/test-framework');
 const { ProfileValidator } = require('../utils/profile-validator');
 const fs = require('fs').promises;

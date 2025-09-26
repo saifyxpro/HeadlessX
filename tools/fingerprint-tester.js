@@ -14,7 +14,7 @@ const path = require('path');
 
 // Import HeadlessX services
 const FingerprintManager = require('../src/config/fingerprints');
-const { BrowserService } = require('../src/services/browser');
+const BrowserService = require('../src/services/browser');
 const CanvasFingerprint = require('../src/services/fingerprinting/canvas');
 const WebGLFingerprint = require('../src/services/fingerprinting/webgl');
 const AudioFingerprint = require('../src/services/fingerprinting/audio');

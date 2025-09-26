@@ -4,7 +4,7 @@
  */
 
 const { logger } = require('../../utils/logger');
-const { BrowserService } = require('../browser');
+const BrowserService = require('../browser');
 const { StealthService } = require('../stealth');
 const { InteractionService } = require('../interaction');
 
