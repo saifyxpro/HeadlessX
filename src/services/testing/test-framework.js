@@ -10,7 +10,7 @@ const { InteractionService } = require('../interaction');
 
 class TestingFramework {
     constructor() {
-        this.browserService = new BrowserService();
+        this.browserService = BrowserService;
         this.stealthService = new StealthService();
         this.interactionService = new InteractionService();
         this.testResults = new Map();

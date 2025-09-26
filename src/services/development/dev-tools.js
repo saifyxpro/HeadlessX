@@ -12,7 +12,7 @@ const path = require('path');
 
 class DevTools {
     constructor() {
-        this.browserService = new BrowserService();
+        this.browserService = BrowserService;
         this.testingFramework = new TestingFramework();
         this.profileValidator = new ProfileValidator();
     }

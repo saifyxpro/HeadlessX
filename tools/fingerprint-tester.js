@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+c#!/usr/bin/env node
 
 /**
  * Fingerprint Testing Tool
@@ -27,7 +27,7 @@ const NavigatorProps = require('../src/services/fingerprinting/navigator-props')
 class FingerprintTester {
     constructor() {
         this.fingerprintManager = new FingerprintManager();
-        this.browserService = new BrowserService();
+        this.browserService = BrowserService;
         this.services = {
             canvas: new CanvasFingerprint(),
             webgl: new WebGLFingerprint(),

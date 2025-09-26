@@ -32,7 +32,7 @@ router.use(adminRateLimit);
 
 // Initialize controllers and services
 const detectionTestController = new DetectionTestController();
-const browserService = new BrowserService();
+const browserService = BrowserService;
 const fingerprintManager = new FingerprintManager();
 
 /**

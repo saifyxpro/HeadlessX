@@ -21,7 +21,7 @@ describe('Anti-Detection Integration Tests', () => {
         process.env.TEST_PORT = port;
         
         // Initialize services
-        browserService = new BrowserService();
+        browserService = BrowserService;
         fingerprintManager = new FingerprintManager();
         
         // Wait for browser service to be ready
