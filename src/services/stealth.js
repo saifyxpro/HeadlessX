@@ -143,56 +143,293 @@ class StealthService {
 
             // Advanced fingerprint injection script
             await page.addInitScript((fp) => {
-                // Remove webdriver property completely (enhanced for Google 2025)
-                delete navigator.webdriver;
+                // CRITICAL: Complete webdriver property removal (all possible traces)
+                ['webdriver', '__webdriver_evaluate', '__selenium_evaluate', '__webdriver_script_function',
+                 '__webdriver_script_func', '__webdriver_script_fn', '__fxdriver_evaluate', '__driver_unwrapped',
+                 '__webdriver_unwrapped', '__driver_evaluate', '__selenium_unwrapped', '__fxdriver_unwrapped'].forEach(prop => {
+                    try {
+                        delete window[prop];
+                        delete navigator[prop];
+                        delete document[prop];
+                    } catch (e) {}
+                });
+                
                 Object.defineProperty(navigator, 'webdriver', {
-                    get: () => undefined,
-                    configurable: true
+                    get: () => undefined,  // Must return undefined, not false
+                    configurable: false,
+                    enumerable: false
+                });
+                
+                // Remove webdriver from constructor prototype
+                delete Navigator.prototype.webdriver;
+
+                // Remove Chrome DevTools Protocol indicators
+                ['cdc_adoQpoasnfa76pfcZLmcfl_Array', 'cdc_adoQpoasnfa76pfcZLmcfl_Promise', 
+                 'cdc_adoQpoasnfa76pfcZLmcfl_Symbol', 'cdc_adoQpoasnfa76pfcZLmcfl_JSON', 
+                 'cdc_adoQpoasnfa76pfcZLmcfl_Object', '$cdc_asdjflasutopfhvcZLmcfl_'].forEach(prop => {
+                    try { delete window[prop]; } catch (e) {}
                 });
 
-                // Remove other automation indicators
-                delete window.webdriver;
-                delete navigator.webdriver;
-                delete window.chrome_asyncScriptInfo;
-                delete document.$cdc_asdjflasutopfhvcZLmcfl_;
-                delete document.$chrome_asyncScriptInfo;
+                // CRITICAL: Perfect Chrome runtime object that passes all detection tests
+                const chromeRuntime = {
+                    onConnect: null,
+                    onMessage: null,
+                    connect: function() { 
+                        return { 
+                            postMessage: function() {}, 
+                            disconnect: function() {},
+                            name: '',
+                            sender: undefined
+                        }; 
+                    },
+                    sendMessage: function() {},
+                    id: 'mhjfbmdgcfjbbpaeojofohoefgiehjai',
+                    getManifest: function() {
+                        return {
+                            name: 'Chrome PDF Viewer',
+                            version: '1.0.0.0'
+                        };
+                    }
+                };
+                
+                const chromeApp = {
+                    isInstalled: false,
+                    InstallState: { 
+                        DISABLED: 'disabled', 
+                        INSTALLED: 'installed', 
+                        NOT_INSTALLED: 'not_installed' 
+                    },
+                    RunningState: { 
+                        CANNOT_RUN: 'cannot_run', 
+                        READY_TO_RUN: 'ready_to_run', 
+                        RUNNING: 'running' 
+                    },
+                    getDetails: function() { return null; },
+                    getIsInstalled: function() { return false; }
+                };
+                
+                window.chrome = {
+                    runtime: chromeRuntime,
+                    app: chromeApp,
+                    webstore: { 
+                        onInstallStageChanged: {}, 
+                        onDownloadProgress: {},
+                        install: function(url, successCallback, failureCallback) {
+                            if (failureCallback) failureCallback('User cancelled install');
+                        }
+                    },
+                    csi: function() { 
+                        return { 
+                            startE: Date.now() - Math.random() * 1000,
+                            onloadT: Date.now() - Math.random() * 500,
+                            tran: Math.floor(Math.random() * 20) + 10
+                        }; 
+                    },
+                    loadTimes: function() {
+                        const now = Date.now() / 1000;
+                        const navigationStart = now - Math.random() * 2;
+                        return {
+                            requestTime: navigationStart,
+                            startLoadTime: navigationStart + 0.1,
+                            commitLoadTime: navigationStart + 0.2,
+                            finishDocumentLoadTime: navigationStart + 0.5,
+                            finishLoadTime: navigationStart + 0.8,
+                            firstPaintTime: navigationStart + 0.6,
+                            firstPaintAfterLoadTime: 0,
+                            navigationType: 'Navigation',
+                            wasFetchedViaSpdy: false,
+                            wasNpnNegotiated: false,
+                            npnNegotiatedProtocol: 'unknown',
+                            wasAlternateProtocolAvailable: false,
+                            connectionInfo: 'http/1.1'
+                        };
+                    }
+                };
+                
+                // Make chrome object non-configurable to prevent tampering
+                Object.defineProperty(window, 'chrome', {
+                    value: window.chrome,
+                    writable: false,
+                    enumerable: false,
+                    configurable: false
+                });
 
-                // Hide automation from window.chrome object
-                if (window.chrome && window.chrome.runtime && window.chrome.runtime.onConnect) {
-                    delete window.chrome.runtime.onConnect;
+                // CRITICAL: Realistic plugins array that exactly mimics Chrome structure
+                const mimeTypes = [
+                    { type: 'application/pdf', suffixes: 'pdf', description: 'Portable Document Format', enabledPlugin: null },
+                    { type: 'application/x-google-chrome-pdf', suffixes: 'pdf', description: 'Portable Document Format', enabledPlugin: null },
+                    { type: 'application/x-nacl', suffixes: '', description: 'Native Client Executable', enabledPlugin: null },
+                    { type: 'application/x-pnacl', suffixes: '', description: 'Portable Native Client Executable', enabledPlugin: null }
+                ];
+
+                const plugins = [];
+                plugins[0] = {
+                    name: 'Chrome PDF Plugin',
+                    filename: 'internal-pdf-viewer',
+                    description: 'Portable Document Format',
+                    length: 1,
+                    0: mimeTypes[1]
+                };
+                plugins[1] = {
+                    name: 'Chrome PDF Viewer', 
+                    filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai',
+                    description: '',
+                    length: 1,
+                    0: mimeTypes[0]
+                };
+                plugins[2] = {
+                    name: 'Native Client',
+                    filename: 'internal-nacl-plugin',
+                    description: '',
+                    length: 2,
+                    0: mimeTypes[2],
+                    1: mimeTypes[3]
+                };
+                plugins[3] = {
+                    name: 'Widevine Content Decryption Module',
+                    filename: 'widevinecdmadapter.dll',
+                    description: 'Enables Widevine licenses for playback of HTML audio/video content.',
+                    length: 1,
+                    0: { type: 'application/x-ppapi-widevine-cdm', suffixes: '', description: 'Widevine Content Decryption Module', enabledPlugin: null }
+                };
+                
+                // Set up bi-directional references
+                mimeTypes[0].enabledPlugin = plugins[1];
+                mimeTypes[1].enabledPlugin = plugins[0];
+                mimeTypes[2].enabledPlugin = plugins[2];
+                mimeTypes[3].enabledPlugin = plugins[2];
+                plugins[3][0].enabledPlugin = plugins[3];
+
+                plugins.length = 4;
+                plugins.item = function(index) { return this[index] || null; };
+                plugins.namedItem = function(name) {
+                    for (let i = 0; i < this.length; i++) {
+                        if (this[i] && this[i].name === name) return this[i];
+                    }
+                    return null;
+                };
+                plugins.refresh = function() {};
+                
+                mimeTypes.length = 4;
+                mimeTypes.item = function(index) { return this[index] || null; };
+                mimeTypes.namedItem = function(name) {
+                    for (let i = 0; i < this.length; i++) {
+                        if (this[i] && this[i].type === name) return this[i];
+                    }
+                    return null;
+                };
+                
+                Object.defineProperty(navigator, 'plugins', { 
+                    get: () => plugins,
+                    configurable: false,
+                    enumerable: true
+                });
+                
+                Object.defineProperty(navigator, 'mimeTypes', {
+                    get: () => mimeTypes,
+                    configurable: false,
+                    enumerable: true
+                });
+
+                // CRITICAL: Platform consistency - match user agent
+                Object.defineProperty(navigator, 'platform', { 
+                    get: () => 'Win32',  // Force Windows to match user agent
+                    configurable: false,
+                    enumerable: true
+                });
+
+                // CRITICAL: Screen and window properties with perfect consistency
+                // Use consistent screen dimensions that match real Windows desktops
+                const screenWidth = 1920;
+                const screenHeight = 1080;
+                const availWidth = 1920;
+                const availHeight = 1040; // Account for taskbar
+                const innerWidth = 1920;
+                const innerHeight = 969; // Browser viewport height
+                
+                Object.defineProperty(screen, 'width', { get: () => screenWidth, configurable: false });
+                Object.defineProperty(screen, 'height', { get: () => screenHeight, configurable: false });
+                Object.defineProperty(screen, 'availWidth', { get: () => availWidth, configurable: false });
+                Object.defineProperty(screen, 'availHeight', { get: () => availHeight, configurable: false });
+                Object.defineProperty(screen, 'colorDepth', { get: () => 24, configurable: false });
+                Object.defineProperty(screen, 'pixelDepth', { get: () => 24, configurable: false });
+                
+                Object.defineProperty(window, 'innerWidth', { get: () => innerWidth, configurable: false });
+                Object.defineProperty(window, 'innerHeight', { get: () => innerHeight, configurable: false });
+                Object.defineProperty(window, 'outerWidth', { get: () => innerWidth, configurable: false });
+                Object.defineProperty(window, 'outerHeight', { get: () => innerHeight + 111, configurable: false }); // Add browser chrome height
+                Object.defineProperty(window, 'screenX', { get: () => 0, configurable: false });
+                Object.defineProperty(window, 'screenY', { get: () => 0, configurable: false });
+                Object.defineProperty(window, 'screenLeft', { get: () => 0, configurable: false });
+                Object.defineProperty(window, 'screenTop', { get: () => 0, configurable: false });
+
+                // Enhanced navigator properties with Windows consistency
+                Object.defineProperty(navigator, 'userAgent', { get: () => fp.userAgent, configurable: false });
+                Object.defineProperty(navigator, 'appName', { get: () => 'Netscape', configurable: false });
+                Object.defineProperty(navigator, 'appVersion', { get: () => '5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36', configurable: false });
+                Object.defineProperty(navigator, 'languages', { get: () => fp.languages, configurable: false });
+                Object.defineProperty(navigator, 'language', { get: () => 'en-US', configurable: false });
+                Object.defineProperty(navigator, 'deviceMemory', { get: () => fp.deviceMemory, configurable: false });
+                Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => fp.hardwareConcurrency, configurable: false });
+                Object.defineProperty(navigator, 'maxTouchPoints', { get: () => 0, configurable: false });
+                
+                // CRITICAL: Media devices with realistic count and proper structure
+                if (navigator.mediaDevices) {
+                    // Override enumerateDevices to return realistic devices
+                    Object.defineProperty(navigator.mediaDevices, 'enumerateDevices', {
+                        value: function() {
+                            return Promise.resolve([
+                                { 
+                                    deviceId: 'default',
+                                    kind: 'audioinput', 
+                                    label: 'Default - Microphone Array (Realtek(R) Audio)',
+                                    groupId: 'b8f5c479a0cb77db61b2b7f8f8c8e3a14e71e15f8b89c4d26e1a12d34567890a'
+                                },
+                                { 
+                                    deviceId: 'communications',
+                                    kind: 'audioinput', 
+                                    label: 'Communications - Microphone Array (Realtek(R) Audio)',
+                                    groupId: 'b8f5c479a0cb77db61b2b7f8f8c8e3a14e71e15f8b89c4d26e1a12d34567890a'
+                                },
+                                { 
+                                    deviceId: 'default',
+                                    kind: 'audiooutput', 
+                                    label: 'Default - Speakers (Realtek(R) Audio)',
+                                    groupId: 'b8f5c479a0cb77db61b2b7f8f8c8e3a14e71e15f8b89c4d26e1a12d34567890a'
+                                },
+                                { 
+                                    deviceId: 'communications',
+                                    kind: 'audiooutput', 
+                                    label: 'Communications - Speakers (Realtek(R) Audio)',
+                                    groupId: 'b8f5c479a0cb77db61b2b7f8f8c8e3a14e71e15f8b89c4d26e1a12d34567890a'
+                                },
+                                { 
+                                    deviceId: 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2',
+                                    kind: 'videoinput', 
+                                    label: 'HD Pro Webcam C920 (046d:082d)',
+                                    groupId: '9d2b3e4c5a8f7b6e1d4c7a9f2e5b8c1d4e7a0c3f6b9e2d5c8a1f4b7e0d3c6a9f2'
+                                }
+                            ]);
+                        },
+                        configurable: false,
+                        enumerable: true
+                    });
                 }
 
-                // Enhanced plugins and webdriver hiding
-                Object.defineProperty(navigator, 'plugins', {
-                    get: () => [1, 2, 3, 4, 5].map(() => 'Plugin')
-                });
-
-                // Override automation detection methods
-                window.outerHeight = window.innerHeight;
-                window.outerWidth = window.innerWidth;
-
-                // Enhanced screen and window properties with fingerprint consistency
-                Object.defineProperty(screen, 'width', { get: () => fp.screenWidth });
-                Object.defineProperty(screen, 'height', { get: () => fp.screenHeight });
-                Object.defineProperty(screen, 'availWidth', { get: () => fp.screenWidth });
-                Object.defineProperty(screen, 'availHeight', { get: () => fp.screenHeight - 40 });
-                Object.defineProperty(window, 'innerWidth', { get: () => fp.viewportWidth });
-                Object.defineProperty(window, 'innerHeight', { get: () => fp.viewportHeight - 74 });
-                Object.defineProperty(window, 'outerWidth', { get: () => fp.viewportWidth });
-                Object.defineProperty(window, 'outerHeight', { get: () => fp.viewportHeight });
-
-                // Enhanced navigator properties
-                Object.defineProperty(navigator, 'userAgent', { get: () => fp.userAgent });
-                Object.defineProperty(navigator, 'platform', { get: () => fp.platform });
-                Object.defineProperty(navigator, 'appName', { get: () => fp.appName });
-                Object.defineProperty(navigator, 'languages', { get: () => fp.languages });
-                Object.defineProperty(navigator, 'deviceMemory', { get: () => fp.deviceMemory });
-                Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => fp.hardwareConcurrency });
-
-                // Advanced WebGL fingerprint spoofing with enhanced consistency
-                const getContext = HTMLCanvasElement.prototype.getContext;
+                // CRITICAL: Advanced WebGL fingerprint spoofing - ensure context creation
+                const originalGetContext = HTMLCanvasElement.prototype.getContext;
                 HTMLCanvasElement.prototype.getContext = function(contextType, ...args) {
-                    const context = getContext.call(this, contextType, ...args);
+                    // First try to get the real context
+                    let context = originalGetContext.call(this, contextType, ...args);
+                    
+                    // If WebGL context creation fails, force creation with different approach
+                    if (!context && (contextType === 'webgl' || contextType === 'experimental-webgl')) {
+                        // Try alternative WebGL creation methods
+                        context = originalGetContext.call(this, 'experimental-webgl', ...args) ||
+                                 originalGetContext.call(this, 'webgl', ...args) ||
+                                 originalGetContext.call(this, 'moz-webgl', ...args) ||
+                                 originalGetContext.call(this, 'webkit-3d', ...args);
+                    }
 
                     if (context && (contextType === 'webgl' || contextType === 'experimental-webgl')) {
                         const originalGetParameter = context.getParameter;
@@ -245,73 +482,55 @@ class StealthService {
                     return context;
                 };
 
-                // Enhanced plugins spoofing with realistic plugin list
-                const plugins = {
-                    length: 4,
-                    0: {
-                        name: 'Chrome PDF Plugin',
-                        filename: 'internal-pdf-viewer',
-                        description: 'Portable Document Format',
-                        length: 1,
-                        0: { type: 'application/x-google-chrome-pdf', suffixes: 'pdf', description: 'Portable Document Format' }
-                    },
-                    1: {
-                        name: 'Chrome PDF Viewer',
-                        filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai',
-                        description: '',
-                        length: 1,
-                        0: { type: 'application/pdf', suffixes: 'pdf', description: '' }
-                    },
-                    2: {
-                        name: 'Native Client',
-                        filename: fp.platform === 'Win32' ? 'pepflashplayer.dll' : 'internal-nacl-plugin',
-                        description: '',
-                        length: 5,
-                        0: { type: 'application/x-nacl', suffixes: '', description: 'Native Client Executable' },
-                        1: { type: 'application/x-pnacl', suffixes: '', description: 'Portable Native Client Executable' },
-                        2: { type: 'text/html', suffixes: '', description: '' },
-                        3: { type: 'application/x-ppapi-vysor', suffixes: '', description: '' },
-                        4: { type: 'application/x-ppapi-vysor-audio', suffixes: '', description: '' }
-                    },
-                    3: {
-                        name: 'Widevine Content Decryption Module',
-                        filename: fp.platform === 'Win32' ? 'widevinecdmadapter.dll' : 'widevinecdmadapter.plugin',
-                        description: 'Enables Widevine licenses for playback of HTML audio/video content.',
-                        length: 1,
-                        0: { type: 'application/x-ppapi-widevine-cdm', suffixes: '', description: 'Widevine Content Decryption Module' }
-                    }
-                };
-                Object.defineProperty(navigator, 'plugins', { get: () => plugins });
+                // Plugins already defined above, no need to redefine
 
-                // Canvas fingerprinting protection with enhanced BUID-based noise injection
+                // CRITICAL: Canvas fingerprinting protection with transparent pixel fix
                 const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+                const originalGetImageData = CanvasRenderingContext2D.prototype.getImageData;
+                
                 HTMLCanvasElement.prototype.toDataURL = function(...args) {
                     try {
-                        const context = getContext.call(this, '2d'); // Use original getContext
+                        const context = originalGetContext.call(this, '2d');
                         if (context) {
-                            // Add consistent noise based on canvas fingerprint
+                            // Add subtle, consistent noise
                             const imageData = context.getImageData(0, 0, this.width, this.height);
                             const data = imageData.data;
-
-                            // Parse canvas noise from hex string
-                            const noiseBuffer = Buffer.from(fp.canvas.noise, 'hex');
-
+                            
+                            // Use consistent seed based on canvas size
+                            const seed = (this.width * this.height) % 1000;
+                            
                             for (let i = 0; i < data.length; i += 4) {
-                                const noiseIdx = i % noiseBuffer.length;
-                                const noise = (noiseBuffer[noiseIdx] % 3) - 1; // -1, 0, or 1
-                                data[i] = Math.max(0, Math.min(255, data[i] + noise)); // R
-                                data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise)); // G
-                                data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise)); // B
-                                // Alpha channel unchanged
+                                const noise = ((seed + i) % 3) - 1; // -1, 0, or 1
+                                if (data[i + 3] > 0) { // Only modify non-transparent pixels
+                                    data[i] = Math.max(0, Math.min(255, data[i] + noise));     // R
+                                    data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise)); // G  
+                                    data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise)); // B
+                                }
                             }
-
+                            
                             context.putImageData(imageData, 0, 0);
                         }
                         return originalToDataURL.apply(this, args);
                     } catch (e) {
-                        // Fallback to original function on error
                         return originalToDataURL.apply(this, args);
                     }
+                };
+                
+                // Override getImageData to return consistent transparent pixels
+                CanvasRenderingContext2D.prototype.getImageData = function(sx, sy, sw, sh) {
+                    const imageData = originalGetImageData.call(this, sx, sy, sw, sh);
+                    
+                    // Ensure transparent pixels are exactly [0,0,0,0]
+                    const data = imageData.data;
+                    for (let i = 0; i < data.length; i += 4) {
+                        if (data[i + 3] === 0) { // Transparent pixel
+                            data[i] = 0;     // R
+                            data[i + 1] = 0; // G
+                            data[i + 2] = 0; // B
+                        }
+                    }
+                    
+                    return imageData;
                 };
 
                 // Enhanced canvas text rendering with consistent fingerprint
@@ -426,22 +645,103 @@ class StealthService {
                         window.Date[prop] = originalDate[prop];
                     }
                 });
-                // Enhanced permissions API spoofing with consistent responses
+                // CRITICAL: Enhanced permissions API spoofing with realistic responses
                 if (navigator.permissions && navigator.permissions.query) {
                     const originalQuery = navigator.permissions.query;
                     navigator.permissions.query = (parameters) => {
                         const permissionStates = {
                             notifications: 'default',
-                            geolocation: 'denied',
-                            camera: 'denied',
-                            microphone: 'denied',
-                            midi: 'denied',
-                            push: 'denied',
-                            'background-sync': 'denied'
+                            geolocation: 'prompt',
+                            camera: 'prompt',
+                            microphone: 'prompt',
+                            midi: 'granted',
+                            push: 'granted',
+                            'background-sync': 'granted'
                         };
 
-                        const state = permissionStates[parameters.name] || 'denied';
+                        const state = permissionStates[parameters.name] || 'granted';
                         return Promise.resolve({ state });
+                    };
+                }
+                
+                // CRITICAL: Video codec support with realistic Chrome responses
+                const videoCodecSupport = {
+                    'video/mp4; codecs="avc1.42E01E"': 'probably',
+                    'video/mp4; codecs="avc1.4D401F"': 'probably', 
+                    'video/mp4; codecs="avc1.640028"': 'probably',
+                    'video/mp4; codecs="mp4v.20.8"': 'probably',
+                    'video/mp4; codecs="mp4v.20.240"': 'probably',
+                    'video/mp4; codecs="mp4a.40.2"': 'probably',
+                    'video/mp4': 'maybe',
+                    'video/webm; codecs="vp8, vorbis"': 'probably',
+                    'video/webm; codecs="vp9"': 'probably',
+                    'video/webm': 'maybe',
+                    'video/ogg; codecs="theora"': '',
+                    'video/ogg': '',
+                    'video/3gpp': '',
+                    'video/x-msvideo': ''
+                };
+                
+                const audioCodecSupport = {
+                    'audio/mpeg': 'probably',
+                    'audio/mp3': 'probably',
+                    'audio/wav': 'probably',
+                    'audio/wave': 'probably',
+                    'audio/x-wav': 'probably',
+                    'audio/ogg; codecs="vorbis"': 'probably',
+                    'audio/ogg': 'probably',
+                    'audio/mp4; codecs="mp4a.40.2"': 'probably',
+                    'audio/mp4': 'maybe',
+                    'audio/aac': 'probably',
+                    'audio/aacp': 'probably',
+                    'audio/webm; codecs="vorbis"': 'probably',
+                    'audio/webm': 'maybe',
+                    'audio/flac': 'probably',
+                    'audio/x-flac': 'probably'
+                };
+
+                if (window.HTMLVideoElement && window.HTMLVideoElement.prototype.canPlayType) {
+                    const originalVideoCanPlayType = window.HTMLVideoElement.prototype.canPlayType;
+                    window.HTMLVideoElement.prototype.canPlayType = function(type) {
+                        const normalizedType = type.toLowerCase().trim();
+                        
+                        // Check exact matches first
+                        if (videoCodecSupport.hasOwnProperty(normalizedType)) {
+                            return videoCodecSupport[normalizedType];
+                        }
+                        
+                        // Check partial matches for h264/avc1
+                        if (normalizedType.includes('h264') || normalizedType.includes('avc1')) {
+                            return 'probably';
+                        }
+                        
+                        // Check for mp4 container
+                        if (normalizedType.includes('mp4')) {
+                            return normalizedType.includes('codecs') ? 'probably' : 'maybe';
+                        }
+                        
+                        return originalVideoCanPlayType.call(this, type) || '';
+                    };
+                }
+                
+                if (window.HTMLAudioElement && window.HTMLAudioElement.prototype.canPlayType) {
+                    const originalAudioCanPlayType = window.HTMLAudioElement.prototype.canPlayType;
+                    window.HTMLAudioElement.prototype.canPlayType = function(type) {
+                        const normalizedType = type.toLowerCase().trim();
+                        
+                        // Check exact matches first
+                        if (audioCodecSupport.hasOwnProperty(normalizedType)) {
+                            return audioCodecSupport[normalizedType];
+                        }
+                        
+                        // Check partial matches
+                        for (const supportedType in audioCodecSupport) {
+                            if (normalizedType.includes(supportedType.split(';')[0].replace('audio/', ''))) {
+                                return audioCodecSupport[supportedType];
+                            }
+                        }
+                        
+                        return originalAudioCanPlayType.call(this, type) || '';
                     };
                 }
 
@@ -469,18 +769,60 @@ class StealthService {
                     };
                 }
 
-                // Enhanced Chrome runtime spoofing
-                if (!window.chrome) {
-                    window.chrome = {
-                        runtime: {
-                            onConnect: undefined,
-                            onMessage: undefined,
-                            connect: undefined,
-                            sendMessage: undefined
-                        },
-                        csi: undefined,
-                        loadTimes: undefined,
-                        app: undefined
+                // CRITICAL: Fix iframe chrome access - runs after DOM ready
+                const ensureIframeChromeAccess = function() {
+                    try {
+                        // Override iframe creation to inject chrome object
+                        const originalCreateElement = document.createElement;
+                        document.createElement = function(tagName) {
+                            const element = originalCreateElement.call(this, tagName);
+                            if (tagName.toLowerCase() === 'iframe') {
+                                element.addEventListener('load', function() {
+                                    try {
+                                        if (this.contentWindow && !this.contentWindow.chrome) {
+                                            this.contentWindow.chrome = window.chrome;
+                                        }
+                                    } catch (e) {
+                                        // Cross-origin iframe, ignore
+                                    }
+                                });
+                            }
+                            return element;
+                        };
+                        
+                        // Also patch existing iframes
+                        const iframes = document.getElementsByTagName('iframe');
+                        for (let i = 0; i < iframes.length; i++) {
+                            try {
+                                if (iframes[i].contentWindow && !iframes[i].contentWindow.chrome) {
+                                    iframes[i].contentWindow.chrome = window.chrome;
+                                }
+                            } catch (e) {
+                                // Cross-origin iframe, ignore
+                            }
+                        }
+                    } catch (e) {
+                        // Silently ignore errors
+                    }
+                };
+                
+                // Run immediately and on DOM ready
+                ensureIframeChromeAccess();
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', ensureIframeChromeAccess);
+                }
+                
+                // CRITICAL: Add getBattery with realistic response
+                if (!navigator.getBattery) {
+                    navigator.getBattery = function() {
+                        return Promise.resolve({
+                            charging: true,
+                            chargingTime: Infinity,
+                            dischargingTime: Infinity,
+                            level: 1.0,
+                            addEventListener: function() {},
+                            removeEventListener: function() {}
+                        });
                     };
                 }
 
