@@ -177,17 +177,24 @@ class StealthService {
             return overrides;
         }
 
+        const viewportWidth = fingerprint.viewport?.width || fingerprint.viewportWidth || fingerprint.screen?.width || fingerprint.screenWidth;
+        const viewportHeight = fingerprint.viewport?.height || fingerprint.viewportHeight || fingerprint.screen?.height || fingerprint.screenHeight;
+
         const viewport = {
-            width: fingerprint.viewportWidth || fingerprint.screenWidth,
-            height: fingerprint.viewportHeight || fingerprint.screenHeight
+            width: viewportWidth || 1280,
+            height: viewportHeight || 720
         };
+
+        const screenWidth = fingerprint.screen?.width || fingerprint.screenWidth || viewport.width;
+        const screenHeight = fingerprint.screen?.height || fingerprint.screenHeight || viewport.height;
+
+        const screen = (Number.isInteger(screenWidth) && Number.isInteger(screenHeight))
+            ? { width: screenWidth, height: screenHeight }
+            : undefined;
 
         const contextOptions = {
             viewport,
-            screen: {
-                width: fingerprint.screenWidth,
-                height: fingerprint.screenHeight
-            },
+            ...(screen ? { screen } : {}),
             userAgent: fingerprint.userAgent,
             locale: fingerprint.locale || 'en-US',
             timezoneId: fingerprint.timezone || 'America/New_York',
