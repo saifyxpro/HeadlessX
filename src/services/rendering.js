@@ -6,6 +6,7 @@
 const config = require('../config');
 const browserService = require('./browser');
 const StealthService = require('./stealth');
+const FingerprintManager = require('../config/fingerprints');
 const InteractionService = require('./interaction');
 const { withTimeoutFallback } = require('../utils/helpers');
 const { logger, generateRequestId } = require('../utils/logger');
@@ -58,17 +59,40 @@ class RenderingService {
         let page = null;
         const consoleLogs = [];
         let wasTimeout = false;
+        const fingerprintManager = new FingerprintManager();
+        const DEVICE_TO_FINGERPRINT = {
+            'high-end-desktop': 'windows-chrome-high-end',
+            'mid-range-desktop': 'windows-chrome-mid-range',
+            'business-laptop': 'laptop-chrome-business'
+        };
+        let fingerprintProfile = null;
 
         try {
             logger.info(requestId, `Starting v1.3.0 enhanced rendering: ${url} [${deviceProfile}/${geoProfile}/${behaviorProfile}]`);
 
             // Enhanced context creation with device profiles
+            if (enableAdvancedStealth) {
+                const profileId = DEVICE_TO_FINGERPRINT[deviceProfile] || 'windows-chrome-mid-range';
+                fingerprintProfile = fingerprintManager.generateProfile(profileId, {
+                    behaviorProfile
+                });
+
+                if (userAgent) {
+                    fingerprintProfile.userAgent = userAgent;
+                    fingerprintProfile.headers['User-Agent'] = userAgent;
+                }
+            }
+
             const contextOptions = {
-                userAgent,
-                headers,
-                viewport,
+                userAgent: userAgent || fingerprintProfile?.userAgent,
+                extraHTTPHeaders: {
+                    ...(fingerprintProfile?.headers || {}),
+                    ...headers
+                },
+                viewport: fingerprintProfile?.viewport || viewport,
                 deviceProfile,
-                geoProfile
+                geoProfile,
+                fingerprint: fingerprintProfile
             };
 
             // Add custom cookies to context options
@@ -576,7 +600,16 @@ class RenderingService {
                 wasTimeout,
                 contentLength: content.length,
                 screenshotBuffer,
-                pdfBuffer
+                pdfBuffer,
+                fingerprint: fingerprintProfile
+                    ? {
+                        id: fingerprintProfile.id,
+                        profileId: fingerprintProfile.profileId,
+                        entropy: fingerprintProfile.entropy,
+                        userAgent: fingerprintProfile.userAgent,
+                        timezone: fingerprintProfile.timezone
+                    }
+                    : null
             };
 
             if (wasTimeout) {

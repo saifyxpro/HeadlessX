@@ -9,6 +9,7 @@ const config = require('../config');
 const { BROWSER_LAUNCH_OPTIONS } = require('../config/browser');
 const { logger, generateRequestId } = require('../utils/logger');
 const { HeadlessXError, ERROR_CATEGORIES, handleError } = require('../utils/errors');
+const StealthService = require('./stealth');
 
 // Enhanced geolocation database for IP-based location spoofing
 const GEOLOCATION_PROFILES = {
@@ -51,6 +52,11 @@ class BrowserService {
     constructor() {
         this.browserInstance = null;
         this.activeContexts = new Set(); // Track active contexts to prevent memory leaks
+        this.totalContextsCreated = 0;
+    }
+
+    async initialize() {
+        await this.getBrowser();
     }
 
     // Initialize persistent browser with better error handling
@@ -94,84 +100,105 @@ class BrowserService {
         }
 
         // Enhanced context options with fingerprint profiles
-        const deviceProfile = options.deviceProfile || 'mid-range-desktop';
-        const geoProfile = options.geoProfile || 'us-east';
+        const {
+            fingerprint,
+            deviceProfile = 'mid-range-desktop',
+            geoProfile = 'us-east',
+            ...userOverrides
+        } = options;
+
         const profile = DEVICE_PROFILES[deviceProfile];
         const geoLocation = GEOLOCATION_PROFILES[geoProfile];
 
-        const enhancedOptions = {
-            viewport: profile.viewport,
-            userAgent: profile.userAgent,
-            deviceScaleFactor: profile.hardware.devicePixelRatio,
-            hasTouch: false,
-            isMobile: false,
+        let enhancedOptions;
+        if (fingerprint) {
+            enhancedOptions = StealthService.buildContextOptionsFromFingerprint(fingerprint, {
+                hasTouch: fingerprint.hardware?.maxTouchPoints > 0,
+                isMobile: fingerprint.deviceCategory === 'mobile',
+                reducedMotion: 'no-preference',
+                forcedColors: 'none',
+                colorScheme: 'light',
+                acceptDownloads: false,
+                bypassCSP: false,
+                ...userOverrides
+            });
+        } else {
+            enhancedOptions = {
+                viewport: profile.viewport,
+                userAgent: profile.userAgent,
+                deviceScaleFactor: profile.hardware.devicePixelRatio,
+                hasTouch: false,
+                isMobile: false,
 
-            // Enhanced permissions and features
-            permissions: [],
+                // Enhanced permissions and features
+                permissions: [],
 
-            // Geolocation spoofing
-            geolocation: {
-                latitude: geoLocation.latitude,
-                longitude: geoLocation.longitude,
-                accuracy: 20 + Math.random() * 30 // 20-50m accuracy variation
-            },
+                // Geolocation spoofing
+                geolocation: {
+                    latitude: geoLocation.latitude,
+                    longitude: geoLocation.longitude,
+                    accuracy: 20 + Math.random() * 30 // 20-50m accuracy variation
+                },
 
-            // Timezone consistency with geolocation
-            timezoneId: geoLocation.timezone,
+                // Timezone consistency with geolocation
+                timezoneId: geoLocation.timezone,
 
-            // Locale settings
-            locale: geoProfile.startsWith('us') ? 'en-US' : 'en-GB',
+                // Locale settings
+                locale: geoProfile.startsWith('us') ? 'en-US' : 'en-GB',
 
-            // Enhanced browser features
-            reducedMotion: 'no-preference',
-            forcedColors: 'none',
-            colorScheme: 'light',
+                // Enhanced browser features
+                reducedMotion: 'no-preference',
+                forcedColors: 'none',
+                colorScheme: 'light',
 
-            // Additional security settings
-            acceptDownloads: false,
-            bypassCSP: false,
+                // Additional security settings
+                acceptDownloads: false,
+                bypassCSP: false,
 
-            // Override default options with user provided
-            ...options
-        };
+                // Override default options with user provided
+                ...userOverrides
+            };
+        }
 
         try {
             const context = await browser.newContext(enhancedOptions);
             this.activeContexts.add(context);
+            this.totalContextsCreated += 1;
 
-            // Enhanced context setup with device profile injection
-            await context.addInitScript(({ profile, geoLocation, deviceProfile }) => {
-                // Inject device profile data
-                window.__DEVICE_PROFILE__ = profile;
-                window.__GEO_PROFILE__ = geoLocation;
-                window.__PROFILE_TYPE__ = deviceProfile;
+            if (fingerprint) {
+                await StealthService.applyFingerprintToContext(context, fingerprint);
+            } else {
+                // Enhanced context setup with device profile injection
+                await context.addInitScript(({ profileData, geo }) => {
+                    window.__DEVICE_PROFILE__ = profileData;
+                    window.__GEO_PROFILE__ = geo;
+                    window.__PROFILE_TYPE__ = profileData.behavioral || 'unknown';
 
-                // Enhanced navigator properties
-                Object.defineProperty(navigator, 'hardwareConcurrency', {
-                    get: () => profile.hardware.cores
-                });
+                    Object.defineProperty(navigator, 'hardwareConcurrency', {
+                        get: () => profileData.hardware.cores
+                    });
 
-                Object.defineProperty(navigator, 'deviceMemory', {
-                    get: () => profile.hardware.memory
-                });
+                    Object.defineProperty(navigator, 'deviceMemory', {
+                        get: () => profileData.hardware.memory
+                    });
 
-                // Screen resolution consistency
-                Object.defineProperty(screen, 'width', {
-                    get: () => profile.screen.width
-                });
+                    Object.defineProperty(screen, 'width', {
+                        get: () => profileData.screen.width
+                    });
 
-                Object.defineProperty(screen, 'height', {
-                    get: () => profile.screen.height
-                });
+                    Object.defineProperty(screen, 'height', {
+                        get: () => profileData.screen.height
+                    });
 
-                Object.defineProperty(screen, 'availWidth', {
-                    get: () => profile.screen.availWidth
-                });
+                    Object.defineProperty(screen, 'availWidth', {
+                        get: () => profileData.screen.availWidth
+                    });
 
-                Object.defineProperty(screen, 'availHeight', {
-                    get: () => profile.screen.availHeight
-                });
-            }, { profile, geoLocation, deviceProfile });
+                    Object.defineProperty(screen, 'availHeight', {
+                        get: () => profileData.screen.availHeight
+                    });
+                }, { profileData: profile, geo: geoLocation });
+            }
 
             // Auto-cleanup on close
             context.on('close', () => {
@@ -214,6 +241,50 @@ class BrowserService {
             connected: this.browserInstance ? this.browserInstance.isConnected() : false,
             activeContexts: this.activeContexts.size,
             type: 'Chromium'
+        };
+    }
+
+    getActiveContextsCount() {
+        return this.activeContexts.size;
+    }
+
+    getTotalSessions() {
+        return this.totalContextsCreated;
+    }
+
+    getBrowserPath() {
+        try {
+            return chromium.executablePath();
+        } catch (error) {
+            logger.warn('browser_path', 'Unable to determine browser executable path', { error: error.message });
+            return null;
+        }
+    }
+
+    async getBrowserVersion() {
+        try {
+            const browser = await this.getBrowser();
+            return browser.version();
+        } catch (error) {
+            logger.warn('browser_version', 'Unable to determine browser version', { error: error.message });
+            return null;
+        }
+    }
+
+    async getCapabilities() {
+        return {
+            headless: config.browser.headless,
+            maxConcurrency: config.browser.maxConcurrency,
+            timeout: config.browser.timeout,
+            supportsFingerprinting: true,
+            supportsBehaviorSimulation: true
+        };
+    }
+
+    async getPerformanceMetrics() {
+        return {
+            activeContexts: this.activeContexts.size,
+            totalContexts: this.totalContextsCreated
         };
     }
 
@@ -263,6 +334,43 @@ class BrowserService {
 
         if (staleContexts.length > 0) {
             logger.info(requestId, `Cleaned up ${staleContexts.length} stale contexts`);
+        }
+    }
+
+    async closeAllSessions(force = false) {
+        const contexts = Array.from(this.activeContexts);
+        let closed = 0;
+
+        for (const context of contexts) {
+            if (force) {
+                await context.close().catch(() => {});
+                this.activeContexts.delete(context);
+                closed += 1;
+            } else {
+                await this.safeCloseContext(context).catch(() => {});
+                closed += 1;
+            }
+        }
+
+        return closed;
+    }
+
+    async restart() {
+        await this.shutdown();
+        await this.initialize();
+    }
+
+    async cleanup() {
+        await this.shutdown();
+    }
+
+    async isAvailable() {
+        try {
+            await this.getBrowser();
+            return true;
+        } catch (error) {
+            logger.warn('browser_availability', 'Browser unavailable', { error: error.message });
+            return false;
         }
     }
 }

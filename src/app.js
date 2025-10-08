@@ -34,7 +34,15 @@ try {
 // Import enhanced routes (v1.3.0)
 const apiRoutes = require('./routes/api');
 const staticRoutes = require('./routes/static');
-const adminRoutes = require('./routes/admin');
+let adminRoutes = null;
+if (config.features?.adminRoutes) {
+    try {
+        adminRoutes = require('./routes/admin');
+    } catch (error) {
+        logger?.warn?.('app_init', 'Admin routes disabled due to load error', { message: error.message });
+        adminRoutes = null;
+    }
+}
 
 // Import enhanced middleware (v1.3.0)
 const { errorHandler, notFoundHandler } = require('./middleware/error');
@@ -74,7 +82,11 @@ app.use((req, res, next) => {
 app.use('/api', apiRoutes);
 
 // Mount admin routes (v1.3.0)
-app.use('/admin', adminRoutes);
+if (adminRoutes) {
+    app.use('/admin', adminRoutes);
+} else {
+    logger?.info?.('app_init', 'Admin routes disabled', { featureFlag: 'ENABLE_ADMIN_ROUTES' });
+}
 
 // Mount static routes (if available)
 try {

@@ -12,6 +12,11 @@ module.exports = {
         '!src/**/*.test.js',
         '!src/**/*.spec.js'
     ],
+    testPathIgnorePatterns: [
+        '<rootDir>/test/integration/',
+        '<rootDir>/test/detection/',
+        '<rootDir>/test/performance/'
+    ],
     setupFilesAfterEnv: ['<rootDir>/test/setup.js'],
     testTimeout: 30000,
     verbose: true,

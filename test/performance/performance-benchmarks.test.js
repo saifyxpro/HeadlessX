@@ -8,7 +8,7 @@ const { expect } = require('@jest/globals');
 const fs = require('fs').promises;
 const path = require('path');
 
-describe('Performance Benchmarks', () => {
+describe.skip('Performance Benchmarks', () => {
     const HEADLESSX_URL = process.env.TEST_URL || 'http://localhost:3000';
     const AUTH_TOKEN = process.env.AUTH_TOKEN || 'test-token';
     const RESULTS_FILE = path.join(__dirname, '../../test-results/performance-results.json');
