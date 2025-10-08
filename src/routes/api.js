@@ -5,6 +5,7 @@
 
 const express = require('express');
 const router = express.Router();
+const config = require('../config');
 
 // Import controllers
 const SystemController = require('../controllers/system');
@@ -33,27 +34,36 @@ router.post('/profiles/validate', authenticate, asyncHandler(ProfilesController.
 router.post('/profiles/generate-fingerprint', authenticate, asyncHandler(ProfilesController.generateFingerprint));
 router.get('/stealth/status', authenticate, ProfilesController.getStealthStatus);
 
-// v1.3.0 Detection testing endpoints (lazy initialization to avoid constructor issues)
-let detectionTestController = null;
-function getDetectionTestController() {
-    if (!detectionTestController) {
-        detectionTestController = new DetectionTestController();
+if (config.features?.detectionSuite !== false) {
+    let detectionTestController = null;
+    function getDetectionTestController() {
+        if (!detectionTestController) {
+            detectionTestController = new DetectionTestController();
+        }
+        return detectionTestController;
     }
-    return detectionTestController;
-}
 
-router.post('/detection/test', authenticate, asyncHandler(async (req, res) => {
-    const controller = getDetectionTestController();
-    return await controller.runDetectionTest(req, res);
-}));
-router.get('/detection/suites', authenticate, asyncHandler(async (req, res) => {
-    const controller = getDetectionTestController();
-    return await controller.getTestSuites(req, res);
-}));
-router.get('/detection/status', authenticate, asyncHandler(async (req, res) => {
-    const controller = getDetectionTestController();
-    return await controller.getDetectionStatus(req, res);
-}));
+    router.post('/detection/test', authenticate, asyncHandler(async (req, res) => {
+        const controller = getDetectionTestController();
+        return await controller.runDetectionTest(req, res);
+    }));
+    router.get('/detection/suites', authenticate, asyncHandler(async (req, res) => {
+        const controller = getDetectionTestController();
+        return await controller.getTestSuites(req, res);
+    }));
+    router.get('/detection/status', authenticate, asyncHandler(async (req, res) => {
+        const controller = getDetectionTestController();
+        return await controller.getDetectionStatus(req, res);
+    }));
+} else {
+    router.all('/detection/:path*?', authenticate, (req, res) => {
+        res.status(503).json({
+            success: false,
+            error: 'Detection suite is disabled in this deployment',
+            code: 'DETECTION_SUITE_DISABLED'
+        });
+    });
+}
 
 // Main rendering endpoints (enhanced with v1.3.0 features)
 router.post('/render', authenticate, asyncHandler(RenderingController.renderPage));

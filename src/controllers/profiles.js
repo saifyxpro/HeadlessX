@@ -299,20 +299,35 @@ class ProfilesController {
             'high-end-desktop': {
                 name: 'High-End Desktop',
                 viewport: { width: 1920, height: 1080 },
-                hardware: { cores: 8, memory: 16, devicePixelRatio: 1 },
-                behavioral: 'confident'
+                screen: { width: 1920, height: 1080, availWidth: 1920, availHeight: 1040 },
+                hardware: { cores: 8, memory: 16384, devicePixelRatio: 1 },
+                behavioral: {
+                    profile: 'confident',
+                    mouseProfile: 'confident',
+                    typingSpeed: 'fast'
+                }
             },
             'mid-range-desktop': {
                 name: 'Mid-Range Desktop',
                 viewport: { width: 1366, height: 768 },
-                hardware: { cores: 4, memory: 8, devicePixelRatio: 1 },
-                behavioral: 'natural'
+                screen: { width: 1366, height: 768, availWidth: 1366, availHeight: 728 },
+                hardware: { cores: 4, memory: 8192, devicePixelRatio: 1 },
+                behavioral: {
+                    profile: 'natural',
+                    mouseProfile: 'natural',
+                    typingSpeed: 'normal'
+                }
             },
             'business-laptop': {
                 name: 'Business Laptop',
                 viewport: { width: 1280, height: 720 },
-                hardware: { cores: 4, memory: 8, devicePixelRatio: 1 },
-                behavioral: 'cautious'
+                screen: { width: 1280, height: 720, availWidth: 1280, availHeight: 680 },
+                hardware: { cores: 4, memory: 8192, devicePixelRatio: 1 },
+                behavioral: {
+                    profile: 'cautious',
+                    mouseProfile: 'cautious',
+                    typingSpeed: 'normal'
+                }
             }
         };
     }

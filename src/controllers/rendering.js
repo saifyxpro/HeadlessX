@@ -69,6 +69,7 @@ class RenderingController {
                 deviceProfile: options.deviceProfile,
                 geoProfile: options.geoProfile,
                 behaviorProfile: options.behaviorProfile,
+                fingerprint: result.fingerprint || null,
                 antiDetectionFeatures: {
                     canvasSpoof: options.enableCanvasSpoofing,
                     webglSpoof: options.enableWebGLSpoofing,

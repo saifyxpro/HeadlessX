@@ -125,6 +125,7 @@ class DetectionTestController {
      * Run comprehensive detection test
      */
     async runDetectionTest(req, res) {
+        let context = null;
         try {
             const {
                 suite = 'basic',
@@ -145,12 +146,14 @@ class DetectionTestController {
             }
 
             // Generate fingerprint profile
-            const fingerprintProfile = await this.fingerprintManager.generateProfile(profile);
-            
+            const fingerprintProfile = this.fingerprintManager.generateProfile(profile);
+            const browser = await this.browserService.getBrowser();
+
             // Create browser context with stealth
-            const context = await this.browserService.createContext({
+            context = await this.browserService.createIsolatedContext(browser, {
                 fingerprint: fingerprintProfile,
-                stealth: stealthMode
+                deviceProfile: 'mid-range-desktop',
+                geoProfile: 'us-east'
             });
 
             const results = {
@@ -189,7 +192,7 @@ class DetectionTestController {
                 (results.summary.passed / results.summary.total) * 100 : 0;
 
             // Close browser context
-            await context.close();
+            await this.browserService.safeCloseContext(context);
 
             this.logger.info(`Detection test completed: ${suite}`, {
                 profile,
@@ -203,6 +206,10 @@ class DetectionTestController {
             });
 
         } catch (error) {
+            if (context) {
+                await this.browserService.safeCloseContext(context).catch(() => {});
+            }
+
             this.logger.error('Detection test failed:', error);
             
             const errorResponse = {

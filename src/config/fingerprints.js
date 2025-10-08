@@ -23,6 +23,8 @@ class FingerprintManager {
 
         this.activeProfiles = new Map(); // Track active profiles per context
         this.consistencyCache = new Map(); // Cache for validation results
+        this.generatedCache = new Map(); // Cache generated fingerprints
+        this.lastGeneratedAt = null;
     }
 
     /**
@@ -31,6 +33,29 @@ class FingerprintManager {
      */
     getAllProfiles() {
         return this.profiles;
+    }
+
+    /**
+     * Get all profiles (read-only copy) suitable for API responses
+     */
+    getAvailableProfiles() {
+        return JSON.parse(JSON.stringify(this.profiles));
+    }
+
+    getCacheSize() {
+        return this.generatedCache.size;
+    }
+
+    getLastGeneratedTime() {
+        return this.lastGeneratedAt;
+    }
+
+    async clearCache() {
+        const size = this.generatedCache.size;
+        this.generatedCache.clear();
+        this.activeProfiles.clear();
+        this.consistencyCache.clear();
+        return size;
     }
 
     /**
@@ -69,6 +94,157 @@ class FingerprintManager {
     generateProfileId(baseId, options = {}) {
         const seed = baseId + JSON.stringify(options) + Date.now().toString().slice(0, -3); // Hour precision
         return crypto.createHash('sha256').update(seed).digest('hex').slice(0, 16);
+    }
+
+    /**
+     * Generate a fingerprint profile ready to be applied to a browser context.
+     */
+    generateProfile(profile = 'windows-chrome-high-end', options = {}) {
+        let profileId = profile;
+        if (profile === 'random') {
+            const keys = Object.keys(this.profiles);
+            profileId = keys[Math.floor(Math.random() * keys.length)];
+        }
+
+        const baseProfile = this.getProfile(profileId);
+        if (!baseProfile) {
+            throw new Error(`Fingerprint profile not found: ${profileId}`);
+        }
+
+        const seed = options.seed || crypto.randomBytes(16).toString('hex');
+        const generatedId = this.generateProfileId(profileId, { seed });
+
+        const fingerprint = {
+            id: generatedId,
+            profileId,
+            seed,
+            userAgent: baseProfile.userAgent,
+            locale: baseProfile.geolocation?.locale || 'en-US',
+            languages: baseProfile.geolocation?.languages || ['en-US', 'en'],
+            timezone: baseProfile.geolocation?.timezone || 'America/New_York',
+            deviceCategory: baseProfile.category,
+            browser: baseProfile.browser,
+            screen: {
+                width: baseProfile.screen.width,
+                height: baseProfile.screen.height,
+                availWidth: baseProfile.screen.availWidth,
+                availHeight: baseProfile.screen.availHeight,
+                devicePixelRatio: baseProfile.screen.devicePixelRatio
+            },
+            viewport: {
+                width: baseProfile.viewport.width,
+                height: baseProfile.viewport.height
+            },
+            hardware: {
+                platform: baseProfile.hardware.platform,
+                cores: baseProfile.hardware.cores,
+                memory: baseProfile.hardware.deviceMemory || baseProfile.hardware.memory,
+                maxTouchPoints: baseProfile.hardware.maxTouchPoints || 0
+            },
+            webgl: baseProfile.webgl,
+            audio: baseProfile.audio,
+            geolocation: {
+                latitude: baseProfile.geolocation?.latitude,
+                longitude: baseProfile.geolocation?.longitude,
+                timezone: baseProfile.geolocation?.timezone,
+                accuracy: baseProfile.geolocation?.accuracy || 50
+            },
+            behavioral: baseProfile.behavioral,
+            createdAt: new Date().toISOString()
+        };
+
+        fingerprint.headers = {};
+        if (fingerprint.languages) {
+            fingerprint.headers['Accept-Language'] = Array.isArray(fingerprint.languages)
+                ? fingerprint.languages.join(',')
+                : fingerprint.languages;
+        }
+
+        const fingerprintEntropy = crypto.createHash('sha256')
+            .update(`${fingerprint.userAgent}|${fingerprint.viewport.width}|${fingerprint.viewport.height}|${fingerprint.hardware.cores}|${fingerprint.hardware.memory}|${seed}`)
+            .digest('hex');
+        fingerprint.entropy = fingerprintEntropy;
+
+        const cacheKey = `${profileId}:${seed}`;
+        this.generatedCache.set(cacheKey, fingerprint);
+        this.lastGeneratedAt = fingerprint.createdAt;
+
+        return fingerprint;
+    }
+
+    /**
+     * Build context options (viewport, locale, headers) from the generated fingerprint.
+     */
+    buildContextOptions(fingerprint, overrides = {}) {
+        if (!fingerprint) return overrides;
+
+        const headers = {};
+
+        if (fingerprint.languages) {
+            headers['Accept-Language'] = Array.isArray(fingerprint.languages)
+                ? fingerprint.languages.join(',')
+                : fingerprint.languages;
+        }
+
+        const { extraHTTPHeaders: overrideHeaders, ...restOverrides } = overrides;
+        const mergedHeaders = {
+            ...headers,
+            ...(overrideHeaders || {})
+        };
+
+        const options = {
+            viewport: { ...fingerprint.viewport },
+            userAgent: fingerprint.userAgent,
+            locale: fingerprint.locale,
+            timezoneId: fingerprint.timezone,
+            geolocation: fingerprint.geolocation?.latitude
+                ? {
+                    latitude: fingerprint.geolocation.latitude,
+                    longitude: fingerprint.geolocation.longitude,
+                    accuracy: fingerprint.geolocation.accuracy
+                }
+                : undefined,
+            permissions: [],
+            extraHTTPHeaders: mergedHeaders,
+            ...restOverrides
+        };
+
+        return options;
+    }
+
+    /**
+     * Attach navigation overrides to a Playwright context.
+     */
+    async applyFingerprint(context, fingerprint) {
+        if (!context || !fingerprint) return;
+
+        const script = this.generateFingerprintScript(
+            fingerprint.id,
+            {
+                profileType: fingerprint.profileId,
+                canvasNoiseLevel: 'medium',
+                webglVendor: fingerprint.webgl?.renderer || 'nvidia-gtx'
+            }
+        );
+
+        if (script) {
+            await context.addInitScript(script);
+        }
+
+        if (fingerprint.geolocation?.latitude) {
+            await context.grantPermissions(['geolocation']);
+            await context.setGeolocation({
+                latitude: fingerprint.geolocation.latitude,
+                longitude: fingerprint.geolocation.longitude,
+                accuracy: fingerprint.geolocation.accuracy
+            });
+        }
+
+        if (fingerprint.headers) {
+            await context.setExtraHTTPHeaders({
+                ...fingerprint.headers
+            });
+        }
     }
 
     /**

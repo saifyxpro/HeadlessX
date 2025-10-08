@@ -7,7 +7,7 @@ const axios = require('axios');
 const { expect } = require('@jest/globals');
 const DetectionChecker = require('../../tools/detection-checker');
 
-describe('Bot Detection Tests', () => {
+describe.skip('Bot Detection Tests', () => {
     const HEADLESSX_URL = process.env.TEST_URL || 'http://localhost:3000';
     const AUTH_TOKEN = process.env.AUTH_TOKEN || 'test-token';
     

@@ -3,56 +3,35 @@
  * Enhanced centralized configuration management with anti-detection features
  */
 
-const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const dotenv = require('dotenv');
 
 // Load environment variables from .env file if it exists
-function loadEnvironmentVariables() {
-    try {
-        const envPath = path.join(process.cwd(), '.env');
-        if (fs.existsSync(envPath)) {
-            const envFile = fs.readFileSync(envPath, 'utf8');
-            envFile.split('\n').forEach(line => {
-                // Skip comments and empty lines
-                if (line.trim() === '' || line.trim().startsWith('#')) {
-                    return;
-                }
+const ENV_FILE_PATH = path.join(process.cwd(), '.env');
+dotenv.config({ path: ENV_FILE_PATH });
 
-                const equalIndex = line.indexOf('=');
-                if (equalIndex > 0) {
-                    const key = line.substring(0, equalIndex).trim();
-                    const value = line.substring(equalIndex + 1).trim();
-
-                    // Remove quotes if present
-                    const cleanValue = value.replace(/^["']|["']$/g, '');
-
-                    if (key && !process.env[key]) {
-                        process.env[key] = cleanValue;
-                    }
-                }
-            });
-            console.log('✅ Environment variables loaded from .env file');
-        }
-    } catch (error) {
-        console.log('⚠️ Could not load .env file:', error.message);
+// Provide sensible defaults in non-production environments
+function ensureAuthToken() {
+    if (process.env.AUTH_TOKEN) {
+        return;
     }
-}
 
-// Initialize environment variables
-loadEnvironmentVariables();
+    const isProduction = process.env.NODE_ENV === 'production';
 
-// Validate required environment variables
-function validateConfig() {
-    if (!process.env.AUTH_TOKEN) {
-        console.error('❌ SECURITY ERROR: AUTH_TOKEN environment variable is required!');
+    if (isProduction) {
+        console.error('❌ SECURITY ERROR: AUTH_TOKEN environment variable is required in production!');
         console.error('   Please set a secure random token: export AUTH_TOKEN="your_secure_random_token_here"');
         console.error('   Generate one with: openssl rand -hex 32');
         process.exit(1);
     }
+
+    const generatedToken = crypto.randomBytes(32).toString('hex');
+    process.env.AUTH_TOKEN = generatedToken;
+    console.warn('⚠️ AUTH_TOKEN was missing. Generated a temporary development token.');
 }
 
-// Validate configuration on startup
-validateConfig();
+ensureAuthToken();
 
 // Application configuration
 const config = {
@@ -249,6 +228,12 @@ const config = {
         subdomain: process.env.SUBDOMAIN || 'headlessx',
         apiUrl: process.env.NEXT_PUBLIC_API_URL || `http://localhost:${process.env.PORT || 3000}`,
         siteUrl: process.env.NEXT_PUBLIC_SITE_URL || `http://localhost:${process.env.PORT || 3000}`
+    },
+
+    // Feature toggles
+    features: {
+        detectionSuite: process.env.ENABLE_DETECTION_SUITE !== 'false',
+        adminRoutes: process.env.ENABLE_ADMIN_ROUTES === 'true'
     }
 };
 

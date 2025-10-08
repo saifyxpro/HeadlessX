@@ -34,24 +34,40 @@ const WEBGL_RENDERERS = [
 // Enhanced device profiles for comprehensive fingerprinting
 const DEVICE_PROFILES = {
     'high-end-desktop': {
+        id: 'high-end-desktop',
         screen: { width: 1920, height: 1080, devicePixelRatio: 1 },
         hardware: { cores: 8, memory: 16, gpu: 'nvidia-rtx' },
-        behavioral: { mouseProfile: 'confident', typingSpeed: 'fast' }
+        timezone: 'America/New_York',
+        locale: 'en-US',
+        languages: ['en-US', 'en'],
+        behavioral: { profile: 'confident', mouseProfile: 'confident', typingSpeed: 'fast' }
     },
     'mid-range-desktop': {
+        id: 'mid-range-desktop',
         screen: { width: 1920, height: 1080, devicePixelRatio: 1 },
         hardware: { cores: 4, memory: 8, gpu: 'intel-uhd' },
-        behavioral: { mouseProfile: 'natural', typingSpeed: 'normal' }
+        timezone: 'America/Chicago',
+        locale: 'en-US',
+        languages: ['en-US', 'en'],
+        behavioral: { profile: 'natural', mouseProfile: 'natural', typingSpeed: 'normal' }
     },
     'business-laptop': {
+        id: 'business-laptop',
         screen: { width: 1366, height: 768, devicePixelRatio: 1 },
         hardware: { cores: 4, memory: 8, gpu: 'intel-hd' },
-        behavioral: { mouseProfile: 'cautious', typingSpeed: 'normal' }
+        timezone: 'Europe/London',
+        locale: 'en-GB',
+        languages: ['en-GB', 'en'],
+        behavioral: { profile: 'cautious', mouseProfile: 'cautious', typingSpeed: 'normal' }
     },
     'gaming-laptop': {
+        id: 'gaming-laptop',
         screen: { width: 1920, height: 1080, devicePixelRatio: 1 },
         hardware: { cores: 6, memory: 16, gpu: 'nvidia-gtx' },
-        behavioral: { mouseProfile: 'confident', typingSpeed: 'fast' }
+        timezone: 'America/Los_Angeles',
+        locale: 'en-US',
+        languages: ['en-US', 'en'],
+        behavioral: { profile: 'confident', mouseProfile: 'confident', typingSpeed: 'fast' }
     }
 };
 
@@ -67,8 +83,11 @@ function generateAdvancedFingerprint(buid = crypto.randomUUID(), profileType = '
     const buidHash = crypto.createHash('sha512').update(buid).digest();
     const profile = DEVICE_PROFILES[profileType] || DEVICE_PROFILES['mid-range-desktop'];
     const audioProfile = AUDIO_PROFILES['windows-chrome'];
+    const fingerprintId = crypto.createHash('sha256').update(`${profileType}:${buid}`).digest('hex');
 
     const fingerprint = {
+        id: fingerprintId,
+        profileId: profile.id || profileType,
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
         platform: 'Win32',
         appName: 'Netscape',
@@ -81,8 +100,9 @@ function generateAdvancedFingerprint(buid = crypto.randomUUID(), profileType = '
         WEBGL_VENDOR: 'Google Inc.',
         WEBGL_RENDERER: WEBGL_RENDERERS[Math.floor(buidHash.readUInt32BE(0) / (2 ** 32 - 1) * WEBGL_RENDERERS.length)],
         BUID: buidHash.toString('base64'),
-        languages: ['en-US', 'en'],
-        timezone: 'America/New_York',
+        languages: profile.languages || ['en-US', 'en'],
+        locale: profile.locale || 'en-US',
+        timezone: profile.timezone || 'America/New_York',
         deviceMemory: profile.hardware.memory,
         hardwareConcurrency: profile.hardware.cores,
         // Enhanced fingerprint components
@@ -113,7 +133,8 @@ function generateAdvancedFingerprint(buid = crypto.randomUUID(), profileType = '
             stunDisabled: true,
             turnDisabled: true
         },
-        behavioral: profile.behavioral
+        behavioral: profile.behavioral,
+        generatedAt: new Date().toISOString()
     };
 
     // Add random function for consistent randomness
@@ -122,6 +143,20 @@ function generateAdvancedFingerprint(buid = crypto.randomUUID(), profileType = '
         if (idx < 62) return buidHash.readUInt32BE(idx) / (2 ** 32 - 1);
         return buidHash.readUInt32LE(idx - 62) / (2 ** 32 - 1);
     };
+
+    const entropySource = [
+        fingerprint.userAgent,
+        fingerprint.platform,
+        fingerprint.screenWidth,
+        fingerprint.screenHeight,
+        fingerprint.devicePixelRatio,
+        fingerprint.WEBGL_RENDERER,
+        fingerprint.hardwareConcurrency,
+        fingerprint.deviceMemory,
+        fingerprint.canvas.noise
+    ].join('::');
+
+    fingerprint.entropy = crypto.createHash('sha256').update(entropySource).digest('hex');
 
     return fingerprint;
 }
@@ -132,6 +167,84 @@ class StealthService {
      */
     static generateAdvancedFingerprint(buid = crypto.randomUUID(), profileType = 'mid-range-desktop') {
         return generateAdvancedFingerprint(buid, profileType);
+    }
+
+    /**
+     * Prepare Playwright context options that align with the generated fingerprint.
+     */
+    static buildContextOptionsFromFingerprint(fingerprint, overrides = {}) {
+        if (!fingerprint) {
+            return overrides;
+        }
+
+        const viewport = {
+            width: fingerprint.viewportWidth || fingerprint.screenWidth,
+            height: fingerprint.viewportHeight || fingerprint.screenHeight
+        };
+
+        const contextOptions = {
+            viewport,
+            screen: {
+                width: fingerprint.screenWidth,
+                height: fingerprint.screenHeight
+            },
+            userAgent: fingerprint.userAgent,
+            locale: fingerprint.locale || 'en-US',
+            timezoneId: fingerprint.timezone || 'America/New_York',
+            permissions: [],
+            geolocation: fingerprint.geolocation && typeof fingerprint.geolocation.latitude === 'number'
+                ? fingerprint.geolocation
+                : undefined,
+            ...overrides
+        };
+
+        if (fingerprint.languages) {
+            contextOptions.extraHTTPHeaders = {
+                ...(contextOptions.extraHTTPHeaders || {}),
+                'Accept-Language': Array.isArray(fingerprint.languages)
+                    ? fingerprint.languages.join(',')
+                    : fingerprint.languages
+            };
+        }
+
+        return contextOptions;
+    }
+
+    /**
+     * Inject fingerprint scripts and navigator overrides into the provided context.
+     */
+    static async applyFingerprintToContext(context, fingerprint) {
+        if (!context || !fingerprint) {
+            return;
+        }
+
+        try {
+            const FingerprintManager = require('../config/fingerprints');
+            if (FingerprintManager) {
+                const managerInstance = new FingerprintManager();
+                await managerInstance.applyFingerprint(context, fingerprint);
+            }
+        } catch (error) {
+            console.warn('[StealthService] Failed to inject fingerprint script', error.message);
+        }
+    }
+
+    /**
+     * Backwards compatibility helper used by detection controller.
+     */
+    static async applyStealth(page, fingerprint = null) {
+        if (!page) return;
+
+        try {
+            if (fingerprint) {
+                await StealthService.applyFingerprintToContext(page.context(), fingerprint);
+                await page.context().addInitScript(StealthService.getStealthScript());
+            } else {
+                await StealthService.enhancePageWithAdvancedStealth(page);
+            }
+        } catch (error) {
+            console.warn('[StealthService] Failed to apply fingerprint during stealth application', error.message);
+        }
     }
 
     // ADVANCED PLAYWRIGHT-STEALTH FINGERPRINTING
