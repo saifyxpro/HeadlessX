@@ -57,8 +57,17 @@ app.use(express.json({ limit: config.api.bodyLimit || '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: config.api.bodyLimit || '10mb' }));
 
 // v1.3.0: Enhanced request analysis and rate limiting
-app.use(analyzeRequest);
-app.use(apiLimiter);
+if (config.features?.requestAnalyzerEnabled === false) {
+    logger?.info?.('app_init', 'Request analyzer disabled for current environment');
+} else {
+    app.use(analyzeRequest);
+}
+
+if (config.features?.rateLimiterEnabled === false) {
+    logger?.info?.('app_init', 'API rate limiter disabled for current environment');
+} else {
+    app.use(apiLimiter);
+}
 
 // CORS middleware
 if (config.security.corsEnabled) {

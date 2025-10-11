@@ -234,7 +234,9 @@ const config = {
     features: {
         detectionSuite: process.env.ENABLE_DETECTION_SUITE !== 'false',
         adminRoutes: process.env.ENABLE_ADMIN_ROUTES === 'true',
-        requestAnalyzerBlocking: process.env.REQUEST_ANALYZER_BLOCK === 'true'
+        requestAnalyzerBlocking: process.env.REQUEST_ANALYZER_BLOCK === 'true',
+        requestAnalyzerEnabled: process.env.REQUEST_ANALYZER_ENABLED !== 'false',
+        rateLimiterEnabled: process.env.RATE_LIMITER_ENABLED !== 'false'
     }
 };
 

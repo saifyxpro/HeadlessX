@@ -15,6 +15,7 @@ class RequestAnalyzer {
         this.threatSignatures = this.initializeThreatSignatures();
         this.behaviorProfiles = new Map();
         this.logger = logger;
+        this.isEnabled = config.features?.requestAnalyzerEnabled !== false;
         
         // Analysis configuration
         this.config = {
@@ -107,6 +108,10 @@ class RequestAnalyzer {
      */
     analyzeRequest() {
         return async (req, res, next) => {
+            if (!this.isEnabled) {
+                return next();
+            }
+
             try {
                 const startTime = Date.now();
                 const clientIP = this.getClientIP(req);
