@@ -233,7 +233,8 @@ const config = {
     // Feature toggles
     features: {
         detectionSuite: process.env.ENABLE_DETECTION_SUITE !== 'false',
-        adminRoutes: process.env.ENABLE_ADMIN_ROUTES === 'true'
+        adminRoutes: process.env.ENABLE_ADMIN_ROUTES === 'true',
+        requestAnalyzerBlocking: process.env.REQUEST_ANALYZER_BLOCK === 'true'
     }
 };
 

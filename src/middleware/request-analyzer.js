@@ -7,6 +7,7 @@
 const crypto = require('crypto');
 const { logger } = require('../utils/logger');
 const { HeadlessXError, ERROR_CATEGORIES } = require('../utils/errors');
+const config = require('../config');
 
 class RequestAnalyzer {
     constructor() {
@@ -23,7 +24,9 @@ class RequestAnalyzer {
             alertThreshold: 0.7, // Threat score threshold
             blockThreshold: 0.9, // Auto-block threshold
             analysisWindow: 60 * 60 * 1000, // 1 hour analysis window
-            maxStoredRequests: 1000
+            maxStoredRequests: 1000,
+            enableBlocking: config.features?.requestAnalyzerBlocking || false,
+            threatScoreNormalization: 12
         };
     }
 
@@ -150,7 +153,7 @@ class RequestAnalyzer {
                 }
                 
                 // Block request if risk score is too high
-                if (riskScore > this.config.blockThreshold) {
+                if (this.config.enableBlocking && riskScore > this.config.blockThreshold) {
                     return this.blockSuspiciousRequest(req, res, analysisResult);
                 }
                 
@@ -240,7 +243,7 @@ class RequestAnalyzer {
         }
         
         // Normalize score (0-1 range)
-        threats.score = Math.min(threats.score / 10, 1);
+        threats.score = Math.min(threats.score / this.config.threatScoreNormalization, 1);
         threats.categories = Array.from(threats.categories);
         
         return threats;
