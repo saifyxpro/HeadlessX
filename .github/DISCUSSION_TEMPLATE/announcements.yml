@@ -1,0 +1,53 @@
+labels: ["announcement"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📢 Announcement Template
+        
+        Use this template for official HeadlessX announcements, updates, and news.
+
+  - type: input
+    id: title
+    attributes:
+      label: Announcement Title
+      description: A clear, concise title for your announcement
+      placeholder: "e.g., HeadlessX v1.4.0 Released - New AI Features"
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Brief overview of the announcement
+      placeholder: |
+        What's being announced?
+        Why is it important?
+    validations:
+      required: true
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Full announcement details, features, changes, etc.
+      placeholder: |
+        - New feature: AI-powered scraping
+        - Improvement: 50% faster rendering
+        - Breaking change: API v2 endpoint structure
+    validations:
+      required: true
+
+  - type: textarea
+    id: links
+    attributes:
+      label: Related Links
+      description: Documentation, release notes, migration guides
+      placeholder: |
+        - [Release Notes](link)
+        - [Documentation](link)
+        - [Migration Guide](link)
+    validations:
+      required: false

@@ -14,6 +14,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg?style=for-the-badge&logo=docker)](#-docker-deployment)
 [![CI/CD](https://img.shields.io/github/actions/workflow/status/saifyxpro/HeadlessX/ci.yml?style=for-the-badge&logo=github-actions&label=CI%2FCD)](https://github.com/saifyxpro/HeadlessX/actions)
 
+[![Discussions](https://img.shields.io/github/discussions/saifyxpro/HeadlessX?style=for-the-badge&logo=github&label=Discussions)](https://github.com/saifyxpro/HeadlessX/discussions)
 [![Open Source](https://img.shields.io/badge/Open%20Source-100%25-brightgreen.svg?style=for-the-badge&logo=open-source-initiative)](https://github.com/saifyxpro/HeadlessX)
 [![Contributors](https://img.shields.io/github/contributors/saifyxpro/HeadlessX?style=for-the-badge&logo=github)](https://github.com/saifyxpro/HeadlessX/graphs/contributors)
 [![Issues](https://img.shields.io/github/issues/saifyxpro/HeadlessX?style=for-the-badge&logo=github)](https://github.com/saifyxpro/HeadlessX/issues)
@@ -812,30 +813,108 @@ docker-compose up -d
 
 ## 🤝 Contributing
 
+We welcome contributions from the community! Whether you're fixing bugs, adding features, improving documentation, or sharing ideas, your input is valuable.
+
+### Ways to Contribute
+
+1. **🐛 Report Bugs**: [Create a bug report](https://github.com/saifyxpro/HeadlessX/issues/new?template=bug_report.yml)
+2. **💡 Suggest Features**: [Share your ideas](https://github.com/saifyxpro/HeadlessX/discussions/new?category=ideas)
+3. **📖 Improve Docs**: Help make our documentation better
+4. **💻 Submit Code**: Fork, code, and create a pull request
+
+### Development Workflow
+
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+**Please read** [CONTRIBUTING.md](docs/CONTRIBUTING.md) for detailed guidelines.
+
 ---
 
-## 📄 License
+## � Community
+
+Join our growing community of developers, data scientists, and automation enthusiasts!
+
+<div align="center">
+
+### 💬 Discussions
+
+[![General](https://img.shields.io/badge/💬_General-Join_Discussion-blue?style=for-the-badge)](https://github.com/saifyxpro/HeadlessX/discussions/categories/general)
+[![Q&A](https://img.shields.io/badge/❓_Q&A-Ask_Questions-green?style=for-the-badge)](https://github.com/saifyxpro/HeadlessX/discussions/categories/q-a)
+[![Ideas](https://img.shields.io/badge/💡_Ideas-Share_Feedback-yellow?style=for-the-badge)](https://github.com/saifyxpro/HeadlessX/discussions/categories/ideas)
+[![Show & Tell](https://img.shields.io/badge/🎨_Show_&_Tell-Share_Projects-purple?style=for-the-badge)](https://github.com/saifyxpro/HeadlessX/discussions/categories/show-and-tell)
+
+</div>
+
+### Get Help & Share Knowledge
+
+- **❓ Ask Questions**: Stuck on something? [Start a Q&A discussion](https://github.com/saifyxpro/HeadlessX/discussions/new?category=q-a)
+- **💡 Share Ideas**: Have a feature idea? [Create an idea post](https://github.com/saifyxpro/HeadlessX/discussions/new?category=ideas)
+- **🎨 Showcase**: Built something cool? [Show it off!](https://github.com/saifyxpro/HeadlessX/discussions/new?category=show-and-tell)
+- **📢 Announcements**: [Stay updated](https://github.com/saifyxpro/HeadlessX/discussions/categories/announcements) with the latest news
+
+### Community Guidelines
+
+- Be respectful and inclusive
+- Help others learn and grow
+- Share knowledge and experiences
+- Report issues constructively
+- Follow our [Code of Conduct](docs/CODE_OF_CONDUCT.md)
+
+---
+
+## �📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🆘 Support
+## 🆘 Support & Resources
 
-- **📖 Documentation**: Visit your deployed website for full API docs
-- **🐛 Issues**: [GitHub Issues](https://github.com/SaifyXPRO/HeadlessX/issues)
-- **💬 Community**: [GitHub Discussions](https://github.com/SaifyXPRO/HeadlessX/discussions) (Coming Soon)
+<div align="center">
+
+| Resource | Description | Link |
+|----------|-------------|------|
+| 📖 **Documentation** | Complete API reference & guides | [View Docs](https://github.com/saifyxpro/HeadlessX/tree/main/docs) |
+| 🐛 **Bug Reports** | Found a bug? Report it here | [Report Bug](https://github.com/saifyxpro/HeadlessX/issues/new?template=bug_report.yml) |
+| 💡 **Feature Requests** | Suggest new features | [Request Feature](https://github.com/saifyxpro/HeadlessX/issues/new?template=feature_request.yml) |
+| 🔒 **Security** | Report security vulnerabilities | [Security Policy](docs/SECURITY.md) |
+| 💬 **Discussions** | Community Q&A & discussions | [Join Discussions](https://github.com/saifyxpro/HeadlessX/discussions) |
+| 📊 **Project Board** | Track development progress | [View Board](https://github.com/saifyxpro/HeadlessX/projects) |
+| 📝 **Changelog** | See what's new | [View Changes](docs/CHANGELOG.md) |
+| 🗺️ **Roadmap** | Future plans & features | [View Roadmap](docs/roadmap-v2.md) |
+
+</div>
+
+### Quick Links
+
+- **Installation Help**: [SETUP.md](docs/SETUP.md)
+- **Troubleshooting**: [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
+- **API Documentation**: [GET_ENDPOINTS.md](docs/GET_ENDPOINTS.md) | [POST_ENDPOINTS.md](docs/POST_ENDPOINTS.md)
+- **Architecture Guide**: [MODULAR_ARCHITECTURE.md](docs/MODULAR_ARCHITECTURE.md)
+- **Ethics & Responsible Use**: [ETHICS.md](docs/ETHICS.md)
 
 ---
 
-## 🎯 Built by SaifyXPRO
+<div align="center">
 
-**HeadlessX v1.1.0** - The most advanced open-source browserless web scraping solution.
+## 🎯 Built with ❤️ by SaifyXPRO
+
+**HeadlessX v1.3.0** - The most advanced open-source anti-detection web scraping solution.
+
+### Star us on GitHub! ⭐
+
+[![GitHub stars](https://img.shields.io/github/stars/saifyxpro/HeadlessX?style=social)](https://github.com/saifyxpro/HeadlessX/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/saifyxpro/HeadlessX?style=social)](https://github.com/saifyxpro/HeadlessX/network/members)
+[![GitHub watchers](https://img.shields.io/github/watchers/saifyxpro/HeadlessX?style=social)](https://github.com/saifyxpro/HeadlessX/watchers)
+
+---
+
+**Made with 🚀 by developers, for developers**
+
+</div>
 
 Made with ❤️ for the developer community.

@@ -6,7 +6,7 @@
 const { logger } = require('../../utils/logger');
 const BrowserService = require('../browser');
 const { TestingFramework } = require('../testing/test-framework');
-const { ProfileValidator } = require('../utils/profile-validator');
+const ProfileValidator = require('../../utils/profile-validator');
 const fs = require('fs').promises;
 const path = require('path');
 

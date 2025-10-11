@@ -1,0 +1,99 @@
+labels: ["idea", "enhancement"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 💡 Ideas & Feature Requests
+        
+        Share your ideas for improving HeadlessX!
+
+  - type: input
+    id: title
+    attributes:
+      label: Idea Title
+      description: A clear, descriptive title for your idea
+      placeholder: "e.g., Add support for Firefox browser automation"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Idea Type
+      description: What kind of enhancement is this?
+      options:
+        - New Feature
+        - Improvement
+        - Performance Optimization
+        - Documentation Enhancement
+        - Developer Experience
+        - API Enhancement
+        - UI/UX Improvement
+        - Integration
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Opportunity
+      description: What problem does this solve or what opportunity does it create?
+      placeholder: |
+        Currently, HeadlessX only supports Chromium browsers...
+        This limits users who need to scrape sites that behave differently in Firefox...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: How would you like to see this implemented?
+      placeholder: |
+        Add a new browser option in the API:
+        
+        ```json
+        {
+          "url": "https://example.com",
+          "browser": "firefox",
+          "stealthMode": "maximum"
+        }
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you thought of other ways to solve this?
+      placeholder: |
+        - Using Playwright's Firefox engine
+        - Running separate Firefox instances
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority (Your Opinion)
+      description: How important is this to you?
+      options:
+        - Critical - Blocking my workflow
+        - High - Would significantly improve my experience
+        - Medium - Nice to have
+        - Low - Just an idea
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Would you be willing to help implement this?
+      options:
+        - label: I can help with implementation
+        - label: I can help with testing
+        - label: I can help with documentation
