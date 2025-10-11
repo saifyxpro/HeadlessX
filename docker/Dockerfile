@@ -19,7 +19,7 @@ COPY website/ ./
 RUN npm run build
 
 # Stage 2: Production runtime
-FROM mcr.microsoft.com/playwright:v1.55.1-noble
+FROM mcr.microsoft.com/playwright:v1.56.0-noble
 
 # Install essential system dependencies (removed nginx - not needed in container)
 RUN apt-get update && apt-get install -y \
