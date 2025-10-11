@@ -19,7 +19,7 @@ COPY website/ ./
 RUN npm run build
 
 # Stage 2: Production runtime
-FROM mcr.microsoft.com/playwright:v1.55.0-noble
+FROM mcr.microsoft.com/playwright:v1.56.0-noble
 
 # Install essential system dependencies (removed nginx - not needed in container)
 RUN apt-get update && apt-get install -y \
@@ -34,9 +34,9 @@ COPY package*.json ./
 
 # Install production dependencies
 RUN if [ -f "package-lock.json" ]; then \
-        npm ci --omit=dev; \
+    npm ci --omit=dev; \
     else \
-        npm install --production; \
+    npm install --production; \
     fi && npm cache clean --force
 
 # Copy modular application source
@@ -64,7 +64,7 @@ EXPOSE 3000
 
 # Health check targets the Node.js application directly
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
+    CMD curl -f http://localhost:3000/api/health || exit 1
 
 # Switch to non-root user for security
 USER headlessx
