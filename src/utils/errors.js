@@ -12,7 +12,8 @@ const ERROR_CATEGORIES = {
     BROWSER: 'browser', // Browser/page issues
     SCRIPT: 'script', // JavaScript execution errors
     AUTHENTICATION: 'auth', // Authentication failures
-    RATE_LIMIT: 'rate_limit' // Rate limiting errors
+    RATE_LIMIT: 'rate_limit', // Rate limiting errors
+    SECURITY: 'security' // Request analyzer or security policy blocks
 };
 
 // Error categorization system for proper handling
