@@ -100,11 +100,6 @@ class ArchitectureVerifier {
             'chrome-profiles.json': 'Chrome device profiles',
             'mobile-profiles.js': 'Mobile device profiles'
           },
-          'utils/': {
-            'profile-validator.js': 'Profile validation utility',
-            'detection-analyzer.js': 'Detection analysis utility',
-            'random-generators.js': 'Random data generators'
-          },
           'testing/': {
             'test-framework.js': 'Comprehensive testing framework'
           },
@@ -123,7 +118,10 @@ class ArchitectureVerifier {
         'utils/': {
           'errors.js': 'Error utilities',
           'helpers.js': 'Helper functions',
-          'logger.js': 'Logging utility'
+          'logger.js': 'Logging utility',
+          'profile-validator.js': 'Profile validation utility',
+          'detection-analyzer.js': 'Detection analysis utility',
+          'random-generators.js': 'Random data generators'
         }
       },
       'package.json': 'Project configuration',
@@ -281,12 +279,12 @@ class ArchitectureVerifier {
       },
       {
         name: 'Profile Validator',
-        file: 'src/services/utils/profile-validator.js',
+        file: 'src/utils/profile-validator.js',
         check: content => content.includes('ProfileValidator') && content.includes('validateProfile')
       },
       {
         name: 'Detection Analyzer',
-        file: 'src/services/utils/detection-analyzer.js',
+        file: 'src/utils/detection-analyzer.js',
         check: content => content.includes('DetectionAnalyzer') && content.includes('analyzeFingerprint')
       },
       {

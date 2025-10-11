@@ -68,7 +68,7 @@ mkdir -p src/config/profiles
 mkdir -p src/services/fingerprinting
 mkdir -p src/services/behavioral
 mkdir -p src/services/evasion
-mkdir -p src/services/utils
+mkdir -p src/utils
 mkdir -p src/services/testing
 mkdir -p src/services/development
 print_status "v1.3.0 directories created"

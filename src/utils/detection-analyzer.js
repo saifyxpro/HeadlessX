@@ -211,6 +211,46 @@ class DetectionAnalyzer {
 
         return analysis;
     }
+
+    /**
+     * Analyze fingerprint for detection patterns
+     */
+    static analyzeFingerprint(fingerprint) {
+        const analysis = {
+            riskScore: 0,
+            vulnerabilities: [],
+            recommendations: []
+        };
+
+        // Check canvas fingerprint
+        if (fingerprint.canvas) {
+            if (fingerprint.canvas.length < 1000) {
+                analysis.vulnerabilities.push('Canvas fingerprint too short');
+                analysis.riskScore += 20;
+                analysis.recommendations.push('Enhance canvas fingerprint complexity');
+            }
+        }
+
+        // Check WebGL fingerprint
+        if (fingerprint.webgl) {
+            if (fingerprint.webgl.vendor === 'Google Inc.') {
+                analysis.vulnerabilities.push('Generic WebGL vendor detected');
+                analysis.riskScore += 15;
+                analysis.recommendations.push('Use specific hardware WebGL profiles');
+            }
+        }
+
+        // Check hardware consistency
+        if (fingerprint.hardware) {
+            if (fingerprint.hardware.cores < 2) {
+                analysis.vulnerabilities.push('Unrealistic hardware configuration');
+                analysis.riskScore += 30;
+                analysis.recommendations.push('Use realistic hardware profiles');
+            }
+        }
+
+        return analysis;
+    }
 }
 
 module.exports = DetectionAnalyzer;
