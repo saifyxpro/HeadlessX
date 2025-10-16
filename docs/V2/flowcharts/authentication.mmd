@@ -84,13 +84,13 @@ sequenceDiagram
     
     %% OAuth2 Login Flow
     rect rgb(255, 245, 230)
-        Note over User,OAuth: OAuth2 Login (Google/GitHub)
+        Note over User,OAuth: OAuth2 Login (Google/GitHub)<br/>Note: OAuth uses GET for callbacks only
         User->>UI: Click "Login with Google"
-        UI->>AuthAPI: GET /api/auth/oauth/google
+        UI->>AuthAPI: GET /api/auth/oauth/google (OAuth Initiate)
         AuthAPI->>OAuth: Redirect with Client ID
         OAuth-->>User: Show OAuth Consent
         User->>OAuth: Grant Permission
-        OAuth->>AuthAPI: Callback with Auth Code
+        OAuth->>AuthAPI: GET Callback with Auth Code
         AuthAPI->>OAuth: Exchange Code for Token
         OAuth-->>AuthAPI: Access Token
         AuthAPI->>OAuth: Get User Profile
@@ -147,7 +147,7 @@ sequenceDiagram
     rect rgb(245, 245, 255)
         Note over User,Cache: Token Refresh
         User->>UI: Request (Token Expired)
-        UI->>AuthAPI: GET /api/data
+        UI->>AuthAPI: POST /api/data
         AuthAPI->>JWT: Verify Access Token
         JWT-->>AuthAPI: Token Expired
         
@@ -165,7 +165,7 @@ sequenceDiagram
         
         AuthAPI-->>UI: New Access Token
         UI->>UI: Retry Original Request
-        UI->>AuthAPI: GET /api/data (New Token)
+        UI->>AuthAPI: POST /api/data (New Token)
         AuthAPI-->>UI: Success Response
     end
     
@@ -173,7 +173,7 @@ sequenceDiagram
     rect rgb(255, 240, 245)
         Note over User,AuthService: RBAC Authorization
         User->>UI: Request Protected Resource
-        UI->>AuthAPI: GET /api/admin/users
+        UI->>AuthAPI: POST /api/admin/users/list
         AuthAPI->>AuthService: Check Permission
         AuthService->>Cache: Get User Roles
         Cache-->>AuthService: Roles: [ADMIN]

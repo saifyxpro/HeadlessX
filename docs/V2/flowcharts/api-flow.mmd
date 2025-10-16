@@ -109,7 +109,7 @@ sequenceDiagram
     %% Result Retrieval
     rect rgb(255, 230, 255)
         Note over Client,Cache: Result Retrieval
-        Client->>NextJS: GET /api/jobs/12345
+        Client->>NextJS: POST /api/jobs/get {jobId: 12345}
         NextJS->>Gateway: Forward Request
         Gateway->>Auth: Verify JWT
         Auth-->>Gateway: Valid
@@ -154,7 +154,7 @@ sequenceDiagram
         Service->>DB: Update Job Failed
         WS->>Client: Event: job_failed
         Service-->>Queue: Job Failed
-        Client->>NextJS: GET /api/jobs/12345
+        Client->>NextJS: POST /api/jobs/get {jobId: 12345}
         NextJS->>API: Get Failed Job
         API-->>NextJS: Error Details + Suggestions
         NextJS-->>Client: Show Error + AI Suggestions
@@ -163,7 +163,7 @@ sequenceDiagram
     %% Analytics Flow
     rect rgb(230, 245, 255)
         Note over Client,DB: Analytics Request
-        Client->>NextJS: GET /api/analytics
+        Client->>NextJS: POST /api/analytics/query
         NextJS->>API: Analytics Request
         API->>Controller: AnalyticsController
         Controller->>DB: Query Metrics
