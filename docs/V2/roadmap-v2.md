@@ -162,6 +162,12 @@ HeadlessX/
 │   │   │   │   ├── page.tsx
 │   │   │   │   ├── builder/         # Visual workflow builder
 │   │   │   │   └── templates/
+│   │   │   ├── proxies/             # 🆕 Proxy management
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── add/             # Add new proxy
+│   │   │   │   ├── pools/           # Proxy pools
+│   │   │   │   ├── providers/       # Provider integration
+│   │   │   │   └── analytics/       # Proxy statistics
 │   │   │   ├── api-playground/      # API testing interface
 │   │   │   ├── settings/            # User settings
 │   │   │   └── admin/               # Admin panel (role-based)
@@ -300,6 +306,12 @@ HeadlessX/
 │   │   │   │   ├── DetectionMetrics/
 │   │   │   │   ├── UsageGraph/
 │   │   │   │   └── HeatMap/
+│   │   │   ├── proxies/             # 🆕 Proxy components
+│   │   │   │   ├── ProxyCard/
+│   │   │   │   ├── ProxyTester/
+│   │   │   │   ├── ProxyPoolManager/
+│   │   │   │   ├── ProxyStats/
+│   │   │   │   └── GeoMap/
 │   │   │   └── docs/                # Documentation components
 │   │   │       ├── APIExplorer/
 │   │   │       ├── CodeSample/
@@ -311,6 +323,7 @@ HeadlessX/
 │   │   │   ├── useProfiles.ts
 │   │   │   ├── useWorkflows.ts
 │   │   │   ├── useAnalytics.ts
+│   │   │   ├── useProxies.ts        # 🆕 NEW
 │   │   │   ├── useWebSocket.ts
 │   │   │   └── useTheme.ts
 │   │   ├── lib/                     # Utility libraries
@@ -368,13 +381,15 @@ HeadlessX/
 │   │   │   ├── anti-detection.js    # ✅ Existing
 │   │   │   ├── batch.js             # ✅ Existing
 │   │   │   ├── detection-test.js    # ✅ Existing
-│   │   │   ├── get.js               # ✅ Existing (scraping endpoints)
+│   │   │   ├── get.js               # ⚠️ DEPRECATED in v2 (v1.3.0 only - kept for backward compat)
+│   │   │   ├── scraping.js          # 🆕 NEW: Main scraping controller (POST only)
 │   │   │   ├── profiles.js          # ✅ Existing
 │   │   │   ├── rendering.js         # ✅ Existing
 │   │   │   ├── system.js            # ✅ Existing
 │   │   │   ├── analytics.js         # 🆕 NEW: Analytics endpoints
 │   │   │   ├── workflows.js         # 🆕 NEW: Workflow automation
-│   │   │   └── auth.js              # 🆕 NEW: Enhanced authentication
+│   │   │   ├── auth.js              # 🆕 NEW: Enhanced authentication
+│   │   │   └── proxy.js             # 🆕 NEW: Proxy management
 │   │   │
 │   │   ├── middleware/              # ✅ FROM v1.3.0 (Enhanced)
 │   │   │   ├── auth.js              # ✅ Existing (will be enhanced)
@@ -414,7 +429,12 @@ HeadlessX/
 │   │   │   │   ├── profiles.js
 │   │   │   │   ├── analytics.js
 │   │   │   │   └── users.js
-│   │   │   └── cache/               # 🆕 NEW: Caching layer
+│   │   │   ├── cache/               # 🆕 NEW: Caching layer
+│   │   │   └── proxy/               # 🆕 NEW: Proxy management
+│   │   │       ├── manager.js
+│   │   │       ├── health-checker.js
+│   │   │       ├── rotator.js
+│   │   │       └── providers/
 │   │   │
 │   │   ├── utils/                   # ✅ FROM v1.3.0 (Kept as-is)
 │   │   │   ├── detection-analyzer.js # ✅ Existing
@@ -430,7 +450,9 @@ HeadlessX/
 │   │   │   ├── Job.js
 │   │   │   ├── Profile.js
 │   │   │   ├── Workflow.js
-│   │   │   └── Analytics.js
+│   │   │   ├── Analytics.js
+│   │   │   ├── Proxy.js             # 🆕 NEW: Proxy model
+│   │   │   └── ProxyPool.js         # 🆕 NEW: Proxy pool model
 │   │   │
 │   │   ├── ai/                      # 🆕 NEW: AI/ML model layer
 │   │   │   ├── models/              # Trained ML models
@@ -481,6 +503,166 @@ HeadlessX/
 ├── scripts/
 ├── package.json                     # Root monorepo config
 └── README.md
+```
+
+---
+
+## 🔌 API Endpoints v2.0.0 (POST Only)
+
+### ⚠️ Important API Changes from v1.3.0
+**v2.0.0 uses POST requests exclusively for all scraping and data operations**
+
+> **Note:** The only GET endpoints in v2.0.0 are:
+> - OAuth callbacks (required by OAuth spec): `GET /api/auth/oauth/callback`
+> - Email verification links: `GET /api/auth/verify`
+> - Health checks: `GET /api/health` (optional)
+> 
+> **All scraping, data operations, and API calls use POST**
+
+| v1.3.0 Endpoint | v2.0.0 Endpoint | Method | Description |
+|-----------------|-----------------|--------|-------------|
+| `POST /api/render` | `POST /api/scrape` | POST | Universal scraping endpoint |
+| `POST /api/html` | `POST /api/scrape/html` | POST | Get raw HTML content |
+| `GET /api/html` | `POST /api/scrape/html` | POST | Get raw HTML (GET removed) |
+| `POST /api/content` | `POST /api/scrape/content` | POST | Extract clean text content |
+| `GET /api/content` | `POST /api/scrape/content` | POST | Extract content (GET removed) |
+| `GET /api/screenshot` | `POST /api/scrape/screenshot` | POST | Take screenshot |
+| `GET /api/pdf` | `POST /api/scrape/pdf` | POST | Generate PDF |
+| `POST /api/batch` | `POST /api/scrape/batch` | POST | Batch scraping |
+| - | `POST /api/scrape/markdown` | POST | Convert to markdown (NEW) |
+| - | `POST /api/scrape/text` | POST | Extract plain text (NEW) |
+| - | `POST /api/scrape/data` | POST | Extract structured data (NEW) |
+| - | `POST /api/scrape/links` | POST | Extract all links (NEW) |
+| - | `POST /api/scrape/images` | POST | Extract all images (NEW) |
+| - | `POST /api/scrape/metadata` | POST | Extract page metadata (NEW) |
+
+### 📋 Complete v2.0.0 API Reference
+
+#### 🎯 Scraping Endpoints (All POST)
+```typescript
+// Core Scraping
+POST /api/scrape                    # Universal scraping endpoint (recommended)
+POST /api/scrape/html               # Get raw HTML (v1: POST /api/html, GET /api/html)
+POST /api/scrape/content            # Extract clean text content (v1: POST /api/content, GET /api/content)
+POST /api/scrape/text               # Extract plain text only (NEW)
+POST /api/scrape/markdown           # Convert page to markdown (NEW)
+
+// Visual Rendering
+POST /api/scrape/screenshot         # Take screenshot (v1: GET /api/screenshot)
+POST /api/scrape/pdf                # Generate PDF (v1: GET /api/pdf)
+
+// Data Extraction
+POST /api/scrape/data               # Extract structured data with selectors (NEW)
+POST /api/scrape/links              # Extract all links from page (NEW)
+POST /api/scrape/images             # Extract all images from page (NEW)
+POST /api/scrape/metadata           # Extract page metadata (title, description, etc.) (NEW)
+
+// Advanced Scraping
+POST /api/scrape/batch              # Batch scraping multiple URLs (v1: POST /api/batch)
+POST /api/scrape/dynamic            # Handle dynamic/AJAX content (NEW)
+POST /api/scrape/infinite-scroll    # Handle infinite scroll pages (NEW)
+POST /api/scrape/spa                # Handle Single Page Applications (NEW)
+```
+
+#### 👤 Profile Endpoints
+```typescript
+POST /api/profiles/create           # Create browser profile
+POST /api/profiles/update           # Update profile
+POST /api/profiles/delete           # Delete profile
+POST /api/profiles/list             # Get all profiles
+POST /api/profiles/test             # Test profile
+POST /api/profiles/clone            # Clone existing profile
+```
+
+#### 📦 Batch Operations
+```typescript
+POST /api/batch/create              # Create batch job
+POST /api/batch/status              # Get batch status
+POST /api/batch/cancel              # Cancel batch job
+POST /api/batch/results             # Get batch results
+```
+
+#### 🔄 Workflow Endpoints
+```typescript
+POST /api/workflows/create          # Create workflow
+POST /api/workflows/update          # Update workflow
+POST /api/workflows/execute         # Execute workflow
+POST /api/workflows/status          # Get workflow status
+POST /api/workflows/list            # List all workflows
+POST /api/workflows/delete          # Delete workflow
+```
+
+#### 📊 Analytics Endpoints
+```typescript
+POST /api/analytics/query           # Query analytics data
+POST /api/analytics/performance     # Performance metrics
+POST /api/analytics/detection       # Detection statistics
+POST /api/analytics/usage           # Usage statistics
+POST /api/analytics/export          # Export analytics data
+```
+
+#### 🔐 Authentication Endpoints
+```typescript
+POST /api/auth/register             # User registration
+POST /api/auth/login                # User login
+POST /api/auth/logout               # User logout
+POST /api/auth/refresh              # Refresh token
+POST /api/auth/verify-2fa           # Verify 2FA code
+POST /api/auth/reset-password       # Reset password
+POST /api/auth/api-keys/create      # Create API key
+POST /api/auth/api-keys/revoke      # Revoke API key
+```
+
+#### 🔔 Webhook Endpoints
+```typescript
+POST /api/webhooks/create           # Create webhook
+POST /api/webhooks/update           # Update webhook
+POST /api/webhooks/delete           # Delete webhook
+POST /api/webhooks/test             # Test webhook
+POST /api/webhooks/list             # List webhooks
+```
+
+#### ⚙️ System Endpoints
+```typescript
+POST /api/system/health             # System health check
+POST /api/system/status             # System status
+POST /api/system/metrics            # System metrics
+POST /api/admin/users               # User management (admin)
+POST /api/admin/settings            # System settings (admin)
+```
+
+### 📝 Example API Requests (v2.0.0)
+
+#### Basic Scraping Request
+```bash
+# v2.0.0 - POST Request
+curl -X POST https://api.headlessx.com/api/scrape \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "url": "https://example.com",
+    "options": {
+      "waitUntil": "networkidle",
+      "timeout": 30000,
+      "javascript": true
+    }
+  }'
+```
+
+#### Screenshot Request
+```bash
+# v2.0.0 - POST Request
+curl -X POST https://api.headlessx.com/api/scrape/screenshot \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "url": "https://example.com",
+    "options": {
+      "fullPage": true,
+      "format": "png",
+      "quality": 90
+    }
+  }'
 ```
 
 ---
@@ -713,15 +895,15 @@ client/app/docs/
 │   ├── endpoints/
 │   │   ├── page.tsx                 # Endpoints overview
 │   │   ├── scraping/
-│   │   │   └── page.tsx             # POST /api/scrape
+│   │   │   └── page.tsx             # POST /api/scrape (all scraping endpoints)
 │   │   ├── profiles/
-│   │   │   └── page.tsx             # Profile endpoints
+│   │   │   └── page.tsx             # POST /api/profiles/* (profile endpoints)
 │   │   ├── batch/
-│   │   │   └── page.tsx             # Batch processing
+│   │   │   └── page.tsx             # POST /api/batch/* (batch processing)
 │   │   ├── workflows/
-│   │   │   └── page.tsx             # Workflow endpoints
+│   │   │   └── page.tsx             # POST /api/workflows/* (workflow endpoints)
 │   │   └── analytics/
-│   │       └── page.tsx             # Analytics endpoints
+│   │       └── page.tsx             # POST /api/analytics/* (analytics endpoints)
 │   ├── rate-limiting/
 │   │   └── page.tsx                 # Rate limiting guide
 │   ├── webhooks/
@@ -1006,6 +1188,130 @@ client/src/content/docs/              # MDX/Markdown content
   - notification (alerts)
   - system:status (health check)
   ```
+
+### 8. 🌐 Advanced Proxy Support
+**Location:** `server/src/services/proxy/` & `client/app/(dashboard)/proxies/`
+
+#### Comprehensive Proxy Management
+- **🔄 Proxy Types Support**
+  - HTTP/HTTPS proxies
+  - SOCKS4/SOCKS5 proxies
+  - Residential proxies
+  - Datacenter proxies
+  - Mobile proxies
+  - Rotating proxy pools
+  - Sticky sessions
+
+- **🎯 Proxy Features**
+  ```typescript
+  // Proxy Configuration
+  {
+    "type": "http|socks4|socks5",
+    "host": "proxy.example.com",
+    "port": 8080,
+    "auth": {
+      "username": "user",
+      "password": "pass"
+    },
+    "country": "US",
+    "rotation": {
+      "enabled": true,
+      "interval": "5m",
+      "strategy": "round-robin|random|least-used"
+    }
+  }
+  ```
+
+- **📊 Proxy Management Dashboard**
+  - Add/remove proxies via UI
+  - Test proxy health and speed
+  - Monitor proxy usage and success rates
+  - Geographic distribution view
+  - Automatic proxy rotation
+  - Proxy pool management
+  - Failed proxy auto-removal
+  - Performance analytics per proxy
+
+- **🔍 Proxy Testing & Validation**
+  - Automatic health checks (every 5 min)
+  - Speed testing (latency, bandwidth)
+  - Anonymity level detection
+  - IP leak detection
+  - SSL/TLS support verification
+  - Geographic location validation
+  - Blacklist checking
+
+- **⚡ Smart Proxy Selection**
+  - AI-powered proxy recommendation
+  - Automatic failover on proxy failure
+  - Load balancing across proxy pool
+  - Geographic targeting (select by country)
+  - Success rate-based selection
+  - Cost optimization (cheapest working proxy)
+
+- **🔐 Proxy Security**
+  - Encrypted proxy credentials storage
+  - Proxy authentication management
+  - IP whitelisting per proxy
+  - Rate limiting per proxy
+  - Usage quota enforcement
+  - Billing integration for paid proxies
+
+#### Proxy API Endpoints
+```typescript
+// Proxy Management
+POST /api/proxies/add              # Add new proxy
+POST /api/proxies/remove           # Remove proxy
+POST /api/proxies/test             # Test proxy health
+POST /api/proxies/list             # List all proxies
+POST /api/proxies/stats            # Get proxy statistics
+
+// Proxy Pools
+POST /api/proxy-pools/create       # Create proxy pool
+POST /api/proxy-pools/assign       # Assign proxies to pool
+POST /api/proxy-pools/rotate       # Manually rotate pool
+
+// Proxy Providers (Integration)
+POST /api/proxy-providers/connect  # Connect to proxy provider API
+  # Supported: BrightData, Oxylabs, Smartproxy, IPRoyal, etc.
+```
+
+#### Built-in Proxy Providers Integration
+- **BrightData (Luminati)**
+- **Oxylabs**
+- **Smartproxy**
+- **IPRoyal**
+- **ProxyMesh**
+- **ScraperAPI Proxy**
+- **Custom provider support**
+
+#### Proxy Usage in Scraping
+```typescript
+// Example: Using proxy in scrape request
+POST /api/scrape
+{
+  "url": "https://example.com",
+  "proxy": {
+    "enabled": true,
+    "type": "rotating-pool",
+    "pool": "us-residential",
+    "rotation": "per-request"
+  }
+}
+
+// Example: Direct proxy specification
+POST /api/scrape
+{
+  "url": "https://example.com",
+  "proxy": {
+    "host": "proxy.example.com",
+    "port": 8080,
+    "username": "user",
+    "password": "pass",
+    "type": "socks5"
+  }
+}
+```
 
 ---
 
