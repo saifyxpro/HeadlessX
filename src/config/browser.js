@@ -116,10 +116,10 @@ const BROWSER_LAUNCH_OPTIONS = {
         '--enable-automation',
         '--enable-blink-features=IdleDetection'
     ],
+    // Preserve container-provided environment variables (e.g. PLAYWRIGHT_BROWSERS_PATH)
+    // so Playwright can locate the preinstalled browser binaries.
     env: {
-        ...process.env,
-        PLAYWRIGHT_DOWNLOAD_HOST: undefined,
-        PLAYWRIGHT_BROWSERS_PATH: undefined
+        ...process.env
     }
 };
 

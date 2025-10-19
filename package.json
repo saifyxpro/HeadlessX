@@ -76,11 +76,11 @@
     "express": "^4.18.2",
     "express-rate-limit": "^7.5.1",
     "express-slow-down": "^2.1.0",
-    "playwright": "^1.40.0",
+    "playwright": "^1.56.0",
     "winston": "^3.11.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.0",
+    "@playwright/test": "^1.56.0",
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.29.1",
