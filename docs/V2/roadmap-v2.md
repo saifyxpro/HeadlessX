@@ -5,12 +5,44 @@
 **HeadlessX v2.0.0** represents a revolutionary leap from a powerful API service to a comprehensive **full-stack AI-powered web scraping platform**. This version introduces an **advanced Next.js dashboard**, intelligent automation, real-time scraping GUI, and seamless client-server architecture with integrated documentation.
 
 ### 🎯 Core Transformation Goals
+- **🎉 One-Time Installation Wizard**: Web-based setup with auto-detection (no manual scripts)
 - **Interactive Dashboard**: Full-featured GUI for scraping directly from the browser
-- **Next.js 14+ App Router**: Modern React with server-side rendering and API routes
+- **Next.js 15 App Router**: Modern React with server-side rendering and API routes
 - **Real-time Scraping Interface**: Live scraping with visual feedback and data preview
 - **Integrated Documentation**: Comprehensive API docs and guides within the frontend
 - **AI-Powered Intelligence**: Smart scraping suggestions and automated optimization
 - **User-Friendly Experience**: No coding required for basic scraping tasks
+
+---
+
+## 🆕 New Feature: Installation Wizard (One-Time Setup)
+
+### 🎯 What Makes It Special
+- **🌐 Web-Based Installation** - No need to run bash/PowerShell scripts manually
+- **🔍 Auto-Detection** - Automatically detects OS, Node.js, RAM, disk space
+- **📦 pnpm-First** - Auto-installs pnpm if not present, uses it for all packages
+- **⚡ Real-Time Progress** - Live logs and progress bar via WebSocket
+- **🔒 One-Time Access** - Installation page only accessible when NOT installed
+- **🌍 Cross-Platform** - Works on Windows, macOS, and Linux
+- **❌ No Manual Scripts** - User clicks "Install" in browser, backend does the rest
+
+### 📊 Installation Flow (5 Steps)
+```
+Step 1: System Check       → Auto-detect OS, Node.js, RAM, Disk, pnpm
+Step 2: Configuration      → Domain, Port, Token (auto-generated), Features
+Step 3: Install Dependencies → Auto-install pnpm + packages (live logs)
+Step 4: Database Setup     → Docker Compose or existing DB (optional)
+Step 5: Complete & Launch  → Create .installed file, start services
+```
+
+### 🔐 Protection Mechanism
+Once `.installed` file exists:
+- ✅ `/dashboard` becomes accessible
+- ❌ `/install/*` routes redirect to dashboard (no re-installation)
+- ❌ All API routes require proper authentication
+- ✅ Full HeadlessX functionality enabled
+
+**See:** `docs/V2/flowcharts/installation-wizard.mmd` for detailed flow diagram
 
 ---
 
@@ -136,6 +168,19 @@ EXISTING (Root /src/)              →    v2.0.0 (server/src/)
 HeadlessX/
 ├── client/                          # Next.js 14+ Frontend Application
 │   ├── app/                         # Next.js App Router
+│   │   ├── (install)/               # 🆕 Installation Wizard (One-Time Only)
+│   │   │   ├── layout.tsx           # Installation layout (minimal header)
+│   │   │   ├── page.tsx             # Installation home (auto-redirect if installed)
+│   │   │   ├── system-check/        # Step 1: System detection & requirements
+│   │   │   │   └── page.tsx
+│   │   │   ├── configuration/       # Step 2: Configuration (port, domain, token)
+│   │   │   │   └── page.tsx
+│   │   │   ├── dependencies/        # Step 3: Install pnpm + dependencies
+│   │   │   │   └── page.tsx
+│   │   │   ├── database/            # Step 4: Database setup (optional)
+│   │   │   │   └── page.tsx
+│   │   │   └── complete/            # Step 5: Completion & redirect to dashboard
+│   │   │       └── page.tsx
 │   │   ├── (auth)/                  # Authentication routes
 │   │   │   ├── login/
 │   │   │   ├── register/
@@ -1160,7 +1205,370 @@ client/src/content/docs/              # MDX/Markdown content
   - Automatic session timeout
   - Suspicious activity detection
 
-### 7. 🌐 WebSocket Real-time Features
+### 7. � Installation Wizard (One-Time Setup)
+**Location:** `client/app/(install)/` & `server/src/routes/install.js`
+
+#### 🚀 Purpose
+- **First-time users** get a guided web-based installation wizard
+- **One-time access** - Only accessible if HeadlessX is NOT installed
+- **No manual scripts** - User installs via browser, backend runs scripts automatically
+- **Cross-platform** - Auto-detects Windows, macOS, Linux
+- **pnpm-first** - Auto-installs pnpm if not present, uses it for all installations
+
+#### Installation Flow (5 Steps)
+
+**Step 1: System Detection** (`/install/system-check`)
+- ✅ Auto-detect operating system (Windows/Mac/Linux)
+- ✅ Check Node.js version (requires 22.20.0 LTS or 25.0.0+)
+- ✅ Check available RAM (minimum 8GB recommended)
+- ✅ Check disk space (minimum 20GB free)
+- ✅ Check CPU cores
+- ❌ Show errors if requirements not met with fix instructions
+- 📊 Display system info card with green/red indicators
+
+**Step 2: Configuration** (`/install/configuration`)
+- 🔐 Auto-generate secure `AUTH_TOKEN` (using crypto.randomBytes)
+- 🌐 Set domain/subdomain (e.g., headlessx.example.com)
+- 🔢 Choose ports (Backend: 5000, Frontend: 3000)
+- 📁 Choose installation directory
+- 🎛️ Select features to install:
+  - ☑️ Core (required)
+  - ☑️ AI/ML features
+  - ☑️ Proxy management
+  - ☑️ Database (MongoDB, PostgreSQL, Redis)
+  - ☑️ Monitoring (Prometheus, Grafana)
+- 💾 Save configuration to `.env` file
+
+**Step 3: Dependencies Installation** (`/install/dependencies`)
+- 🔍 Check if **pnpm** is installed
+  - If not: `npm install -g pnpm@latest` (auto-install)
+- 📦 Install project dependencies:
+  ```bash
+  # Backend runs this automatically:
+  pnpm install
+  ```
+- 🎭 Install Playwright browsers:
+  ```bash
+  pnpm exec playwright install --with-deps
+  ```
+- 📊 Real-time progress bar showing:
+  - Current package being installed
+  - Progress percentage (0-100%)
+  - Estimated time remaining
+  - Live logs in scrollable terminal window
+- ⚠️ Error handling with retry buttons
+
+**Step 4: Database Setup** (`/install/database`) *(Optional)*
+- 🗄️ Choose database setup:
+  - **Option A:** Use Docker Compose (recommended)
+    - Auto-generates `docker-compose.yml`
+    - Runs: `docker-compose up -d`
+    - Includes: MongoDB, PostgreSQL, Redis
+  - **Option B:** Use existing databases
+    - Enter connection strings manually
+    - Test connection before proceeding
+  - **Option C:** Skip (install later)
+- ✅ Test database connections
+- 🔄 Run database migrations
+
+**Step 5: Completion & Launch** (`/install/complete`)
+- ✅ Installation complete summary
+- 🚀 Start services automatically:
+  ```bash
+  # Backend runs:
+  pnpm run dev:backend &
+  pnpm run dev:frontend &
+  ```
+- 🔗 Show access links:
+  - Frontend Dashboard: http://localhost:3000
+  - Backend API: http://localhost:5000
+  - API Docs: http://localhost:5000/api/docs
+- 📋 Quick start guide
+- 🎯 Redirect to dashboard after 5 seconds
+- 🔒 Mark installation as complete (create `.installed` file)
+
+#### Backend Installation API
+
+**Endpoints:** `server/src/routes/install.js`
+
+```javascript
+// ✅ GET /api/install/check-status
+// Returns: { installed: boolean, version: string }
+// Checks if .installed file exists
+
+// ✅ GET /api/install/system-info
+// Returns: OS, Node version, RAM, CPU, disk space, pnpm status
+
+// ✅ POST /api/install/check-pnpm
+// Checks if pnpm is installed, returns version or false
+
+// ✅ POST /api/install/install-pnpm
+// Installs pnpm globally via npm
+
+// ✅ POST /api/install/install-dependencies
+// Runs: pnpm install (with WebSocket progress updates)
+
+// ✅ POST /api/install/install-playwright
+// Runs: pnpm exec playwright install --with-deps
+
+// ✅ POST /api/install/generate-config
+// Creates .env file with secure random tokens
+
+// ✅ POST /api/install/setup-databases
+// Runs docker-compose up or tests DB connections
+
+// ✅ POST /api/install/finalize
+// Creates .installed file, starts services
+
+// ✅ WebSocket: /ws/install
+// Real-time logs, progress updates during installation
+```
+
+#### Frontend Components
+
+**Installation Layout:** `client/app/(install)/layout.tsx`
+- Minimal header with HeadlessX logo
+- Progress stepper (1/5, 2/5, etc.)
+- "Exit Installation" button (with warning)
+
+**System Check Page:** `client/app/(install)/system-check/page.tsx`
+```typescript
+- Auto-detect OS using navigator.platform
+- Call /api/install/system-info to get backend data
+- Display system requirements card:
+  ✅ Operating System: Windows 11 Pro (64-bit)
+  ✅ Node.js: v22.20.0 LTS
+  ✅ RAM: 16 GB available
+  ✅ Disk Space: 150 GB free
+  ❌ pnpm: Not installed (will auto-install)
+- [Back] [Continue] buttons
+```
+
+**Configuration Page:** `client/app/(install)/configuration/page.tsx`
+```typescript
+- Form with:
+  - AUTH_TOKEN (auto-generated, show/hide toggle)
+  - Domain input (e.g., example.com)
+  - Subdomain input (e.g., headlessx)
+  - Backend port (default: 5000)
+  - Frontend port (default: 3000)
+  - Feature checkboxes (AI, Proxy, Monitoring)
+- Validation with Zod
+- Preview: Final URL will be https://headlessx.example.com
+- [Back] [Continue] buttons
+```
+
+**Dependencies Page:** `client/app/(install)/dependencies/page.tsx`
+```typescript
+- WebSocket connection to /ws/install
+- Progress bar (0-100%)
+- Live logs in terminal-style box:
+  [12:34:56] Installing pnpm globally... ✓
+  [12:35:01] Running pnpm install...
+  [12:35:02] ├─ Installing dependencies (1/245)
+  [12:35:03] ├─ Resolving packages...
+  [12:35:10] ├─ Downloading playwright@1.49.0...
+  [12:35:45] └─ Done! 245 packages installed.
+  [12:35:46] Installing Playwright browsers...
+  [12:36:00] ├─ Downloading Chromium 129.0.6668.58...
+  [12:36:15] ├─ Downloading Firefox 131.0...
+  [12:36:30] └─ Done! 3 browsers installed.
+- Pause/Resume/Cancel buttons
+- Error handling with retry
+```
+
+**Complete Page:** `client/app/(install)/complete/page.tsx`
+```typescript
+- Success animation (confetti or checkmark)
+- Summary card:
+  ✅ Installation Complete!
+  ✅ Dependencies installed (245 packages)
+  ✅ Playwright browsers ready
+  ✅ Configuration saved
+  ✅ Services started
+- Access information:
+  🔗 Dashboard: http://localhost:3000
+  🔗 API: http://localhost:5000
+  🔗 Docs: http://localhost:5000/api/docs
+- "Open Dashboard" button
+- Auto-redirect after 5 seconds
+```
+
+#### Installation State Management
+
+**Zustand Store:** `client/src/store/installStore.ts`
+```typescript
+interface InstallState {
+  step: 1 | 2 | 3 | 4 | 5;
+  systemInfo: SystemInfo | null;
+  config: InstallConfig | null;
+  progress: number; // 0-100
+  logs: string[];
+  isInstalling: boolean;
+  error: string | null;
+  setStep: (step: number) => void;
+  setProgress: (progress: number) => void;
+  addLog: (log: string) => void;
+  // ... other actions
+}
+```
+
+#### One-Time Access Logic
+
+**Root Layout Middleware:** `client/app/layout.tsx`
+```typescript
+// Check if installed on every page load
+useEffect(() => {
+  const checkInstallation = async () => {
+    const res = await fetch('/api/install/check-status');
+    const { installed } = await res.json();
+    
+    if (!installed && !pathname.startsWith('/install')) {
+      // NOT installed and NOT on install page → redirect to install
+      router.push('/install/system-check');
+    } else if (installed && pathname.startsWith('/install')) {
+      // Already installed but trying to access install → redirect to dashboard
+      router.push('/dashboard');
+    }
+  };
+  
+  checkInstallation();
+}, [pathname]);
+```
+
+**Backend Installation Check:** `server/src/middleware/checkInstallation.js`
+```javascript
+// Middleware to protect API routes until installation complete
+const checkInstallation = (req, res, next) => {
+  const installedFilePath = path.join(__dirname, '../../../.installed');
+  const isInstalled = fs.existsSync(installedFilePath);
+  
+  // Allow install routes even if not installed
+  if (req.path.startsWith('/api/install')) {
+    return next();
+  }
+  
+  // Block all other routes if not installed
+  if (!isInstalled) {
+    return res.status(503).json({
+      error: 'HeadlessX is not installed. Please complete installation first.',
+      redirect: '/install/system-check'
+    });
+  }
+  
+  next();
+};
+```
+
+#### Installation Marker File
+
+**File:** `.installed`
+```json
+{
+  "installed": true,
+  "installedAt": "2025-10-19T12:34:56.789Z",
+  "version": "2.0.0",
+  "features": ["core", "ai", "proxy", "monitoring"],
+  "config": {
+    "backend_port": 5000,
+    "frontend_port": 3000,
+    "domain": "headlessx.example.com"
+  }
+}
+```
+
+#### Cross-Platform Setup Scripts
+
+**Windows:** `scripts/setup.ps1` (PowerShell)
+```powershell
+# Auto-generated by installation wizard
+# Installs dependencies on Windows
+param($Features)
+
+Write-Host "🚀 Installing HeadlessX on Windows..."
+
+# Check Node.js
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
+    Write-Error "Node.js not found. Please install Node.js 22.20.0 LTS"
+    exit 1
+}
+
+# Install pnpm
+if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
+    Write-Host "📦 Installing pnpm..."
+    npm install -g pnpm
+}
+
+# Install dependencies
+Write-Host "📦 Installing dependencies..."
+pnpm install
+
+# Install Playwright
+Write-Host "🎭 Installing Playwright browsers..."
+pnpm exec playwright install --with-deps
+
+Write-Host "✅ Installation complete!"
+```
+
+**macOS/Linux:** `scripts/setup.sh` (Bash)
+```bash
+#!/bin/bash
+# Auto-generated by installation wizard
+# Installs dependencies on macOS/Linux
+
+echo "🚀 Installing HeadlessX on $(uname)..."
+
+# Check Node.js
+if ! command -v node &> /dev/null; then
+    echo "❌ Node.js not found. Please install Node.js 22.20.0 LTS"
+    exit 1
+fi
+
+# Install pnpm
+if ! command -v pnpm &> /dev/null; then
+    echo "📦 Installing pnpm..."
+    npm install -g pnpm
+fi
+
+# Install dependencies
+echo "📦 Installing dependencies..."
+pnpm install
+
+# Install Playwright
+echo "🎭 Installing Playwright browsers..."
+pnpm exec playwright install --with-deps
+
+echo "✅ Installation complete!"
+```
+
+#### Security Considerations
+
+- 🔒 **CSRF Protection:** Installation endpoints require CSRF token
+- 🔐 **Rate Limiting:** Max 10 requests per minute on install endpoints
+- 🛡️ **Input Validation:** All configuration inputs validated with Zod
+- 🚫 **No Re-installation:** Once `.installed` exists, block access to /install
+- 🔑 **Secure Token Generation:** Use `crypto.randomBytes(32).toString('hex')`
+- 📝 **Audit Logging:** Log all installation actions with timestamps
+
+#### Error Handling & Recovery
+
+- ❌ **Network Errors:** Show retry button with countdown
+- ❌ **Dependency Failures:** Show specific package error + solution
+- ❌ **Insufficient Permissions:** Show command to run with sudo/admin
+- ❌ **Port Conflicts:** Auto-suggest alternative ports
+- ❌ **Disk Space:** Show warning before starting installation
+- 💾 **Save Progress:** Save state to localStorage, resume if page refreshed
+
+#### Post-Installation
+
+- 🔄 **Updates:** Show "Update Available" banner if new version exists
+- 🔧 **Re-configuration:** Settings page to change ports, tokens, etc.
+- 🗑️ **Uninstall:** Provide uninstall script to remove `.installed` file
+- 📊 **Health Check:** Dashboard shows installation health status
+
+---
+
+### 8. �🌐 WebSocket Real-time Features
 **Location:** `server/src/websocket/` & `client/src/hooks/useWebSocket.ts`
 
 #### Real-time Capabilities
@@ -1591,6 +1999,7 @@ The following flowchart files provide visual documentation of the system archite
 8. **deployment.mmd** - Deployment architecture
 9. **workflow-execution.mmd** - Workflow execution process
 10. **real-time-communication.mmd** - WebSocket event flow
+11. **installation-wizard.mmd** - 🆕 Installation wizard flow (one-time setup)
 
 These flowcharts are generated in Mermaid (.mmd) format and can be rendered in:
 - GitHub (native support)
@@ -1611,6 +2020,7 @@ These flowcharts are generated in Mermaid (.mmd) format and can be rendered in:
   - Setup server/ folder (migrate from src/)
   - Configure shared/ folder for common code
   - Setup development environment
+  - 🆕 **Create Installation Wizard UI structure**
 
 - [ ] **Week 2: Next.js Client Foundation**
   - Initialize Next.js with App Router
@@ -1618,6 +2028,12 @@ These flowcharts are generated in Mermaid (.mmd) format and can be rendered in:
   - Create base layout components
   - Implement routing structure
   - Setup state management (Zustand)
+  - 🆕 **Build Installation Wizard pages (5 steps)**
+    - /install/system-check
+    - /install/configuration
+    - /install/dependencies
+    - /install/database
+    - /install/complete
 
 - [ ] **Week 3: Backend Migration**
   - Move existing src/ to server/src/
@@ -1625,6 +2041,12 @@ These flowcharts are generated in Mermaid (.mmd) format and can be rendered in:
   - Test all existing endpoints
   - Add database layer (MongoDB setup)
   - Redis integration
+  - 🆕 **Implement Installation API**
+    - /api/install/* endpoints
+    - System detection logic
+    - pnpm auto-install script
+    - WebSocket for live logs
+    - .installed file marker
 
 - [ ] **Week 4: CI/CD & Testing**
   - Setup GitHub Actions
@@ -1632,6 +2054,12 @@ These flowcharts are generated in Mermaid (.mmd) format and can be rendered in:
   - Unit test framework
   - E2E test setup
   - Documentation framework
+  - 🆕 **Test Installation Wizard**
+    - Test on Windows (PowerShell script)
+    - Test on macOS (bash script)
+    - Test on Linux (bash script)
+    - Test one-time access protection
+    - Test error recovery flows
 
 ### Phase 2: Core Dashboard (Weeks 5-8)
 **Goal:** Build interactive scraping dashboard
@@ -1979,12 +2407,20 @@ server/src/security/
 
 ### 2025 Q4: Foundation (v2.0.0-alpha)
 **October - December 2025** ← WE ARE HERE
+- 🆕 **Installation Wizard Development**
+  - Web-based installation UI (5-step wizard)
+  - Auto-detect OS, Node.js, RAM, disk space
+  - Auto-install pnpm if not present
+  - Real-time logs via WebSocket
+  - Cross-platform setup scripts (Windows/macOS/Linux)
+  - One-time access protection
+  - Create `.installed` marker file
 - 🔄 Complete architecture design
 - 🔄 Monorepo setup
 - 🔄 Next.js client initialization
 - 🔄 Backend integration
 - 🔄 Basic dashboard UI
-- 🎯 **Goal:** Alpha release for early adopters
+- 🎯 **Goal:** Alpha release with installation wizard for easy setup
 
 ### 2026 Q1: Core Features (v2.0.0-beta)
 **January - March 2026**
