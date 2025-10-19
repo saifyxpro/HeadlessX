@@ -136,7 +136,10 @@ This document outlines the hardware, software, and infrastructure requirements f
 ```json
 {
   "runtime": "Node.js 22.20.0 LTS (or 25.0.0 latest)",
-  "framework": "Express.js 5.1.0 (latest)",
+  "framework": {
+    "primary": "Express.js 5.1.0 (latest)",
+    "performance": "Fastify 5.x (high-load endpoints)"
+  },
   "language": "JavaScript/TypeScript",
   "automation": "Playwright 1.49+",
   "databases": {
@@ -148,7 +151,11 @@ This document outlines the hardware, software, and infrastructure requirements f
   "queue": "Bull + Redis",
   "websocket": "Socket.io 4.8+",
   "validation": "Joi / Zod",
-  "orm": "Mongoose (MongoDB) + Sequelize/Prisma (PostgreSQL)"
+  "orm": "Mongoose (MongoDB) + Sequelize/Prisma (PostgreSQL)",
+  "api": {
+    "rest": "Express.js + Fastify",
+    "graphql": "Apollo Server 4.x"
+  }
 }
 ```
 
@@ -194,16 +201,16 @@ This document outlines the hardware, software, and infrastructure requirements f
     "classical_ml": "Scikit-learn 1.6+ (latest)",
     "nlp": "spaCy 3.8+ + Transformers 4.47+ (Hugging Face)"
   },
+  "ai_agents": {
+    "orchestration": "LangChain 0.3+",
+    "data_framework": "LlamaIndex 0.11+",
+    "vector_db": "Chroma / Pinecone (optional)"
+  },
   "data_processing": {
     "core": "Pandas 2.2+ + NumPy 2.1+",
     "distributed": "Dask (optional for big data)"
   },
   "model_serving": "FastAPI + Docker",
-  "experiment_tracking": "MLflow + Weights & Biases (optional)",
-  "model_registry": "MLflow Model Registry"
-}
-```
-
 ### DevOps & Infrastructure
 
 ```json
@@ -216,13 +223,20 @@ This document outlines the hardware, software, and infrastructure requirements f
     "metrics": "Prometheus 2.55+",
     "visualization": "Grafana 12.2+",
     "alerting": "Alert Manager",
-    "uptime": "UptimeRobot / StatusCake"
+    "uptime": "UptimeRobot / StatusCake",
+    "error_tracking": "Sentry (latest)",
+    "distributed_tracing": "OpenTelemetry + Jaeger"
   },
   "logging": {
     "primary": "ELK Stack (Elasticsearch 8.16+ + Logstash + Kibana)",
     "alternative": "Loki + Promtail (lighter)",
     "application": "Winston (Node.js) + Python logging"
   },
+  "tracing": "OpenTelemetry (recommended)",
+  "secrets_management": "Vault / AWS Secrets Manager (production)",
+  "reverse_proxy": "Nginx 1.27+ / Traefik 3.2+",
+  "cdn": "Cloudflare / AWS CloudFront"
+} },
   "tracing": "OpenTelemetry (optional)",
   "secrets_management": "Vault / AWS Secrets Manager (production)",
   "reverse_proxy": "Nginx 1.27+ / Traefik 3.2+",
