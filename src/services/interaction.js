@@ -96,10 +96,10 @@ class InteractionService {
             const jitterY = (Math.random() - 0.5) * 2;
 
             await page.mouse.move(point.x + jitterX, point.y + jitterY);
-            await page.evaluate((x, y) => {
+            await page.evaluate(({ x, y }) => {
                 window.mouseX = x;
                 window.mouseY = y;
-            }, point.x, point.y);
+            }, point);
 
             // Variable timing between movements
             const variation = (Math.random() - 0.5) * stepDuration * 0.3;
@@ -164,7 +164,7 @@ class InteractionService {
         const behavior = BEHAVIORAL_PROFILES[profile];
 
         try {
-            await page.evaluate(async(scrollPattern, targetPct) => {
+            await page.evaluate(async({ scrollPattern, targetPercentage }) => {
                 await new Promise((resolve) => {
                     let currentPosition = 0;
                     let scrollAttempts = 0;
@@ -195,7 +195,7 @@ class InteractionService {
                     // Enhanced human-like scrolling with behavioral patterns
                     const humanScroll = () => {
                         const scrollHeight = document.body.scrollHeight;
-                        const targetHeight = scrollHeight * targetPct;
+                        const targetHeight = scrollHeight * targetPercentage;
 
                         if (currentPosition >= targetHeight || scrollAttempts >= maxScrollAttempts) {
                             resolve();
@@ -247,7 +247,7 @@ class InteractionService {
 
                     humanScroll();
                 });
-            }, behavior.scrollPattern, targetPercentage);
+            }, { scrollPattern: behavior.scrollPattern, targetPercentage });
 
             console.log('✅ Auto-scroll completed');
         } catch (error) {
