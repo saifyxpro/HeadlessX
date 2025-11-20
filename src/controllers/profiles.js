@@ -20,10 +20,10 @@ class ProfilesController {
             const profilesPath = path.join(__dirname, '..', 'config', 'profiles');
 
             const profiles = {
-                chrome: await this.loadProfilesFromFile(path.join(profilesPath, 'chrome-profiles.json')),
-                device: this.getDeviceProfiles(),
-                geolocation: this.getGeolocationProfiles(),
-                behavioral: this.getBehavioralProfiles()
+                chrome: await ProfilesController.loadProfilesFromFile(path.join(profilesPath, 'chrome-profiles.json')),
+                device: ProfilesController.getDeviceProfiles(),
+                geolocation: ProfilesController.getGeolocationProfiles(),
+                behavioral: ProfilesController.getBehavioralProfiles()
             };
 
             logger.info(requestId, 'Retrieved device profiles', {
@@ -152,7 +152,7 @@ class ProfilesController {
             const fingerprint = StealthService.generateAdvancedFingerprint(seed, deviceProfile);
 
             // Add geolocation data
-            const geoData = this.getGeolocationProfiles()[geoProfile];
+            const geoData = ProfilesController.getGeolocationProfiles()[geoProfile];
             if (geoData) {
                 fingerprint.geolocation = {
                     latitude: geoData.latitude,
@@ -163,7 +163,7 @@ class ProfilesController {
             }
 
             // Enhanced behavioral data
-            const behaviorData = this.getBehavioralProfiles()[behaviorProfile];
+            const behaviorData = ProfilesController.getBehavioralProfiles()[behaviorProfile];
             if (behaviorData) {
                 fingerprint.behavioral = { ...fingerprint.behavioral, ...behaviorData };
             }
@@ -245,14 +245,14 @@ class ProfilesController {
                     advancedStealth: 'enabled'
                 },
                 availableProfiles: {
-                    device: Object.keys(this.getDeviceProfiles()),
-                    geolocation: Object.keys(this.getGeolocationProfiles()),
-                    behavioral: Object.keys(this.getBehavioralProfiles())
+                    device: Object.keys(ProfilesController.getDeviceProfiles()),
+                    geolocation: Object.keys(ProfilesController.getGeolocationProfiles()),
+                    behavioral: Object.keys(ProfilesController.getBehavioralProfiles())
                 },
                 statistics: {
-                    totalDeviceProfiles: Object.keys(this.getDeviceProfiles()).length,
-                    totalGeoProfiles: Object.keys(this.getGeolocationProfiles()).length,
-                    totalBehaviorProfiles: Object.keys(this.getBehavioralProfiles()).length,
+                    totalDeviceProfiles: Object.keys(ProfilesController.getDeviceProfiles()).length,
+                    totalGeoProfiles: Object.keys(ProfilesController.getGeolocationProfiles()).length,
+                    totalBehaviorProfiles: Object.keys(ProfilesController.getBehavioralProfiles()).length,
                     activeSessions: 0 // Would be tracked in production
                 },
                 configuration: {
