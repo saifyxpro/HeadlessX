@@ -42,7 +42,7 @@
 ### 🚀 **HeadlessX v2.0** - Full-Stack AI-Powered Platform
 *The future of intelligent web scraping is here*
 
-[![Roadmap](https://img.shields.io/badge/🗺️_View_Full_Roadmap-v2.0-purple.svg?style=for-the-badge)](./docs/v2/roadmap-v2.md)
+[![Roadmap](https://img.shields.io/badge/🗺️_View_Full_Roadmap-v2.0-purple.svg?style=for-the-badge)](./docs/V2/roadmap-v2.md)
 
 **🎯 Revolutionary Features Coming:**
 - 🤖 **AI-Powered Admin Panel** - Intelligent task management & automation
