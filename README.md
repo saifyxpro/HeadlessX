@@ -196,11 +196,16 @@
 ```bash
 cd HeadlessX
 
-# Install all dependencies (pnpm required - npm/yarn will fail)
+# 1. Install Node.js dependencies
 pnpm install
 
-# Download Camoufox browser (runs automatically on install)
-pnpm camoufox:fetch
+# 2. Install Model Dependencies & Download Models (YOLO/Recaptcha)
+# Windows:
+install.bat
+
+# Linux/macOS:
+chmod +x install.sh
+./install.sh
 ```
 
 ### 2️⃣ Setup Database
@@ -231,13 +236,14 @@ Or start individually:
 <td>
 
 ```powershell
-scripts\start_windows.bat
+scripts\start.bat
 ```
 
 </td>
 <td>
 
 ```bash
+chmod +x scripts/start.sh
 ./scripts/start.sh
 ```
 
