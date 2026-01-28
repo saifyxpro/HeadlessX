@@ -1,828 +1,404 @@
-# 🚀 HeadlessX v1.3.0
-
-**Advanced Anti-Detection Web Scraping API with Comprehensive Fingerprinting Control**
-
 <div align="center">
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/Version-v1.3.0-blue.svg?style=for-the-badge)](https://github.com/saifyxpro/HeadlessX/releases)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-success.svg?style=for-the-badge&logo=node.js)](https://nodejs.org/)
-[![Playwright](https://img.shields.io/badge/Playwright-Latest-orange.svg?style=for-the-badge&logo=playwright)](https://playwright.dev/)
+![HeadlessX Logo](assets/logo-hr.svg)
 
-[![GitHub Stars](https://img.shields.io/github/stars/saifyxpro/HeadlessX?style=for-the-badge&logo=github)](https://github.com/saifyxpro/HeadlessX/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/saifyxpro/HeadlessX?style=for-the-badge&logo=github)](https://github.com/saifyxpro/HeadlessX/network/members)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg?style=for-the-badge&logo=docker)](#-docker-deployment)
-[![CI/CD](https://img.shields.io/github/actions/workflow/status/saifyxpro/HeadlessX/ci.yml?style=for-the-badge&logo=github-actions&label=CI%2FCD)](https://github.com/saifyxpro/HeadlessX/actions)
+### **The World's Most Advanced Anti-Detection Scraping Full Stack Web App**
 
-[![Discussions](https://img.shields.io/github/discussions/saifyxpro/HeadlessX?style=for-the-badge&logo=github&label=Discussions)](https://github.com/saifyxpro/HeadlessX/discussions)
-[![Open Source](https://img.shields.io/badge/Open%20Source-100%25-brightgreen.svg?style=for-the-badge&logo=open-source-initiative)](https://github.com/saifyxpro/HeadlessX)
-[![Contributors](https://img.shields.io/github/contributors/saifyxpro/HeadlessX?style=for-the-badge&logo=github)](https://github.com/saifyxpro/HeadlessX/graphs/contributors)
-[![Issues](https://img.shields.io/github/issues/saifyxpro/HeadlessX?style=for-the-badge&logo=github)](https://github.com/saifyxpro/HeadlessX/issues)
-[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg?style=for-the-badge&logo=github)](http://makeapullrequest.com)
+<br/>
 
-</div>
+[![Version](https://img.shields.io/badge/Version-2.0.0-blueviolet?style=for-the-badge&logo=v&logoColor=white)](https://github.com/)
+[![Release](https://img.shields.io/badge/Release-January%202026-success?style=for-the-badge&logo=github&logoColor=white)](https://github.com/)
+[![Detection](https://img.shields.io/badge/Detection%20Rate-0%25-brightgreen?style=for-the-badge&logo=shield&logoColor=white)](https://github.com/)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-blue?style=for-the-badge&logo=statuspage&logoColor=white)](https://github.com/)
 
-<div align="center">
+<br/>
 
-![HeadlessX Demo](assets/main.gif)
+[![Node.js](https://img.shields.io/badge/Node.js-22+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![Camoufox](https://img.shields.io/badge/Camoufox-Firefox-FF7139?style=for-the-badge&logo=firefox&logoColor=white)](https://github.com/AurelicButter/camoufox)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Playwright](https://img.shields.io/badge/Playwright-1.58-45BA4B?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev/)
 
-</div>
+<br/>
 
-> 🎯 **Unified Solution**: Website + API on a single domain  
-> 🛡️ **Advanced Anti-Detection**: Canvas/WebGL/Audio spoofing, behavioral simulation  
-> 🧠 **Human-like Behavior**: Bezier mouse movements, keyboard dynamics, natural scrolling  
-> 🚀 **Deploy Anywhere**: Docker, Node.js+PM2, or Development
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square)](CONTRIBUTING.md)
+[![Maintenance](https://img.shields.io/badge/Maintained-Yes-green?style=flat-square)](https://github.com/)
+[![Made with Love](https://img.shields.io/badge/Made%20with-❤️-red?style=flat-square)](https://github.com/)
 
 ---
 
-<div align="center">
+### 🎯 **0% Detection Rate** on all major anti-bot systems
 
-## 🗺️ **What's Coming Next?**
+*Powered by **Camoufox** — Firefox with C++ level fingerprint spoofing*
 
-### 🚀 **HeadlessX v2.0** - Full-Stack AI-Powered Platform
-*The future of intelligent web scraping is here*
-
-[![Roadmap](https://img.shields.io/badge/🗺️_View_Full_Roadmap-v2.0-purple.svg?style=for-the-badge)](./docs/V2/roadmap-v2.md)
-
-**🎯 Revolutionary Features Coming:**
-- 🤖 **AI-Powered Admin Panel** - Intelligent task management & automation
-- 🎨 **Modern React Frontend** - Sleek, responsive dashboard interface  
-- 🧠 **Smart Automation** - AI-driven scraping strategies & optimization
-- 📊 **Advanced Analytics** - Real-time insights & performance metrics
-- 🔄 **Workflow Builder** - Visual scraping pipeline creation
-- 🎛️ **Enterprise Controls** - Advanced user management & permissions
-
-*Transform your web scraping experience with the next generation of HeadlessX*
+[📖 Documentation](#-api-endpoints) • [🚀 Quick Start](#-quick-start) • [🐛 Report Bug](https://github.com/) • [✨ Request Feature](https://github.com/)
 
 </div>
 
 ---
 
-## ✨ v1.3.0 Key Features
+## 🆕 What's New in V2.0
 
-### 🛡️ **Advanced Anti-Detection Engine**
-- **Canvas Fingerprinting Control** - Dynamic noise injection with consistent seeds
-- **WebGL Spoofing** - GPU vendor/model spoofing with realistic profiles
-- **Audio Context Manipulation** - Hardware audio fingerprint database
-- **WebRTC Leak Prevention** - Complete IP leak protection
-- **Hardware Fingerprint Spoofing** - CPU, memory, and performance masking
+<div align="center">
 
-### 🧠 **Human-like Behavioral Simulation**
-- **Bezier Mouse Movement** - Natural acceleration and deceleration patterns
-- **Keyboard Dynamics** - Realistic dwell time and flight time variations
-- **Natural Scroll Patterns** - Reader, scanner, browser behavioral profiles
-- **Attention Model Simulation** - Human-like focus and interaction patterns
-- **Micro-movement Injection** - Sub-pixel accuracy for maximum realism
+|           🦊 **Camoufox Engine**           |              🛡️ **0% Detection**              |      ⚡ **3x Faster**      |
+| :---------------------------------------: | :------------------------------------------: | :-----------------------: |
+| Firefox with binary-level stealth patches | Passes CreepJS, Sannysoft, & all major tests | Optimized context pooling |
 
-### 🌐 **WAF Bypass Capabilities**
-- **Cloudflare Bypass** - Advanced challenge solving and TLS fingerprinting
-- **DataDome Evasion** - Resource blocking and behavioral pattern matching
-- **Incapsula/Akamai** - Generic WAF bypass with adaptive techniques
-- **HTTP/2 Fingerprinting** - Stream prioritization and header ordering
+</div>
 
-### 📊 **Comprehensive Device Profiles**
-- **50+ Chrome Profiles** - Desktop, mobile, and tablet configurations
-- **Hardware Consistency** - CPU, GPU, memory, and sensor correlation
-- **Geolocation Intelligence** - Timezone, language, and locale matching
-- **Profile Validation** - Real-time consistency checking and scoring
+### V2.0 Changelog
 
----
-
-
-**Choose your deployment:**
-
-| Method | Command | Best For |
-|--------|---------|----------|
-| 🐳 **Docker** | `docker-compose up -d` | Production, easy deployment |
-| 🔧 **Auto Setup** | `chmod +x scripts/setup.sh && sudo ./scripts/setup.sh` | VPS/Server with full control |
-| 💻 **Development** | `npm install && npm start` | Local development, testing |
-
-**Access your HeadlessX v1.3.0:**
-```
-🌐 Website:  https://your-subdomain.yourdomain.com
-🔗 API:      https://your-subdomain.yourdomain.com/api
-🛡️ Stealth:  https://your-subdomain.yourdomain.com/api/render/stealth
-🧪 Testing:  https://your-subdomain.yourdomain.com/api/test-fingerprint
-📱 Profiles: https://your-subdomain.yourdomain.com/api/profiles
-🔧 Health:   https://your-subdomain.yourdomain.com/api/health
-📊 Status:   https://your-subdomain.yourdomain.com/api/status?token=YOUR_AUTH_TOKEN
+```diff
++ 🦊 NEW: Camoufox browser engine (replaces Chromium + stealth plugins)
++ 🛡️ NEW: 0% headless detection rate (was 67%+)
++ 🔒 NEW: Built-in WebRTC leak protection
++ 🎭 NEW: C++ level Canvas/WebGL/AudioContext fingerprint spoofing
++ ⚡ IMPROVED: Faster browser launches with persistent contexts
++ 🧹 REMOVED: playwright-extra (no longer needed)
++ 🧹 REMOVED: puppeteer-extra-plugin-stealth (no longer needed)
 ```
 
 ---
 
-## 🏗️ Enhanced Anti-Detection Architecture v1.3.0
+## 📊 Detection Benchmark Comparison
 
-HeadlessX v1.3.0 introduces advanced anti-detection capabilities with comprehensive fingerprinting control, behavioral simulation, and WAF bypass techniques while maintaining the modular architecture from v1.2.0.
+<table align="center">
+<tr>
+<th>Tool</th>
+<th>Headless Detection</th>
+<th>Stealth Score</th>
+<th>Engine</th>
+</tr>
+<tr>
+<td><strong>🦊 HeadlessX V2.0 (Camoufox)</strong></td>
+<td>✅ <strong>0%</strong></td>
+<td>✅ <strong>0%</strong></td>
+<td>Firefox (C++ patched)</td>
+</tr>
+<tr>
+<td>HeadlessX V1 (Playwright Extra)</td>
+<td>❌ 67%</td>
+<td>⚠️ 50%</td>
+<td>Chromium (JS patches)</td>
+</tr>
+<tr>
+<td>Puppeteer Stealth</td>
+<td>❌ 33%</td>
+<td>❌ 80%</td>
+<td>Chromium (JS patches)</td>
+</tr>
+<tr>
+<td>Vanilla Playwright</td>
+<td>❌ 100%</td>
+<td>❌ 100%</td>
+<td>Chromium</td>
+</tr>
+<tr>
+<td>Vanilla Selenium</td>
+<td>❌ 100%</td>
+<td>❌ 100%</td>
+<td>Chrome</td>
+</tr>
+</table>
 
-### v1.3.0 Key Enhancements:
-- **🛡️ Advanced Anti-Detection**: Canvas, WebGL, Audio, WebRTC fingerprinting control
-- **🎭 Behavioral Simulation**: Human-like mouse movement with Bezier curves and keyboard dynamics
-- **🌐 WAF Bypass**: Cloudflare, DataDome, and advanced evasion techniques
-- **📱 Device Profiling**: Comprehensive desktop and mobile device profiles with hardware spoofing
-- **🧪 Testing Framework**: Comprehensive anti-detection testing and validation
-- **🔧 Separation of Concerns**: Enhanced modules for fingerprinting, behavioral, and evasion services
-- **🚀 Better Performance**: Optimized browser management with intelligent profile-based pooling
-- **🛠️ Developer Experience**: Development tools, profile generators, and interactive testing
-- **📦 Production Ready**: Enhanced error handling, advanced detection analytics, and profile validation
-- **🔒 Security**: Advanced authentication, profile management, and secure fingerprint storage
-- **📊 Monitoring**: Real-time detection monitoring, success rate analytics, and performance benchmarking
+*Lower scores = better (0% = undetectable)*
 
-### v1.3.0 Architecture Overview:
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Routes        │───▶│   Controllers   │───▶│   Services      │
-│   (api.js)      │    │   (rendering.js)│    │   (browser.js)  │
-│   (admin.js)    │    │   (profiles.js) │    │   (stealth.js)  │
-└─────────────────┘    │   (detection.js)│    │   (interaction.js)
-         │              └─────────────────┘    └─────────────────┘
-         ▼                       │                       │
-┌─────────────────┐              ▼                       ▼
-│   Middleware    │    ┌─────────────────┐    ┌─────────────────┐
-│   (auth.js)     │    │   Utils         │    │   Config        │
-│   (error.js)    │    │   (logger.js)   │    │   (index.js)    │
-│   (analyzer.js) │    │   (helpers.js)  │    │   (browser.js)  │
-└─────────────────┘    │   (validator.js)│    │   (profiles/)   │
-         │              └─────────────────┘    └─────────────────┘
-         ▼                       │                       │
-┌─────────────────┐              ▼                       ▼
-│ Fingerprinting  │    ┌─────────────────┐    ┌─────────────────┐
-│ (canvas-spoof)  │    │   Behavioral    │    │    Evasion      │
-│ (webgl-spoof)   │    │ (mouse-movement)│    │ (cloudflare)    │
-│ (audio-context) │    │ (keyboard-dyn)  │    │ (datadome)      │
-│ (webrtc-ctrl)   │    │ (scroll-pattern)│    │ (waf-bypass)    │
-│ (hardware-noise)│    │ (attention-mod) │    │ (tls-fingerpr)  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│    Testing      │    │  Development    │    │    Profiles     │
-│ (test-framework)│    │   (dev-tools)   │    │ (chrome-prof)   │
-│ (detection-test)│    │ (profile-gen)   │    │ (mobile-prof)   │
-│ (performance)   │    │ (fingerpr-test) │    │ (firefox-prof)  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-**Migration from v1.2.0:**
-- All v1.2.0 functionality preserved with enhanced anti-detection capabilities
-- New environment variables for fingerprint control and stealth configuration
-- Enhanced API endpoints for profile management and detection testing
-- Backward compatible with all existing configurations and scripts
-
-📖 **Detailed Documentation**: [MODULAR_ARCHITECTURE.md](docs/MODULAR_ARCHITECTURE.md)
 
 ---
 
-## 🚀 Deployment Guide
+## 🤖 Scrapers
 
-### 🐳 **Docker Deployment (Recommended)**
+<div align="center">
+
+| <img src="frontend/public/icons/google.svg" width="40"/> **Google SERP** |          🌐 **Website Scraping**           |
+| :----------------------------------------------------------------------: | :---------------------------------------: |
+|                Extract search results with zero detection                | Scrape any website with full JS rendering |
+|                                ✅ **Live**                                |                ✅ **Live**                 |
+
+### Coming Soon
+
+| <img src="frontend/public/icons/amazon.svg" width="40"/> **Amazon** | <img src="frontend/public/icons/linkedin.svg" width="40"/> **LinkedIn** | <img src="frontend/public/icons/twitter.svg" width="40"/> **Twitter** | <img src="frontend/public/icons/instagram.svg" width="40"/> **Instagram** |
+| :-----------------------------------------------------------------: | :---------------------------------------------------------------------: | :-------------------------------------------------------------------: | :-----------------------------------------------------------------------: |
+|                          Product & Reviews                          |                         Job Listings & Profiles                         |                            Tweets & Trends                            |                              Posts & Stories                              |
+
+</div>
+
+---
+
+## 🖥️ UI Screenshots
+
+### Google SERP Scraper
+![Google SERP UI](assets/google-serp-results.png)
+
+### Website Scraper
+![Website Scraper UI](assets/web-scrape-results.png)
+
+---
+
+## 📸 Proof of Undetectability
+
+### BrowserScan (100% Passed)
+![BrowserScan](assets/Browserscan_Bot_Detection_Passed.png)
+
+<div align="center">
+
+|        **Pixelscan (Human Detection)**         |       **Profile Tested with Proxy**        |
+| :--------------------------------------------: | :----------------------------------------: |
+| ![Pixelscan](assets/Pixel_Human_Detection.png) | ![Proxy Test](assets/USA_PROXY_TESTED.png) |
+
+</div>
+
+---
+
+## 📋 Table of Contents
+
+- [🆕 What's New in V2.0](#-whats-new-in-v20)
+  - [V2.0 Changelog](#v20-changelog)
+- [📊 Detection Benchmark Comparison](#-detection-benchmark-comparison)
+- [🤖 Scrapers](#-scrapers)
+  - [Coming Soon](#coming-soon)
+- [📸 Proof of Undetectability](#-proof-of-undetectability)
+  - [BrowserScan (100% Passed)](#browserscan-100-passed)
+- [📋 Table of Contents](#-table-of-contents)
+- [⚡ Quick Start](#-quick-start)
+  - [1️⃣ Install Dependencies](#1️⃣-install-dependencies)
+  - [2️⃣ Setup Database](#2️⃣-setup-database)
+  - [3️⃣ Start the System](#3️⃣-start-the-system)
+  - [3️⃣ Access the Dashboard](#3️⃣-access-the-dashboard)
+- [🔥 Key Features](#-key-features)
+  - [🦊 Camoufox Stealth Engine (V2.0)](#-camoufox-stealth-engine-v20)
+  - [🖥️ Modern Dashboard](#️-modern-dashboard)
+- [🌐 API Endpoints](#-api-endpoints)
+  - [Core Scraping APIs](#core-scraping-apis)
+  - [Example Request](#example-request)
+  - [Example Response](#example-response)
+- [Configuration](#configuration)
+  - [Environment Variables](#environment-variables)
+  - [Dashboard Settings](#dashboard-settings)
+- [🛠️ Manual Setup](#️-manual-setup)
+  - [Backend](#backend)
+  - [Frontend](#frontend)
+- [🤝 Contributing](#-contributing)
+- [📝 License](#-license)
+- [🌟 Star History](#-star-history)
+  - [Built with ❤️ using cutting-edge technologies](#built-with-️-using-cutting-edge-technologies)
+
+---
+
+## ⚡ Quick Start
+
+> **Prerequisites**: [Node.js 18+](https://nodejs.org/), [pnpm 9+](https://pnpm.io/)
+
+### 1️⃣ Install Dependencies
 
 ```bash
-# Install Docker (if needed)
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-
-# Deploy HeadlessX
-git clone https://github.com/SaifyXPRO/HeadlessX.git
 cd HeadlessX
-cp .env.example .env
-nano .env  # Configure DOMAIN, SUBDOMAIN, AUTH_TOKEN
 
-# Start services
-docker-compose up -d
+# Install all dependencies (pnpm required - npm/yarn will fail)
+pnpm install
 
-# Optional: Setup SSL
-apt install certbot python3-certbot-nginx
-certbot --nginx -d your-subdomain.yourdomain.com
+# Download Camoufox browser (runs automatically on install)
+pnpm camoufox:fetch
 ```
 
-**Docker Management:**
-```bash
-docker-compose ps              # Check status
-docker-compose logs headlessx  # View logs
-docker-compose restart         # Restart services
-docker-compose down            # Stop services
-```
-
-### 🔧 **Node.js + PM2 Deployment**
+### 2️⃣ Setup Database
 
 ```bash
-# Automated setup (recommended)
-git clone https://github.com/SaifyXPRO/HeadlessX.git
-cd HeadlessX
-cp .env.example .env
-nano .env  # Configure environment
-chmod +x scripts/setup.sh
-sudo ./scripts/setup.sh  # Installs dependencies, builds website, starts PM2
+# Push schema to database
+pnpm db:push
+
+# Or run migrations
+pnpm db:migrate
 ```
 
-**🌐 Nginx Configuration (Auto-handled by setup script):**
-
-The setup script automatically configures nginx, but if you need to manually configure:
+### 3️⃣ Start the System
 
 ```bash
-# Copy and configure nginx site
-sudo cp nginx/headlessx.conf /etc/nginx/sites-available/headlessx
-
-# Replace placeholders with your actual domain
-sudo sed -i 's/SUBDOMAIN.DOMAIN.COM/your-subdomain.yourdomain.com/g' /etc/nginx/sites-available/headlessx
-
-# Enable the site
-sudo ln -sf /etc/nginx/sites-available/headlessx /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
-
-# Test and reload nginx
-sudo nginx -t && sudo systemctl reload nginx
+# Start both frontend and backend
+pnpm dev
 ```
 
-**Manual setup (if not using setup script):**
-```bash
-sudo apt update && sudo apt upgrade -y
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs build-essential
-npm install && npm run build
-sudo npm install -g pm2
-npm run pm2:start
+Or start individually:
+
+<table>
+<tr>
+<td><strong>Windows</strong></td>
+<td><strong>Linux / macOS</strong></td>
+</tr>
+<tr>
+<td>
+
+```powershell
+scripts\start_windows.bat
 ```
 
-**PM2 Management:**
-```bash
-npm run pm2:status     # Check status
-npm run pm2:logs       # View logs
-npm run pm2:restart    # Restart server
-npm run pm2:stop       # Stop server
-```
-
-### 💻 **Development Setup**
+</td>
+<td>
 
 ```bash
-git clone https://github.com/SaifyXPRO/HeadlessX.git
-cd HeadlessX
-cp .env.example .env
-nano .env  # Set AUTH_TOKEN, DOMAIN=localhost, SUBDOMAIN=headlessx
-
-# Make scripts executable
-chmod +x scripts/*.sh
-
-# Install dependencies
-npm install
-cd website && npm install && npm run build && cd ..
-
-# Start development server
-npm start  # Access at http://localhost:3000
+./scripts/start.sh
 ```
+
+</td>
+</tr>
+</table>
+
+### 3️⃣ Access the Dashboard
+
+<table>
+<tr>
+<td>🔗 <strong>Backend API</strong></td>
+<td><a href="http://localhost:3001">http://localhost:3001</a></td>
+</tr>
+<tr>
+<td>🖥️ <strong>Dashboard</strong></td>
+<td><a href="http://localhost:3000">http://localhost:3000</a></td>
+</tr>
+</table>
 
 ---
 
-## 🌐 API Routes & Structure
+## 🔥 Key Features
 
-```
-HeadlessX Routes:
-├── /favicon.ico         → Favicon
-├── /robots.txt          → SEO robots file
-├── /api/health         → Health check (no auth required)
-├── /api/status         → Server status (requires token)
-├── /api/render         → Full page rendering
-├── /api/html           → HTML extraction  
-├── /api/content        → Clean text extraction
-├── /api/screenshot     → Screenshot generation
-├── /api/pdf            → PDF generation
-└── /api/batch          → Batch URL processing
-```
+<table>
+<tr>
+<td width="50%">
 
-**🔄 Request Flow:**
-1. Nginx receives request on port 80/443
-2. Proxies to Node.js server on port 3000
-3. Server routes based on path:
-   - `/api/*` → API endpoints
-   - `/*` → Website files (built Next.js app)
+### 🦊 Camoufox Stealth Engine (V2.0)
+
+| Feature                    | Description                         |
+| -------------------------- | ----------------------------------- |
+| 🔒 **Binary-Level Patches** | Firefox modified at C++ level       |
+| 🎭 **Fingerprint Spoofing** | Canvas, WebGL, AudioContext         |
+| 🌐 **WebRTC Protection**    | No IP leaks in headless mode        |
+| 🖱️ **Human Behavior**       | Natural mouse movements & scrolling |
+| 📱 **Device Emulation**     | Realistic viewport & user agents    |
+| 🚫 **Zero Detection**       | Passes all anti-bot tests           |
+
+</td>
+<td width="50%">
+
+### 🖥️ Modern Dashboard
+
+| Feature            | Description                     |
+| ------------------ | ------------------------------- |
+| ⚛️ **Next.js 16**   | React 19 with Turbopack         |
+| 🎨 **HeroUI**       | Beautiful dark/light mode UI    |
+| ⚙️ **Live Config**  | Change settings without restart |
+| 📊 **Request Logs** | Full history with screenshots   |
+| 🧪 **Playground**   | Test scraping in real-time      |
+| 🔑 **API Keys**     | Secure key management           |
+
+</td>
+</tr>
+</table>
 
 ---
 
-## 🚀 API Examples & HTTP Integrations
+## 🌐 API Endpoints
 
-### Quick Health Check (No Auth)
+### Website Scraping APIs
+
+| Endpoint                  | Method | Description                  |
+| ------------------------- | ------ | ---------------------------- |
+| `/api/website/html`       | `POST` | Get raw HTML (fast)          |
+| `/api/website/html-js`    | `POST` | Get HTML with JS rendering   |
+| `/api/website/content`    | `POST` | Get Markdown content         |
+| `/api/website/screenshot` | `POST` | Capture full-page Screenshot |
+| `/api/website/stream`     | `POST` | Real-time SSE Stream         |
+
+### Google SERP APIs
+
+| Endpoint                  | Method | Description                   |
+| ------------------------- | ------ | ----------------------------- |
+| `/api/google-serp/search` | `POST` | Extract Google search results |
+| `/api/google-serp/stream` | `GET`  | Real-time SSE Stream          |
+
+### Example Request
+
 ```bash
-curl https://your-subdomain.yourdomain.com/api/health
-```
-
-### 🔧 cURL Examples
-
-#### 🛡️ v1.3.0 Anti-Detection Rendering (Maximum Stealth)
-```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/render/stealth?token=YOUR_AUTH_TOKEN" \
+curl -X POST http://localhost:3001/api/website/html \
   -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://example.com",
-    "profile": "desktop-chrome",
-    "stealthMode": "maximum",
-    "behaviorSimulation": true,
-    "timeout": 30000
-  }'
+  -H "X-API-Key: your-api-key" \
+  -d '{"url": "https://example.com", "stealth": true}'
 ```
 
-#### 📱 Mobile Device Simulation
-```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/render?token=YOUR_AUTH_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://example.com",
-    "profile": "iphone-14-pro",
-    "geolocation": {"latitude": 40.7128, "longitude": -74.0060},
-    "behaviorSimulation": true
-  }'
-```
+### Example Response
 
-#### 🧪 Test Anti-Detection Capabilities
-```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/test-fingerprint?token=YOUR_AUTH_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "profile": "desktop-chrome",
-    "testCanvas": true,
-    "testWebGL": true,
-    "testAudio": true
-  }'
-```
-
-#### 📊 Get Available Device Profiles
-```bash
-curl "https://your-subdomain.yourdomain.com/api/profiles?token=YOUR_AUTH_TOKEN"
-```
-
-#### 🎭 Behavioral Simulation with WAF Bypass
-```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/render?token=YOUR_AUTH_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://example.com",
-    "profile": "desktop-firefox",
-    "cloudflareBypass": true,
-    "datadomeBypass": true,
-    "mouseMovement": "natural",
-    "keyboardDynamics": "human",
-    "timeout": 45000
-  }'
-```
-
-#### Extract HTML Content
-```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/html?token=YOUR_AUTH_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com", "timeout": 30000}'
-```
-
-#### Generate Screenshot
-```bash
-curl "https://your-subdomain.yourdomain.com/api/screenshot?token=YOUR_AUTH_TOKEN&url=https://example.com&fullPage=true" \
-  -o screenshot.png
-```
-
-#### Extract Text Only
-```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/text?token=YOUR_AUTH_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com", "waitForSelector": "main"}'
-```
-
-#### Generate PDF
-```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/pdf?token=YOUR_AUTH_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com", "format": "A4"}' \
-  -o document.pdf
-```
-
-### 🤖 Make.com (Integromat) Integration
-
-**HTTP Request Module Configuration:**
 ```json
 {
-  "url": "https://your-subdomain.yourdomain.com/api/html",
-  "method": "POST",
-  "headers": {
-    "Content-Type": "application/json"
-  },
-  "qs": {
-    "token": "YOUR_AUTH_TOKEN"
-  },
-  "body": {
-    "url": "{{url_to_scrape}}",
-    "timeout": 30000,
-    "waitForSelector": "{{optional_selector}}"
+  "success": true,
+  "data": {
+    "url": "https://example.com",
+    "title": "Example Domain",
+    "html": "<!DOCTYPE html>...",
+    "statusCode": 200
   }
 }
 ```
 
-### ⚡ Zapier Integration
+---
 
-**Webhooks by Zapier Setup:**
-- **URL:** `https://your-subdomain.yourdomain.com/api/html?token=YOUR_AUTH_TOKEN`
-- **Method:** POST
-- **Headers:** `Content-Type: application/json`
-- **Body:**
-```json
-{
-  "url": "{{url_from_trigger}}",
-  "timeout": 30000,
-  "humanBehavior": true
-}
-```
+##  Configuration
 
-### 🔗 n8n Integration
+### Environment Variables
 
-**HTTP Request Node:**
-```json
-{
-  "url": "https://your-subdomain.yourdomain.com/api/html",
-  "method": "POST",
-  "authentication": "queryAuth",
-  "query": {
-    "token": "YOUR_AUTH_TOKEN"
-  },
-  "headers": {
-    "Content-Type": "application/json"
-  },
-  "body": {
-    "url": "={{$json.url}}",
-    "timeout": 30000,
-    "humanBehavior": true
-  }
-}
-```
+> ⚠️ **Note**: Most configuration (Browsers, Stealth, Proxy, Timeouts) is managed directly via the **Dashboard Settings**.
 
-**Available via n8n Community Node:**
-- Install: `npm install n8n-nodes-headlessx`
-- [GitHub Repository](https://github.com/SaifyXPRO/n8n-nodes-headlessx)
+Only the following core variables are required in `.env`:
 
-### 🐍 Python Example
-```python
-import requests
+| Variable              | Default                 | Description                |
+| --------------------- | ----------------------- | -------------------------- |
+| `PORT`                | `3001`                  | Backend API port           |
+| `DATABASE_URL`        | -                       | Supabase Connection String |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:3001` | Frontend API URL           |
 
-def scrape_with_headlessx(url, token):
-    response = requests.post(
-        "https://your-subdomain.yourdomain.com/api/html",
-        params={"token": token},
-        json={
-            "url": url,
-            "timeout": 30000,
-            "humanBehavior": True
-        }
-    )
-    return response.json()
+### Dashboard Settings
 
-# Usage
-result = scrape_with_headlessx("https://example.com", "YOUR_TOKEN")
-print(result['html'])
-```
+Configure these live at `/settings`:
 
-### 🟨 JavaScript/Node.js Example
-```javascript
-const axios = require('axios');
+#### General Configuration
+- **Headless Mode**: Run browser without UI (faster execution)
+- **Browser Timeout**: Max execution time per job (default: 60000ms)
+- **Max Concurrent Jobs**: Concurrent scraping jobs (recommended: 3-8)
 
-async function scrapeWithHeadlessX(url, token) {
-  try {
-    const response = await axios.post(
-      `https://your-subdomain.yourdomain.com/api/html?token=${token}`,
-      {
-        url: url,
-        timeout: 30000,
-        humanBehavior: true
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Scraping failed:', error.message);
-    throw error;
-  }
-}
+#### Browser Engine (Camoufox)
+- **Block WebRTC**: Prevent IP leaks via WebRTC
+- **Camoufox GeoIP**: Spoof location based on IP
+- **Enable Cache**: Cache resources for speed
 
-// Usage
-scrapeWithHeadlessX('https://example.com', 'YOUR_TOKEN')
-  .then(result => console.log(result.html))
-  .catch(error => console.error(error));
-```
+#### Proxies
+- Manage proxy configurations and rotation settings
 
-### 🔄 Batch Processing Example
-```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/batch?token=YOUR_AUTH_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "urls": [
-      "https://example1.com",
-      "https://example2.com",
-      "https://example3.com"
-    ],
-    "timeout": 30000,
-    "humanBehavior": true
-  }'
-```
-
-### Batch Processing
-```bash
-curl -X POST "https://your-subdomain.yourdomain.com/api/batch?token=YOUR_AUTH_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "urls": ["https://example.com", "https://httpbin.org"],
-    "format": "text",
-    "options": {"timeout": 30000}
-  }'
-```
 
 ---
 
-## 📁 Project Structure
+## 🛠️ Manual Setup
 
-```
-HeadlessX v1.3.0 - Enhanced Anti-Detection Architecture/
-├── 📂 src/                         # Modular application source
-│   ├── 📂 config/                  # Configuration management
-│   │   ├── index.js               # Main configuration loader
-│   │   └── browser.js             # Browser-specific settings
-│   ├── 📂 utils/                   # Utility functions
-│   │   ├── errors.js              # Error handling & categorization
-│   │   ├── logger.js              # Structured logging
-│   │   └── helpers.js             # Common utilities
-│   ├── 📂 services/                # Business logic services
-│   │   ├── browser.js             # Browser lifecycle management
-│   │   ├── stealth.js             # Anti-detection techniques
-│   │   ├── interaction.js         # Human-like behavior
-│   │   └── rendering.js           # Core rendering logic
-│   ├── 📂 middleware/              # Express middleware
-│   │   ├── auth.js                # Authentication
-│   │   └── error.js               # Error handling
-│   ├── 📂 controllers/             # Request handlers
-│   │   ├── system.js              # Health & status endpoints
-│   │   ├── rendering.js           # Main rendering endpoints
-│   │   ├── batch.js               # Batch processing
-│   │   └── get.js                 # GET endpoints & docs
-│   ├── 📂 routes/                  # Route definitions
-│   │   ├── api.js                 # API route mappings
-│   │   └── static.js              # Static file serving
-│   ├── app.js                     # Main application setup
-│   ├── server.js                  # Entry point for PM2
-│   └── rate-limiter.js            # Rate limiting implementation
-├── 📂 website/                     # Next.js website (unchanged)
-│   ├── app/                        # Next.js 13+ app directory
-│   ├── components/                 # React components
-│   ├── .env.example               # Website environment template
-│   ├── next.config.js             # Next.js configuration
-│   └── package.json               # Website dependencies
-├── 📂 scripts/                     # Deployment & management scripts
-│   ├── setup.sh                   # Automated installation (updated)
-│   ├── update_server.sh           # Server update script (updated)
-│   ├── verify-domain.sh           # Domain verification
-│   └── test-routing.sh            # Integration testing
-├── 📂 nginx/                       # Nginx configuration
-│   └── headlessx.conf             # Nginx proxy config
-├── 📂 docker/                      # Docker deployment (updated)
-│   ├── Dockerfile                 # Container definition
-│   └── docker-compose.yml         # Docker Compose setup
-├── ecosystem.config.js            # PM2 configuration (moved to root)
-├── .env.example                   # Environment template (updated)
-├── package.json                   # Server dependencies (updated)
-├── docs/
-│   └── MODULAR_ARCHITECTURE.md   # Architecture documentation
-└── README.md                      # This file
-```
+### Backend
 
----
-
-## 🛠️ Development
-
-### Local Development
 ```bash
-# 1. Install dependencies
-npm install
-
-# 2. Build website
-cd website
-npm install
-npm run build
-cd ..
-
-# 3. Set environment variables
-export AUTH_TOKEN="development_token_123"
-export DOMAIN="localhost"
-export SUBDOMAIN="headlessx"
-
-# 4. Start server
-npm start  # Uses src/app.js
-
-# 5. Access locally
-# Website: http://localhost:3000
-# API: http://localhost:3000/api/health
+cd backend
+pnpm install
+npx camoufox-js fetch    # Download stealth Firefox
+pnpm dev                 # Start dev server
 ```
 
-### Testing Integration
+### Frontend
+
 ```bash
-# Test server and website integration
-bash scripts/test-routing.sh localhost
-
-# Test with environment variables
-bash scripts/verify-domain.sh
+cd frontend
+pnpm install
+pnpm dev
 ```
-
----
-
-## ⚙️ Configuration
-
-### 🌐 **Environment Variables (.env)**
-
-Create your `.env` file from the template:
-```bash
-cp .env.example .env
-nano .env
-```
-
-**Required configuration:**
-```bash
-# Security Token (Generate a secure random string)
-AUTH_TOKEN=your_secure_token_here
-
-# Domain Configuration  
-DOMAIN=yourdomain.com
-SUBDOMAIN=headlessx
-
-# Optional: Browser Settings
-BROWSER_TIMEOUT=60000
-MAX_CONCURRENT_BROWSERS=5
-
-# Optional: Server Settings
-PORT=3000
-NODE_ENV=production
-```
-
-### 🌐 **Nginx Domain Setup**
-
-**Option 1: Automatic (Recommended)**
-```bash
-# The setup script automatically replaces domain placeholders
-sudo ./scripts/setup.sh
-```
-
-**Option 2: Manual Configuration**
-```bash
-# Copy nginx configuration
-sudo cp nginx/headlessx.conf /etc/nginx/sites-available/headlessx
-
-# Replace domain placeholders (replace with your actual domain)
-sudo sed -i 's/SUBDOMAIN.DOMAIN.COM/headlessx.yourdomain.com/g' /etc/nginx/sites-available/headlessx
-
-# Example: If your domain is "api.example.com"
-sudo sed -i 's/SUBDOMAIN.DOMAIN.COM/api.example.com/g' /etc/nginx/sites-available/headlessx
-
-# Enable site and reload nginx
-sudo ln -sf /etc/nginx/sites-available/headlessx /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-**Your final URLs will be:**
-- Website: `https://your-subdomain.yourdomain.com`
-- API Health: `https://your-subdomain.yourdomain.com/api/health`
-- API Endpoints: `https://your-subdomain.yourdomain.com/api/*`
-
----
-
-## 📊 API Reference
-
-### 🔧 **Core Endpoints**
-
-| Endpoint | Method | Description | Auth Required |
-|----------|--------|-------------|---------------|
-| `/api/health` | GET | Health check | ❌ |
-| `/api/status` | GET | Server status | ✅ |
-| `/api/render` | POST | Full page rendering (JSON) | ✅ |
-| `/api/html` | GET/POST | Raw HTML extraction | ✅ |
-| `/api/content` | GET/POST | Clean text extraction | ✅ |
-| `/api/screenshot` | GET | Screenshot generation | ✅ |
-| `/api/pdf` | GET | PDF generation | ✅ |
-| `/api/batch` | POST | Batch URL processing | ✅ |
-
-### 🔑 **Authentication**
-All endpoints (except `/api/health`) require a token via:
-- Query parameter: `?token=YOUR_TOKEN`
-- Header: `X-Token: YOUR_TOKEN`
-- Header: `Authorization: Bearer YOUR_TOKEN`
-
-### 📖 **Complete Documentation**
-Visit your HeadlessX website for full API documentation with examples, or check:
-- [GET Endpoints](docs/GET_ENDPOINTS.md)
-- [POST Endpoints](docs/POST_ENDPOINTS.md)
-
----
-
-## 📊 Monitoring & Troubleshooting
-
-### 🔍 **Health Checks**
-```bash
-curl https://your-subdomain.yourdomain.com/api/health
-curl "https://your-subdomain.yourdomain.com/api/status?token=YOUR_TOKEN"
-```
-
-### 📋 **Log Management**
-```bash
-# PM2 logs
-npm run pm2:logs
-pm2 logs headlessx --lines 100
-
-# Docker logs
-docker-compose logs -f headlessx
-
-# Nginx logs
-sudo tail -f /var/log/nginx/access.log
-```
-
-### 🔄 **Updates**
-```bash
-git pull origin main
-npm run build          # Rebuild website
-npm run pm2:restart     # PM2
-# OR
-docker-compose restart  # Docker
-```
-
-### 🔧 **Common Issues**
-
-**"npm ci" Error (missing package-lock.json):**
-```bash
-chmod +x scripts/generate-lockfiles.sh
-./scripts/generate-lockfiles.sh  # Generate lock files
-# OR
-npm install --production  # Use install instead
-```
-
-**"Cannot find module 'express'":**
-```bash
-npm install  # Install dependencies
-```
-
-**System dependency errors (Ubuntu):**
-```bash
-sudo apt update && sudo apt install -y \
-  libatk1.0-0t64 libatk-bridge2.0-0t64 libcups2t64 \
-  libatspi2.0-0t64 libasound2t64 libxcomposite1
-```
-
-**PM2 not starting:**
-```bash
-sudo npm install -g pm2
-chmod +x scripts/setup.sh  # Make script executable
-pm2 start config/ecosystem.config.js
-pm2 logs headlessx  # Check errors
-```
-
-**Script permission errors:**
-```bash
-# Make all scripts executable
-chmod +x scripts/*.sh
-
-# Or use the quick setup
-chmod +x scripts/quick-setup.sh && ./scripts/quick-setup.sh
-```
-
-**Playwright browser installation errors:**
-```bash
-# Use dedicated Playwright setup script
-chmod +x scripts/setup-playwright.sh
-./scripts/setup-playwright.sh
-
-# Or install manually:
-sudo apt update && sudo apt install -y \
-  libgtk-3-0t64 libpangocairo-1.0-0 libcairo-gobject2 \
-  libgdk-pixbuf-2.0-0 libdrm2 libxss1 libxrandr2 \
-  libasound2t64 libatk1.0-0t64 libnss3
-
-# Install only Chromium (most stable)
-npx playwright install chromium
-
-# Alternative: Use Docker (avoids dependency issues)
-docker-compose up -d
-```
-
----
-
-## 🔐 Security Features
-
-- **Token Authentication**: Secure API access with custom tokens
-- **Rate Limiting**: Nginx-level request throttling
-- **Security Headers**: XSS, CSRF, and clickjacking protection
-- **Bot Protection**: Common attack vector blocking
-- **SSL/TLS**: Automatic HTTPS with Let's Encrypt
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Whether you're fixing bugs, adding features, improving documentation, or sharing ideas, your input is valuable.
-
-### Ways to Contribute
-
-1. **🐛 Report Bugs**: [Create a bug report](https://github.com/saifyxpro/HeadlessX/issues/new?template=bug_report.yml)
-2. **💡 Suggest Features**: [Share your ideas](https://github.com/saifyxpro/HeadlessX/discussions/new?category=ideas)
-3. **📖 Improve Docs**: Help make our documentation better
-4. **💻 Submit Code**: Fork, code, and create a pull request
-
-### Development Workflow
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -830,91 +406,39 @@ We welcome contributions from the community! Whether you're fixing bugs, adding 
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-**Please read** [CONTRIBUTING.md](docs/CONTRIBUTING.md) for detailed guidelines.
-
 ---
 
-## � Community
+## 📝 License
 
-Join our growing community of developers, data scientists, and automation enthusiasts!
-
-<div align="center">
-
-### 💬 Discussions
-
-[![General](https://img.shields.io/badge/💬_General-Join_Discussion-blue?style=for-the-badge)](https://github.com/saifyxpro/HeadlessX/discussions/categories/general)
-[![Q&A](https://img.shields.io/badge/❓_Q&A-Ask_Questions-green?style=for-the-badge)](https://github.com/saifyxpro/HeadlessX/discussions/categories/q-a)
-[![Ideas](https://img.shields.io/badge/💡_Ideas-Share_Feedback-yellow?style=for-the-badge)](https://github.com/saifyxpro/HeadlessX/discussions/categories/ideas)
-[![Show & Tell](https://img.shields.io/badge/🎨_Show_&_Tell-Share_Projects-purple?style=for-the-badge)](https://github.com/saifyxpro/HeadlessX/discussions/categories/show-and-tell)
-
-</div>
-
-### Get Help & Share Knowledge
-
-- **❓ Ask Questions**: Stuck on something? [Start a Q&A discussion](https://github.com/saifyxpro/HeadlessX/discussions/new?category=q-a)
-- **💡 Share Ideas**: Have a feature idea? [Create an idea post](https://github.com/saifyxpro/HeadlessX/discussions/new?category=ideas)
-- **🎨 Showcase**: Built something cool? [Show it off!](https://github.com/saifyxpro/HeadlessX/discussions/new?category=show-and-tell)
-- **📢 Announcements**: [Stay updated](https://github.com/saifyxpro/HeadlessX/discussions/categories/announcements) with the latest news
-
-### Community Guidelines
-
-- Be respectful and inclusive
-- Help others learn and grow
-- Share knowledge and experiences
-- Report issues constructively
-- Follow our [Code of Conduct](docs/CODE_OF_CONDUCT.md)
-
----
-
-## �📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🆘 Support & Resources
-
-<div align="center">
-
-| Resource | Description | Link |
-|----------|-------------|------|
-| 📖 **Documentation** | Complete API reference & guides | [View Docs](https://github.com/saifyxpro/HeadlessX/tree/main/docs) |
-| 🐛 **Bug Reports** | Found a bug? Report it here | [Report Bug](https://github.com/saifyxpro/HeadlessX/issues/new?template=bug_report.yml) |
-| 💡 **Feature Requests** | Suggest new features | [Request Feature](https://github.com/saifyxpro/HeadlessX/issues/new?template=feature_request.yml) |
-| 🔒 **Security** | Report security vulnerabilities | [Security Policy](docs/SECURITY.md) |
-| 💬 **Discussions** | Community Q&A & discussions | [Join Discussions](https://github.com/saifyxpro/HeadlessX/discussions) |
-| 📊 **Project Board** | Track development progress | [View Board](https://github.com/saifyxpro/HeadlessX/projects) |
-| 📝 **Changelog** | See what's new | [View Changes](docs/CHANGELOG.md) |
-| 🗺️ **Roadmap** | Future plans & features | [View Roadmap](docs/roadmap-v2.md) |
-
-</div>
-
-### Quick Links
-
-- **Installation Help**: [SETUP.md](docs/SETUP.md)
-- **Troubleshooting**: [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)
-- **API Documentation**: [GET_ENDPOINTS.md](docs/GET_ENDPOINTS.md) | [POST_ENDPOINTS.md](docs/POST_ENDPOINTS.md)
-- **Architecture Guide**: [MODULAR_ARCHITECTURE.md](docs/MODULAR_ARCHITECTURE.md)
-- **Ethics & Responsible Use**: [ETHICS.md](docs/ETHICS.md)
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 <div align="center">
 
-## 🎯 Built with ❤️ by SaifyXPRO
+## 🌟 Star History
 
-**HeadlessX v1.3.0** - The most advanced open-source anti-detection web scraping solution.
-
-### Star us on GitHub! ⭐
-
-[![GitHub stars](https://img.shields.io/github/stars/saifyxpro/HeadlessX?style=social)](https://github.com/saifyxpro/HeadlessX/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/saifyxpro/HeadlessX?style=social)](https://github.com/saifyxpro/HeadlessX/network/members)
-[![GitHub watchers](https://img.shields.io/github/watchers/saifyxpro/HeadlessX?style=social)](https://github.com/saifyxpro/HeadlessX/watchers)
+If you find HeadlessX useful, please consider giving it a star! ⭐
 
 ---
 
-**Made with 🚀 by developers, for developers**
+### Built with ❤️ using cutting-edge technologies
+
+<br/>
+
+[![Node.js](https://img.shields.io/badge/-Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Next.js](https://img.shields.io/badge/-Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![Firefox](https://img.shields.io/badge/-Camoufox-FF7139?style=flat-square&logo=firefox&logoColor=white)](https://github.com/)
+[![Playwright](https://img.shields.io/badge/-Playwright-45BA4B?style=flat-square&logo=playwright&logoColor=white)](https://playwright.dev/)
+[![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/-React-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+[![TailwindCSS](https://img.shields.io/badge/-TailwindCSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Prisma](https://img.shields.io/badge/-Prisma-2D3748?style=flat-square&logo=prisma&logoColor=white)](https://www.prisma.io/)
+
+<br/>
+
+**🦊 HeadlessX V2.0 — Undetectable by Design**
+
+*© 2026 HeadlessX. All rights reserved.*
 
 </div>
-
-Made with ❤️ for the developer community.

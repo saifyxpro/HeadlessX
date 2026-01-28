@@ -61,11 +61,20 @@ Thumbs.db
 dist/
 build/
 out/
+.next/
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
+
+# Large Model Files & Binaries
+/backend/models/
+*.onnx
+*.pt
+*.bin
+*.sst
+*.node
 
 # Local configuration overrides
 local.json
@@ -74,4 +83,3 @@ config.local.js
 # Backup files
 *.backup
 *.bak
-ARCHITECTURE-FIX.md

@@ -1,0 +1,27 @@
+<svg width="320" height="80" viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo Icon (scaled 1.6x from original 40x40) -->
+  <rect x="8" y="8" width="64" height="64" rx="16" fill="url(#logoGradient)"/>
+  <path d="M24 30.4L33.6 40L24 49.6" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M36.8 49.6H43.2" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <path d="M56 30.4L46.4 40L56 49.6" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- HeadlessX Text -->
+  <text x="88" y="52" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="36" font-weight="700" fill="#1E293B">
+    Headless<tspan fill="url(#textGradient)">X</tspan>
+  </text>
+  
+  <!-- Version Badge -->
+  <rect x="88" y="58" width="36" height="16" rx="4" fill="#EEF2FF"/>
+  <text x="106" y="70" font-family="Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-size="10" font-weight="600" fill="#6366F1" text-anchor="middle">v2.0</text>
+  
+  <defs>
+    <linearGradient id="logoGradient" x1="8" y1="8" x2="72" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#6366F1"/>
+    </linearGradient>
+    <linearGradient id="textGradient" x1="240" y1="20" x2="280" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#6366F1"/>
+    </linearGradient>
+  </defs>
+</svg>

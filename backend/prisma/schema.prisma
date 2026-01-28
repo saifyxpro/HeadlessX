@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ApiKey {
+  id           String       @id @default(uuid())
+  key_hash     String       @unique
+  prefix       String
+  name         String
+  created_at   DateTime     @default(now())
+  last_used_at DateTime?
+  is_active    Boolean      @default(true)
+  logs         RequestLog[]
+}
+
+model RequestLog {
+  id                    String   @id @default(uuid())
+  api_key_id            String?
+  profile_id            String?
+  url                   String
+  method                String
+  status_code           Int
+  duration_ms           Int
+  error_message         String?
+  error_screenshot_path String?
+  created_at            DateTime @default(now())
+  api_key               ApiKey?  @relation(fields: [api_key_id], references: [id])
+  profile               Profile? @relation(fields: [profile_id], references: [id])
+}
+
+model SystemSettings {
+  id                        Int      @id @default(1)
+  browser_headless          Boolean  @default(true)
+  browser_timeout           Int      @default(60000)
+  max_concurrency           Int      @default(5)
+  // Stealth handled by Camoufox advanced mode by default
+  
+  proxy_enabled             Boolean  @default(false)
+  proxy_url                 String?
+  proxy_protocol            String?  @default("http")
+  
+  // Profile rotation settings
+  profile_rotation          Boolean  @default(true)
+  profile_rotation_interval Int      @default(3600000)
+  
+  // Camoufox browser settings
+  camoufox_geoip            Boolean  @default(true)
+  camoufox_block_webrtc     Boolean  @default(true)
+  camoufox_block_images     Boolean  @default(false)
+  camoufox_enable_cache     Boolean  @default(true)
+  camoufox_humanize         Float    @default(2.5)
+  
+  updated_at                DateTime @updatedAt
+}
+
+// Browser Profiles - Persistent browser sessions with saved cookies/localStorage
+model Profile {
+  id              String       @id @default(uuid())
+  name            String       @unique
+  description     String?
+  
+  // Browser fingerprint settings
+  screen_width    Int          @default(1920)
+  screen_height   Int          @default(1080)
+  user_agent      String?      // Custom user agent string for fingerprinting
+  locale          String       @default("en-US")
+  timezone        String?
+  
+  // Storage & Proxy Configuration
+  storage_type    String       @default("local") // local, memory
+  proxy_mode      String       @default("none")  // none, tor, datacenter, residential
+  
+  // Proxy settings - can reference saved proxy or use custom
+  proxy_id        String?      // Reference to saved proxy
+  proxy           Proxy?       @relation(fields: [proxy_id], references: [id])
+  proxy_url       String?      // Custom proxy URL (used if proxy_id is null)
+  proxy_username  String?
+  proxy_password  String?
+  
+  // Profile status
+  is_active       Boolean      @default(true)
+  is_running      Boolean      @default(false)
+  
+  // Storage stats
+  cookies_count   Int          @default(0)
+  storage_size_mb Float        @default(0)
+  
+  // Timestamps
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  last_used_at    DateTime?
+  
+  // Relations
+  logs            RequestLog[]
+  
+  @@index([is_active])
+  @@index([last_used_at])
+}
+
+// Global Proxy Management - Save and reuse proxies across profiles
+model Proxy {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  protocol    String    @default("http") // http, https, socks4, socks5
+  host        String
+  port        Int
+  username    String?
+  password    String?
+  country     String?   // Optional: country code (US, UK, DE, etc.)
+  is_active   Boolean   @default(true)
+  is_rotating Boolean   @default(false) // Is this a rotating proxy?
+  
+  // Health check
+  last_checked DateTime?
+  is_working   Boolean   @default(true)
+  avg_latency  Int?      // Average latency in ms
+  
+  // Timestamps
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  
+  // Relations
+  profiles    Profile[]
+  
+  @@index([is_active])
+  @@index([country])
+}

@@ -1,0 +1,62 @@
+{
+  "name": "headlessx-backend",
+  "version": "2.0.0",
+  "description": "HeadlessX - Anti-detect browser scraping API with Camoufox",
+  "main": "dist/server_entry.js",
+  "type": "module",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "start": "tsx src/server_entry.ts",
+    "dev": "tsx watch src/server_entry.ts",
+    "build": "tsc",
+    "postinstall": "npx camoufox-js fetch && prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "scraping",
+    "camoufox",
+    "anti-detect",
+    "headless",
+    "browser"
+  ],
+  "author": "SaifyXPRO",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.3.0",
+    "@prisma/client": "^7.3.0",
+    "@xenova/transformers": "^2.17.2",
+    "axios": "^1.13.3",
+    "camoufox-js": "^0.8.5",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "https-proxy-agent": "^7.0.6",
+    "onnxruntime-web": "^1.23.2",
+    "playwright-core": "^1.58.0",
+    "prisma": "^7.3.0",
+    "proxy-chain": "^2.7.1",
+    "socks-proxy-agent": "^8.0.5",
+    "turndown": "^7.2.2",
+    "wavefile": "^11.0.0",
+    "zod": "^4.3.6",
+    "sharp": "^0.32.6"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.0.10",
+    "@types/turndown": "^5.0.6",
+    "only-allow": "^1.2.1",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
