@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -17,7 +18,8 @@ const fetchProfiles = async () => {
     return res.json();
 };
 
-export default function WebsiteScraperPage() {
+// Inner component that uses useSearchParams - must be wrapped in Suspense
+function WebsiteScraperContent() {
     const searchParams = useSearchParams();
     const initialUrl = searchParams.get('url') || 'https://example.com';
     const [url, setUrl] = useState(initialUrl);
@@ -217,5 +219,26 @@ export default function WebsiteScraperPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+// Loading fallback for Suspense
+function WebsiteScraperLoading() {
+    return (
+        <div className="relative min-h-screen -m-8 pb-10 flex items-center justify-center">
+            <div className="text-center">
+                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-gray-500">Loading...</p>
+            </div>
+        </div>
+    );
+}
+
+// Page component wraps content in Suspense for Next.js 16 static generation
+export default function WebsiteScraperPage() {
+    return (
+        <Suspense fallback={<WebsiteScraperLoading />}>
+            <WebsiteScraperContent />
+        </Suspense>
     );
 }

@@ -9,9 +9,9 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "dev": "next dev -p 3000",
+    "dev": "next dev --port ${PORT:-3000}",
     "build": "next build",
-    "start": "next start -p 3000",
+    "start": "next start --port ${PORT:-3000}",
     "lint": "eslint"
   },
   "dependencies": {

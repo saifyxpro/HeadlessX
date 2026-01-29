@@ -1,7 +1,8 @@
 {
     "compilerOptions": {
-        "target": "es2020",
-        "module": "commonjs",
+        "target": "ES2022",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
         "outDir": "./dist",
         "rootDir": "./src",
         "strict": true,
@@ -9,7 +10,8 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "noImplicitAny": false,
-        "noImplicitThis": false
+        "noImplicitThis": false,
+        "resolveJsonModule": true
     },
     "include": [
         "src/**/*"

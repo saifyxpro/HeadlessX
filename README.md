@@ -159,24 +159,34 @@
 - [📊 Detection Benchmark Comparison](#-detection-benchmark-comparison)
 - [🤖 Scrapers](#-scrapers)
   - [Coming Soon](#coming-soon)
+- [🖥️ UI Screenshots](#️-ui-screenshots)
+  - [Google SERP Scraper](#google-serp-scraper)
+  - [Website Scraper](#website-scraper)
 - [📸 Proof of Undetectability](#-proof-of-undetectability)
   - [BrowserScan (100% Passed)](#browserscan-100-passed)
 - [📋 Table of Contents](#-table-of-contents)
 - [⚡ Quick Start](#-quick-start)
-  - [1️⃣ Install Dependencies](#1️⃣-install-dependencies)
-  - [2️⃣ Setup Database](#2️⃣-setup-database)
-  - [3️⃣ Start the System](#3️⃣-start-the-system)
-  - [3️⃣ Access the Dashboard](#3️⃣-access-the-dashboard)
+  - [1️⃣ Clone \& Configure Environment](#1️⃣-clone--configure-environment)
+  - [2️⃣ Install Dependencies](#2️⃣-install-dependencies)
+  - [3️⃣ Install AI Models (CAPTCHA Solving)](#3️⃣-install-ai-models-captcha-solving)
+  - [4️⃣ Setup Database](#4️⃣-setup-database)
+  - [5️⃣ Start Development Server](#5️⃣-start-development-server)
+  - [6️⃣ Access the Application](#6️⃣-access-the-application)
+  - [Custom Ports](#custom-ports)
 - [🔥 Key Features](#-key-features)
   - [🦊 Camoufox Stealth Engine (V2.0)](#-camoufox-stealth-engine-v20)
   - [🖥️ Modern Dashboard](#️-modern-dashboard)
 - [🌐 API Endpoints](#-api-endpoints)
-  - [Core Scraping APIs](#core-scraping-apis)
+  - [Website Scraping APIs](#website-scraping-apis)
+  - [Google SERP APIs](#google-serp-apis)
   - [Example Request](#example-request)
   - [Example Response](#example-response)
 - [Configuration](#configuration)
   - [Environment Variables](#environment-variables)
   - [Dashboard Settings](#dashboard-settings)
+    - [General Configuration](#general-configuration)
+    - [Browser Engine (Camoufox)](#browser-engine-camoufox)
+    - [Proxies](#proxies)
 - [🛠️ Manual Setup](#️-manual-setup)
   - [Backend](#backend)
   - [Frontend](#frontend)
@@ -189,43 +199,91 @@
 
 ## ⚡ Quick Start
 
-> **Prerequisites**: [Node.js 18+](https://nodejs.org/), [pnpm 9+](https://pnpm.io/)
+> **Prerequisites**: 
+> - [Node.js 18+](https://nodejs.org/) (v22+ recommended)
+> - [pnpm 9+](https://pnpm.io/) (`npm install -g pnpm`)
+> - **PostgreSQL Database** — either:
+>   - [Supabase](https://supabase.com/) (recommended, free tier available)
+>   - Self-hosted PostgreSQL 14+
 
-### 1️⃣ Install Dependencies
+### 1️⃣ Clone & Configure Environment
 
 ```bash
+git clone https://github.com/your-repo/HeadlessX.git
 cd HeadlessX
 
-# 1. Install Node.js dependencies
+# Copy environment template
+cp .env.example backend/.env
+```
+
+**Edit `backend/.env`** with your database connection:
+
+```env
+# REQUIRED: Your PostgreSQL connection string
+DATABASE_URL="postgresql://user:password@host:5432/database"
+
+# Optional: Server configuration
+PORT=3001
+NODE_ENV=development
+```
+
+> 💡 **Supabase Users**: Find your connection string at:  
+> Dashboard → Settings → Database → Connection String (URI)
+
+### 2️⃣ Install Dependencies
+
+```bash
+# Install all packages (workspace: root, backend, frontend)
 pnpm install
+```
 
-# 2. Install Model Dependencies & Download Models (YOLO/Recaptcha)
-# Windows:
+> ⚠️ If you see a Prisma warning during install, that's normal!  
+> It means you need to configure `DATABASE_URL` first, then run `pnpm db:push`.
+
+### 3️⃣ Install AI Models (CAPTCHA Solving)
+
+<table>
+<tr>
+<td><strong>Windows</strong></td>
+<td><strong>Linux / macOS</strong></td>
+</tr>
+<tr>
+<td>
+
+```powershell
 install.bat
+```
 
-# Linux/macOS:
+</td>
+<td>
+
+```bash
 chmod +x install.sh
 ./install.sh
 ```
 
-### 2️⃣ Setup Database
+</td>
+</tr>
+</table>
+
+### 4️⃣ Setup Database
 
 ```bash
-# Push schema to database
+# Push Prisma schema to your database
 pnpm db:push
 
-# Or run migrations
+# Or use migrations for production
 pnpm db:migrate
 ```
 
-### 3️⃣ Start the System
+### 5️⃣ Start Development Server
 
 ```bash
-# Start both frontend and backend
+# Start both frontend and backend concurrently
 pnpm dev
 ```
 
-Or start individually:
+**Or start individually:**
 
 <table>
 <tr>
@@ -243,7 +301,6 @@ scripts\start.bat
 <td>
 
 ```bash
-chmod +x scripts/start.sh
 ./scripts/start.sh
 ```
 
@@ -251,18 +308,24 @@ chmod +x scripts/start.sh
 </tr>
 </table>
 
-### 3️⃣ Access the Dashboard
+### 6️⃣ Access the Application
 
-<table>
-<tr>
-<td>🔗 <strong>Backend API</strong></td>
-<td><a href="http://localhost:3001">http://localhost:3001</a></td>
-</tr>
-<tr>
-<td>🖥️ <strong>Dashboard</strong></td>
-<td><a href="http://localhost:3000">http://localhost:3000</a></td>
-</tr>
-</table>
+| Service           | URL                                            | Notes       |
+| ----------------- | ---------------------------------------------- | ----------- |
+| 🖥️ **Dashboard**   | [http://localhost:3000](http://localhost:3000) | Frontend UI |
+| 🔗 **Backend API** | [http://localhost:3001](http://localhost:3001) | REST API    |
+
+### Custom Ports
+
+You can customize ports via environment variables:
+
+```bash
+# Backend (from root)
+cross-env PORT=4001 pnpm dev:backend
+
+# Frontend (Linux/macOS)
+PORT=4000 pnpm --filter headlessx-frontend dev
+```
 
 ---
 
@@ -355,11 +418,11 @@ curl -X POST http://localhost:3001/api/website/html \
 
 Only the following core variables are required in `.env`:
 
-| Variable              | Default                 | Description                |
-| --------------------- | ----------------------- | -------------------------- |
-| `PORT`                | `3001`                  | Backend API port           |
-| `DATABASE_URL`        | -                       | Supabase Connection String |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:3001` | Frontend API URL           |
+| Variable              | Default                 | Description                                     |
+| --------------------- | ----------------------- | ----------------------------------------------- |
+| `PORT`                | `3001`                  | Backend API port                                |
+| `DATABASE_URL`        | -                       | PostgreSQL connection (Supabase or self-hosted) |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:3001` | Frontend API URL                                |
 
 ### Dashboard Settings
 
@@ -387,9 +450,22 @@ Configure these live at `/settings`:
 
 ```bash
 cd backend
+
+# 1. Configure environment
+cp ../.env.example .env
+# Edit .env with your DATABASE_URL
+
+# 2. Install dependencies
 pnpm install
-npx camoufox-js fetch    # Download stealth Firefox
-pnpm dev                 # Start dev server
+
+# 3. Download Camoufox browser
+npx camoufox-js fetch
+
+# 4. Setup database
+npx prisma db push
+
+# 5. Start dev server
+pnpm dev
 ```
 
 ### Frontend

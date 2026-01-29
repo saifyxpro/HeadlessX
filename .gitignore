@@ -83,3 +83,8 @@ config.local.js
 # Backup files
 *.backup
 *.bak
+
+# Nested lockfiles (cause Next.js workspace inference issues)
+frontend/pnpm-lock.yaml
+frontend/pnpm-workspace.yaml
+backend/pnpm-lock.yaml

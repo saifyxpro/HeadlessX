@@ -1,8 +1,12 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// ESM-compatible __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /**
- * Get __dirname equivalent (No-op in CommonJS)
+ * Get __dirname equivalent for this module
  */
 export function getDirname(): string {
     return __dirname;

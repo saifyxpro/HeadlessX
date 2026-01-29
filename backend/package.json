@@ -14,7 +14,7 @@
     "start": "tsx src/server_entry.ts",
     "dev": "tsx watch src/server_entry.ts",
     "build": "tsc",
-    "postinstall": "npx camoufox-js fetch && prisma generate",
+    "postinstall": "npx camoufox-js fetch && (prisma generate || echo '⚠️ Prisma generate skipped - configure DATABASE_URL in backend/.env and run: pnpm db:push')",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
