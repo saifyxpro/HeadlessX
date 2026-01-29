@@ -5,9 +5,29 @@ import cors from 'cors';
 
 const app = express();
 
-// Middleware - CORS with proper config for SSE
+// Build CORS origins from environment
+const corsOrigins: (string | RegExp)[] = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+];
+
+// Add FRONTEND_URL if configured (for custom deployments)
+if (process.env.FRONTEND_URL) {
+    corsOrigins.push(process.env.FRONTEND_URL);
+}
+
+// Add NEXT_PUBLIC_API_URL origin if it's different from backend
+if (process.env.NEXT_PUBLIC_API_URL) {
+    const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL);
+    const frontendOrigin = `${apiUrl.protocol}//${apiUrl.hostname}${apiUrl.port ? ':' + apiUrl.port : ''}`;
+    if (!corsOrigins.includes(frontendOrigin)) {
+        corsOrigins.push(frontendOrigin);
+    }
+}
+
+// Middleware - CORS with dynamic origins for SSE
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'x-api-key', 'Authorization'],
