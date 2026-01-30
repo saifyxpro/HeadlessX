@@ -29,7 +29,7 @@ const NAV_ITEMS = [
     { href: '/api-keys', label: 'API Keys', icon: Key01Icon },
     { href: '/logs', label: 'Request Logs', icon: File01Icon },
     { label: 'Settings', href: '/settings', icon: Settings01Icon },
-    { label: 'Docs', href: 'https://headlessx.saify.me/docs', icon: BookOpen01Icon, external: true },
+    { label: 'Docs', href: 'https://headlessx.saify.me/docs/introduction', icon: BookOpen01Icon, external: true },
 ];
 
 const DASHBOARD_API_KEY = process.env.NEXT_PUBLIC_DASHBOARD_API_KEY || 'dashboard-internal';

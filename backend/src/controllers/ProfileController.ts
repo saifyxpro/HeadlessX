@@ -31,7 +31,8 @@ function toSnakeCase(profile: Profile) {
 }
 
 // Validation schemas
-const CreateProfileSchema = z.object({
+// Validation schemas
+const BaseProfileObject = z.object({
     name: z.string().min(1).max(50),
     description: z.string().max(200).optional(),
     screenWidth: z.number().int().min(800).max(3840).optional(),
@@ -40,13 +41,30 @@ const CreateProfileSchema = z.object({
     timezone: z.string().optional(),
     storageType: z.enum(['local', 'memory']).optional().default('local'),
     proxyMode: z.enum(['none', 'tor', 'datacenter', 'residential', 'custom', 'saved']).optional().default('none'),
-    proxyId: z.string().optional().or(z.literal('')),
-    proxyUrl: z.string().url().optional().or(z.literal('')),
-    proxyUsername: z.string().optional(),
-    proxyPassword: z.string().optional(),
+    proxyId: z.string().nullable().optional().or(z.literal('')),
+    proxyUrl: z.string().url().nullable().optional().or(z.literal('')),
+    proxyUsername: z.string().nullable().optional(),
+    proxyPassword: z.string().nullable().optional(),
 });
 
-const UpdateProfileSchema = CreateProfileSchema.partial();
+const CreateProfileSchema = BaseProfileObject.superRefine((data, ctx) => {
+    if (data.proxyMode === 'saved' && !data.proxyId) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Proxy ID is required when proxy mode is 'saved'",
+            path: ["proxyId"],
+        });
+    }
+    if (data.proxyMode === 'custom' && !data.proxyUrl) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Proxy URL is required when proxy mode is 'custom'",
+            path: ["proxyUrl"],
+        });
+    }
+});
+
+const UpdateProfileSchema = BaseProfileObject.partial();
 
 export class ProfileController {
     /**

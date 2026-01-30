@@ -198,6 +198,52 @@ export default function ProfilesPage() {
 
     const savedProxies = proxiesData?.proxies || [];
 
+    const createMutation = useMutation({
+        mutationFn: createProfile,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['profiles'] });
+            // Delay closing to show success state
+            setTimeout(() => {
+                setIsCreateOpen(false);
+                setProfileToEdit(null);
+                resetForm();
+                createMutation.reset();
+            }, 1500);
+        }
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: updateProfile,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['profiles'] });
+            // Delay closing to show success state
+            setTimeout(() => {
+                setIsCreateOpen(false);
+                setProfileToEdit(null);
+                resetForm();
+                updateMutation.reset();
+            }, 1500);
+        },
+        onError: (err: any) => {
+            alert(`Failed to update profile: ${err.message}`);
+        }
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: deleteProfile,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['profiles'] });
+            setProfileToDelete(null);
+        }
+    });
+
+    const toggleMutation = useMutation({
+        mutationFn: toggleProfile,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['profiles'] });
+        }
+    });
+
     if (error) {
         return (
             <div className="max-w-7xl mx-auto px-6 py-8 transition-all duration-300">
@@ -234,43 +280,7 @@ export default function ProfilesPage() {
     const rawProfiles = Array.isArray(data?.profiles) ? data.profiles : Array.isArray(data) ? data : [];
     const profiles = rawProfiles.filter((p: any) => p.name !== 'Default Profile');
 
-    const createMutation = useMutation({
-        mutationFn: createProfile,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['profiles'] });
-            setIsCreateOpen(false);
-            setProfileToEdit(null);
-            resetForm();
-        }
-    });
 
-    const updateMutation = useMutation({
-        mutationFn: updateProfile,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['profiles'] });
-            setIsCreateOpen(false);
-            setProfileToEdit(null);
-            resetForm();
-        },
-        onError: (err: any) => {
-            alert(`Failed to update profile: ${err.message}`);
-        }
-    });
-
-    const deleteMutation = useMutation({
-        mutationFn: deleteProfile,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['profiles'] });
-            setProfileToDelete(null);
-        }
-    });
-
-    const toggleMutation = useMutation({
-        mutationFn: toggleProfile,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['profiles'] });
-        }
-    });
 
     const resetForm = () => {
         setFormData({
@@ -324,6 +334,8 @@ export default function ProfilesPage() {
     const openCreateModal = () => {
         setProfileToEdit(null);
         resetForm();
+        createMutation.reset();
+        updateMutation.reset();
         setIsCreateOpen(true);
     };
 
@@ -341,6 +353,8 @@ export default function ProfilesPage() {
             screenWidth: profile.screenWidth || 1920,
             screenHeight: profile.screenHeight || 1080
         });
+        createMutation.reset();
+        updateMutation.reset();
         setIsCreateOpen(true);
     };
 

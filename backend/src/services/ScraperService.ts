@@ -115,8 +115,9 @@ class ScraperService {
             // await page.waitForLoadState('networkidle'); // Can be flaky, use smart wait if needed
 
             // Human-like interaction using native Playwright mouse
-            // Use global config OR per-request stealth
-            if (config.stealthMode !== 'basic' || options.stealth) {
+            const shouldApplyStealth = options.stealth === true || (options.stealth === undefined && config.stealthMode !== 'basic');
+
+            if (shouldApplyStealth) {
                 try {
                     // Native Playwright mouse movement (bezier-like with steps)
                     const viewportSize = page.viewportSize() || { width: 1280, height: 720 };
@@ -134,6 +135,8 @@ class ScraperService {
                 } catch (e) {
                     console.warn('Stealth interaction failed:', e);
                 }
+            } else {
+                console.log('⚡ Speed Mode: Skipping stealth interactions');
             }
 
             if (options.waitForSelector) {
@@ -210,10 +213,14 @@ class ScraperService {
         try {
             if (options.stealth) await this.injectAdvancedStealth(page);
 
+            const config = await configService.getConfig();
             await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
 
             // Native Playwright stealth interactions
-            if (options.stealth) {
+            // Fix: Respect explicit stealth: false from options
+            const shouldApplyStealth = options.stealth === true || (options.stealth === undefined && config.stealthMode !== 'basic');
+
+            if (shouldApplyStealth) {
                 try {
                     const viewportSize = page.viewportSize() || { width: 1280, height: 720 };
                     const randomX = Math.floor(Math.random() * viewportSize.width * 0.5) + 50;
@@ -269,6 +276,8 @@ class ScraperService {
         try {
             if (options.stealth) await this.injectAdvancedStealth(page);
             await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+
+            const config = await configService.getConfig();
             if (options.waitForSelector) await page.waitForSelector(options.waitForSelector);
 
             // PDF specific settings

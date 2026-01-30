@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../database/client';
+import { profileService } from '../services/ProfileService';
+import { browserService } from '../services/BrowserService';
 
 export class DashboardController {
     /**
@@ -27,6 +29,11 @@ export class DashboardController {
                 })
             ]);
 
+            // Get Helper Service Stats
+            const ramInfo = profileService.getRAMRecommendations();
+            const browserStatus = browserService.getStatus();
+            const runningBrowsersCount = browserStatus.profiles.length + (browserStatus.default ? 1 : 0);
+
             // Calculate success rate
             const failedRateVal = totalJobs > 0
                 ? ((totalJobs - successfulJobs) / totalJobs) * 100
@@ -43,7 +50,10 @@ export class DashboardController {
                 // Profile Stats
                 totalProfiles: profileStats._count.id,
                 totalCookies: profileStats._sum.cookies_count || 0,
-                storageUsage: (profileStats._sum.storage_size_mb || 0).toFixed(1)
+                storageUsage: (profileStats._sum.storage_size_mb || 0).toFixed(1),
+                // Browser Stats (Fix for System Status)
+                runningBrowsers: runningBrowsersCount,
+                system: ramInfo
             });
         } catch (error) {
             console.error('Dashboard Stats Error:', error);

@@ -56,8 +56,8 @@
 + 🔒 NEW: Built-in WebRTC leak protection
 + 🎭 NEW: C++ level Canvas/WebGL/AudioContext fingerprint spoofing
 + ⚡ IMPROVED: Faster browser launches with persistent contexts
-+ 🧹 REMOVED: playwright-extra (no longer needed)
-+ 🧹 REMOVED: puppeteer-extra-plugin-stealth (no longer needed)
+- 🧹 REMOVED: playwright-extra (no longer needed)
+- 🧹 REMOVED: puppeteer-extra-plugin-stealth (no longer needed)
 ```
 
 ---

@@ -44,10 +44,12 @@ export interface CreateProfileInput {
     userAgent?: string;
     locale?: string;
     timezone?: string;
-    proxyId?: string;
-    proxyUrl?: string;
-    proxyUsername?: string;
-    proxyPassword?: string;
+    storageType?: 'local' | 'memory';
+    proxyMode?: 'none' | 'tor' | 'datacenter' | 'residential' | 'custom' | 'saved';
+    proxyId?: string | null;
+    proxyUrl?: string | null;
+    proxyUsername?: string | null;
+    proxyPassword?: string | null;
 }
 
 export interface UpdateProfileInput {
@@ -144,6 +146,8 @@ class ProfileService {
                 user_agent: input.userAgent,
                 locale: input.locale ?? 'en-US',
                 timezone: input.timezone,
+                storage_type: input.storageType ?? 'local',
+                proxy_mode: input.proxyMode ?? 'none',
                 proxy_id: input.proxyId || null,
                 proxy_url: input.proxyUrl,
                 proxy_username: input.proxyUsername,
@@ -441,6 +445,16 @@ class ProfileService {
             });
             console.log('✅ Default profile created');
         }
+    }
+
+    /**
+     * Reset all profile running statuses to false (called on server start)
+     */
+    public async resetAllRunningStatuses(): Promise<void> {
+        await prisma.profile.updateMany({
+            data: { is_running: false },
+        });
+        console.log('🔄 All profile statuses reset to stopped');
     }
 }
 

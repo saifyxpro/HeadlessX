@@ -37,7 +37,7 @@ model SystemSettings {
   browser_headless          Boolean  @default(true)
   browser_timeout           Int      @default(60000)
   max_concurrency           Int      @default(5)
-  // Stealth handled by Camoufox advanced mode by default
+  stealth_mode              String   @default("advanced")
   
   proxy_enabled             Boolean  @default(false)
   proxy_url                 String?
