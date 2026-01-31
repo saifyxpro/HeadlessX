@@ -364,12 +364,26 @@ class BrowserService {
      */
     public async release(context: BrowserContext, profileId?: string) {
         // For persistent profiles, do NOTHING - keep context and pages alive for reuse
-        if (profileId && this.profiles.has(profileId)) {
-            console.log(`✅ Profile ${profileId} context kept alive for reuse`);
-            return; // Don't close anything for persistent profiles
+        if (profileId) {
+            // Check if profile exists in map (by UUID first, then by looking up name)
+            let actualProfileId = profileId;
+
+            // If not found by profileId directly, try to find by looking up the profile
+            if (!this.profiles.has(profileId)) {
+                // profileId might be a name, need to find the actual UUID
+                const profile = await profileService.getByName(profileId);
+                if (profile) {
+                    actualProfileId = profile.id;
+                }
+            }
+
+            if (this.profiles.has(actualProfileId)) {
+                console.log(`✅ Profile ${profileId} context kept alive for reuse`);
+                return; // Don't close anything for persistent profiles
+            }
         }
 
-        // For non- persistent contexts (no profileId), close entirely
+        // For non-persistent contexts (no profileId), close entirely
         try {
             // Close local proxy chain if it exists for this context
             const proxyChainUrl = (context as any)._proxyChainUrl;
