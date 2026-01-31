@@ -8,6 +8,7 @@ const StreamRequestSchema = z.object({
     url: z.string().url(),
     type: z.enum(['html', 'html-js', 'html-css-js', 'content', 'screenshot', 'pdf']),
     profileId: z.string().optional(),
+    stealth: z.boolean().optional(), // Speed mode when false
     fullPage: z.boolean().optional(),
     options: z.object({
         waitForSelector: z.string().optional(),
@@ -24,8 +25,8 @@ export class StreamingScrapeController {
         const startTime = Date.now();
         console.log('🔥 Stream endpoint hit');
         try {
-            const { url, type, profileId, fullPage, options } = StreamRequestSchema.parse(req.body);
-            console.log('📋 Request parsed:', { url, type, profileId, fullPage });
+            const { url, type, profileId, stealth, fullPage, options } = StreamRequestSchema.parse(req.body);
+            console.log('📋 Request parsed:', { url, type, profileId, stealth, fullPage });
 
             // Create job for tracking
             const job = jobManager.createJob(url, type, {
@@ -91,6 +92,7 @@ export class StreamingScrapeController {
                     waitForSelector: options?.waitForSelector,
                     timeout: options?.timeout,
                     profileId,
+                    stealth, // Pass stealth for speed mode
                     jsEnabled: type === 'html-js',
                     fullPage: fullPage
                 },

@@ -82,9 +82,9 @@ class ScraperService {
     }
 
     public async scrape(url: string, options: ScrapeOptions = {}): Promise<ScrapeResult> {
-        // Note: stealth is handled by Camoufox at C++ level, no need to pass it
         const { page, context } = await browserService.getPage({
-            profileId: options.profileId
+            profileId: options.profileId,
+            stealth: options.stealth
         });
         const startTime = Date.now();
         let statusCode = 0;
@@ -184,12 +184,8 @@ class ScraperService {
         } finally {
             const duration = Date.now() - startTime;
 
-            // Only release (close) if not a persistent profile
-            if (!options.profileId) {
-                await browserService.release(context);
-            } else {
-                console.log(`ℹ️ Keeping profile ${options.profileId} open (Persistent Mode)`);
-            }
+            // Release pages (for profiles, context stays open; pages are closed)
+            await browserService.release(context, options.profileId);
 
             // Async Logging
             prisma.requestLog.create({
@@ -265,7 +261,7 @@ class ScraperService {
 
             return await page.screenshot({ fullPage: true, type: 'jpeg', quality: 90 });
         } finally {
-            await browserService.release(context);
+            await browserService.release(context, options.profileId);
         }
     }
 
@@ -287,7 +283,7 @@ class ScraperService {
                 margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' }
             });
         } finally {
-            await browserService.release(context);
+            await browserService.release(context, options.profileId);
         }
     }
 

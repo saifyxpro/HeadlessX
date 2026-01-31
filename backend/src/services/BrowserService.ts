@@ -50,7 +50,7 @@ class BrowserService {
     /**
      * Launch Camoufox browser WITHOUT profile (returns Browser)
      */
-    private async launchDefaultBrowser(): Promise<Browser> {
+    private async launchDefaultBrowser(stealth?: boolean): Promise<Browser> {
         const config = await configService.getConfig();
 
         let proxyServer: string | undefined;
@@ -67,27 +67,33 @@ class BrowserService {
 
         console.log(`🦊 Launching Camoufox (Headless: ${config.browserHeadless}, Profile: default, Proxy: ${proxyConfig ? 'Enabled' : 'Disabled'})`);
 
+        // Speed Mode: Disable stealth features when stealth=false
+        const isSpeedMode = stealth === false;
+
         const camoufoxOptions: any = {
             headless: config.browserHeadless,
             proxy: proxyConfig,
-            geoip: proxyConfig && config.camoufoxGeoip,
-            // Enhanced anti-detection settings
-            os: 'windows',  // Always use Windows
-            humanize: config.camoufoxHumanize ?? 2.5,  // Higher = more human-like
-            block_webrtc: config.camoufoxBlockWebrtc ?? true,  // Block WebRTC leaks
+            geoip: isSpeedMode ? false : (proxyConfig && config.camoufoxGeoip),
+            // Stealth settings - DISABLED in speed mode
+            os: 'windows',
+            humanize: isSpeedMode ? false : (config.camoufoxHumanize ?? 2.5),
+            block_webrtc: isSpeedMode ? false : (config.camoufoxBlockWebrtc ?? true),
             block_images: config.camoufoxBlockImages ?? false,
             enable_cache: config.camoufoxEnableCache ?? true,
             // Fixed viewport size
             window: [1920, 1080],
-            // Firefox preferences for enhanced stealth
+            // Firefox preferences
             firefox_user_prefs: {
-                'privacy.resistFingerprinting': false,  // Let Camoufox handle this
+                'privacy.resistFingerprinting': false,
                 'dom.webdriver.enabled': false,
                 'useragentoverride': '',
                 'general.appversion.override': '',
                 'general.platform.override': '',
             },
         };
+
+        console.log(`🦊 Launching Camoufox (Mode: ${isSpeedMode ? '⚡ SPEED' : '🎭 STEALTH'}, Humanize: ${camoufoxOptions.humanize})`);
+
 
         // No user_data_dir = returns Browser
         const browser = await Camoufox(camoufoxOptions) as Browser;
@@ -212,12 +218,18 @@ class BrowserService {
     /**
      * Get or create default browser (no profile)
      */
-    private async getDefaultBrowser(): Promise<Browser> {
+    private async getDefaultBrowser(stealth?: boolean): Promise<Browser> {
+        // Always recreate browser for different stealth modes to ensure correct config
         if (this.defaultBrowser && this.defaultBrowser.isConnected()) {
-            return this.defaultBrowser;
+            // Close existing browser to apply new stealth settings
+            try {
+                await this.defaultBrowser.close();
+            } catch (e) {
+                // Ignore close errors
+            }
         }
 
-        this.defaultBrowser = await this.launchDefaultBrowser();
+        this.defaultBrowser = await this.launchDefaultBrowser(stealth);
         return this.defaultBrowser;
     }
 
@@ -225,8 +237,23 @@ class BrowserService {
      * Get or create context for specific profile
      */
     private async getProfileContext(profileId: string): Promise<BrowserContext> {
-        // Check if already running
-        const existing = this.profiles.get(profileId);
+        // Get profile from database first (support both ID and name)
+        let profile = await profileService.getById(profileId);
+
+        // If not found by ID, try by name (for user convenience)
+        if (!profile) {
+            profile = await profileService.getByName(profileId);
+        }
+
+        if (!profile) {
+            throw new Error(`Profile not found: ${profileId}`);
+        }
+
+        // Use actual profile ID for all operations
+        const actualProfileId = profile.id;
+
+        // Check if already running (use actual profile ID)
+        const existing = this.profiles.get(actualProfileId);
         if (existing && existing.type === 'context') {
             const ctx = existing.instance as BrowserContext;
             // Check if context is still alive by checking the browser connection
@@ -235,41 +262,36 @@ class BrowserService {
                 if (browser && browser.isConnected()) {
                     // Browser is still connected, context should be valid
                     // Ensure DB thinks it's running (in case it drifted)
-                    await profileService.setRunning(profileId, true);
+                    await profileService.setRunning(actualProfileId, true);
                     return ctx;
                 }
                 // Browser is disconnected, context is dead
-                console.log(`🔄 Profile ${profileId} browser disconnected, will relaunch`);
-                this.profiles.delete(profileId);
-                await profileService.setRunning(profileId, false);
+                console.log(`🔄 Profile ${profile.name} browser disconnected, will relaunch`);
+                this.profiles.delete(actualProfileId);
+                await profileService.setRunning(actualProfileId, false);
             } catch (error) {
                 // Context is dead, remove it
-                console.log(`🔄 Profile ${profileId} context error, will relaunch`);
-                this.profiles.delete(profileId);
-                await profileService.setRunning(profileId, false);
+                console.log(`🔄 Profile ${profile.name} context error, will relaunch`);
+                this.profiles.delete(actualProfileId);
+                await profileService.setRunning(actualProfileId, false);
             }
-        }
-
-        // Get profile from database
-        const profile = await profileService.getById(profileId);
-        if (!profile) {
-            throw new Error(`Profile not found: ${profileId}`);
         }
 
         // Launch with profile (returns Context)
         const context = await this.launchProfileContext(profile);
 
-        this.profiles.set(profileId, {
+        // Store using actual profile ID (UUID)
+        this.profiles.set(actualProfileId, {
             instance: context,
             type: 'context',
             proxyChainUrl: (context as any)._proxyChainUrl, // Retrieve from context object
-            profileId,
+            profileId: actualProfileId,  // Store actual UUID
             createdAt: new Date(),
         });
 
         // Update last used and running status
-        await profileService.updateLastUsed(profileId);
-        await profileService.setRunning(profileId, true);
+        await profileService.updateLastUsed(actualProfileId);
+        await profileService.setRunning(actualProfileId, true);
 
         return context;
     }
@@ -277,12 +299,26 @@ class BrowserService {
     /**
      * Get a ready-to-use Page with optional profile
      */
-    public async getPage(options?: BrowserContextOptions): Promise<{ page: Page; context: BrowserContext }> {
+    public async getPage(options?: BrowserContextOptions & { stealth?: boolean }): Promise<{ page: Page; context: BrowserContext }> {
         if (options?.profileId) {
             // Profile mode - get the persistent context directly
             try {
                 const context = await this.getProfileContext(options.profileId);
-                const page = await context.newPage();
+
+                // OPTIMIZATION: Reuse existing page instead of creating new one
+                const existingPages = context.pages();
+                let page: Page;
+
+                if (existingPages.length > 0) {
+                    // Reuse first available page
+                    page = existingPages[0];
+                    console.log(`⚡ Reusing existing page for profile (instant)`);
+                } else {
+                    // No pages exist, create one
+                    page = await context.newPage();
+                    console.log(`📄 Created new page for profile`);
+                }
+
                 return { page, context };
             } catch (error: any) {
                 // If context was closed, clear it and retry once
@@ -297,7 +333,7 @@ class BrowserService {
             }
         } else {
             // Default mode - get browser and create new context
-            const browser = await this.getDefaultBrowser();
+            const browser = await this.getDefaultBrowser(options?.stealth);
 
             const contextOptions: any = {
                 viewport: { width: 1920, height: 1080 },
@@ -327,32 +363,24 @@ class BrowserService {
      * Release resources (close context if not persistent)
      */
     public async release(context: BrowserContext, profileId?: string) {
-        // Don't close persistent profile contexts, just close the page
+        // For persistent profiles, do NOTHING - keep context and pages alive for reuse
         if (profileId && this.profiles.has(profileId)) {
-            // For persistent contexts, we keep them alive
-            // Close all pages instead
-            try {
-                const pages = context.pages();
-                for (const page of pages) {
-                    await page.close();
-                }
-            } catch {
-                // Context may be dead
-            }
-        } else {
-            // For non-persistent contexts, close entirely
-            try {
-                // Close local proxy chain if it exists for this context
-                const proxyChainUrl = (context as any)._proxyChainUrl;
-                if (proxyChainUrl) {
-                    await closeAnonymizedProxy(proxyChainUrl, true);
-                    console.log(`🔒 Closed local proxy bridge: ${proxyChainUrl}`);
-                }
+            console.log(`✅ Profile ${profileId} context kept alive for reuse`);
+            return; // Don't close anything for persistent profiles
+        }
 
-                await context.close();
-            } catch {
-                // Context may already be closed
+        // For non- persistent contexts (no profileId), close entirely
+        try {
+            // Close local proxy chain if it exists for this context
+            const proxyChainUrl = (context as any)._proxyChainUrl;
+            if (proxyChainUrl) {
+                await closeAnonymizedProxy(proxyChainUrl, true);
+                console.log(`🔒 Closed local proxy bridge: ${proxyChainUrl}`);
             }
+
+            await context.close();
+        } catch {
+            // Context may already be closed
         }
     }
 

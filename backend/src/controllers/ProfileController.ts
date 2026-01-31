@@ -320,8 +320,8 @@ export class ProfileController {
                 });
             }
 
-            // Launch browser with profile
-            const { page, context } = await browserService.getPageWithProfile(id);
+            // Launch browser with profile using the correct method
+            const { page, context } = await browserService.getPage({ profileId: id });
 
             // Update running status
             await profileService.setRunning(id, true);

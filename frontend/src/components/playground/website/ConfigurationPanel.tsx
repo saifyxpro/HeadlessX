@@ -90,6 +90,8 @@ interface ConfigurationPanelProps {
     setTimeoutValue: (val: number) => void;
     showAdvanced: boolean;
     setShowAdvanced: (show: boolean) => void;
+    stealth: boolean;
+    setStealth: (val: boolean) => void;
     isStreaming: boolean;
     isPending: boolean;
     onRun: () => void;
@@ -103,6 +105,7 @@ export function ConfigurationPanel({
     selector, setSelector,
     timeout, setTimeoutValue,
     showAdvanced, setShowAdvanced,
+    stealth, setStealth,
     isStreaming, isPending,
     onRun, onStop
 }: ConfigurationPanelProps) {
@@ -251,6 +254,30 @@ export function ConfigurationPanel({
                                         disabled={isDisabled}
                                         className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-500 hover:accent-slate-700 disabled:accent-slate-300"
                                     />
+                                </div>
+                                <div>
+                                    <div className="flex justify-between items-center mb-2">
+                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                            Stealth Mode
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setStealth(!stealth)}
+                                            disabled={isDisabled}
+                                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${stealth ? 'bg-blue-600' : 'bg-slate-300'
+                                                }`}
+                                        >
+                                            <span
+                                                className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${stealth ? 'translate-x-5' : 'translate-x-1'
+                                                    }`}
+                                            />
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                                        {stealth
+                                            ? '🎭 Human-like interactions enabled (slower, better detection evasion)'
+                                            : '⚡ Speed mode - fast scraping, minimal stealth (use with profiles for 2-5s)'}
+                                    </p>
                                 </div>
                             </div>
                         </div>

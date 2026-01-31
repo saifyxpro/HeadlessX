@@ -29,7 +29,7 @@ if (process.env.NEXT_PUBLIC_API_URL) {
 app.use(cors({
     origin: corsOrigins,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'x-api-key', 'Authorization'],
 }));
 app.use(express.json({ limit: process.env.BODY_LIMIT || '10mb' }));

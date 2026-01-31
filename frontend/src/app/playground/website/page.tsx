@@ -27,6 +27,7 @@ function WebsiteScraperContent() {
     const [selector, setSelector] = useState('');
     const [timeout, setTimeoutValue] = useState(30000);
     const [showAdvanced, setShowAdvanced] = useState(false);
+    const [stealth, setStealth] = useState(true); // Default: stealth enabled
 
     // Result & Progress State
     const [result, setResult] = useState<ScrapeResult | null>(null);
@@ -103,6 +104,7 @@ function WebsiteScraperContent() {
                     url,
                     type: outputType,
                     profileId: selectedProfileId || undefined,
+                    stealth: stealth, // Pass stealth parameter
                     fullPage: outputType === 'screenshot' ? true : undefined,
                     options: {
                         waitForSelector: selector || undefined,
@@ -202,6 +204,7 @@ function WebsiteScraperContent() {
                         selector={selector} setSelector={setSelector}
                         timeout={timeout} setTimeoutValue={setTimeoutValue}
                         showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}
+                        stealth={stealth} setStealth={setStealth}
                         isStreaming={isStreaming}
                         isPending={scrapeMutation.isPending}
                         onRun={() => scrapeMutation.mutate()}

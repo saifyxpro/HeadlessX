@@ -67,6 +67,7 @@ class StreamingScraperService {
             waitForSelector?: string;
             timeout?: number;
             profileId?: string;
+            stealth?: boolean; // false = speed mode, skip humanize
             jsEnabled?: boolean;
             fullPage?: boolean;  // For screenshots: true = full page scroll, false = viewport only
         },
@@ -89,7 +90,8 @@ class StreamingScraperService {
 
         try {
             const result = await browserService.getPage({
-                profileId: options.profileId
+                profileId: options.profileId,
+                stealth: options.stealth // Pass stealth for speed mode
             });
             page = result.page;
             context = result.context;
@@ -134,15 +136,20 @@ class StreamingScraperService {
             currentStep = 3;
             onProgress({ step: currentStep, total: totalSteps, message: 'Waiting for content...', status: 'active' });
 
-            // Light stealth interactions (fast)
-            try {
-                const viewportSize = page.viewportSize() || { width: 1280, height: 720 };
-                const randomX = Math.floor(Math.random() * (viewportSize.width * 0.6)) + 100;
-                const randomY = Math.floor(Math.random() * (viewportSize.height * 0.4)) + 100;
-                await page.mouse.move(randomX, randomY, { steps: 10 });
-                await this.humanScroll(page);
-            } catch (e) {
-                console.warn('Stealth interaction failed:', e);
+            // Stealth interactions - SKIP in speed mode
+            const shouldStealth = options.stealth !== false;
+            if (shouldStealth) {
+                try {
+                    const viewportSize = page.viewportSize() || { width: 1280, height: 720 };
+                    const randomX = Math.floor(Math.random() * (viewportSize.width * 0.6)) + 100;
+                    const randomY = Math.floor(Math.random() * (viewportSize.height * 0.4)) + 100;
+                    await page.mouse.move(randomX, randomY, { steps: 10 });
+                    await this.humanScroll(page);
+                } catch (e) {
+                    console.warn('Stealth interaction failed:', e);
+                }
+            } else {
+                console.log('⚡ Speed Mode: Skipping stealth interactions');
             }
 
             if (options.waitForSelector) {
