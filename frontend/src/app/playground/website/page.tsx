@@ -55,7 +55,7 @@ function WebsiteScraperContent() {
         if (startTime) {
             interval = setInterval(() => {
                 setElapsedTime(Date.now() - startTime);
-            }, 100);
+            }, 100) as NodeJS.Timeout;
         }
         return () => clearInterval(interval);
     }, [startTime]);

@@ -86,7 +86,7 @@ class ConfigService {
                     proxyUrl: dbConfig.proxy_url || undefined,
                     proxyProtocol: dbConfig.proxy_protocol || 'http',
 
-                    fingerprintProfile: dbConfig.fingerprint_profile,
+                    fingerprintProfile: envConfig.fingerprintProfile,
                     profileRotation: dbConfig.profile_rotation,
                     profileRotationInterval: dbConfig.profile_rotation_interval,
 
@@ -133,7 +133,7 @@ class ConfigService {
                     proxy_url: config.proxyUrl,
                     proxy_protocol: config.proxyProtocol,
 
-                    fingerprint_profile: config.fingerprintProfile,
+                    //fingerprint_profile: config.fingerprintProfile,
                     profile_rotation: config.profileRotation,
                     profile_rotation_interval: config.profileRotationInterval,
 

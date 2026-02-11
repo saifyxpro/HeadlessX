@@ -46,9 +46,9 @@ export function StatusButton({
 
         let timer: NodeJS.Timeout;
         if (internalStatus === 'loading') {
-            timer = setTimeout(() => setInternalStatus('success'), 2500);
+            timer = setTimeout(() => setInternalStatus('success'), 2500) as NodeJS.Timeout;
         } else if (internalStatus === 'success') {
-            timer = setTimeout(() => setInternalStatus('idle'), 2000);
+            timer = setTimeout(() => setInternalStatus('idle'), 2000) as NodeJS.Timeout;
         }
 
         return () => clearTimeout(timer);

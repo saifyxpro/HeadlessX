@@ -18,6 +18,7 @@
         "start:frontend": "pnpm --filter headlessx-frontend run start",
         "db:push": "pnpm --filter headlessx-backend run db:push",
         "db:migrate": "pnpm --filter headlessx-backend run db:migrate",
+        "db:deploy": "cross-env pnpm --filter headlessx-backend run db:deploy",
         "db:studio": "pnpm --filter headlessx-backend run db:studio",
         "camoufox:fetch": "pnpm --filter headlessx-backend exec npx camoufox-js fetch",
         "install:all": "pnpm install"

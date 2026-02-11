@@ -50,7 +50,7 @@ export default function GoogleSerpPage() {
             setElapsedTime(0);
             timerRef.current = setInterval(() => {
                 setElapsedTime(Date.now() - currentStartTime);
-            }, 100);
+            }, 100) as NodeJS.Timeout;
         } else {
             if (timerRef.current) {
                 clearInterval(timerRef.current);
@@ -158,7 +158,7 @@ export default function GoogleSerpPage() {
             setIsStreaming(false);
         } catch (err: any) {
             console.error('Stream error:', err);
-            setError(err.message || 'Connection failed');
+            setError((err as Error).message || 'Connection failed');
             setIsLoading(false);
             setIsStreaming(false);
         }
