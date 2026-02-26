@@ -211,6 +211,47 @@ class ProfileService {
     }
 
     /**
+     * Resolve profile by UUID, exact name, case-insensitive name, or default alias
+     */
+    public async resolveProfile(identifier: string): Promise<Profile | null> {
+        const normalized = identifier.trim();
+        if (!normalized) return null;
+
+        const byId = await this.getById(normalized);
+        if (byId) return byId;
+
+        const byExactName = await this.getByName(normalized);
+        if (byExactName) return byExactName;
+
+        const byInsensitiveName = await prisma.profile.findFirst({
+            where: {
+                name: {
+                    equals: normalized,
+                    mode: 'insensitive'
+                }
+            },
+            include: { proxy: true },
+        });
+        if (byInsensitiveName) return this.mapToProfile(byInsensitiveName);
+
+        if (normalized.toLowerCase() === 'default') {
+            const defaultProfile = await prisma.profile.findFirst({
+                where: {
+                    OR: [
+                        { name: { equals: 'Default Profile', mode: 'insensitive' } },
+                        { name: { contains: 'default', mode: 'insensitive' } }
+                    ]
+                },
+                orderBy: { created_at: 'asc' },
+                include: { proxy: true },
+            });
+            if (defaultProfile) return this.mapToProfile(defaultProfile);
+        }
+
+        return null;
+    }
+
+    /**
      * Update profile
      */
     public async update(id: string, input: UpdateProfileInput): Promise<Profile> {

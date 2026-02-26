@@ -2,6 +2,11 @@ import { Page } from 'playwright-core';
 import { browserService } from './BrowserService';
 import { markdownService } from './MarkdownService';
 import { configService } from './ConfigService';
+import {
+    cloudflareChallengeService,
+    CloudflareChallengeDetection,
+    CloudflareChallengeError
+} from './CloudflareChallengeService';
 
 export interface StreamProgress {
     step: number;
@@ -19,12 +24,13 @@ export interface StreamScrapeResult {
     statusCode?: number;
     metadata?: Record<string, any>;
     screenshot?: Buffer;
-    pdf?: Buffer;
     styles?: string[];
     scripts?: string[];
     inlineStyles?: string;
     inlineScripts?: string;
     error?: string;
+    code?: string;
+    challenge?: CloudflareChallengeDetection;
     duration: number;
 }
 
@@ -62,7 +68,7 @@ class StreamingScraperService {
      */
     public async scrapeWithProgress(
         url: string,
-        type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot' | 'pdf',
+        type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot',
         options: {
             waitForSelector?: string;
             timeout?: number;
@@ -97,7 +103,7 @@ class StreamingScraperService {
             context = result.context;
 
             // Set standard viewport for consistent screenshot quality
-            if (type === 'screenshot' || type === 'pdf') {
+            if (type === 'screenshot') {
                 await page.setViewportSize({ width: 1920, height: 1080 });
             }
 
@@ -129,6 +135,13 @@ class StreamingScraperService {
                 waitUntil: 'domcontentloaded',
                 timeout: requestTimeout
             });
+
+            const challengeDetection = await cloudflareChallengeService.detectAfterNavigation(page, {
+                recheck: options.jsEnabled || type === 'html-js' || type === 'html-css-js'
+            });
+            if (challengeDetection.detected) {
+                throw new CloudflareChallengeError(challengeDetection);
+            }
 
             onProgress({ step: currentStep, total: totalSteps, message: 'Page loaded', status: 'completed' });
 
@@ -165,13 +178,17 @@ class StreamingScraperService {
                 }
             }
 
+            const postWaitChallengeDetection = await cloudflareChallengeService.detect(page);
+            if (postWaitChallengeDetection.detected) {
+                throw new CloudflareChallengeError(postWaitChallengeDetection);
+            }
+
             onProgress({ step: 3, total: totalSteps, message: 'Content ready', status: 'completed' });
 
             // Step 4: Extracting data based on type
-            const extractMessage = type === 'screenshot' ? 'Taking screenshot...'
-                : type === 'pdf' ? 'Generating PDF...'
-                    : type === 'content' ? 'Extracting HTML...'
-                        : 'Extracting HTML...';
+            const extractMessage = type === 'screenshot'
+                ? 'Taking screenshot...'
+                : 'Extracting HTML...';
 
             onProgress({ step: 4, total: totalSteps, message: extractMessage, status: 'active' });
 
@@ -235,20 +252,6 @@ class StreamingScraperService {
                     success: true,
                     url,
                     screenshot: buffer,
-                    statusCode,
-                    duration: Date.now() - startTime
-                };
-            } else if (type === 'pdf') {
-                const buffer = await page.pdf({
-                    format: 'A4',
-                    printBackground: true,
-                    margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' }
-                });
-                onProgress({ step: 4, total: totalSteps, message: 'PDF generated', status: 'completed' });
-                resultData = {
-                    success: true,
-                    url,
-                    pdf: buffer,
                     statusCode,
                     duration: Date.now() - startTime
                 };
@@ -341,12 +344,22 @@ class StreamingScraperService {
             return resultData;
 
         } catch (error) {
+            const cloudflareError = error instanceof CloudflareChallengeError ? error : null;
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
             // Error occurred at currentStep
-            onProgress({ step: currentStep, total: totalSteps, message: `Error: ${(error as Error).message}`, status: 'error' });
+            onProgress({
+                step: currentStep,
+                total: totalSteps,
+                message: `Error: ${errorMessage}`,
+                status: 'error'
+            });
             return {
                 success: false,
                 url,
-                error: (error as Error).message,
+                error: errorMessage,
+                code: cloudflareError?.code,
+                challenge: cloudflareError?.challenge,
                 duration: Date.now() - startTime
             };
         } finally {

@@ -4,7 +4,7 @@ import { randomUUID } from 'crypto';
 export interface Job {
     id: string;
     url: string;
-    type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot' | 'pdf';
+    type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot';
     options: {
         waitForSelector?: string;
         timeout?: number;

@@ -151,7 +151,6 @@ function WebsiteScraperContent() {
                             }
                             if (data.result || (data.success && data.type)) { // Result
                                 if (data.type === 'screenshot') setResult({ type: 'image', data: data.data });
-                                else if (data.type === 'pdf') setResult({ type: 'pdf', data: data.data });
                                 else setResult({ type: data.type || 'html', data: data.data || data });
                             }
                             if (data.error) {

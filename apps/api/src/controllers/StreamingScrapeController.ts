@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 const StreamRequestSchema = z.object({
     url: z.string().url(),
-    type: z.enum(['html', 'html-js', 'html-css-js', 'content', 'screenshot', 'pdf']),
+    type: z.enum(['html', 'html-js', 'html-css-js', 'content', 'screenshot']),
     profileId: z.string().optional(),
     stealth: z.boolean().optional(), // Speed mode when false
     fullPage: z.boolean().optional(),
@@ -116,7 +116,11 @@ export class StreamingScrapeController {
                     api_key_id: req.apiKeyId || null,
                     url: url,
                     method: 'POST',
-                    status_code: result.success ? 200 : 500,
+                    status_code: result.success
+                        ? 200
+                        : result.code === 'CLOUDFLARE_CHALLENGE_DETECTED'
+                            ? 403
+                            : 500,
                     duration_ms: duration,
                     error_message: result.error || null,
                 }
@@ -306,6 +310,8 @@ export class StreamingScrapeController {
                 success: false,
                 type: 'error',
                 error: result.error,
+                code: result.code,
+                challenge: result.challenge,
                 duration: result.duration
             };
         }
@@ -315,13 +321,6 @@ export class StreamingScrapeController {
                 success: true,
                 type: 'screenshot',
                 data: `data:image/jpeg;base64,${result.screenshot.toString('base64')}`,
-                duration: result.duration
-            };
-        } else if (type === 'pdf' && result.pdf) {
-            return {
-                success: true,
-                type: 'pdf',
-                data: `data:application/pdf;base64,${result.pdf.toString('base64')}`,
                 duration: result.duration
             };
         } else if (type === 'content') {
