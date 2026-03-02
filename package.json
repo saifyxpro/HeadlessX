@@ -33,9 +33,9 @@
     },
     "devDependencies": {
         "@biomejs/biome": "^2.4.4",
-        "@nx/workspace": "^22.5.2",
+        "@nx/workspace": "^22.5.3",
         "knip": "^5.85.0",
-        "nx": "^22.5.2",
+        "nx": "^22.5.3",
         "only-allow": "^1.2.1"
     }
 }
