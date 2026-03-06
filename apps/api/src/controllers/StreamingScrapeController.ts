@@ -76,6 +76,15 @@ export class StreamingScrapeController {
             // Add this response as a listener for the job
             jobManager.addListener(job.id, sendEvent);
 
+            req.on('close', () => {
+                jobManager.removeListener(job.id, sendEvent);
+
+                const currentJob = jobManager.getJob(job.id);
+                if (currentJob && (currentJob.status === 'pending' || currentJob.status === 'running')) {
+                    jobManager.cancelJob(job.id);
+                }
+            });
+
             // Progress callback - stores in job and broadcasts
             const onProgress = (progress: StreamProgress) => {
                 console.log('⏳ Progress:', progress);
@@ -89,6 +98,8 @@ export class StreamingScrapeController {
                 url,
                 type,
                 {
+                    jobId: job.id,
+                    abortSignal: jobManager.getAbortSignal(job.id),
                     waitForSelector: options?.waitForSelector,
                     timeout: options?.timeout,
                     profileId,
@@ -102,12 +113,13 @@ export class StreamingScrapeController {
             // Complete the job
             jobManager.completeJob(job.id, result);
 
-            // Format and send result
-            const formattedResult = StreamingScrapeController.formatResult(type, result);
-            jobManager.broadcast(job.id, 'result', formattedResult);
-
-            // Close connection
-            jobManager.broadcast(job.id, 'done', { timestamp: Date.now() });
+            if (!result.cancelled && !jobManager.isCancelled(job.id)) {
+                const formattedResult = StreamingScrapeController.formatResult(type, result);
+                jobManager.broadcast(job.id, 'result', formattedResult);
+                jobManager.broadcast(job.id, 'done', { timestamp: Date.now() });
+            } else {
+                jobManager.broadcast(job.id, 'done', { timestamp: Date.now(), cancelled: true });
+            }
 
             // Log the request
             const duration = Date.now() - startTime;
@@ -198,7 +210,7 @@ export class StreamingScrapeController {
 
         // Include result if job is completed
         let formattedResult: any = null;
-        if (job.status === 'completed' && job.result) {
+        if ((job.status === 'completed' || job.status === 'cancelled') && job.result) {
             formattedResult = StreamingScrapeController.formatResult(job.type, job.result);
         }
 
@@ -308,10 +320,11 @@ export class StreamingScrapeController {
         if (!result.success) {
             return {
                 success: false,
-                type: 'error',
-                error: result.error,
+                type: result.cancelled ? 'cancelled' : 'error',
+                error: result.cancelled ? 'Job cancelled' : result.error,
                 code: result.code,
                 challenge: result.challenge,
+                cancelled: result.cancelled,
                 duration: result.duration
             };
         }

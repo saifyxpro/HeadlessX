@@ -16,15 +16,11 @@ import StackedList from "@/components/ui/stacked-list";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { OverviewSkeleton } from "./OverviewSkeleton";
 
-const DASHBOARD_API_KEY = process.env.NEXT_PUBLIC_DASHBOARD_API_KEY || "dashboard-internal";
-
 function RecentActivityList() {
     const { data: logsData } = useQuery({
         queryKey: ["dashboard-logs"],
         queryFn: async () => {
-            const res = await fetch('/api/logs?limit=5', {
-                headers: { 'x-api-key': DASHBOARD_API_KEY }
-            });
+            const res = await fetch('/api/logs?limit=5');
             if (!res.ok) throw new Error('Failed to fetch logs');
             return res.json();
         },
@@ -74,11 +70,7 @@ export default function Overview() {
     const { data: stats, isLoading } = useQuery({
         queryKey: ["dashboard-stats"],
         queryFn: async () => {
-            const res = await fetch('/api/dashboard/stats', {
-                headers: {
-                    'x-api-key': DASHBOARD_API_KEY
-                }
-            });
+            const res = await fetch('/api/dashboard/stats');
             if (!res.ok) throw new Error('Failed to fetch stats');
             return res.json();
         },

@@ -2,6 +2,12 @@ import { prisma } from '../database/client';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
+import {
+    decryptSecret,
+    normalizeSecretForCreate,
+    normalizeSecretForUpdate,
+    splitProxyUrlCredentials
+} from '../utils/security';
 
 export interface Profile {
     id: string;
@@ -60,6 +66,8 @@ export interface UpdateProfileInput {
     userAgent?: string | null;
     locale?: string;
     timezone?: string;
+    storageType?: 'local' | 'memory';
+    proxyMode?: 'none' | 'tor' | 'datacenter' | 'residential' | 'custom' | 'saved';
     proxyId?: string | null;
     proxyUrl?: string | null;
     proxyUsername?: string | null;
@@ -99,6 +107,8 @@ class ProfileService {
      * Map Prisma model to Profile interface
      */
     private mapToProfile(dbProfile: any): Profile {
+        const customProxyUrl = splitProxyUrlCredentials(dbProfile.proxy_url);
+
         return {
             id: dbProfile.id,
             name: dbProfile.name,
@@ -111,9 +121,9 @@ class ProfileService {
             storageType: dbProfile.storage_type,
             proxyMode: dbProfile.proxy_mode,
             proxyId: dbProfile.proxy_id,
-            proxyUrl: dbProfile.proxy_url,
-            proxyUsername: dbProfile.proxy_username,
-            proxyPassword: dbProfile.proxy_password,
+            proxyUrl: customProxyUrl.sanitizedUrl,
+            proxyUsername: dbProfile.proxy_username ?? customProxyUrl.username,
+            proxyPassword: decryptSecret(dbProfile.proxy_password) ?? customProxyUrl.password,
             isActive: dbProfile.is_active,
             isRunning: dbProfile.is_running,
             cookiesCount: dbProfile.cookies_count,
@@ -128,7 +138,7 @@ class ProfileService {
                 host: dbProfile.proxy.host,
                 port: dbProfile.proxy.port,
                 username: dbProfile.proxy.username,
-                password: dbProfile.proxy.password,
+                password: decryptSecret(dbProfile.proxy.password),
             } : null,
         };
     }
@@ -137,6 +147,11 @@ class ProfileService {
      * Create a new profile
      */
     public async create(input: CreateProfileInput): Promise<Profile> {
+        const normalizedProxyUrl = splitProxyUrlCredentials(input.proxyUrl);
+        const proxyUsername = input.proxyUsername ?? normalizedProxyUrl.username ?? undefined;
+        const proxyPassword = input.proxyPassword ?? normalizedProxyUrl.password ?? undefined;
+        const usesCustomProxy = (input.proxyMode ?? 'none') === 'custom';
+
         const profile = await prisma.profile.create({
             data: {
                 name: input.name,
@@ -149,9 +164,9 @@ class ProfileService {
                 storage_type: input.storageType ?? 'local',
                 proxy_mode: input.proxyMode ?? 'none',
                 proxy_id: input.proxyId || null,
-                proxy_url: input.proxyUrl,
-                proxy_username: input.proxyUsername,
-                proxy_password: input.proxyPassword,
+                proxy_url: usesCustomProxy ? (normalizedProxyUrl.sanitizedUrl ?? null) : null,
+                proxy_username: usesCustomProxy ? (proxyUsername ?? null) : null,
+                proxy_password: usesCustomProxy ? (normalizeSecretForCreate(proxyPassword) ?? null) : null,
             },
             include: { proxy: true },
         });
@@ -255,6 +270,11 @@ class ProfileService {
      * Update profile
      */
     public async update(id: string, input: UpdateProfileInput): Promise<Profile> {
+        const normalizedProxyUrl = splitProxyUrlCredentials(input.proxyUrl);
+        const proxyUsername = input.proxyUsername ?? normalizedProxyUrl.username ?? undefined;
+        const proxyPassword = input.proxyPassword ?? normalizedProxyUrl.password ?? undefined;
+        const clearsCustomProxy = input.proxyMode !== undefined && input.proxyMode !== 'custom';
+
         const profile = await prisma.profile.update({
             where: { id },
             data: {
@@ -265,10 +285,20 @@ class ProfileService {
                 user_agent: input.userAgent,
                 locale: input.locale,
                 timezone: input.timezone,
+                storage_type: input.storageType,
+                proxy_mode: input.proxyMode,
                 proxy_id: input.proxyId !== undefined ? (input.proxyId || null) : undefined,
-                proxy_url: input.proxyUrl,
-                proxy_username: input.proxyUsername,
-                proxy_password: input.proxyPassword,
+                proxy_url: clearsCustomProxy
+                    ? null
+                    : input.proxyUrl !== undefined
+                        ? (normalizedProxyUrl.sanitizedUrl ?? null)
+                        : undefined,
+                proxy_username: clearsCustomProxy
+                    ? null
+                    : proxyUsername !== undefined
+                        ? (proxyUsername || null)
+                        : undefined,
+                proxy_password: clearsCustomProxy ? null : normalizeSecretForUpdate(proxyPassword),
                 is_active: input.isActive,
             },
             include: { proxy: true },

@@ -1,13 +1,19 @@
 import { Request, Response } from 'express';
 import { proxyService } from '../services/ProxyService';
 
+const sanitizeProxy = (proxy: any) => ({
+    ...proxy,
+    has_password: Boolean(proxy.password),
+    password: undefined,
+});
+
 /**
  * List all proxies
  */
 export const list = async (req: Request, res: Response) => {
     try {
         const proxies = await proxyService.getAll();
-        res.json({ proxies });
+        res.json({ proxies: proxies.map(sanitizeProxy) });
     } catch (error: any) {
         console.error('❌ Proxy list error:', error);
         res.status(500).json({ error: 'Failed to fetch proxies' });
@@ -20,7 +26,7 @@ export const list = async (req: Request, res: Response) => {
 export const listActive = async (req: Request, res: Response) => {
     try {
         const proxies = await proxyService.getActive();
-        res.json({ proxies });
+        res.json({ proxies: proxies.map(sanitizeProxy) });
     } catch (error: any) {
         console.error('❌ Active proxy list error:', error);
         res.status(500).json({ error: 'Failed to fetch active proxies' });
@@ -39,7 +45,7 @@ export const get = async (req: Request, res: Response) => {
             return res.status(404).json({ error: 'Proxy not found' });
         }
 
-        res.json({ proxy });
+        res.json({ proxy: sanitizeProxy(proxy) });
     } catch (error: any) {
         console.error('❌ Proxy get error:', error);
         res.status(500).json({ error: 'Failed to fetch proxy' });
@@ -68,7 +74,7 @@ export const create = async (req: Request, res: Response) => {
             is_rotating: is_rotating || false,
         });
 
-        res.status(201).json({ proxy });
+        res.status(201).json({ proxy: sanitizeProxy(proxy) });
     } catch (error: any) {
         console.error('❌ Proxy create error:', error);
         if (error.code === 'P2002') {
@@ -91,7 +97,7 @@ export const update = async (req: Request, res: Response) => {
         }
 
         const proxy = await proxyService.update(id, data);
-        res.json({ proxy });
+        res.json({ proxy: sanitizeProxy(proxy) });
     } catch (error: any) {
         console.error('❌ Proxy update error:', error);
         if (error.code === 'P2025') {
@@ -125,7 +131,7 @@ export const toggleActive = async (req: Request, res: Response) => {
     try {
         const { id } = req.params as { id: string };
         const proxy = await proxyService.toggleActive(id);
-        res.json({ proxy });
+        res.json({ proxy: sanitizeProxy(proxy) });
     } catch (error: any) {
         console.error('❌ Proxy toggle error:', error);
         res.status(500).json({ error: 'Failed to toggle proxy status' });

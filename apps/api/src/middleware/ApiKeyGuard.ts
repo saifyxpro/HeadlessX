@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../database/client';
+import { hashApiKey, matchesInternalApiKey } from '../utils/security';
 
 // Add user property to Request
 declare global {
@@ -14,44 +15,51 @@ declare global {
 export const ApiKeyGuard = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const apiKey = req.headers['x-api-key'] as string;
-        const clientIp = req.ip || req.socket.remoteAddress;
-        const dashboardApiKey = process.env.DASHBOARD_INTERNAL_API_KEY || 'dashboard-internal';
+        const dashboardApiKey = process.env.DASHBOARD_INTERNAL_API_KEY?.trim();
 
-        // 1. Internal / Localhost Trust
-        // If request is from localhost, allow it (Dashboard usage)
-        if (clientIp === '::1' || clientIp === '127.0.0.1' || clientIp === '::ffff:127.0.0.1') {
+        if (dashboardApiKey && matchesInternalApiKey(apiKey, dashboardApiKey)) {
             req.isInternal = true;
             return next();
         }
 
-        // 2. Dashboard internal key (for frontend-backend communication)
-        if (apiKey === dashboardApiKey) {
-            req.isInternal = true;
-            return next();
-        }
-
-        // 3. Validate API Key
         if (!apiKey) {
             return res.status(401).json({ success: false, error: { code: 'MISSING_API_KEY', message: 'x-api-key header is missing' } });
         }
 
-        // Check DB
-        // Note: In production you might want to hash the key. For now we store plain for simplicity/mvp.
-        const keyRecord = await prisma.apiKey.findFirst({
+        const hashedApiKey = hashApiKey(apiKey);
+
+        let keyRecord = await prisma.apiKey.findFirst({
             where: {
-                key_hash: apiKey, // In real app, verify hash
+                key_hash: hashedApiKey,
                 is_active: true
             }
         });
 
         if (!keyRecord) {
+            keyRecord = await prisma.apiKey.findFirst({
+                where: {
+                    key_hash: apiKey,
+                    is_active: true
+                }
+            });
+
+            if (keyRecord) {
+                await prisma.apiKey.update({
+                    where: { id: keyRecord.id },
+                    data: {
+                        key_hash: hashedApiKey,
+                        prefix: apiKey.substring(0, 7)
+                    }
+                }).catch(() => { });
+            }
+        }
+
+        if (!keyRecord) {
             return res.status(403).json({ success: false, error: { code: 'INVALID_API_KEY', message: 'Invalid or revoked API Key' } });
         }
 
-        // 3. Attach Context & Update Stats
         req.apiKeyId = keyRecord.id;
 
-        // Update last_used (Fire and forget)
         prisma.apiKey.update({
             where: { id: keyRecord.id },
             data: { last_used_at: new Date() }

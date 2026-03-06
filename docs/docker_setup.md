@@ -30,15 +30,26 @@ The Docker setup uses environment variables defined in your `.env` file. Make su
 cp .env.example .env
 ```
 
+Before starting the stack, generate the required secrets and set them in `.env`:
+
+```bash
+openssl rand -hex 32  # DASHBOARD_INTERNAL_API_KEY
+openssl rand -hex 32  # CREDENTIAL_ENCRYPTION_KEY
+```
+
 ### Key Environment Variables
 
 | Variable | Default | Description |
 |---|---|---|
 | `PORT` | `8000` | The port the API runs on |
 | `WEB_PORT` | `3000` | The port the Web Dashboard runs on |
+| `DASHBOARD_INTERNAL_API_KEY` | none | Required shared secret between the dashboard server and API |
+| `CREDENTIAL_ENCRYPTION_KEY` | none | Required key for encrypting stored proxy/profile passwords |
 | `POSTGRES_USER` | `postgres` | Database username |
 | `POSTGRES_PASSWORD` | `postgres` | Database password |
 | `POSTGRES_DB` | `headlessx` | Database name |
+
+If either security variable is missing, the API container will fail fast during startup.
 
 ## Docker Profiles
 

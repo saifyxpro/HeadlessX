@@ -18,7 +18,7 @@ function toSnakeCase(profile: Profile) {
         proxy_id: profile.proxyId,
         proxy_url: profile.proxyUrl,
         proxy_username: profile.proxyUsername,
-        proxy_password: profile.proxyPassword,
+        proxy_password_configured: Boolean(profile.proxyPassword),
         is_active: profile.isActive,
         is_running: profile.isRunning,
         cookies_count: profile.cookiesCount,
@@ -26,7 +26,15 @@ function toSnakeCase(profile: Profile) {
         created_at: profile.createdAt,
         updated_at: profile.updatedAt,
         last_used_at: profile.lastUsedAt,
-        proxy: profile.proxy,
+        proxy: profile.proxy ? {
+            id: profile.proxy.id,
+            name: profile.proxy.name,
+            protocol: profile.proxy.protocol,
+            host: profile.proxy.host,
+            port: profile.proxy.port,
+            username: profile.proxy.username,
+            has_password: Boolean(profile.proxy.password),
+        } : null,
     };
 }
 

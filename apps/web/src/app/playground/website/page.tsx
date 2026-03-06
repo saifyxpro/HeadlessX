@@ -9,13 +9,9 @@ import { ScraperHeader } from '@/components/playground/website/ScraperHeader';
 import { ConfigurationPanel } from '@/components/playground/website/ConfigurationPanel';
 import { ResultsPanel } from '@/components/playground/website/ResultsPanel';
 
-const DASHBOARD_API_KEY = process.env.NEXT_PUBLIC_DASHBOARD_API_KEY || 'dashboard-internal';
-
 // Fetch profiles
 const fetchProfiles = async () => {
-    const res = await fetch('/api/profiles', {
-        headers: { 'x-api-key': DASHBOARD_API_KEY }
-    });
+    const res = await fetch('/api/profiles');
     // Handle potential API transform if needed, or assume consistent response
     return res.json();
 };
@@ -93,16 +89,10 @@ function WebsiteScraperContent() {
         setIsStreaming(true);
 
         try {
-            // For demo purposes in this refactor, we assume the backend endpoint exists
-            // Real implementation matches previous logic
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            const backendUrl = `${apiUrl}/api/website/stream`;
-
-            const response = await fetch(backendUrl, {
+            const response = await fetch('/api/website/stream', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'x-api-key': DASHBOARD_API_KEY
                 },
                 body: JSON.stringify({
                     url,

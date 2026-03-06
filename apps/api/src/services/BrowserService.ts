@@ -7,6 +7,7 @@ import { profileService, type Profile } from './ProfileService';
 import path from 'path';
 import fs from 'fs';
 import { anonymizeProxy, closeAnonymizedProxy } from 'proxy-chain';
+import { splitProxyUrlCredentials } from '../utils/security';
 
 interface BrowserContextOptions {
     // Note: stealth is handled at C++ level by Camoufox - no need for JS-level stealth
@@ -121,7 +122,12 @@ class BrowserService {
 
         if (profile.proxyUrl) {
             // Custom profile proxy URL
-            proxyConfig = { server: profile.proxyUrl };
+            const parsedCustomProxy = splitProxyUrlCredentials(profile.proxyUrl);
+            proxyConfig = {
+                server: parsedCustomProxy.sanitizedUrl || profile.proxyUrl,
+                username: profile.proxyUsername || parsedCustomProxy.username || undefined,
+                password: profile.proxyPassword || parsedCustomProxy.password || undefined
+            };
         } else if (profile.proxy) {
             // Saved proxy from database
             const { protocol, host, port, username, password } = profile.proxy;
@@ -207,6 +213,7 @@ class BrowserService {
 
         if (profile.timezone) {
             camoufoxOptions.firefox_user_prefs = {
+                ...camoufoxOptions.firefox_user_prefs,
                 'intl.timezone.override': profile.timezone,
             };
         }

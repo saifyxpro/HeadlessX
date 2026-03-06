@@ -8,6 +8,7 @@ import {
     CloudflareChallengeError
 } from './CloudflareChallengeService';
 import { waitForPageStability } from '../utils/pageStability';
+import { jobManager } from './JobManager';
 
 export interface StreamProgress {
     step: number;
@@ -18,6 +19,7 @@ export interface StreamProgress {
 
 export interface StreamScrapeResult {
     success: boolean;
+    cancelled?: boolean;
     url: string;
     html?: string;
     markdown?: string;
@@ -36,6 +38,13 @@ export interface StreamScrapeResult {
 }
 
 type ProgressCallback = (progress: StreamProgress) => void;
+
+class JobCancelledError extends Error {
+    constructor() {
+        super('Job cancelled');
+        this.name = 'JobCancelledError';
+    }
+}
 
 class StreamingScraperService {
     private static instance: StreamingScraperService;
@@ -71,6 +80,8 @@ class StreamingScraperService {
         url: string,
         type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot',
         options: {
+            jobId?: string;
+            abortSignal?: AbortSignal;
             waitForSelector?: string;
             timeout?: number;
             profileId?: string;
@@ -95,13 +106,23 @@ class StreamingScraperService {
         let page: Page;
         let context: any;
 
+        const throwIfCancelled = () => {
+            if (options.abortSignal?.aborted) {
+                throw new JobCancelledError();
+            }
+        };
+
         try {
+            throwIfCancelled();
             const result = await browserService.getPage({
                 profileId: options.profileId,
                 stealth: options.stealth // Pass stealth for speed mode
             });
             page = result.page;
             context = result.context;
+            if (options.jobId) {
+                jobManager.attachPage(options.jobId, page);
+            }
 
             // Set standard viewport for consistent screenshot quality
             if (type === 'screenshot') {
@@ -120,6 +141,8 @@ class StreamingScraperService {
         }
 
         try {
+            throwIfCancelled();
+
             // Capture status code
             page.on('response', response => {
                 if (response.url() === url) {
@@ -143,6 +166,7 @@ class StreamingScraperService {
             if (challengeDetection.detected) {
                 throw new CloudflareChallengeError(challengeDetection);
             }
+            throwIfCancelled();
 
             onProgress({ step: currentStep, total: totalSteps, message: 'Page loaded', status: 'completed' });
 
@@ -183,6 +207,7 @@ class StreamingScraperService {
                     maxWaitMs: Math.min(requestTimeout, 8000)
                 });
             }
+            throwIfCancelled();
 
             const postWaitChallengeDetection = await cloudflareChallengeService.detect(page);
             if (postWaitChallengeDetection.detected) {
@@ -201,6 +226,7 @@ class StreamingScraperService {
             let resultData: StreamScrapeResult;
 
             if (type === 'screenshot') {
+                throwIfCancelled();
                 const shouldFullPage = options.fullPage === true; // Only full page if explicitly set to true
 
                 // Hide sticky headers/footers BEFORE full-page screenshot only
@@ -263,6 +289,7 @@ class StreamingScraperService {
                 };
             } else {
                 // HTML or Content
+                throwIfCancelled();
                 const html = await page.content();
                 const title = await page.title();
                 const metadata = await page.evaluate(`(() => {
@@ -350,6 +377,26 @@ class StreamingScraperService {
             return resultData;
 
         } catch (error) {
+            const cancelled = error instanceof JobCancelledError || options.abortSignal?.aborted;
+
+            if (cancelled) {
+                onProgress({
+                    step: currentStep,
+                    total: totalSteps,
+                    message: 'Job cancelled',
+                    status: 'error'
+                });
+
+                return {
+                    success: false,
+                    cancelled: true,
+                    url,
+                    error: 'Job cancelled',
+                    code: 'JOB_CANCELLED',
+                    duration: Date.now() - startTime
+                };
+            }
+
             const cloudflareError = error instanceof CloudflareChallengeError ? error : null;
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
@@ -369,6 +416,9 @@ class StreamingScraperService {
                 duration: Date.now() - startTime
             };
         } finally {
+            if (options.jobId && page) {
+                jobManager.detachPage(options.jobId, page);
+            }
             await browserService.release(context, options.profileId);
         }
     }

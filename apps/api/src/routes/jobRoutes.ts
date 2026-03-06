@@ -1,7 +1,12 @@
 import { Router } from 'express';
 import { StreamingScrapeController } from '../controllers/StreamingScrapeController';
+import { ApiKeyGuard } from '../middleware/ApiKeyGuard';
+import { RequestLogger } from '../middleware/RequestLogger';
 
 const router = Router();
+
+router.use(RequestLogger);
+router.use(ApiKeyGuard);
 
 // Get active job
 router.get('/active', StreamingScrapeController.getActiveJob);

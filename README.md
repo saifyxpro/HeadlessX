@@ -224,9 +224,22 @@ cp .env.example .env
 # REQUIRED: Your PostgreSQL connection string
 DATABASE_URL="postgresql://user:password@host:5432/database"
 
+# REQUIRED: Internal dashboard/API secret
+DASHBOARD_INTERNAL_API_KEY="replace-with-a-long-random-string"
+
+# REQUIRED: Encryption key for stored proxy/profile passwords
+CREDENTIAL_ENCRYPTION_KEY="replace-with-a-different-long-random-string"
+
 # Optional: Server configuration
 PORT=8000
 NODE_ENV=development
+```
+
+Generate secure values before starting the app:
+
+```bash
+openssl rand -hex 32  # DASHBOARD_INTERNAL_API_KEY
+openssl rand -hex 32  # CREDENTIAL_ENCRYPTION_KEY
 ```
 
 ### 2️⃣ Install Dependencies & Setup
@@ -265,6 +278,8 @@ HeadlessX can be easily deployed using Docker Compose. See the [Docker Setup Gui
 # Start the application in detached mode
 docker compose -f infra/docker/docker-compose.yml up -d
 ```
+
+The Docker stack now requires `DASHBOARD_INTERNAL_API_KEY` and `CREDENTIAL_ENCRYPTION_KEY` in `.env`. The API will refuse to boot without them.
 
 ### 6️⃣ Access the Application
 
@@ -376,12 +391,16 @@ curl -X POST http://localhost:8000/api/website/html \
 
 Only the following core variables are required in `.env`:
 
-| Variable              | Default                 | Description                                     |
-| --------------------- | ----------------------- | ----------------------------------------------- |
-| `PORT`                | `8000`                  | Backend API port                                |
-| `WEB_PORT`            | `3000`                  | Frontend dashboard port                         |
-| `DATABASE_URL`        | -                       | PostgreSQL connection (Supabase or self-hosted) |
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Frontend API URL                                |
+| Variable                     | Default                 | Description                                               |
+| ---------------------------- | ----------------------- | --------------------------------------------------------- |
+| `PORT`                       | `8000`                  | Backend API port                                          |
+| `WEB_PORT`                   | `3000`                  | Frontend dashboard port                                   |
+| `DATABASE_URL`               | -                       | PostgreSQL connection (Supabase or self-hosted)           |
+| `NEXT_PUBLIC_API_URL`        | `http://localhost:8000` | Frontend API URL                                          |
+| `DASHBOARD_INTERNAL_API_KEY` | -                       | Required server-side secret for dashboard to API traffic  |
+| `CREDENTIAL_ENCRYPTION_KEY`  | -                       | Required key for encrypting stored proxy/profile passwords |
+
+The dashboard now proxies `/api/*` requests server-side. Do not expose `DASHBOARD_INTERNAL_API_KEY` to browser code or public env vars.
 
 ### Dashboard Settings
 
