@@ -9,9 +9,11 @@ import {
     cloudflareChallengeService,
     CloudflareChallengeError
 } from './CloudflareChallengeService';
+import { waitForPageStability } from '../utils/pageStability';
 
 export interface ScrapeOptions {
     waitForSelector?: string;
+    timeout?: number;
     jsEnabled?: boolean;
     screenshotOnError?: boolean;
     apiKeyId?: string;
@@ -120,9 +122,11 @@ class ScraperService {
 
             // Navigate
             const config = await configService.getConfig();
+            const requestTimeout = options.timeout ?? config.browserTimeout;
+
             await page.goto(url, {
                 waitUntil: 'domcontentloaded', // Faster, we wait intelligently later
-                timeout: config.browserTimeout
+                timeout: requestTimeout
             });
 
             await this.ensureNoCloudflareChallenge(page, options.jsEnabled);
@@ -156,16 +160,21 @@ class ScraperService {
             }
 
             if (options.waitForSelector) {
-                await page.waitForSelector(options.waitForSelector, { timeout: 10000 });
+                await page.waitForSelector(options.waitForSelector, { timeout: requestTimeout });
             }
 
             // Allow JS to settle if requested
             if (options.jsEnabled) {
                 try {
-                    await page.waitForLoadState('networkidle', { timeout: 15000 });
+                    await page.waitForLoadState('networkidle', { timeout: Math.min(requestTimeout, 15000) });
                 } catch (e) {
                     console.warn('Network idle wait timeout (proceeding anyway):', e);
                 }
+
+                await waitForPageStability(page, {
+                    selector: options.waitForSelector,
+                    maxWaitMs: Math.min(requestTimeout, 8000)
+                });
             }
 
             await this.ensureNoCloudflareChallenge(page, false);
@@ -229,7 +238,8 @@ class ScraperService {
             if (options.stealth) await this.injectAdvancedStealth(page);
 
             const config = await configService.getConfig();
-            await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+            const requestTimeout = options.timeout ?? 30000;
+            await page.goto(url, { waitUntil: 'networkidle', timeout: requestTimeout });
             await this.ensureNoCloudflareChallenge(page, false);
 
             // Native Playwright stealth interactions
@@ -248,7 +258,13 @@ class ScraperService {
                 }
             }
 
-            if (options.waitForSelector) await page.waitForSelector(options.waitForSelector);
+            if (options.waitForSelector) {
+                await page.waitForSelector(options.waitForSelector, { timeout: requestTimeout });
+                await waitForPageStability(page, {
+                    selector: options.waitForSelector,
+                    maxWaitMs: Math.min(requestTimeout, 8000)
+                });
+            }
 
             // Hide sticky headers/footers for clean full-page screenshot
             await page.evaluate(`(() => {

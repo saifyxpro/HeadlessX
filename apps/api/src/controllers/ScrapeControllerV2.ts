@@ -8,10 +8,12 @@ const ScrapeRequestSchema = z.object({
     profileId: z.string().optional(),
     // Backward-compatible top-level fields
     stealth: z.boolean().optional(),
+    timeout: z.number().optional(),
     waitForSelector: z.string().optional(),
     screenshotOnError: z.boolean().optional(),
     options: z.object({
         waitForSelector: z.string().optional(),
+        timeout: z.number().optional(),
         waitForTimeout: z.number().optional(),
         stealth: z.boolean().optional(),
         proxy: z.string().optional(),
@@ -23,6 +25,7 @@ type ScrapeRequestInput = z.infer<typeof ScrapeRequestSchema>;
 
 function normalizeOptions(input: ScrapeRequestInput) {
     return {
+        timeout: input.options?.timeout ?? input.options?.waitForTimeout ?? input.timeout,
         waitForSelector: input.options?.waitForSelector ?? input.waitForSelector,
         stealth: input.options?.stealth ?? input.stealth,
         screenshotOnError: input.options?.screenshotOnError ?? input.screenshotOnError ?? true,
@@ -69,6 +72,7 @@ export class ScrapeControllerV2 {
             const start = Date.now();
             const result = await scraperService.scrape(url, {
                 waitForSelector: normalized.waitForSelector,
+                timeout: normalized.timeout,
                 apiKeyId: req.apiKeyId,
                 profileId,
                 stealth: normalized.stealth,
@@ -101,6 +105,7 @@ export class ScrapeControllerV2 {
             // Force strict JS waiting
             const result = await scraperService.scrape(url, {
                 waitForSelector: normalized.waitForSelector || 'body',
+                timeout: normalized.timeout,
                 apiKeyId: req.apiKeyId,
                 profileId,
                 stealth: normalized.stealth ?? true, // Default to stealth for JS sites
@@ -131,6 +136,7 @@ export class ScrapeControllerV2 {
 
             const result = await scraperService.scrapeContent(url, {
                 waitForSelector: normalized.waitForSelector,
+                timeout: normalized.timeout,
                 apiKeyId: req.apiKeyId,
                 profileId,
                 stealth: normalized.stealth,
@@ -163,6 +169,7 @@ export class ScrapeControllerV2 {
             const normalized = normalizeOptions(parsed);
             const buffer = await scraperService.screenshot(url, {
                 waitForSelector: normalized.waitForSelector,
+                timeout: normalized.timeout,
                 apiKeyId: req.apiKeyId,
                 profileId,
                 stealth: normalized.stealth

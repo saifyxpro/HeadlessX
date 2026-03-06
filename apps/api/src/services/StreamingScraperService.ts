@@ -7,6 +7,7 @@ import {
     CloudflareChallengeDetection,
     CloudflareChallengeError
 } from './CloudflareChallengeService';
+import { waitForPageStability } from '../utils/pageStability';
 
 export interface StreamProgress {
     step: number;
@@ -172,10 +173,15 @@ class StreamingScraperService {
             // Only wait for networkidle on JS-heavy pages, with shorter timeout
             if (options.jsEnabled || type === 'html-js' || type === 'html-css-js') {
                 try {
-                    await page.waitForLoadState('networkidle', { timeout: 5000 });
+                    await page.waitForLoadState('networkidle', { timeout: Math.min(requestTimeout, 15000) });
                 } catch (e) {
                     // Timeout is fine, proceed anyway
                 }
+
+                await waitForPageStability(page, {
+                    selector: options.waitForSelector,
+                    maxWaitMs: Math.min(requestTimeout, 8000)
+                });
             }
 
             const postWaitChallengeDetection = await cloudflareChallengeService.detect(page);
