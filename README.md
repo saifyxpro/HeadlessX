@@ -282,7 +282,7 @@ You can customize ports via environment variables:
 PORT=8000 pnpm --filter api dev
 
 # Frontend
-PORT=3000 pnpm --filter web dev
+WEB_PORT=3000 pnpm --filter web dev
 ```
 
 ---
@@ -379,6 +379,7 @@ Only the following core variables are required in `.env`:
 | Variable              | Default                 | Description                                     |
 | --------------------- | ----------------------- | ----------------------------------------------- |
 | `PORT`                | `8000`                  | Backend API port                                |
+| `WEB_PORT`            | `3000`                  | Frontend dashboard port                         |
 | `DATABASE_URL`        | -                       | PostgreSQL connection (Supabase or self-hosted) |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | Frontend API URL                                |
 
