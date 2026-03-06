@@ -33,6 +33,9 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-headlessx}?schema=public
       - PORT=${PORT:-8000}
       - NODE_ENV=production
+      - FRONTEND_URL=http://localhost:${WEB_PORT:-3000}
+      - DASHBOARD_INTERNAL_API_KEY=${DASHBOARD_INTERNAL_API_KEY}
+      - CREDENTIAL_ENCRYPTION_KEY=${CREDENTIAL_ENCRYPTION_KEY}
     ports:
       - "${PORT:-8000}:${PORT:-8000}"
     volumes:
@@ -51,6 +54,7 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:${PORT:-8000}
       - NODE_ENV=production
+      - DASHBOARD_INTERNAL_API_KEY=${DASHBOARD_INTERNAL_API_KEY}
     ports:
       - "${WEB_PORT:-3000}:3000"
     networks:

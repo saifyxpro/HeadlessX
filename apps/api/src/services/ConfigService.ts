@@ -11,8 +11,7 @@ export interface SystemConfig {
     proxyUrl?: string;
     proxyProtocol?: string;
 
-    // Stealth Defaults
-    fingerprintProfile: string;
+    // Session behavior
     profileRotation: boolean;
     profileRotationInterval: number;
 
@@ -59,7 +58,6 @@ class ConfigService {
             proxyUrl: undefined,
             proxyProtocol: 'http',
 
-            fingerprintProfile: process.env.FINGERPRINT_PROFILE || 'desktop-chrome',
             profileRotation: process.env.PROFILE_ROTATION_ENABLED === 'true',
             profileRotationInterval: parseInt(process.env.PROFILE_ROTATION_INTERVAL || '3600000'),
 
@@ -86,7 +84,6 @@ class ConfigService {
                     proxyUrl: dbConfig.proxy_url || undefined,
                     proxyProtocol: dbConfig.proxy_protocol || 'http',
 
-                    fingerprintProfile: dbConfig.fingerprint_profile,
                     profileRotation: dbConfig.profile_rotation,
                     profileRotationInterval: dbConfig.profile_rotation_interval,
 
@@ -133,7 +130,6 @@ class ConfigService {
                     proxy_url: config.proxyUrl,
                     proxy_protocol: config.proxyProtocol,
 
-                    fingerprint_profile: config.fingerprintProfile,
                     profile_rotation: config.profileRotation,
                     profile_rotation_interval: config.profileRotationInterval,
 

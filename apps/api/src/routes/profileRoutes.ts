@@ -1,7 +1,12 @@
 import { Router } from 'express';
 import { ProfileController } from '../controllers/ProfileController';
+import { ApiKeyGuard } from '../middleware/ApiKeyGuard';
+import { RequestLogger } from '../middleware/RequestLogger';
 
 const router = Router();
+
+router.use(RequestLogger);
+router.use(ApiKeyGuard);
 
 // Profile statistics & recommendations
 router.get('/stats', ProfileController.stats);

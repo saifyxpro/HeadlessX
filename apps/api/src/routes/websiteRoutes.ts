@@ -20,7 +20,6 @@ router.post('/stream', StreamingScrapeController.streamScrape);
 
 // POST /api/website/html - Basic HTML scrape (fast, no JS)
 router.post('/html', ScrapeControllerV2.getHtml);
-router.post('/html', ScrapeControllerV2.getHtml);
 
 // POST /api/website/html-js - HTML with JavaScript rendering
 router.post('/html-js', ScrapeControllerV2.getHtmlJs);
@@ -30,8 +29,5 @@ router.post('/content', ScrapeControllerV2.getContent);
 
 // POST /api/website/screenshot - Full page screenshot (JPEG)
 router.post('/screenshot', ScrapeControllerV2.getScreenshot);
-
-// POST /api/website/pdf - PDF export
-router.post('/pdf', ScrapeControllerV2.getPdf);
 
 export default router;

@@ -2,6 +2,13 @@ import { Page } from 'playwright-core';
 import { browserService } from './BrowserService';
 import { markdownService } from './MarkdownService';
 import { configService } from './ConfigService';
+import {
+    cloudflareChallengeService,
+    CloudflareChallengeDetection,
+    CloudflareChallengeError
+} from './CloudflareChallengeService';
+import { waitForPageStability } from '../utils/pageStability';
+import { jobManager } from './JobManager';
 
 export interface StreamProgress {
     step: number;
@@ -12,6 +19,7 @@ export interface StreamProgress {
 
 export interface StreamScrapeResult {
     success: boolean;
+    cancelled?: boolean;
     url: string;
     html?: string;
     markdown?: string;
@@ -19,16 +27,24 @@ export interface StreamScrapeResult {
     statusCode?: number;
     metadata?: Record<string, any>;
     screenshot?: Buffer;
-    pdf?: Buffer;
     styles?: string[];
     scripts?: string[];
     inlineStyles?: string;
     inlineScripts?: string;
     error?: string;
+    code?: string;
+    challenge?: CloudflareChallengeDetection;
     duration: number;
 }
 
 type ProgressCallback = (progress: StreamProgress) => void;
+
+class JobCancelledError extends Error {
+    constructor() {
+        super('Job cancelled');
+        this.name = 'JobCancelledError';
+    }
+}
 
 class StreamingScraperService {
     private static instance: StreamingScraperService;
@@ -62,8 +78,10 @@ class StreamingScraperService {
      */
     public async scrapeWithProgress(
         url: string,
-        type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot' | 'pdf',
+        type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot',
         options: {
+            jobId?: string;
+            abortSignal?: AbortSignal;
             waitForSelector?: string;
             timeout?: number;
             profileId?: string;
@@ -88,16 +106,26 @@ class StreamingScraperService {
         let page: Page;
         let context: any;
 
+        const throwIfCancelled = () => {
+            if (options.abortSignal?.aborted) {
+                throw new JobCancelledError();
+            }
+        };
+
         try {
+            throwIfCancelled();
             const result = await browserService.getPage({
                 profileId: options.profileId,
                 stealth: options.stealth // Pass stealth for speed mode
             });
             page = result.page;
             context = result.context;
+            if (options.jobId) {
+                jobManager.attachPage(options.jobId, page);
+            }
 
             // Set standard viewport for consistent screenshot quality
-            if (type === 'screenshot' || type === 'pdf') {
+            if (type === 'screenshot') {
                 await page.setViewportSize({ width: 1920, height: 1080 });
             }
 
@@ -113,6 +141,8 @@ class StreamingScraperService {
         }
 
         try {
+            throwIfCancelled();
+
             // Capture status code
             page.on('response', response => {
                 if (response.url() === url) {
@@ -129,6 +159,14 @@ class StreamingScraperService {
                 waitUntil: 'domcontentloaded',
                 timeout: requestTimeout
             });
+
+            const challengeDetection = await cloudflareChallengeService.detectAfterNavigation(page, {
+                recheck: options.jsEnabled || type === 'html-js' || type === 'html-css-js'
+            });
+            if (challengeDetection.detected) {
+                throw new CloudflareChallengeError(challengeDetection);
+            }
+            throwIfCancelled();
 
             onProgress({ step: currentStep, total: totalSteps, message: 'Page loaded', status: 'completed' });
 
@@ -159,25 +197,36 @@ class StreamingScraperService {
             // Only wait for networkidle on JS-heavy pages, with shorter timeout
             if (options.jsEnabled || type === 'html-js' || type === 'html-css-js') {
                 try {
-                    await page.waitForLoadState('networkidle', { timeout: 5000 });
+                    await page.waitForLoadState('networkidle', { timeout: Math.min(requestTimeout, 15000) });
                 } catch (e) {
                     // Timeout is fine, proceed anyway
                 }
+
+                await waitForPageStability(page, {
+                    selector: options.waitForSelector,
+                    maxWaitMs: Math.min(requestTimeout, 8000)
+                });
+            }
+            throwIfCancelled();
+
+            const postWaitChallengeDetection = await cloudflareChallengeService.detect(page);
+            if (postWaitChallengeDetection.detected) {
+                throw new CloudflareChallengeError(postWaitChallengeDetection);
             }
 
             onProgress({ step: 3, total: totalSteps, message: 'Content ready', status: 'completed' });
 
             // Step 4: Extracting data based on type
-            const extractMessage = type === 'screenshot' ? 'Taking screenshot...'
-                : type === 'pdf' ? 'Generating PDF...'
-                    : type === 'content' ? 'Extracting HTML...'
-                        : 'Extracting HTML...';
+            const extractMessage = type === 'screenshot'
+                ? 'Taking screenshot...'
+                : 'Extracting HTML...';
 
             onProgress({ step: 4, total: totalSteps, message: extractMessage, status: 'active' });
 
             let resultData: StreamScrapeResult;
 
             if (type === 'screenshot') {
+                throwIfCancelled();
                 const shouldFullPage = options.fullPage === true; // Only full page if explicitly set to true
 
                 // Hide sticky headers/footers BEFORE full-page screenshot only
@@ -238,22 +287,9 @@ class StreamingScraperService {
                     statusCode,
                     duration: Date.now() - startTime
                 };
-            } else if (type === 'pdf') {
-                const buffer = await page.pdf({
-                    format: 'A4',
-                    printBackground: true,
-                    margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' }
-                });
-                onProgress({ step: 4, total: totalSteps, message: 'PDF generated', status: 'completed' });
-                resultData = {
-                    success: true,
-                    url,
-                    pdf: buffer,
-                    statusCode,
-                    duration: Date.now() - startTime
-                };
             } else {
                 // HTML or Content
+                throwIfCancelled();
                 const html = await page.content();
                 const title = await page.title();
                 const metadata = await page.evaluate(`(() => {
@@ -341,15 +377,48 @@ class StreamingScraperService {
             return resultData;
 
         } catch (error) {
+            const cancelled = error instanceof JobCancelledError || options.abortSignal?.aborted;
+
+            if (cancelled) {
+                onProgress({
+                    step: currentStep,
+                    total: totalSteps,
+                    message: 'Job cancelled',
+                    status: 'error'
+                });
+
+                return {
+                    success: false,
+                    cancelled: true,
+                    url,
+                    error: 'Job cancelled',
+                    code: 'JOB_CANCELLED',
+                    duration: Date.now() - startTime
+                };
+            }
+
+            const cloudflareError = error instanceof CloudflareChallengeError ? error : null;
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
             // Error occurred at currentStep
-            onProgress({ step: currentStep, total: totalSteps, message: `Error: ${(error as Error).message}`, status: 'error' });
+            onProgress({
+                step: currentStep,
+                total: totalSteps,
+                message: `Error: ${errorMessage}`,
+                status: 'error'
+            });
             return {
                 success: false,
                 url,
-                error: (error as Error).message,
+                error: errorMessage,
+                code: cloudflareError?.code,
+                challenge: cloudflareError?.challenge,
                 duration: Date.now() - startTime
             };
         } finally {
+            if (options.jobId && page) {
+                jobManager.detachPage(options.jobId, page);
+            }
             await browserService.release(context, options.profileId);
         }
     }

@@ -7,6 +7,7 @@ import { profileService, type Profile } from './ProfileService';
 import path from 'path';
 import fs from 'fs';
 import { anonymizeProxy, closeAnonymizedProxy } from 'proxy-chain';
+import { splitProxyUrlCredentials } from '../utils/security';
 
 interface BrowserContextOptions {
     // Note: stealth is handled at C++ level by Camoufox - no need for JS-level stealth
@@ -17,6 +18,7 @@ interface BrowserContextOptions {
 // When using user_data_dir, Camoufox returns a BrowserContext directly
 // When not using user_data_dir, it returns a Browser
 type CamoufoxInstance = Browser | BrowserContext;
+type DefaultBrowserMode = 'speed' | 'stealth';
 
 interface ManagedInstance {
     instance: CamoufoxInstance;
@@ -30,6 +32,7 @@ class BrowserService {
     private static instance: BrowserService;
     private profiles: Map<string, ManagedInstance> = new Map();
     private defaultBrowser: Browser | null = null;
+    private defaultBrowserMode: DefaultBrowserMode | null = null;
     private isClosing = false;
     private readonly profilesDir: string;
 
@@ -45,6 +48,10 @@ class BrowserService {
             BrowserService.instance = new BrowserService();
         }
         return BrowserService.instance;
+    }
+
+    private getDefaultMode(stealth?: boolean): DefaultBrowserMode {
+        return stealth === false ? 'speed' : 'stealth';
     }
 
     /**
@@ -115,7 +122,12 @@ class BrowserService {
 
         if (profile.proxyUrl) {
             // Custom profile proxy URL
-            proxyConfig = { server: profile.proxyUrl };
+            const parsedCustomProxy = splitProxyUrlCredentials(profile.proxyUrl);
+            proxyConfig = {
+                server: parsedCustomProxy.sanitizedUrl || profile.proxyUrl,
+                username: profile.proxyUsername || parsedCustomProxy.username || undefined,
+                password: profile.proxyPassword || parsedCustomProxy.password || undefined
+            };
         } else if (profile.proxy) {
             // Saved proxy from database
             const { protocol, host, port, username, password } = profile.proxy;
@@ -201,6 +213,7 @@ class BrowserService {
 
         if (profile.timezone) {
             camoufoxOptions.firefox_user_prefs = {
+                ...camoufoxOptions.firefox_user_prefs,
                 'intl.timezone.override': profile.timezone,
             };
         }
@@ -219,17 +232,23 @@ class BrowserService {
      * Get or create default browser (no profile)
      */
     private async getDefaultBrowser(stealth?: boolean): Promise<Browser> {
-        // Always recreate browser for different stealth modes to ensure correct config
+        const requestedMode = this.getDefaultMode(stealth);
+
+        // Keep browser warm and reuse it when mode is unchanged.
+        if (this.defaultBrowser && this.defaultBrowser.isConnected() && this.defaultBrowserMode === requestedMode) {
+            return this.defaultBrowser;
+        }
+
         if (this.defaultBrowser && this.defaultBrowser.isConnected()) {
-            // Close existing browser to apply new stealth settings
             try {
                 await this.defaultBrowser.close();
-            } catch (e) {
+            } catch {
                 // Ignore close errors
             }
         }
 
         this.defaultBrowser = await this.launchDefaultBrowser(stealth);
+        this.defaultBrowserMode = requestedMode;
         return this.defaultBrowser;
     }
 
@@ -237,13 +256,8 @@ class BrowserService {
      * Get or create context for specific profile
      */
     private async getProfileContext(profileId: string): Promise<BrowserContext> {
-        // Get profile from database first (support both ID and name)
-        let profile = await profileService.getById(profileId);
-
-        // If not found by ID, try by name (for user convenience)
-        if (!profile) {
-            profile = await profileService.getByName(profileId);
-        }
+        // Resolve by UUID, exact/case-insensitive name, and "default" alias
+        const profile = await profileService.resolveProfile(profileId);
 
         if (!profile) {
             throw new Error(`Profile not found: ${profileId}`);
@@ -324,7 +338,8 @@ class BrowserService {
                 // If context was closed, clear it and retry once
                 if (error.message?.includes('closed') || error.message?.includes('Target')) {
                     console.log(`🔄 Context closed for profile ${options.profileId}, relaunching...`);
-                    this.profiles.delete(options.profileId);
+                    const resolvedProfile = await profileService.resolveProfile(options.profileId);
+                    this.profiles.delete(resolvedProfile?.id || options.profileId);
                     const context = await this.getProfileContext(options.profileId);
                     const page = await context.newPage();
                     return { page, context };
@@ -370,8 +385,7 @@ class BrowserService {
 
             // If not found by profileId directly, try to find by looking up the profile
             if (!this.profiles.has(profileId)) {
-                // profileId might be a name, need to find the actual UUID
-                const profile = await profileService.getByName(profileId);
+                const profile = await profileService.resolveProfile(profileId);
                 if (profile) {
                     actualProfileId = profile.id;
                 }
@@ -402,7 +416,9 @@ class BrowserService {
      * Close specific profile context
      */
     public async closeProfile(profileId: string) {
-        const managed = this.profiles.get(profileId);
+        const resolvedProfile = await profileService.resolveProfile(profileId);
+        const actualProfileId = resolvedProfile?.id || profileId;
+        const managed = this.profiles.get(actualProfileId);
         if (managed) {
             try {
                 // Close local proxy chain if exists
@@ -414,10 +430,12 @@ class BrowserService {
             } catch {
                 // Already closed
             }
-            this.profiles.delete(profileId);
+            this.profiles.delete(actualProfileId);
             // Update database status
-            await profileService.setRunning(profileId, false);
-            console.log(`🔒 Closed browser for profile: ${profileId}`);
+            if (resolvedProfile) {
+                await profileService.setRunning(actualProfileId, false);
+            }
+            console.log(`🔒 Closed browser for profile: ${actualProfileId}`);
         }
     }
 
@@ -445,6 +463,7 @@ class BrowserService {
             await this.defaultBrowser.close();
             this.defaultBrowser = null;
         }
+        this.defaultBrowserMode = null;
 
         console.log('✅ All browsers closed');
     }

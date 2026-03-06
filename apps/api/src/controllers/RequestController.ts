@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../database/client';
 import crypto from 'crypto';
+import { hashApiKey } from '../utils/security';
 
 export class RequestController {
 
@@ -96,7 +97,7 @@ export class RequestController {
             await prisma.apiKey.create({
                 data: {
                     name: name || 'Unnamed Key',
-                    key_hash: key, // Storing plain for MVP as requested, usually hash this!
+                    key_hash: hashApiKey(key),
                     prefix: key.substring(0, 7)
                 }
             });

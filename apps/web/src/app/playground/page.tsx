@@ -26,11 +26,11 @@ const SCRAPERS = [
         id: 'website',
         name: 'Website Scraper',
         tagline: 'Universal web extractor',
-        description: 'Scrape HTML, render JavaScript, capture screenshots, and export to PDF with enterprise-grade stealth technology.',
+        description: 'Scrape HTML, render JavaScript, and capture screenshots with enterprise-grade stealth technology.',
         icon: Globe02Icon,
         available: true,
         href: '/playground/website',
-        features: ['HTML Extraction', 'JS Rendering', 'Screenshots', 'PDF Export'],
+        features: ['HTML Extraction', 'JS Rendering', 'Screenshots'],
         color: 'text-blue-600',
         bg: 'bg-blue-600/10'
     },

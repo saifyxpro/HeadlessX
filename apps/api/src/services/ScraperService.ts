@@ -5,9 +5,15 @@ import { browserService } from './BrowserService';
 import { markdownService } from './MarkdownService';
 import { configService } from './ConfigService';
 import { prisma } from '../database/client';
+import {
+    cloudflareChallengeService,
+    CloudflareChallengeError
+} from './CloudflareChallengeService';
+import { waitForPageStability } from '../utils/pageStability';
 
 export interface ScrapeOptions {
     waitForSelector?: string;
+    timeout?: number;
     jsEnabled?: boolean;
     screenshotOnError?: boolean;
     apiKeyId?: string;
@@ -81,6 +87,16 @@ class ScraperService {
         })()`);
     }
 
+    private async ensureNoCloudflareChallenge(page: Page, jsEnabled = false) {
+        const detection = await cloudflareChallengeService.detectAfterNavigation(page, {
+            recheck: jsEnabled
+        });
+
+        if (detection.detected) {
+            throw new CloudflareChallengeError(detection);
+        }
+    }
+
     public async scrape(url: string, options: ScrapeOptions = {}): Promise<ScrapeResult> {
         const { page, context } = await browserService.getPage({
             profileId: options.profileId,
@@ -106,10 +122,14 @@ class ScraperService {
 
             // Navigate
             const config = await configService.getConfig();
+            const requestTimeout = options.timeout ?? config.browserTimeout;
+
             await page.goto(url, {
                 waitUntil: 'domcontentloaded', // Faster, we wait intelligently later
-                timeout: config.browserTimeout
+                timeout: requestTimeout
             });
+
+            await this.ensureNoCloudflareChallenge(page, options.jsEnabled);
 
             // Wait for network idle manually or specific condition
             // await page.waitForLoadState('networkidle'); // Can be flaky, use smart wait if needed
@@ -140,17 +160,24 @@ class ScraperService {
             }
 
             if (options.waitForSelector) {
-                await page.waitForSelector(options.waitForSelector, { timeout: 10000 });
+                await page.waitForSelector(options.waitForSelector, { timeout: requestTimeout });
             }
 
             // Allow JS to settle if requested
             if (options.jsEnabled) {
                 try {
-                    await page.waitForLoadState('networkidle', { timeout: 15000 });
+                    await page.waitForLoadState('networkidle', { timeout: Math.min(requestTimeout, 15000) });
                 } catch (e) {
                     console.warn('Network idle wait timeout (proceeding anyway):', e);
                 }
+
+                await waitForPageStability(page, {
+                    selector: options.waitForSelector,
+                    maxWaitMs: Math.min(requestTimeout, 8000)
+                });
             }
+
+            await this.ensureNoCloudflareChallenge(page, false);
 
             // Extract Data
             const html = await page.content();
@@ -204,13 +231,16 @@ class ScraperService {
 
     public async screenshot(url: string, options: ScrapeOptions = {}): Promise<Buffer> {
         const { page, context } = await browserService.getPage({
-            profileId: options.profileId
+            profileId: options.profileId,
+            stealth: options.stealth
         });
         try {
             if (options.stealth) await this.injectAdvancedStealth(page);
 
             const config = await configService.getConfig();
-            await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+            const requestTimeout = options.timeout ?? 30000;
+            await page.goto(url, { waitUntil: 'networkidle', timeout: requestTimeout });
+            await this.ensureNoCloudflareChallenge(page, false);
 
             // Native Playwright stealth interactions
             // Fix: Respect explicit stealth: false from options
@@ -228,7 +258,13 @@ class ScraperService {
                 }
             }
 
-            if (options.waitForSelector) await page.waitForSelector(options.waitForSelector);
+            if (options.waitForSelector) {
+                await page.waitForSelector(options.waitForSelector, { timeout: requestTimeout });
+                await waitForPageStability(page, {
+                    selector: options.waitForSelector,
+                    maxWaitMs: Math.min(requestTimeout, 8000)
+                });
+            }
 
             // Hide sticky headers/footers for clean full-page screenshot
             await page.evaluate(`(() => {
@@ -259,34 +295,13 @@ class ScraperService {
 
             await page.waitForTimeout(300);
 
+            await this.ensureNoCloudflareChallenge(page, false);
+
             return await page.screenshot({ fullPage: true, type: 'jpeg', quality: 90 });
         } finally {
             await browserService.release(context, options.profileId);
         }
     }
-
-    public async pdf(url: string, options: ScrapeOptions = {}): Promise<Buffer> {
-        const { page, context } = await browserService.getPage({
-            profileId: options.profileId
-        });
-        try {
-            if (options.stealth) await this.injectAdvancedStealth(page);
-            await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
-
-            const config = await configService.getConfig();
-            if (options.waitForSelector) await page.waitForSelector(options.waitForSelector);
-
-            // PDF specific settings
-            return await page.pdf({
-                format: 'A4',
-                printBackground: true,
-                margin: { top: '1cm', right: '1cm', bottom: '1cm', left: '1cm' }
-            });
-        } finally {
-            await browserService.release(context, options.profileId);
-        }
-    }
-
 
     /**
      * Scrape and convert to Markdown

@@ -22,18 +22,16 @@ import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/PageHeader";
 import ProxiesTab from "@/components/dashboard/ProxiesTab";
 
-const DASHBOARD_API_KEY = process.env.NEXT_PUBLIC_DASHBOARD_API_KEY || 'dashboard-internal';
-
 // --- API Functions ---
 const fetchConfig = async () => {
-    const res = await fetch('/api/config', { headers: { 'x-api-key': DASHBOARD_API_KEY } });
+    const res = await fetch('/api/config');
     return res.json();
 };
 
 const updateConfig = async (data: any) => {
     const res = await fetch('/api/config', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': DASHBOARD_API_KEY },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
     });
     const json = await res.json();

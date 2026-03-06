@@ -8,12 +8,8 @@ import { ConfigurationPanel } from '@/components/playground/google-serp/Configur
 import { ResultsPanel } from '@/components/playground/google-serp/ResultsPanel';
 import { SearchResponse, Profile, ProgressStep } from '@/components/playground/google-serp/types';
 
-const DASHBOARD_API_KEY = process.env.NEXT_PUBLIC_DASHBOARD_API_KEY || 'dashboard-internal';
-
 const fetchProfiles = async () => {
-    const res = await fetch('/api/profiles', {
-        headers: { 'x-api-key': DASHBOARD_API_KEY }
-    });
+    const res = await fetch('/api/profiles');
     return res.json();
 };
 
@@ -78,16 +74,13 @@ export default function GoogleSerpPage() {
         try {
             const encodedQuery = encodeURIComponent(query);
             const encodedProfileId = selectedProfileId ? `&profileId=${encodeURIComponent(selectedProfileId)}` : '';
-            // Use direct backend URL to avoid Next.js proxy buffering SSE
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-            const streamUrl = `${apiUrl}/api/google-serp/stream?query=${encodedQuery}${encodedProfileId}&timeout=${timeout}`;
+            const streamUrl = `/api/google-serp/stream?query=${encodedQuery}${encodedProfileId}&timeout=${timeout}`;
 
             // Use fetch + ReadableStream instead of EventSource for better SSE handling
             const response = await fetch(streamUrl, {
                 method: 'GET',
                 headers: {
                     'Accept': 'text/event-stream',
-                    'x-api-key': DASHBOARD_API_KEY
                 },
             });
 

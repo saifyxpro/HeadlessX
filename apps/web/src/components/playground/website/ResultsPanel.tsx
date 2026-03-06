@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Terminal, ChevronUp, ChevronDown, Download, Copy, Check, Code,
-    Search, XCircle, Loader2, FileDown, AlertCircle
+    Search, XCircle, Loader2
 } from 'lucide-react';
 import { ScrapeResult, ProgressStep } from './types';
 
@@ -86,10 +86,10 @@ export function ResultsPanel({
             content = data.markdown || '';
             filename = `scrape-${new Date().toISOString().slice(0, 10)}.md`;
             mimeType = 'text/markdown';
-        } else if (result.type === 'image' || result.type === 'pdf') {
+        } else if (result.type === 'image') {
             const link = document.createElement('a');
             link.href = result.data as string;
-            link.download = `download-${Date.now()}.${result.type === 'pdf' ? 'pdf' : 'png'}`;
+            link.download = `download-${Date.now()}.png`;
             link.click();
             return;
         } else {
@@ -127,7 +127,7 @@ export function ResultsPanel({
                 </div>
 
                 <div className="flex items-center gap-2">
-                    {result && !['error', 'image', 'pdf'].includes(result.type) && canExpand && (
+                    {result && !['error', 'image'].includes(result.type) && canExpand && (
                         <button
                             onClick={() => setExpanded(!expanded)}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/50 hover:bg-white text-slate-600 text-xs font-bold transition-all border border-transparent hover:border-slate-200"
@@ -286,14 +286,6 @@ export function ResultsPanel({
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
                                     <img src={result.data as string} alt="Screenshot" className="max-w-full h-auto block" />
                                 </div>
-                            </div>
-                        )}
-
-                        {/* PDF View */}
-                        {result.type === 'pdf' && (
-                            <div className="h-full flex flex-col items-center justify-center">
-                                <FileDown className="w-24 h-24 text-slate-300 mb-6" />
-                                <p className="text-lg font-bold text-slate-600">PDF Ready</p>
                             </div>
                         )}
 

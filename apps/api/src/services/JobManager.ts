@@ -1,10 +1,11 @@
-import { StreamProgress, StreamScrapeResult } from './StreamingScraperService';
+import type { StreamProgress, StreamScrapeResult } from './StreamingScraperService';
 import { randomUUID } from 'crypto';
+import type { Page } from 'playwright-core';
 
 export interface Job {
     id: string;
     url: string;
-    type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot' | 'pdf';
+    type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot';
     options: {
         waitForSelector?: string;
         timeout?: number;
@@ -19,6 +20,8 @@ export interface Job {
     updatedAt: number;
     // SSE listeners for broadcasting progress
     listeners: Set<(event: string, data: any) => void>;
+    abortController: AbortController;
+    activePage: Page | null;
 }
 
 const JOB_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
@@ -57,7 +60,9 @@ class JobManager {
             progress: [],
             createdAt: Date.now(),
             updatedAt: Date.now(),
-            listeners: new Set()
+            listeners: new Set(),
+            abortController: new AbortController(),
+            activePage: null
         };
 
         this.jobs.set(job.id, job);
@@ -122,10 +127,15 @@ class JobManager {
     public completeJob(jobId: string, result: StreamScrapeResult) {
         const job = this.jobs.get(jobId);
         if (job) {
-            job.status = result.success ? 'completed' : 'error';
+            if (job.status === 'cancelled' || result.cancelled) {
+                job.status = 'cancelled';
+            } else {
+                job.status = result.success ? 'completed' : 'error';
+            }
             job.result = result;
-            job.error = result.error;
+            job.error = result.cancelled ? 'Job cancelled' : result.error;
             job.updatedAt = Date.now();
+            job.activePage = null;
 
             if (this.activeJobId === jobId) {
                 this.activeJobId = null;
@@ -140,9 +150,15 @@ class JobManager {
      */
     public cancelJob(jobId: string) {
         const job = this.jobs.get(jobId);
-        if (job) {
+        if (job && job.status !== 'completed' && job.status !== 'error' && job.status !== 'cancelled') {
             job.status = 'cancelled';
             job.updatedAt = Date.now();
+            job.abortController.abort();
+
+            if (job.activePage && !job.activePage.isClosed()) {
+                job.activePage.close().catch(() => { });
+            }
+            job.activePage = null;
 
             if (this.activeJobId === jobId) {
                 this.activeJobId = null;
@@ -159,6 +175,34 @@ class JobManager {
 
             console.log(`📋 Job ${jobId} cancelled`);
         }
+    }
+
+    public attachPage(jobId: string, page: Page) {
+        const job = this.jobs.get(jobId);
+        if (job) {
+            job.activePage = page;
+            job.updatedAt = Date.now();
+        }
+    }
+
+    public detachPage(jobId: string, page?: Page) {
+        const job = this.jobs.get(jobId);
+        if (!job) {
+            return;
+        }
+
+        if (!page || job.activePage === page) {
+            job.activePage = null;
+            job.updatedAt = Date.now();
+        }
+    }
+
+    public getAbortSignal(jobId: string): AbortSignal | undefined {
+        return this.jobs.get(jobId)?.abortController.signal;
+    }
+
+    public isCancelled(jobId: string): boolean {
+        return this.jobs.get(jobId)?.status === 'cancelled';
     }
 
     /**

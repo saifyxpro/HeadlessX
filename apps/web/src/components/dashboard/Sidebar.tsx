@@ -32,8 +32,6 @@ const NAV_ITEMS = [
     { label: 'Docs', href: 'https://headlessx.saify.me/docs/introduction', icon: BookOpen01Icon, external: true },
 ];
 
-const DASHBOARD_API_KEY = process.env.NEXT_PUBLIC_DASHBOARD_API_KEY || 'dashboard-internal';
-
 export function Sidebar() {
     const pathname = usePathname();
     const { collapsed, toggle } = useSidebar();
@@ -42,9 +40,7 @@ export function Sidebar() {
     const { data: systemStats, isLoading: statsLoading } = useQuery({
         queryKey: ['system-recommendations'],
         queryFn: async () => {
-            const res = await fetch('/api/profiles/recommendations', {
-                headers: { 'x-api-key': DASHBOARD_API_KEY }
-            });
+            const res = await fetch('/api/profiles/recommendations');
             if (!res.ok) return { usagePercent: 0 };
             return res.json().catch(() => ({ usagePercent: 0 }));
         },

@@ -14,7 +14,6 @@ router.use(ApiKeyGuard);
 router.post('/html', ScrapeControllerV2.getHtml);
 router.post('/content', ScrapeControllerV2.getContent);
 router.post('/screenshot', ScrapeControllerV2.getScreenshot);
-router.post('/pdf', ScrapeControllerV2.getPdf);
 router.post('/html-js', ScrapeControllerV2.getHtmlJs); // Full JS rendering with network idle
 
 // Config Endpoints (Shared)

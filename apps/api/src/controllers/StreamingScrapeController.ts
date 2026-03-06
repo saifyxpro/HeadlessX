@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 const StreamRequestSchema = z.object({
     url: z.string().url(),
-    type: z.enum(['html', 'html-js', 'html-css-js', 'content', 'screenshot', 'pdf']),
+    type: z.enum(['html', 'html-js', 'html-css-js', 'content', 'screenshot']),
     profileId: z.string().optional(),
     stealth: z.boolean().optional(), // Speed mode when false
     fullPage: z.boolean().optional(),
@@ -76,6 +76,15 @@ export class StreamingScrapeController {
             // Add this response as a listener for the job
             jobManager.addListener(job.id, sendEvent);
 
+            req.on('close', () => {
+                jobManager.removeListener(job.id, sendEvent);
+
+                const currentJob = jobManager.getJob(job.id);
+                if (currentJob && (currentJob.status === 'pending' || currentJob.status === 'running')) {
+                    jobManager.cancelJob(job.id);
+                }
+            });
+
             // Progress callback - stores in job and broadcasts
             const onProgress = (progress: StreamProgress) => {
                 console.log('⏳ Progress:', progress);
@@ -89,6 +98,8 @@ export class StreamingScrapeController {
                 url,
                 type,
                 {
+                    jobId: job.id,
+                    abortSignal: jobManager.getAbortSignal(job.id),
                     waitForSelector: options?.waitForSelector,
                     timeout: options?.timeout,
                     profileId,
@@ -102,12 +113,13 @@ export class StreamingScrapeController {
             // Complete the job
             jobManager.completeJob(job.id, result);
 
-            // Format and send result
-            const formattedResult = StreamingScrapeController.formatResult(type, result);
-            jobManager.broadcast(job.id, 'result', formattedResult);
-
-            // Close connection
-            jobManager.broadcast(job.id, 'done', { timestamp: Date.now() });
+            if (!result.cancelled && !jobManager.isCancelled(job.id)) {
+                const formattedResult = StreamingScrapeController.formatResult(type, result);
+                jobManager.broadcast(job.id, 'result', formattedResult);
+                jobManager.broadcast(job.id, 'done', { timestamp: Date.now() });
+            } else {
+                jobManager.broadcast(job.id, 'done', { timestamp: Date.now(), cancelled: true });
+            }
 
             // Log the request
             const duration = Date.now() - startTime;
@@ -116,7 +128,11 @@ export class StreamingScrapeController {
                     api_key_id: req.apiKeyId || null,
                     url: url,
                     method: 'POST',
-                    status_code: result.success ? 200 : 500,
+                    status_code: result.success
+                        ? 200
+                        : result.code === 'CLOUDFLARE_CHALLENGE_DETECTED'
+                            ? 403
+                            : 500,
                     duration_ms: duration,
                     error_message: result.error || null,
                 }
@@ -194,7 +210,7 @@ export class StreamingScrapeController {
 
         // Include result if job is completed
         let formattedResult: any = null;
-        if (job.status === 'completed' && job.result) {
+        if ((job.status === 'completed' || job.status === 'cancelled') && job.result) {
             formattedResult = StreamingScrapeController.formatResult(job.type, job.result);
         }
 
@@ -304,8 +320,11 @@ export class StreamingScrapeController {
         if (!result.success) {
             return {
                 success: false,
-                type: 'error',
-                error: result.error,
+                type: result.cancelled ? 'cancelled' : 'error',
+                error: result.cancelled ? 'Job cancelled' : result.error,
+                code: result.code,
+                challenge: result.challenge,
+                cancelled: result.cancelled,
                 duration: result.duration
             };
         }
@@ -315,13 +334,6 @@ export class StreamingScrapeController {
                 success: true,
                 type: 'screenshot',
                 data: `data:image/jpeg;base64,${result.screenshot.toString('base64')}`,
-                duration: result.duration
-            };
-        } else if (type === 'pdf' && result.pdf) {
-            return {
-                success: true,
-                type: 'pdf',
-                data: `data:application/pdf;base64,${result.pdf.toString('base64')}`,
                 duration: result.duration
             };
         } else if (type === 'content') {

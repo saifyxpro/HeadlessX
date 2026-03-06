@@ -23,11 +23,8 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-// API Functions
-const DASHBOARD_API_KEY = process.env.NEXT_PUBLIC_DASHBOARD_API_KEY || 'dashboard-internal';
-
 const fetchProxies = async () => {
-    const res = await fetch('/api/proxies', { headers: { 'x-api-key': DASHBOARD_API_KEY } });
+    const res = await fetch('/api/proxies');
     if (!res.ok) throw new Error('Failed to fetch proxies');
     return res.json();
 };
@@ -35,7 +32,7 @@ const fetchProxies = async () => {
 const createProxy = async (data: any) => {
     const res = await fetch('/api/proxies', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': DASHBOARD_API_KEY },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -48,7 +45,7 @@ const createProxy = async (data: any) => {
 const updateProxy = async ({ id, ...data }: any) => {
     const res = await fetch(`/api/proxies/${id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': DASHBOARD_API_KEY },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -61,7 +58,6 @@ const updateProxy = async ({ id, ...data }: any) => {
 const deleteProxy = async (id: string) => {
     const res = await fetch(`/api/proxies/${id}`, {
         method: 'DELETE',
-        headers: { 'x-api-key': DASHBOARD_API_KEY },
     });
     if (!res.ok) throw new Error('Failed to delete proxy');
     return res.json();
@@ -70,7 +66,6 @@ const deleteProxy = async (id: string) => {
 const testProxy = async (id: string) => {
     const res = await fetch(`/api/proxies/${id}/test`, {
         method: 'POST',
-        headers: { 'x-api-key': DASHBOARD_API_KEY },
     });
     if (!res.ok) {
         const err = await res.json().catch(() => ({ error: res.statusText }));
@@ -171,7 +166,7 @@ export default function ProxiesTab() {
             host: proxy.host,
             port: proxy.port.toString(),
             username: proxy.username || '',
-            password: proxy.password || '',
+            password: '',
             country: proxy.country || '',
             is_rotating: proxy.is_rotating,
         });
@@ -191,7 +186,11 @@ export default function ProxiesTab() {
             return;
         }
 
-        const payload = { ...formData, port: portNum };
+        const payload: any = { ...formData, port: portNum };
+
+        if (editingProxy && !payload.password) {
+            delete payload.password;
+        }
 
         if (editingProxy) {
             updateMutation.mutate({ id: editingProxy.id, ...payload });
@@ -405,7 +404,12 @@ export default function ProxiesTab() {
                             </div>
                             <div>
                                 <label className="text-sm font-medium mb-1.5 block text-slate-700">Password</label>
-                                <Input type="password" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} placeholder="Optional" />
+                                <Input
+                                    type="password"
+                                    value={formData.password}
+                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                    placeholder={editingProxy?.has_password ? 'Leave blank to keep existing password' : 'Optional'}
+                                />
                             </div>
                         </div>
                         <div className="flex items-center justify-between p-3 border border-slate-200 rounded-xl bg-slate-50/50">

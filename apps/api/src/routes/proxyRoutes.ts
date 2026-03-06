@@ -1,7 +1,12 @@
 import { Router } from 'express';
 import * as ProxyController from '../controllers/ProxyController';
+import { ApiKeyGuard } from '../middleware/ApiKeyGuard';
+import { RequestLogger } from '../middleware/RequestLogger';
 
 const router = Router();
+
+router.use(RequestLogger);
+router.use(ApiKeyGuard);
 
 // GET /api/proxies - List all proxies
 router.get('/', ProxyController.list);

@@ -46,14 +46,9 @@ import { PageHeader } from "@/components/ui/PageHeader";
 
 import { CustomDropdown } from "@/components/ui/CustomDropdown";
 
-// Dashboard API key from environment
-const DASHBOARD_API_KEY = process.env.NEXT_PUBLIC_DASHBOARD_API_KEY || 'dashboard-internal';
-
 // Helper to fetch proxies
 const fetchProxies = async () => {
-    const res = await fetch('/api/proxies', {
-        headers: { 'x-api-key': DASHBOARD_API_KEY }
-    });
+    const res = await fetch('/api/proxies');
     if (!res.ok) throw new Error('Failed to fetch proxies');
     return res.json();
 };
@@ -68,7 +63,7 @@ const transformProfile = (p: any) => ({
     proxyId: p.proxy_id,
     proxyUrl: p.proxy_url,
     proxyUsername: p.proxy_username,
-    proxyPassword: p.proxy_password,
+    proxyPasswordConfigured: p.proxy_password_configured,
     screenWidth: p.screen_width,
     screenHeight: p.screen_height,
     isActive: p.is_active,
@@ -80,9 +75,7 @@ const transformProfile = (p: any) => ({
 });
 
 const fetchProfiles = async () => {
-    const res = await fetch('/api/profiles', {
-        headers: { 'x-api-key': DASHBOARD_API_KEY }
-    });
+    const res = await fetch('/api/profiles');
     if (!res.ok) throw new Error('Failed to fetch profiles');
     const data = await res.json();
     return data.profiles.map(transformProfile);
@@ -93,7 +86,6 @@ const createProfile = async (data: any) => {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'x-api-key': DASHBOARD_API_KEY
         },
         body: JSON.stringify(data)
     });
@@ -111,7 +103,6 @@ const updateProfile = async ({ id, ...data }: any) => {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
-            'x-api-key': DASHBOARD_API_KEY
         },
         body: JSON.stringify(data)
     });
@@ -126,7 +117,6 @@ const updateProfile = async ({ id, ...data }: any) => {
 const deleteProfile = async (id: string) => {
     const res = await fetch(`/api/profiles/${id}`, {
         method: 'DELETE',
-        headers: { 'x-api-key': DASHBOARD_API_KEY }
     });
     if (!res.ok) throw new Error('Failed to delete profile');
     return res.json();
@@ -137,7 +127,6 @@ const toggleProfile = async ({ id, action }: { id: string; action: 'start' | 'st
     const endpointAction = action === 'start' ? 'launch' : 'stop';
     const res = await fetch(`/api/profiles/${id}/${endpointAction}`, {
         method: 'POST',
-        headers: { 'x-api-key': DASHBOARD_API_KEY }
     });
     if (!res.ok) {
         const err = await res.json().catch(() => ({ error: res.statusText }));
@@ -317,11 +306,15 @@ export default function ProfilesPage() {
             }
             payload.proxyUrl = url;
             payload.proxyUsername = formData.proxyUsername;
-            payload.proxyPassword = formData.proxyPassword;
+            if (!profileToEdit || formData.proxyPassword) {
+                payload.proxyPassword = formData.proxyPassword;
+            }
         } else {
             payload.proxyMode = 'none';
             payload.proxyId = null;
             payload.proxyUrl = null;
+            payload.proxyUsername = null;
+            payload.proxyPassword = null;
         }
 
         if (profileToEdit) {
@@ -349,7 +342,7 @@ export default function ProfilesPage() {
             proxyId: profile.proxyId || '',
             proxyUrl: profile.proxyUrl || '',
             proxyUsername: profile.proxyUsername || '',
-            proxyPassword: profile.proxyPassword || '',
+            proxyPassword: '',
             screenWidth: profile.screenWidth || 1920,
             screenHeight: profile.screenHeight || 1080
         });
@@ -441,7 +434,7 @@ export default function ProfilesPage() {
                                             <HugeiconsIcon icon={Globe} size={12} /> Proxy
                                         </div>
                                         <div className="font-semibold text-sm text-slate-700 capitalize">
-                                            {profile.proxy_id ? 'Saved Proxy' : profile.proxy_url ? 'Custom' : 'None'}
+                                            {profile.proxyId ? 'Saved Proxy' : profile.proxyUrl ? 'Custom' : 'None'}
                                         </div>
                                     </div>
                                 </div>
@@ -572,7 +565,7 @@ export default function ProfilesPage() {
                                         />
                                         <Input
                                             type="password"
-                                            placeholder="Password (Optional)"
+                                            placeholder={profileToEdit?.proxyPasswordConfigured ? 'Leave blank to keep existing password' : 'Password (Optional)'}
                                             value={formData.proxyPassword}
                                             onChange={(e) => setFormData({ ...formData, proxyPassword: e.target.value })}
                                         />

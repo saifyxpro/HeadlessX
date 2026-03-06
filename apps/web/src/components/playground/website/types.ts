@@ -1,9 +1,9 @@
 import { LucideIcon } from 'lucide-react';
 
-export type OutputType = 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot' | 'pdf';
+export type OutputType = 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot';
 
 export interface ScrapeResult {
-    type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'image' | 'pdf' | 'error';
+    type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'image' | 'error';
     data: string | {
         html?: string;
         markdown?: string;

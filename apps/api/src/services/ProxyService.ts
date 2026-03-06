@@ -2,6 +2,7 @@ import { prisma } from '../database/client';
 import axios from 'axios';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { HttpsProxyAgent } from 'https-proxy-agent';
+import { decryptSecret, normalizeSecretForCreate, normalizeSecretForUpdate } from '../utils/security';
 
 export interface ProxyTestResult {
     success: boolean;
@@ -45,6 +46,13 @@ export interface Proxy {
 class ProxyService {
     private static instance: ProxyService;
 
+    private mapProxy(proxy: any): Proxy {
+        return {
+            ...proxy,
+            password: decryptSecret(proxy.password),
+        } as Proxy;
+    }
+
     public static getInstance(): ProxyService {
         if (!ProxyService.instance) {
             ProxyService.instance = new ProxyService();
@@ -59,7 +67,7 @@ class ProxyService {
         const proxies = await prisma.proxy.findMany({
             orderBy: { created_at: 'desc' },
         });
-        return proxies as Proxy[];
+        return proxies.map(proxy => this.mapProxy(proxy));
     }
 
     /**
@@ -70,7 +78,7 @@ class ProxyService {
             where: { is_active: true },
             orderBy: { name: 'asc' },
         });
-        return proxies as Proxy[];
+        return proxies.map(proxy => this.mapProxy(proxy));
     }
 
     /**
@@ -80,7 +88,7 @@ class ProxyService {
         const proxy = await prisma.proxy.findUnique({
             where: { id },
         });
-        return proxy as Proxy | null;
+        return proxy ? this.mapProxy(proxy) : null;
     }
 
     /**
@@ -94,18 +102,20 @@ class ProxyService {
                 host: data.host,
                 port: data.port,
                 username: data.username,
-                password: data.password,
+                password: normalizeSecretForCreate(data.password) ?? null,
                 country: data.country,
                 is_rotating: data.is_rotating || false,
             },
         });
-        return proxy as Proxy;
+        return this.mapProxy(proxy);
     }
 
     /**
      * Update a proxy
      */
     public async update(id: string, data: Partial<ProxyData>): Promise<Proxy> {
+        const normalizedPassword = normalizeSecretForUpdate(data.password);
+
         const proxy = await prisma.proxy.update({
             where: { id },
             data: {
@@ -114,12 +124,12 @@ class ProxyService {
                 ...(data.host && { host: data.host }),
                 ...(data.port && { port: data.port }),
                 ...(data.username !== undefined && { username: data.username }),
-                ...(data.password !== undefined && { password: data.password }),
+                ...(normalizedPassword !== undefined && { password: normalizedPassword }),
                 ...(data.country !== undefined && { country: data.country }),
                 ...(data.is_rotating !== undefined && { is_rotating: data.is_rotating }),
             },
         });
-        return proxy as Proxy;
+        return this.mapProxy(proxy);
     }
 
     /**
@@ -150,7 +160,7 @@ class ProxyService {
             where: { id },
             data: { is_active: !proxy.is_active },
         });
-        return updated as Proxy;
+        return this.mapProxy(updated);
     }
 
     /**
@@ -158,7 +168,7 @@ class ProxyService {
      * Faster and more reliable than launching a full browser for connectivity checks.
      */
     public async testConnection(id: string): Promise<ProxyTestResult> {
-        const proxy = await prisma.proxy.findUnique({ where: { id } });
+        const proxy = await this.getById(id);
         if (!proxy) {
             return { success: false, error: 'Proxy not found' };
         }
