@@ -72,10 +72,8 @@ export function Sidebar() {
                         </div>
                         {!collapsed && (
                             <div className="overflow-hidden whitespace-nowrap min-w-0">
-                                <h1 className="text-lg font-bold tracking-tight text-slate-800 leading-none">
-                                    HeadlessX
-                                </h1>
-                                <span className="text-[11px] font-semibold text-primary/80 bg-primary/5 px-1.5 py-0.5 rounded-full mt-1 inline-block">v2.0 Beta</span>
+                                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">HeadlessX</h1>
+                                <span className="text-[11px] font-semibold text-primary/80 bg-primary/5 px-1.5 py-0.5 rounded-full mt-1 inline-block">v2.0.4</span>
                             </div>
                         )}
                     </div>
