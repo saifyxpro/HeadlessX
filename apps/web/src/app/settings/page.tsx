@@ -59,7 +59,7 @@ export default function SettingsPage() {
         }
     });
 
-    const [formData, setFormData] = useState<any>({});
+    const [formData, setFormData] = useState<any>({ browserHeadless: true });
     const [activeTab, setActiveTab] = useState('general');
 
     useEffect(() => {
@@ -85,27 +85,26 @@ export default function SettingsPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen p-8 bg-slate-50/50">
-                <Skeleton className="h-32 w-full rounded-3xl mb-8" />
-                <div className="flex gap-8">
-                    <Skeleton className="h-64 w-72 rounded-3xl" />
-                    <Skeleton className="h-96 flex-1 rounded-3xl" />
+            <div className="space-y-6">
+                <Skeleton className="h-24 w-full rounded-2xl" />
+                <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)]">
+                    <Skeleton className="h-64 rounded-2xl" />
+                    <Skeleton className="h-96 rounded-2xl" />
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen space-y-8">
+        <div className="space-y-6">
             <PageHeader
                 title="Settings"
                 description="Configure your scraping engine and behavior."
                 action={
                     <Button
-                        size="lg"
                         onClick={handleSave}
                         disabled={mutation.isPending}
-                        className={cn("rounded-xl shadow-lg transition-all", saved ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/20" : "shadow-primary/20")}
+                        className={cn(saved ? "bg-emerald-600 hover:bg-emerald-700" : "")}
                     >
                         {mutation.isPending ? (
                             <HugeiconsIcon icon={Loading03Icon} className="animate-spin mr-2" />
@@ -119,22 +118,22 @@ export default function SettingsPage() {
                 }
             />
 
-            <div className="max-w-7xl mx-auto px-6 flex flex-col lg:flex-row gap-8">
+            <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)] items-start">
                 {/* Sidebar */}
-                <div className="w-full lg:w-72 shrink-0 space-y-2">
-                    <div className="bg-white/60 backdrop-blur-xl border border-white/50 p-2 rounded-2xl shadow-premium sticky top-24">
+                <div className="space-y-2">
+                    <div className="sticky top-6 rounded-2xl border border-slate-200 bg-white p-2">
                         {tabs.map(tab => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={cn(
-                                    "w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 text-sm font-medium",
+                                    "w-full flex items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-sm font-medium",
                                     activeTab === tab.id
-                                        ? "bg-primary text-white shadow-lg shadow-primary/25 translate-x-1"
-                                        : "text-slate-500 hover:bg-white/80 hover:text-slate-900"
+                                        ? "border-primary/15 bg-primary/8 text-primary"
+                                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
                                 )}
                             >
-                                <HugeiconsIcon icon={tab.icon} size={20} className={activeTab === tab.id ? "text-white" : "text-slate-400"} />
+                                <HugeiconsIcon icon={tab.icon} size={20} className={activeTab === tab.id ? "text-primary" : "text-slate-400"} />
                                 {tab.label}
                             </button>
                         ))}
@@ -145,20 +144,20 @@ export default function SettingsPage() {
                 <div className="flex-1 space-y-6">
                     {/* Error Display */}
                     {error && (
-                        <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl flex items-center gap-2 text-sm shadow-sm animate-in fade-in slide-in-from-top-2">
+                        <div className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
                             <HugeiconsIcon icon={Cancel01Icon} size={16} />
                             {error}
                         </div>
                     )}
 
                     {activeTab === 'general' && (
-                        <Card className="border-white/50 bg-white/60 backdrop-blur-xl shadow-premium">
-                            <CardHeader className="border-b border-slate-100/50 pb-4">
-                                <CardTitle className="text-xl text-slate-900">General Configuration</CardTitle>
+                        <Card>
+                            <CardHeader className="border-b border-slate-200 pb-4">
+                                <CardTitle className="text-lg text-slate-900">General Configuration</CardTitle>
                                 <p className="text-sm text-slate-500 mt-1">Control basic application behavior</p>
                             </CardHeader>
                             <CardContent className="space-y-6 pt-6">
-                                <div className="flex items-center justify-between p-5 bg-white/50 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md hover:border-slate-200">
+                                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <div className="space-y-1">
                                         <div className="font-semibold text-slate-900 flex items-center gap-2">
                                             Headless Mode
@@ -166,28 +165,28 @@ export default function SettingsPage() {
                                         </div>
                                         <div className="text-sm text-slate-500">Run browser without UI (faster execution)</div>
                                     </div>
-                                    <Switch checked={formData.browserHeadless} onCheckedChange={(c) => handleChange('browserHeadless', c)} />
+                                    <Switch checked={formData.browserHeadless ?? true} onCheckedChange={(c) => handleChange('browserHeadless', c)} />
                                 </div>
-                                <div className="p-5 bg-white/50 rounded-2xl border border-slate-100 shadow-sm space-y-3 transition-all hover:shadow-md hover:border-slate-200">
+                                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <label className="text-sm font-semibold text-slate-900">Browser Timeout (ms)</label>
                                     <div className="flex items-center gap-4">
                                         <Input
                                             type="number"
                                             value={formData.browserTimeout || 60000}
                                             onChange={(e) => handleChange('browserTimeout', parseInt(e.target.value))}
-                                            className="max-w-[120px] bg-white border-slate-200"
+                                            className="max-w-[120px] bg-white"
                                         />
                                         <p className="text-xs text-slate-400">Max execution time per job</p>
                                     </div>
                                 </div>
-                                <div className="p-5 bg-white/50 rounded-2xl border border-slate-100 shadow-sm space-y-3 transition-all hover:shadow-md hover:border-slate-200">
+                                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <label className="text-sm font-semibold text-slate-900">Max Concurrent Jobs</label>
                                     <div className="flex items-center gap-4">
                                         <Input
                                             type="number"
                                             value={formData.maxConcurrency || 5}
                                             onChange={(e) => handleChange('maxConcurrency', parseInt(e.target.value))}
-                                            className="max-w-[120px] bg-white border-slate-200"
+                                            className="max-w-[120px] bg-white"
                                         />
                                         <p className="text-xs text-slate-400">Recommended: 3-8 depending on system resources</p>
                                     </div>
@@ -199,27 +198,27 @@ export default function SettingsPage() {
                     {activeTab === 'proxies' && <ProxiesTab />}
 
                     {activeTab === 'camoufox' && (
-                        <Card className="border-white/50 bg-white/60 backdrop-blur-xl shadow-premium">
-                            <CardHeader className="border-b border-slate-100/50 pb-4">
-                                <CardTitle className="text-xl text-slate-900">Camoufox Engine</CardTitle>
+                        <Card>
+                            <CardHeader className="border-b border-slate-200 pb-4">
+                                <CardTitle className="text-lg text-slate-900">Camoufox Engine</CardTitle>
                                 <p className="text-sm text-slate-500 mt-1">Advanced anti-detect browser configuration</p>
                             </CardHeader>
                             <CardContent className="space-y-6 pt-6">
-                                <div className="flex items-center justify-between p-5 bg-white/50 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md hover:border-slate-200">
+                                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <div className="space-y-1">
                                         <div className="font-semibold text-slate-900">Block WebRTC</div>
                                         <div className="text-sm text-slate-500">Prevent IP leaks via WebRTC</div>
                                     </div>
                                     <Switch checked={formData.camoufoxBlockWebrtc} onCheckedChange={(c) => handleChange('camoufoxBlockWebrtc', c)} />
                                 </div>
-                                <div className="flex items-center justify-between p-5 bg-white/50 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md hover:border-slate-200">
+                                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <div className="space-y-1">
                                         <div className="font-semibold text-slate-900">Camoufox GeoIP</div>
                                         <div className="text-sm text-slate-500">Spoof location based on IP</div>
                                     </div>
                                     <Switch checked={formData.camoufoxGeoip} onCheckedChange={(c) => handleChange('camoufoxGeoip', c)} />
                                 </div>
-                                <div className="flex items-center justify-between p-5 bg-white/50 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md hover:border-slate-200">
+                                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <div className="space-y-1">
                                         <div className="font-semibold text-slate-900">Enable Cache</div>
                                         <div className="text-sm text-slate-500">Cache resources for speed</div>

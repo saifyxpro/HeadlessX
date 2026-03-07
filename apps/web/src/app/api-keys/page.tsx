@@ -94,19 +94,19 @@ export default function ApiKeysPage() {
     }
 
     return (
-        <div className="min-h-screen space-y-8">
+        <div className="space-y-6">
             <PageHeader
                 title="API Keys"
                 description="Manage access tokens and authentication for your applications."
                 action={
-                    <Button onClick={() => setIsCreateOpen(true)} className="h-11 px-6 bg-primary text-white font-medium shadow-lg shadow-primary/20 hover:shadow-primary/30 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    <Button onClick={() => setIsCreateOpen(true)} className="h-10 px-5">
                         <Plus className="mr-2 h-5 w-5" />
                         New Key
                     </Button>
                 }
             />
 
-            <div className="max-w-5xl mx-auto px-6">
+            <div>
                 <ApiKeysList
                     keys={data?.keys || []}
                     revokeMutation={revokeMutation}

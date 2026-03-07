@@ -30,7 +30,7 @@ export function ConfigurationPanel({
     return (
         <div className="lg:col-span-4 space-y-6">
             {/* Main Configuration Card */}
-            <div className="bg-white/60 backdrop-blur-xl rounded-[32px] p-8 border border-white/60 shadow-premium">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-7">
                 <div className="flex items-center gap-3 mb-8">
                     <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
                         <Search className="w-5 h-5" />

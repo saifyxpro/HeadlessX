@@ -20,7 +20,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HeadlessX v2.0",
+  title: "HeadlessX v2.0.4",
   description: "Advanced Stealth Scraping Engine",
   icons: {
     icon: "/favicon.svg",
@@ -42,7 +42,7 @@ export default function RootLayout({
             <div className="flex h-screen overflow-hidden view-container">
               <Sidebar />
               <main className="flex-1 overflow-y-auto overflow-x-hidden scroll-container premium-bg">
-                <div className="space-y-4 p-4 md:p-8 pt-6 max-w-[1600px] mx-auto w-full">
+                <div className="mx-auto w-full max-w-[1500px] space-y-6 px-5 py-6 lg:px-8 lg:py-8">
                   {children}
                 </div>
               </main>

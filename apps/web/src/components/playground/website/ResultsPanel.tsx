@@ -34,9 +34,28 @@ export function ResultsPanel({
 
     // Check content height to determine if expand button is needed
     useEffect(() => {
-        if (contentRef.current) {
-            setCanExpand(contentRef.current.scrollHeight > 600);
-        }
+        if (!contentRef.current) return;
+        
+        const checkHeight = () => {
+            if (contentRef.current) {
+                // Determine if the *actual* height is significantly more than our restricted height (600px)
+                setCanExpand(contentRef.current.scrollHeight > 650); 
+            }
+        };
+
+        checkHeight();
+        
+        // Wait for markdown render and images
+        const timeout = setTimeout(checkHeight, 200);
+        
+        // Listen for content size changes
+        const observer = new ResizeObserver(() => checkHeight());
+        observer.observe(contentRef.current);
+        
+        return () => {
+            clearTimeout(timeout);
+            observer.disconnect();
+        };
     }, [result, viewRaw]);
 
     // Auto-scroll steps
@@ -109,10 +128,10 @@ export function ResultsPanel({
     const showCopy = showViewToggle || result?.type === 'html-css-js';
 
     return (
-        <div className="lg:col-span-8 flex flex-col bg-white/60 backdrop-blur-xl rounded-[24px] border border-white/60 shadow-premium overflow-hidden min-h-[500px] relative">
+        <div className="relative flex h-full min-h-[600px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white lg:col-span-8">
 
             {/* Terminal Header */}
-            <div className="px-6 py-4 border-b border-white/40 bg-white/40 flex items-center justify-between shrink-0">
+            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-rose-400 shadow-sm" />
@@ -122,7 +141,7 @@ export function ResultsPanel({
                     <div className="h-5 w-px bg-slate-200/50" />
                     <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-white/50 border border-white/60 text-xs font-bold text-slate-600 shadow-sm">
                         <Terminal className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Console Output</span>
+                        <span>Scrape Results</span>
                     </div>
                 </div>
 
@@ -175,7 +194,7 @@ export function ResultsPanel({
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 overflow-hidden relative bg-white/30">
+            <div className="relative flex-1 overflow-hidden bg-white">
                 {/* Empty State / Loading */}
                 {(!result && !isStreaming && !isPending) && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-white/40 backdrop-blur-sm z-10">
@@ -305,7 +324,7 @@ export function ResultsPanel({
                                         className={`p-6 ${expanded ? '' : 'max-h-[600px] overflow-hidden'}`}
                                     >
                                         {result.type === 'content' ? (
-                                            <div className="prose prose-slate prose-sm max-w-none">
+                                            <div className="prose prose-slate prose-sm max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-blue-600 hover:prose-a:text-blue-700 prose-code:text-rose-500 prose-code:bg-rose-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none prose-pre:bg-slate-900 prose-pre:text-slate-50 prose-pre:shadow-sm prose-img:rounded-xl">
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{(result.data as any).markdown}</ReactMarkdown>
                                             </div>
                                         ) : (

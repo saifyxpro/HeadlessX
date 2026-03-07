@@ -88,11 +88,39 @@ class ScraperService {
     }
 
     private async ensureNoCloudflareChallenge(page: Page, jsEnabled = false) {
-        const detection = await cloudflareChallengeService.detectAfterNavigation(page, {
+        let detection = await cloudflareChallengeService.detectAfterNavigation(page, {
             recheck: jsEnabled
         });
 
         if (detection.detected) {
+            console.log('🛡️ Cloudflare protection detected. Attempting automated bypass...');
+            
+            let bypassSuccess = false;
+            const maxAttempts = 2;
+            
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                console.log(`🛡️ Cloudflare bypass attempt ${attempt} of ${maxAttempts}...`);
+                
+                bypassSuccess = await cloudflareChallengeService.solveChallenge(page);
+                
+                if (bypassSuccess) {
+                    console.log(`✅ Cloudflare challenge visually solved on attempt ${attempt}. Re-verifying...`);
+                    await page.waitForTimeout(2000); 
+                    detection = await cloudflareChallengeService.detect(page);
+                    
+                    if (!detection.detected) {
+                        console.log('✅ Cloudflare protection fully bypassed!');
+                        return; // Successfully bypassed entirely
+                    } else {
+                        console.log('⚠️ Challenge still detected after successful solve. Page may have refreshed.');
+                    }
+                } else {
+                    console.log(`❌ Bypass attempt ${attempt} failed.`);
+                    await page.waitForTimeout(2000);
+                }
+            }
+            
+            console.log('❌ Cloudflare protection automated bypass completely failed.');
             throw new CloudflareChallengeError(detection);
         }
     }

@@ -221,15 +221,15 @@ export default function ProxiesTab() {
 
     return (
         <div className="space-y-6">
-            <Card className="border-white/50 bg-white/60 backdrop-blur-xl shadow-premium">
-                <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-slate-100/50">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-slate-200">
                     <div>
                         <CardTitle className="text-xl text-slate-900">Saved Proxies</CardTitle>
                         <p className="text-sm text-slate-500 mt-1">Manage your proxy servers for use across profiles</p>
                     </div>
                     <Button
                         onClick={() => { resetForm(); setEditingProxy(null); setShowModal(true); }}
-                        className="shadow-lg shadow-primary/20 hover:shadow-primary/30 rounded-xl"
+                        className="rounded-xl"
                     >
                         <HugeiconsIcon icon={PlusSignIcon} className="mr-2 h-4 w-4" /> Add Proxy
                     </Button>
@@ -247,10 +247,10 @@ export default function ProxiesTab() {
                     ) : (
                         <div className="space-y-4">
                             {proxies.map((proxy: any) => (
-                                <div key={proxy.id} className="p-4 rounded-xl border border-slate-200 bg-white/50 hover:bg-white/90 transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-between group">
+                                <div key={proxy.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 group">
                                     <div className="flex items-center gap-4">
                                         <div className={cn(
-                                            "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-inner",
+                                            "w-12 h-12 rounded-xl flex items-center justify-center shrink-0",
                                             proxy.is_working
                                                 ? "bg-emerald-100 text-emerald-600"
                                                 : (proxy.is_working === false ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-400")
@@ -288,7 +288,7 @@ export default function ProxiesTab() {
                                             variant={testingId === proxy.id ? "secondary" : "default"}
                                             onClick={() => handleTest(proxy.id)}
                                             disabled={!!testingId}
-                                            className="rounded-lg h-9 shadow-sm"
+                                            className="rounded-lg h-9"
                                         >
                                             {testingId === proxy.id ? (
                                                 <HugeiconsIcon icon={Loading03Icon} className="animate-spin h-4 w-4 mr-2" />

@@ -9,34 +9,34 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, action, icon }: PageHeaderProps) {
     return (
-        <div className="flex flex-col sm:flex-row justify-between items-start mb-10 gap-6 border-b border-border/40 pb-8 relative">
-            {/* Subtle decorative background gradient */}
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-blue-500/0 via-transparent to-transparent pointer-events-none" />
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white px-5 py-4 md:px-6 md:py-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex min-w-0 items-start gap-4">
+                    {icon && (
+                        <div className="mt-0.5 hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-blue-600 sm:flex">
+                            {icon}
+                        </div>
+                    )}
 
-            <div className="relative flex gap-5 items-start z-10">
-                {icon && (
-                    <div className="hidden sm:flex mt-1 items-center justify-center w-12 h-12 rounded-2xl bg-white border border-slate-200/60 shadow-sm text-blue-600 shrink-0">
-                        {icon}
+                    <div className="min-w-0">
+                        <div className="mb-2 h-px w-12 bg-slate-200" />
+                        <h2 className="font-display text-2xl font-bold leading-tight tracking-tight text-slate-900 md:text-[2rem]">
+                            {title}
+                        </h2>
+                        {description && (
+                            <p className="mt-1.5 max-w-2xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
+                                {description}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {action && (
+                    <div className="shrink-0 self-start lg:self-center lg:border-l lg:border-slate-200 lg:pl-4">
+                        {action}
                     </div>
                 )}
-
-                <div className="space-y-2">
-                    <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight font-display">
-                        {title}
-                    </h2>
-                    {description && (
-                        <p className="text-slate-500 text-lg font-medium leading-relaxed max-w-3xl">
-                            {description}
-                        </p>
-                    )}
-                </div>
             </div>
-
-            {action && (
-                <div className="relative shrink-0 pt-1 z-10 self-start sm:self-center">
-                    {action}
-                </div>
-            )}
         </div>
     );
 }

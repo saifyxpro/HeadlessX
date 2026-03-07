@@ -31,6 +31,7 @@
   "author": "SaifyXPRO",
   "license": "MIT",
   "dependencies": {
+    "@mozilla/readability": "^0.6.0",
     "@prisma/adapter-pg": "^7.4.1",
     "@prisma/client": "^7.4.1",
     "@xenova/transformers": "^2.17.2",
@@ -40,15 +41,17 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "https-proxy-agent": "^7.0.6",
+    "jsdom": "^28.1.0",
     "onnxruntime-web": "^1.24.2",
     "playwright-core": "^1.58.2",
     "prisma": "^7.4.1",
     "proxy-chain": "^2.7.1",
+    "sharp": "^0.34.5",
     "socks-proxy-agent": "^8.0.5",
     "turndown": "^7.2.2",
+    "turndown-plugin-gfm": "^1.0.2",
     "wavefile": "^11.0.0",
-    "zod": "^4.3.6",
-    "sharp": "^0.34.5"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
