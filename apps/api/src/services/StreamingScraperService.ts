@@ -73,6 +73,63 @@ class StreamingScraperService {
         })()`);
     }
 
+    private async ensureNoCloudflareChallenge(page: Page, jsEnabled: boolean, onProgress?: ProgressCallback, currentStep?: number, totalSteps?: number) {
+        let detection = await cloudflareChallengeService.detectAfterNavigation(page, {
+            recheck: jsEnabled
+        });
+
+        if (detection.detected) {
+            console.log('🛡️ Cloudflare protection detected. Attempting automated bypass...');
+            
+            let bypassSuccess = false;
+            const maxAttempts = 2;
+            
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                if (onProgress && currentStep && totalSteps) {
+                    onProgress({ 
+                        step: currentStep, 
+                        total: totalSteps, 
+                        message: `Solving Cloudflare Challenge (Attempt ${attempt}/${maxAttempts})...`, 
+                        status: 'active' 
+                    });
+                }
+                console.log(`🛡️ Cloudflare bypass attempt ${attempt} of ${maxAttempts}...`);
+                
+                bypassSuccess = await cloudflareChallengeService.solveChallenge(page);
+                
+                if (bypassSuccess) {
+                    // Sometimes the page refreshes after solving, re-detecting
+                    console.log(`✅ Cloudflare challenge visually solved on attempt ${attempt}. Re-verifying...`);
+                    // We don't just return immediately, we give it a tiny bit to see if it redirects again
+                    await page.waitForTimeout(2000); 
+                    detection = await cloudflareChallengeService.detect(page);
+                    
+                    if (!detection.detected) {
+                        console.log('✅ Cloudflare protection fully bypassed!');
+                        return; // Successfully bypassed entirely
+                    } else {
+                        console.log('⚠️ Challenge still detected after successful solve. Page may have refreshed.');
+                    }
+                } else {
+                    console.log(`❌ Bypass attempt ${attempt} failed.`);
+                    // Small delay before next attempt
+                    await page.waitForTimeout(2000);
+                }
+            }
+            
+            if (onProgress && currentStep && totalSteps) {
+                onProgress({ 
+                    step: currentStep, 
+                    total: totalSteps, 
+                    message: 'Failed to bypass Cloudflare protection.', 
+                    status: 'error' 
+                });
+            }
+            console.log('❌ Cloudflare protection automated bypass completely failed.');
+            throw new CloudflareChallengeError(detection);
+        }
+    }
+
     /**
      * Scrape with real-time progress streaming
      */
@@ -160,12 +217,13 @@ class StreamingScraperService {
                 timeout: requestTimeout
             });
 
-            const challengeDetection = await cloudflareChallengeService.detectAfterNavigation(page, {
-                recheck: options.jsEnabled || type === 'html-js' || type === 'html-css-js'
-            });
-            if (challengeDetection.detected) {
-                throw new CloudflareChallengeError(challengeDetection);
-            }
+            await this.ensureNoCloudflareChallenge(
+                page, 
+                options.jsEnabled || type === 'html-js' || type === 'html-css-js',
+                onProgress,
+                currentStep,
+                totalSteps
+            );
             throwIfCancelled();
 
             onProgress({ step: currentStep, total: totalSteps, message: 'Page loaded', status: 'completed' });
@@ -209,10 +267,13 @@ class StreamingScraperService {
             }
             throwIfCancelled();
 
-            const postWaitChallengeDetection = await cloudflareChallengeService.detect(page);
-            if (postWaitChallengeDetection.detected) {
-                throw new CloudflareChallengeError(postWaitChallengeDetection);
-            }
+            await this.ensureNoCloudflareChallenge(
+                page, 
+                false,
+                onProgress,
+                currentStep, // Still step 3 for content wait
+                totalSteps
+            );
 
             onProgress({ step: 3, total: totalSteps, message: 'Content ready', status: 'completed' });
 

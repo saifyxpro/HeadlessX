@@ -206,24 +206,10 @@ class CloudflareChallengeService {
     public async solveChallenge(page: Page): Promise<boolean> {
         console.log('CF: Attempting to solve Cloudflare Challenge...');
         try {
-            console.log('CF: Waiting 5 seconds for initial load...');
-            await page.waitForTimeout(5000);
+            console.log('CF: Waiting 10 seconds for challenge to fully load...');
+            await page.waitForTimeout(10000);
 
-            const title = await page.title().catch(() => '');
-            const isCfInterstitial = title.toLowerCase().includes('just a moment');
-
-            if (!isCfInterstitial) {
-                const cfInput = page.locator('[name="cf-turnstile-response"]').first();
-                try {
-                    await cfInput.waitFor({ state: 'attached', timeout: 5000 });
-                } catch {
-                    console.log('CF: No Cloudflare Challenge input detected. Proceeding.');
-                    return false;
-                }
-            }
-
-            console.log('CF: Cloudflare challenge page detected! Waiting 3s...');
-            await page.waitForTimeout(3000);
+            console.log('CF: Looking for Turnstile iframe...');
 
             const iframeElement = page.locator("iframe[src*='challenges.cloudflare.com']").first();
             let box: { x: number; y: number; width: number; height: number } | null = null;

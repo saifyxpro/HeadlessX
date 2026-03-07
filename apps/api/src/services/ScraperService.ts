@@ -94,18 +94,33 @@ class ScraperService {
 
         if (detection.detected) {
             console.log('🛡️ Cloudflare protection detected. Attempting automated bypass...');
-            const bypassSuccess = await cloudflareChallengeService.solveChallenge(page);
             
-            if (bypassSuccess) {
-                console.log('✅ Cloudflare protection automated bypass successful!');
-                // Re-verify that the page is actually clear after the solve attempt
-                detection = await cloudflareChallengeService.detect(page);
-                if (!detection.detected) {
-                    return; // Successfully bypassed
+            let bypassSuccess = false;
+            const maxAttempts = 2;
+            
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                console.log(`🛡️ Cloudflare bypass attempt ${attempt} of ${maxAttempts}...`);
+                
+                bypassSuccess = await cloudflareChallengeService.solveChallenge(page);
+                
+                if (bypassSuccess) {
+                    console.log(`✅ Cloudflare challenge visually solved on attempt ${attempt}. Re-verifying...`);
+                    await page.waitForTimeout(2000); 
+                    detection = await cloudflareChallengeService.detect(page);
+                    
+                    if (!detection.detected) {
+                        console.log('✅ Cloudflare protection fully bypassed!');
+                        return; // Successfully bypassed entirely
+                    } else {
+                        console.log('⚠️ Challenge still detected after successful solve. Page may have refreshed.');
+                    }
+                } else {
+                    console.log(`❌ Bypass attempt ${attempt} failed.`);
+                    await page.waitForTimeout(2000);
                 }
             }
             
-            console.log('❌ Cloudflare protection automated bypass failed.');
+            console.log('❌ Cloudflare protection automated bypass completely failed.');
             throw new CloudflareChallengeError(detection);
         }
     }
