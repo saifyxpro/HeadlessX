@@ -34,9 +34,28 @@ export function ResultsPanel({
 
     // Check content height to determine if expand button is needed
     useEffect(() => {
-        if (contentRef.current) {
-            setCanExpand(contentRef.current.scrollHeight > 600);
-        }
+        if (!contentRef.current) return;
+        
+        const checkHeight = () => {
+            if (contentRef.current) {
+                // Determine if the *actual* height is significantly more than our restricted height (600px)
+                setCanExpand(contentRef.current.scrollHeight > 650); 
+            }
+        };
+
+        checkHeight();
+        
+        // Wait for markdown render and images
+        const timeout = setTimeout(checkHeight, 200);
+        
+        // Listen for content size changes
+        const observer = new ResizeObserver(() => checkHeight());
+        observer.observe(contentRef.current);
+        
+        return () => {
+            clearTimeout(timeout);
+            observer.disconnect();
+        };
     }, [result, viewRaw]);
 
     // Auto-scroll steps
@@ -305,7 +324,7 @@ export function ResultsPanel({
                                         className={`p-6 ${expanded ? '' : 'max-h-[600px] overflow-hidden'}`}
                                     >
                                         {result.type === 'content' ? (
-                                            <div className="prose prose-slate prose-sm max-w-none">
+                                            <div className="prose prose-slate prose-sm max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-blue-600 hover:prose-a:text-blue-700 prose-code:text-rose-500 prose-code:bg-rose-50 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:before:content-none prose-code:after:content-none prose-pre:bg-slate-900 prose-pre:text-slate-50 prose-pre:shadow-sm prose-img:rounded-xl">
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{(result.data as any).markdown}</ReactMarkdown>
                                             </div>
                                         ) : (
