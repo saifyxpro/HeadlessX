@@ -4,15 +4,15 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-    "focus-visible:ring-ring/30 focus-visible:ring-[3px] text-sm font-medium outline-none aria-invalid:ring-destructive/20 [&_svg:not([class*='size-'])]:size-4 inline-flex items-center justify-center whitespace-nowrap transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0 group/button select-none active:scale-[0.98] duration-200",
+    "focus-visible:ring-ring/30 focus-visible:ring-[3px] text-sm font-medium outline-none aria-invalid:ring-destructive/20 [&_svg:not([class*='size-'])]:size-4 inline-flex items-center justify-center whitespace-nowrap disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0 group/button select-none",
     {
         variants: {
             variant: {
-                default: "bg-primary text-primary-foreground shadow-md hover:shadow-lg shadow-primary/20 hover:bg-primary/90",
-                outline: "border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 shadow-sm",
-                secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm",
+                default: "bg-primary text-primary-foreground hover:bg-primary/90",
+                outline: "border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700",
+                secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
                 ghost: "hover:bg-slate-100 hover:text-slate-900 text-slate-500",
-                destructive: "bg-destructive text-white shadow-md shadow-destructive/20 hover:bg-destructive/90",
+                destructive: "bg-destructive text-white hover:bg-destructive/90",
                 link: "text-primary underline-offset-4 hover:underline",
             },
             size: {

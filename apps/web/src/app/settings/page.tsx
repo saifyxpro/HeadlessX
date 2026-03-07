@@ -59,7 +59,7 @@ export default function SettingsPage() {
         }
     });
 
-    const [formData, setFormData] = useState<any>({});
+    const [formData, setFormData] = useState<any>({ browserHeadless: true });
     const [activeTab, setActiveTab] = useState('general');
 
     useEffect(() => {
@@ -166,7 +166,7 @@ export default function SettingsPage() {
                                         </div>
                                         <div className="text-sm text-slate-500">Run browser without UI (faster execution)</div>
                                     </div>
-                                    <Switch checked={formData.browserHeadless} onCheckedChange={(c) => handleChange('browserHeadless', c)} />
+                                    <Switch checked={formData.browserHeadless ?? true} onCheckedChange={(c) => handleChange('browserHeadless', c)} />
                                 </div>
                                 <div className="p-5 bg-white/50 rounded-2xl border border-slate-100 shadow-sm space-y-3 transition-all hover:shadow-md hover:border-slate-200">
                                     <label className="text-sm font-semibold text-slate-900">Browser Timeout (ms)</label>

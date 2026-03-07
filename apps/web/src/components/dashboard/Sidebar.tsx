@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Github, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import {
     DashboardSquare01Icon,
     UserGroupIcon,
@@ -53,42 +53,48 @@ export function Sidebar() {
     return (
         <aside
             className={cn(
-                "border-r border-border/60 bg-card/95 backdrop-blur-md flex flex-col h-full z-20 transition-all duration-300 relative shadow-premium",
+                "border-r border-slate-200 bg-white flex flex-col h-full z-20 relative",
                 collapsed ? "w-[80px]" : "w-[280px]"
             )}
         >
-            {/* Toggle Button */}
-            <button
-                onClick={toggle}
-                className="absolute -right-3 top-8 w-6 h-6 rounded-full bg-white border border-border/80 shadow-md flex items-center justify-center text-muted-foreground hover:text-primary transition-all z-30 hover:scale-105"
-            >
-                {collapsed ? (
-                    <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
-                ) : (
-                    <HugeiconsIcon icon={ArrowLeft01Icon} size={14} />
-                )}
-            </button>
-
             {/* Header */}
-            <div className={cn("flex items-center gap-3 transition-all duration-300", collapsed ? "p-4 justify-center" : "p-6 pb-2")}>
-                <div className="relative shrink-0 w-10 h-10 group cursor-pointer">
-                    <div className="absolute inset-0 bg-primary/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Image
-                        src="/logo.svg"
-                        alt="HeadlessX"
-                        width={40}
-                        height={40}
-                        className="rounded-xl shadow-sm relative z-10"
-                    />
-                </div>
-                {!collapsed && (
-                    <div className="overflow-hidden whitespace-nowrap">
-                        <h1 className="text-lg font-bold tracking-tight text-slate-800 leading-none">
-                            HeadlessX
-                        </h1>
-                        <span className="text-[11px] font-semibold text-primary/80 bg-primary/5 px-1.5 py-0.5 rounded-full mt-1 inline-block">v2.0 Beta</span>
+            <div className={cn("border-b border-slate-200 bg-slate-50/80", collapsed ? "px-3 py-4" : "px-4 py-4")}>
+                <div className={cn("flex gap-3", collapsed ? "flex-col items-center" : "items-center justify-between")}>
+                    <div className={cn("flex items-center gap-3 min-w-0", collapsed && "flex-col")}>
+                        <div className="relative shrink-0 w-10 h-10">
+                            <Image
+                                src="/logo.svg"
+                                alt="HeadlessX"
+                                width={40}
+                                height={40}
+                                className="rounded-xl relative z-10"
+                            />
+                        </div>
+                        {!collapsed && (
+                            <div className="overflow-hidden whitespace-nowrap min-w-0">
+                                <h1 className="text-lg font-bold tracking-tight text-slate-800 leading-none">
+                                    HeadlessX
+                                </h1>
+                                <span className="text-[11px] font-semibold text-primary/80 bg-primary/5 px-1.5 py-0.5 rounded-full mt-1 inline-block">v2.0 Beta</span>
+                            </div>
+                        )}
                     </div>
-                )}
+
+                    <button
+                        onClick={toggle}
+                        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                        className={cn(
+                            "h-9 w-9 shrink-0 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300",
+                            collapsed && "mx-auto"
+                        )}
+                    >
+                        {collapsed ? (
+                            <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
+                        ) : (
+                            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
+                        )}
+                    </button>
+                </div>
             </div>
 
             {/* Nav */}
@@ -103,17 +109,17 @@ export function Sidebar() {
                             href={item.href}
                             target={isExternal ? "_blank" : undefined}
                             className={cn(
-                                "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden",
+                                "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium border border-transparent relative overflow-hidden",
                                 isActive
-                                    ? "bg-primary text-white shadow-lg shadow-primary/25"
+                                    ? "bg-primary/8 text-primary border-primary/15"
                                     : "text-slate-500 hover:text-slate-900 hover:bg-slate-50",
                                 collapsed && "justify-center px-0 w-12 h-12 mx-auto mb-2"
                             )}
                             title={collapsed ? item.label : undefined}
                         >
                             <HugeiconsIcon icon={item.icon} className={cn(
-                                "w-5 h-5 transition-colors shrink-0",
-                                isActive ? "text-white" : "text-slate-400 group-hover:text-slate-700"
+                                "w-5 h-5 shrink-0",
+                                isActive ? "text-primary" : "text-slate-400 group-hover:text-slate-700"
                             )} size={20} />
                             {!collapsed && (
                                 <div className="flex-1 flex items-center justify-between overflow-hidden">
@@ -125,38 +131,13 @@ export function Sidebar() {
                     );
                 })}
 
-                {/* Visual Separator - Distinct from tabs */}
-                <div className="my-2 px-3">
-                    <div className="h-px bg-slate-200/60" />
-                </div>
-
-                {/* GitHub Link */}
-                <Link
-                    href="https://github.com/saifyxpro/headlessx"
-                    target="_blank"
-                    className={cn(
-                        "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative overflow-hidden text-slate-600 hover:text-slate-900 hover:bg-slate-50",
-                        collapsed && "justify-center px-0 w-12 h-12 mx-auto"
-                    )}
-                    title={collapsed ? "Open Source" : undefined}
-                >
-                    <div className="w-5 h-5 flex items-center justify-center shrink-0">
-                        <Github className="w-5 h-5 text-black/80 group-hover:text-black transition-colors" />
-                    </div>
-                    {!collapsed && (
-                        <div className="flex items-center justify-between flex-1 overflow-hidden">
-                            <span className="whitespace-nowrap overflow-hidden font-semibold text-slate-700 group-hover:text-slate-900">Open Source</span>
-                            <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                        </div>
-                    )}
-                </Link>
             </nav>
 
             {/* Footer */}
-            <div className={cn("border-t border-border/50 bg-slate-50/50 backdrop-blur-sm transition-all duration-300", collapsed ? "p-3" : "p-4")}>
+            <div className={cn("border-t border-slate-200 bg-slate-50", collapsed ? "p-3" : "p-4")}>
                 <div className={cn(
-                    "rounded-2xl border border-border/50 bg-white shadow-sm transition-all duration-300 overflow-hidden",
-                    collapsed ? "p-2 aspect-square flex items-center justify-center bg-transparent border-0 shadow-none" : "p-4"
+                    "rounded-2xl border border-slate-200 bg-white overflow-hidden",
+                    collapsed ? "p-2 aspect-square flex items-center justify-center bg-transparent border-0" : "p-4"
                 )}>
                     {collapsed ? (
                         <div title={`System Load: ${systemLoad}%`} className="relative">
@@ -204,7 +185,7 @@ export function Sidebar() {
                                     <Skeleton className="h-full w-full bg-slate-200" />
                                 ) : (
                                     <div
-                                        className="h-full transition-all bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]"
+                                        className="h-full bg-emerald-500"
                                         style={{ width: `${systemLoad}%` }}
                                     />
                                 )}

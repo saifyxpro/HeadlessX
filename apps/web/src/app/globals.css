@@ -74,13 +74,13 @@
   --color-ring: var(--ring);
   --radius: var(--radius);
 
-  /* Premium Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-premium: 0 0 0 1px rgba(0, 0, 0, 0.03), 0 2px 8px rgba(0, 0, 0, 0.04), 0 6px 24px rgba(0, 0, 0, 0.04);
+  /* Flat UI */
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-xl: none;
+  --shadow-premium: none;
 }
 
 /* Base Styles */
@@ -115,10 +115,43 @@ samp {
 
 /* Utilities */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
+  background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: var(--shadow-premium);
+}
+
+@layer base {
+  [class*="shadow"] {
+    box-shadow: none !important;
+  }
+
+  [class*="backdrop-blur"] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  [class*=" blur-"],
+  [class^="blur-"] {
+    filter: none !important;
+  }
+
+  [class*="transition"],
+  [class*="duration-"],
+  [class*="ease-"] {
+    transition-property: none !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+
+  [class*="animate-in"],
+  [class*="fade-in"],
+  [class*="slide-in-"],
+  [class*="animate-blob"] {
+    animation: none !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* Custom Scrollbar */
@@ -172,12 +205,31 @@ samp {
 
 /* Premium Background */
 .premium-bg {
-  background-color: #fcfcfc;
+  background-color: #f5f7fb;
   background-image:
-    radial-gradient(at 80% 0%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
-    radial-gradient(at 0% 50%, rgba(16, 185, 129, 0.02) 0px, transparent 50%),
-    linear-gradient(rgba(0, 0, 0, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.015) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 64px 64px, 64px 64px;
-  background-attachment: fixed;
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.06) 0px, transparent 32%),
+    radial-gradient(circle at top left, rgba(15, 23, 42, 0.04) 0px, transparent 26%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  background-size: 100% 100%;
+}
+
+.premium-bg [data-slot="card"],
+.premium-bg [class*="bg-white/60"],
+.premium-bg [class*="bg-white/50"],
+.premium-bg [class*="bg-white/40"],
+.premium-bg [class*="bg-white/30"],
+.premium-bg [class*="bg-slate-50/50"] {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+}
+
+.premium-bg [data-slot="card"],
+.premium-bg [class*="border-white/50"],
+.premium-bg [class*="border-white/60"],
+.premium-bg [class*="border-slate-100"] {
+  border-color: #dbe2ea !important;
+}
+
+.premium-bg [class*="border-t"][class*="border-white/40"],
+.premium-bg [class*="border-b"][class*="border-slate-100/50"] {
+  border-color: #e2e8f0 !important;
 }

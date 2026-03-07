@@ -57,7 +57,7 @@ const MemberItem = ({ member, actions }: { member: StackedListItem, actions?: Re
             }}
             transition={sweepSpring}
             style={{ originX: 1, originY: 1 }}
-            className="flex items-center group py-4 px-4 -mx-4 rounded-xl hover:bg-white/60 transition-colors border-b border-transparent hover:border-white/20"
+            className="flex items-center group py-4 px-4 -mx-4 rounded-xl bg-transparent border-b border-slate-200/80"
         >
             <div className="relative mr-4 shrink-0">
                 {member.avatar ? (
@@ -67,13 +67,13 @@ const MemberItem = ({ member, actions }: { member: StackedListItem, actions?: Re
                         className="w-12 h-12 rounded-2xl ring-2 ring-white shadow-sm object-cover"
                     />
                 ) : (
-                    <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border transition-colors", getIconStyles(member.status))}>
+                    <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center border", getIconStyles(member.status))}>
                         <HugeiconsIcon icon={member.icon || Key01Icon} size={24} />
                     </div>
                 )}
 
                 {member.active && (
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm z-10">
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center z-10">
                         <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white" />
                     </div>
                 )}
@@ -142,7 +142,7 @@ export default function StackedList({ items, title = "Items", onSearch, onAdd, r
     return (
         <div className="flex items-center justify-center w-full bg-transparent font-sans not-prose">
             <div className={cn(
-                "relative w-full bg-white/60 backdrop-blur-2xl rounded-[32px] border border-white/50 flex flex-col overflow-hidden shadow-premium transition-all duration-500",
+                "relative w-full bg-white rounded-[32px] border border-slate-200 flex flex-col overflow-hidden",
                 isExpanded ? "min-h-[600px]" : "h-auto"
             )}>
                 <div className="flex flex-col h-full">
@@ -172,7 +172,7 @@ export default function StackedList({ items, title = "Items", onSearch, onAdd, r
                                         variant="default"
                                         size="icon"
                                         onClick={onAdd}
-                                        className="h-9 w-9 rounded-full shadow-lg hover:shadow-xl transition-all shadow-primary/20"
+                                        className="h-9 w-9 rounded-full"
                                     >
                                         <HugeiconsIcon icon={Add01Icon} size={18} strokeWidth={2.5} />
                                     </Button>
@@ -197,7 +197,7 @@ export default function StackedList({ items, title = "Items", onSearch, onAdd, r
                                         placeholder={`Search ${title.toLowerCase()}...`}
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="h-11 pl-11 pr-4 bg-white/50 border-white/40 focus-visible:ring-primary/20 rounded-2xl text-base text-slate-900 placeholder:text-slate-400 transition-all w-full shadow-inner"
+                                        className="h-11 pl-11 pr-4 bg-white border-slate-200 focus-visible:ring-primary/20 rounded-2xl text-base text-slate-900 placeholder:text-slate-400 w-full"
                                     />
                                 </motion.div>
                             )}

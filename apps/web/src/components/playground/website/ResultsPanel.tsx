@@ -109,7 +109,7 @@ export function ResultsPanel({
     const showCopy = showViewToggle || result?.type === 'html-css-js';
 
     return (
-        <div className="lg:col-span-8 flex flex-col bg-white/60 backdrop-blur-xl rounded-[24px] border border-white/60 shadow-premium overflow-hidden min-h-[500px] relative">
+        <div className="lg:col-span-8 flex flex-col bg-white/60 backdrop-blur-xl rounded-[24px] border border-white/60 shadow-premium overflow-hidden min-h-[600px] h-full relative">
 
             {/* Terminal Header */}
             <div className="px-6 py-4 border-b border-white/40 bg-white/40 flex items-center justify-between shrink-0">
@@ -122,7 +122,7 @@ export function ResultsPanel({
                     <div className="h-5 w-px bg-slate-200/50" />
                     <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-white/50 border border-white/60 text-xs font-bold text-slate-600 shadow-sm">
                         <Terminal className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Console Output</span>
+                        <span>Scrape Results</span>
                     </div>
                 </div>
 

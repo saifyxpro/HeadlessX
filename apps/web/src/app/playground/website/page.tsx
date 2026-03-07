@@ -174,14 +174,14 @@ function WebsiteScraperContent() {
     });
 
     return (
-        <div className="relative min-h-screen -m-8 pb-10">
-            {/* Background Decorations */}
-            <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-blue-100/40 via-purple-100/20 to-transparent rounded-full blur-[120px] opacity-60" />
-                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-emerald-50/40 via-blue-50/20 to-transparent rounded-full blur-[100px] opacity-60" />
+        <div className="relative min-h-screen p-8 lg:p-12 overflow-x-hidden">
+            <div className="fixed inset-0 -z-10 bg-[#f8fafc]">
+                <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-100/50 rounded-full blur-[120px] mix-blend-multiply opacity-70 animate-blob" />
+                <div className="absolute top-[20%] left-[-10%] w-[500px] h-[500px] bg-indigo-100/50 rounded-full blur-[100px] mix-blend-multiply opacity-70 animate-blob animation-delay-2000" />
+                <div className="absolute bottom-[-10%] right-[20%] w-[400px] h-[400px] bg-sky-100/50 rounded-full blur-[80px] mix-blend-multiply opacity-70 animate-blob animation-delay-4000" />
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 py-6 font-plus-jakarta">
+            <div className="max-w-[1600px] mx-auto z-10 relative">
                 <ScraperHeader
                     elapsedTime={elapsedTime}
                     isPending={scrapeMutation.isPending || isStreaming}
