@@ -28,6 +28,8 @@
 
 ---
 
+![HeadlessX Demo](assets/demo.gif)
+
 ### 🎯 **0% Detection Rate** on all major anti-bot systems
 
 *Powered by **Camoufox** — Firefox with C++ level fingerprint spoofing*
@@ -141,6 +143,9 @@
 
 ### BrowserScan (100% Passed)
 ![BrowserScan](assets/Browserscan_Bot_Detection_Passed.png)
+
+### Cloudflare Turnstile Bypass
+![Cloudflare Challenge Passed](assets/cloudflare.png)
 
 <div align="center">
 
