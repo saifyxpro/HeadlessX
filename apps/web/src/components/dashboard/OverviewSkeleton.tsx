@@ -6,16 +6,16 @@ import { PageHeader } from "@/components/ui/PageHeader";
 
 export function OverviewSkeleton() {
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             <PageHeader
                 title="Overview"
                 description="Welcome back to your scraping command center."
             />
 
             {/* Stats Cards Skeleton */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 px-6 md:px-8 max-w-[1600px] mx-auto">
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
                 {[1, 2, 3, 4].map((i) => (
-                    <Card key={i} className="col-span-1 bg-white/60 backdrop-blur-xl border-white/50 shadow-premium h-full">
+                    <Card key={i} className="col-span-1 h-full">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <Skeleton className="h-4 w-20" />
                             <Skeleton className="h-4 w-4 rounded" />
@@ -28,10 +28,10 @@ export function OverviewSkeleton() {
                 ))}
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 px-6 md:px-8 max-w-[1600px] mx-auto pb-8">
+            <div className="grid gap-5 pb-2 xl:grid-cols-12">
                 {/* Activity Feed Skeleton */}
-                <div className="col-span-1 lg:col-span-2 rounded-3xl border border-white/50 bg-white/60 backdrop-blur-xl shadow-premium overflow-hidden flex flex-col min-h-[500px]">
-                    <div className="p-8 pb-4">
+                <Card className="xl:col-span-8 overflow-hidden min-h-[500px]">
+                    <div className="p-6 pb-4">
                         <Skeleton className="h-5 w-32 mb-2" />
                         <Skeleton className="h-4 w-48" />
                     </div>
@@ -47,12 +47,12 @@ export function OverviewSkeleton() {
                             </div>
                         ))}
                     </div>
-                </div>
+                </Card>
 
                 {/* Right Column Skeleton */}
-                <div className="col-span-1 flex flex-col gap-6">
+                <div className="xl:col-span-4 flex flex-col gap-5">
                     {/* Quick Actions Skeleton */}
-                    <Card className="border-white/50 bg-white/60 backdrop-blur-xl shadow-premium rounded-3xl overflow-hidden">
+                    <Card className="overflow-hidden">
                         <CardHeader className="p-6 pb-2">
                             <Skeleton className="h-5 w-28 mb-1" />
                             <Skeleton className="h-4 w-20" />
@@ -65,7 +65,7 @@ export function OverviewSkeleton() {
                     </Card>
 
                     {/* System Status Skeleton */}
-                    <Card className="border-white/50 bg-white/60 backdrop-blur-xl shadow-premium rounded-3xl overflow-hidden flex-1">
+                    <Card className="overflow-hidden flex-1">
                         <CardHeader className="p-6 pb-4">
                             <Skeleton className="h-5 w-28 mb-1" />
                             <Skeleton className="h-4 w-32" />

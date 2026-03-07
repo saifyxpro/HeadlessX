@@ -235,18 +235,18 @@ export default function ProfilesPage() {
 
     if (error) {
         return (
-            <div className="max-w-7xl mx-auto px-6 py-8 transition-all duration-300">
+            <div className="space-y-6">
                 <PageHeader
                     title="Browser Profiles"
                     description="Manage persistent browser contexts and sessions."
                     action={
-                        <Button disabled className="opacity-50 cursor-not-allowed h-11 px-6 bg-primary text-white font-medium shadow-lg shadow-primary/20 rounded-xl">
+                        <Button disabled className="opacity-50 cursor-not-allowed h-10 px-5">
                             <HugeiconsIcon icon={Plus} className="mr-2" size={20} />
                             New Profile
                         </Button>
                     }
                 />
-                <div className="mt-8 p-12 rounded-[32px] border border-red-100 bg-red-50/50 flex flex-col items-center justify-center text-center">
+                <div className="rounded-2xl border border-red-100 bg-red-50 px-8 py-12 flex flex-col items-center justify-center text-center">
                     <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-6 shadow-sm">
                         <HugeiconsIcon icon={Server01Icon} className="w-10 h-10 text-red-600" />
                     </div>
@@ -257,7 +257,7 @@ export default function ProfilesPage() {
                     <Button
                         size="lg"
                         onClick={() => window.location.reload()}
-                        className="bg-white border-2 border-red-100 hover:bg-red-50 text-red-700 hover:border-red-200 shadow-sm rounded-xl px-8"
+                        className="bg-white border-2 border-red-100 hover:bg-red-50 text-red-700 hover:border-red-200 px-8"
                     >
                         Retry Connection
                     </Button>
@@ -352,13 +352,13 @@ export default function ProfilesPage() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-6 py-8 transition-all duration-300">
+        <div className="space-y-6">
             {/* Header */}
             <PageHeader
                 title="Browser Profiles"
                 description="Manage persistent browser contexts and sessions."
                 action={
-                    <Button onClick={openCreateModal} className="h-11 px-6 bg-primary text-white font-medium shadow-lg shadow-primary/20 hover:shadow-primary/30 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    <Button onClick={openCreateModal} className="h-10 px-5">
                         <HugeiconsIcon icon={Plus} className="mr-2" size={20} />
                         New Profile
                     </Button>
@@ -381,7 +381,7 @@ export default function ProfilesPage() {
                     ))}
                 </div>
             ) : profiles?.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[32px] border border-dashed border-slate-200 text-center shadow-sm">
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white py-24 text-center">
                     <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6 shadow-inner">
                         <HugeiconsIcon icon={UserGroupIcon} size={48} className="text-slate-300" />
                     </div>
@@ -389,17 +389,17 @@ export default function ProfilesPage() {
                     <p className="text-slate-500 max-w-md mx-auto mb-8 leading-relaxed">
                         Create your first browser profile to start scraping with persistent context, cookies, and cache.
                     </p>
-                    <Button onClick={openCreateModal} size="lg" className="rounded-xl px-8 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20">
+                    <Button onClick={openCreateModal} size="lg" className="rounded-xl px-8 bg-blue-600 hover:bg-blue-700 text-white">
                         Create Profile
                     </Button>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {profiles?.map((profile: any) => (
-                        <Card key={profile.id} className="group hover:-translate-y-1 transition-all duration-300 border-border/60 bg-white hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 rounded-2xl overflow-hidden">
-                            <CardHeader className="pb-4 border-b border-border/30 bg-slate-50/30">
+                        <Card key={profile.id} className="group overflow-hidden border-border/60 bg-white hover:border-primary/20">
+                            <CardHeader className="pb-4 border-b border-border/50 bg-slate-50/60">
                                 <div className="flex justify-between items-start mb-3">
-                                    <div className="p-2.5 bg-white rounded-xl text-primary ring-1 ring-border/50 shadow-sm">
+                                    <div className="p-2.5 bg-white rounded-xl text-primary ring-1 ring-border/50">
                                         <HugeiconsIcon icon={Server01Icon} size={22} className="text-primary" />
                                     </div>
                                     <div className="flex gap-2">
@@ -423,13 +423,13 @@ export default function ProfilesPage() {
 
                             <CardContent className="py-5 space-y-4">
                                 <div className="grid grid-cols-2 gap-3">
-                                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 group-hover:bg-white group-hover:border-primary/10 transition-colors">
+                                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                                         <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400 flex items-center gap-1.5 mb-1.5">
                                             <HugeiconsIcon icon={HardDrive} size={12} /> Storage
                                         </div>
                                         <div className="font-semibold text-sm text-slate-700 capitalize">{profile.storageType || 'Local'}</div>
                                     </div>
-                                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 group-hover:bg-white group-hover:border-primary/10 transition-colors">
+                                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                                         <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400 flex items-center gap-1.5 mb-1.5">
                                             <HugeiconsIcon icon={Globe} size={12} /> Proxy
                                         </div>
@@ -451,13 +451,13 @@ export default function ProfilesPage() {
                                 </div>
                             </CardContent>
 
-                            <CardFooter className="pt-4 pb-5 px-6 flex gap-3 border-t border-dashed border-border/60 bg-slate-50/20">
+                            <CardFooter className="pt-4 pb-5 px-6 flex gap-3 border-t border-dashed border-border/60 bg-slate-50/40">
                                 <Button
                                     variant={profile.status === 'running' ? "destructive" : "default"}
                                     size="sm"
                                     className={cn(
-                                        "flex-1 font-semibold rounded-lg shadow-sm transition-all",
-                                        profile.status === 'running' ? "shadow-red-500/20 hover:shadow-red-500/30" : "bg-slate-900 text-white hover:bg-slate-800 shadow-slate-900/10"
+                                        "flex-1 font-semibold rounded-lg",
+                                        profile.status === 'running' ? "" : "bg-slate-900 text-white hover:bg-slate-800"
                                     )}
                                     onClick={() => toggleMutation.mutate({
                                         id: profile.id,

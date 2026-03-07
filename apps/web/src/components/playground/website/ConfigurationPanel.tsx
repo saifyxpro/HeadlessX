@@ -126,7 +126,7 @@ export function ConfigurationPanel({
 
     return (
         <div className="lg:col-span-4 space-y-6">
-            <div className="bg-white/60 backdrop-blur-xl rounded-[32px] p-6 md:p-8 border border-white/60 shadow-premium">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-7">
                 <div className={`space-y-6 ${isDisabled ? 'opacity-60 pointer-events-none grayscale-[0.5]' : ''}`}>
                     <div className="flex items-start gap-4 mb-5">
                         <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0">

@@ -140,13 +140,13 @@ export default function StackedList({ items, title = "Items", onSearch, onAdd, r
     const displayItems = isExpanded ? filteredItems : items.slice(0, 5);
 
     return (
-        <div className="flex items-center justify-center w-full bg-transparent font-sans not-prose">
+        <div className="w-full bg-transparent font-sans not-prose">
             <div className={cn(
-                "relative w-full bg-white rounded-[32px] border border-slate-200 flex flex-col overflow-hidden",
+                "relative w-full rounded-2xl border border-slate-200 bg-white flex flex-col overflow-hidden",
                 isExpanded ? "min-h-[600px]" : "h-auto"
             )}>
                 <div className="flex flex-col h-full">
-                    <div className="p-8 pb-3">
+                    <div className="p-5 pb-3">
                         <div className="flex items-center justify-between mb-5">
                             <h2 className="text-lg font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                                 {title}
@@ -204,7 +204,7 @@ export default function StackedList({ items, title = "Items", onSearch, onAdd, r
                         </AnimatePresence>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto px-8 pb-8 custom-scrollbar scroll-visible">
+                    <div className="flex-1 overflow-y-auto px-5 pb-5 custom-scrollbar scroll-visible">
                         <motion.div
                             initial={false}
                             animate="visible"

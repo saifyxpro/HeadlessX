@@ -82,14 +82,14 @@ export default function Overview() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             <PageHeader
                 title="Overview"
                 description="Welcome back to your scraping command center."
             />
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 px-6 md:px-8 max-w-[1600px] mx-auto">
-                <Card className="col-span-1 bg-white/60 backdrop-blur-xl border-white/50 shadow-premium hover:shadow-lg transition-all h-full">
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                <Card className="col-span-1 h-full">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">
                             Total Jobs
@@ -103,7 +103,7 @@ export default function Overview() {
                         </p>
                     </CardContent>
                 </Card>
-                <Card className="col-span-1 bg-white/60 backdrop-blur-xl border-white/50 shadow-premium hover:shadow-lg transition-all h-full">
+                <Card className="col-span-1 h-full">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">
                             Success Rate
@@ -117,7 +117,7 @@ export default function Overview() {
                         </p>
                     </CardContent>
                 </Card>
-                <Card className="col-span-1 bg-white/60 backdrop-blur-xl border-white/50 shadow-premium hover:shadow-lg transition-all h-full">
+                <Card className="col-span-1 h-full">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">
                             Active Profiles
@@ -131,7 +131,7 @@ export default function Overview() {
                         </p>
                     </CardContent>
                 </Card>
-                <Card className="col-span-1 bg-white/60 backdrop-blur-xl border-white/50 shadow-premium hover:shadow-lg transition-all h-full">
+                <Card className="col-span-1 h-full">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">
                             Cookies Saved
@@ -148,41 +148,41 @@ export default function Overview() {
 
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 px-6 md:px-8 max-w-[1600px] mx-auto pb-8">
+            <div className="grid gap-5 pb-2 xl:grid-cols-12">
                 {/* Main Content - Activity Feed */}
-                <div className="col-span-1 lg:col-span-2 rounded-3xl border border-white/50 bg-white/60 backdrop-blur-xl shadow-premium overflow-hidden flex flex-col h-full min-h-[500px]">
-                    <div className="p-8 pb-4">
+                <Card className="xl:col-span-8 overflow-hidden min-h-[500px]">
+                    <div className="p-6 pb-4">
                         <h3 className="font-semibold text-lg text-slate-900 leading-none tracking-tight">Recent Activity</h3>
                         <p className="text-sm text-slate-500 pt-1.5">Latest system events and triggers.</p>
                     </div>
                     <div className="p-2 flex-1">
                         <RecentActivityList />
                     </div>
-                </div>
+                </Card>
 
                 {/* Right Column - Actions & Status */}
-                <div className="col-span-1 flex flex-col gap-6">
+                <div className="xl:col-span-4 flex flex-col gap-5">
                     {/* Quick Actions */}
-                    <Card className="border-white/50 bg-white/60 backdrop-blur-xl shadow-premium rounded-3xl overflow-hidden">
+                    <Card className="overflow-hidden">
                         <CardHeader className="p-6 pb-2">
                             <CardTitle className="text-lg text-slate-900">Quick Actions</CardTitle>
                             <p className="text-sm text-slate-500">Common tasks</p>
                         </CardHeader>
                         <CardContent className="p-6 pt-2 grid gap-3">
                             <Link href="/playground" className="w-full">
-                                <Button className="w-full justify-start h-12 px-5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-primary shadow-sm border border-slate-200" variant="ghost">
+                                <Button className="w-full justify-start h-11 px-5" variant="outline">
                                     <HugeiconsIcon icon={PlayCircleIcon} className="mr-3 h-5 w-5 text-blue-500" />
                                     <span className="font-medium">Playground</span>
                                 </Button>
                             </Link>
                             <Link href="/api-keys" className="w-full">
-                                <Button className="w-full justify-start h-12 px-5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-primary shadow-sm border border-slate-200" variant="ghost">
+                                <Button className="w-full justify-start h-11 px-5" variant="outline">
                                     <HugeiconsIcon icon={Key01Icon} className="mr-3 h-5 w-5 text-amber-500" />
                                     <span className="font-medium">Manage Keys</span>
                                 </Button>
                             </Link>
                             <Link href="/logs" className="w-full">
-                                <Button className="w-full justify-start h-12 px-5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 hover:text-primary shadow-sm border border-slate-200" variant="ghost">
+                                <Button className="w-full justify-start h-11 px-5" variant="outline">
                                     <HugeiconsIcon icon={File01Icon} className="mr-3 h-5 w-5 text-slate-500" />
                                     <span className="font-medium">View Logs</span>
                                 </Button>
@@ -191,7 +191,7 @@ export default function Overview() {
                     </Card>
 
                     {/* System Status - Fills remaining space */}
-                    <Card className="border-white/50 bg-white/60 backdrop-blur-xl shadow-premium rounded-3xl overflow-hidden flex-1">
+                    <Card className="overflow-hidden flex-1">
                         <CardHeader className="p-6 pb-4">
                             <CardTitle className="text-lg text-slate-900 flex items-center justify-between">
                                 System Status

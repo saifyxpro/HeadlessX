@@ -120,6 +120,26 @@ samp {
 }
 
 @layer base {
+  a[href],
+  button,
+  [role="button"],
+  summary,
+  label[for],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  select {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
   [class*="shadow"] {
     box-shadow: none !important;
   }
@@ -205,12 +225,7 @@ samp {
 
 /* Premium Background */
 .premium-bg {
-  background-color: #f5f7fb;
-  background-image:
-    radial-gradient(circle at top right, rgba(37, 99, 235, 0.06) 0px, transparent 32%),
-    radial-gradient(circle at top left, rgba(15, 23, 42, 0.04) 0px, transparent 26%),
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-  background-size: 100% 100%;
+  background: linear-gradient(180deg, #f8fafc 0%, #f5f7fb 100%);
 }
 
 .premium-bg [data-slot="card"],

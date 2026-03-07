@@ -12,6 +12,8 @@ pids/
 
 # Logs
 logs/
+!apps/web/src/app/logs/
+!apps/web/src/app/logs/page.tsx
 *.log
 loga
 

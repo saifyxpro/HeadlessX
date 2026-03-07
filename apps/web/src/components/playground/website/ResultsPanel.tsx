@@ -109,10 +109,10 @@ export function ResultsPanel({
     const showCopy = showViewToggle || result?.type === 'html-css-js';
 
     return (
-        <div className="lg:col-span-8 flex flex-col bg-white/60 backdrop-blur-xl rounded-[24px] border border-white/60 shadow-premium overflow-hidden min-h-[600px] h-full relative">
+        <div className="relative flex h-full min-h-[600px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white lg:col-span-8">
 
             {/* Terminal Header */}
-            <div className="px-6 py-4 border-b border-white/40 bg-white/40 flex items-center justify-between shrink-0">
+            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                         <div className="w-3 h-3 rounded-full bg-rose-400 shadow-sm" />
@@ -175,7 +175,7 @@ export function ResultsPanel({
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 overflow-hidden relative bg-white/30">
+            <div className="relative flex-1 overflow-hidden bg-white">
                 {/* Empty State / Loading */}
                 {(!result && !isStreaming && !isPending) && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-white/40 backdrop-blur-sm z-10">

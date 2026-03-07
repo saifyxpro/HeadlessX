@@ -8,12 +8,50 @@ import { ConfigurationPanel } from '@/components/playground/google-serp/Configur
 import { ResultsPanel } from '@/components/playground/google-serp/ResultsPanel';
 import { SearchResponse, Profile, ProgressStep } from '@/components/playground/google-serp/types';
 
+type ParsedSerpStreamEvent = {
+    event: 'start' | 'progress' | 'result' | 'error' | 'end' | 'message';
+    data: any;
+};
+
 const fetchProfiles = async () => {
     const res = await fetch('/api/profiles');
     return res.json();
 };
 
 const INITIAL_STEPS: ProgressStep[] = [];
+
+const parseSseEvent = (rawEvent: string): ParsedSerpStreamEvent | null => {
+    let event: ParsedSerpStreamEvent['event'] = 'message';
+    const dataLines: string[] = [];
+
+    for (const line of rawEvent.split('\n')) {
+        if (!line) {
+            continue;
+        }
+
+        if (line.startsWith('event:')) {
+            event = line.slice(6).trim() as ParsedSerpStreamEvent['event'];
+            continue;
+        }
+
+        if (line.startsWith('data:')) {
+            dataLines.push(line.slice(5).trim());
+        }
+    }
+
+    if (dataLines.length === 0) {
+        return null;
+    }
+
+    try {
+        return {
+            event,
+            data: JSON.parse(dataLines.join('\n'))
+        };
+    } catch {
+        return null;
+    }
+};
 
 export default function GoogleSerpPage() {
     const [query, setQuery] = useState('');
@@ -96,57 +134,74 @@ export default function GoogleSerpPage() {
             }
 
             let buffer = '';
+            let receivedTerminalEvent = false;
 
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
 
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
+                buffer += decoder.decode(value, { stream: true }).replace(/\r/g, '');
 
-                for (const line of lines) {
-                    if (line.startsWith('data:')) {
-                        try {
-                            const jsonStr = line.slice(5).trim();
-                            if (!jsonStr || jsonStr === '{}') continue;
+                let separatorIndex = buffer.indexOf('\n\n');
+                while (separatorIndex !== -1) {
+                    const rawEvent = buffer.slice(0, separatorIndex);
+                    buffer = buffer.slice(separatorIndex + 2);
 
-                            const data = JSON.parse(jsonStr);
-                            console.log('📊 SSE Data:', data);
+                    const parsedEvent = parseSseEvent(rawEvent);
+                    if (!parsedEvent) {
+                        separatorIndex = buffer.indexOf('\n\n');
+                        continue;
+                    }
 
-                            // Progress update (has status field like website scraper)
-                            if (data.status && data.step !== undefined) {
-                                setSteps(prev => {
-                                    const newSteps = [...prev];
-                                    const idx = data.step - 1;
-                                    newSteps[idx] = {
-                                        step: data.step,
-                                        total: data.total,
-                                        message: data.message,
-                                        status: data.status as 'active' | 'completed' | 'pending' | 'error'
-                                    };
-                                    return newSteps.sort((a, b) => a.step - b.step);
-                                });
-                            }
-                            // Result (has success and data fields)
-                            if (data.success && data.data) {
-                                setData(data.data);
-                                setIsLoading(false);
-                                setIsStreaming(false);
-                            }
-                            // Error
-                            if (data.error) {
-                                setError(data.error);
-                                setIsLoading(false);
-                                setIsStreaming(false);
-                            }
-                        } catch (parseErr) {
-                            console.error('SSE parse error:', parseErr, 'Line:', line);
+                    console.log('📊 SSE Data:', parsedEvent.event, parsedEvent.data);
+
+                    if (parsedEvent.event === 'progress' || (parsedEvent.event === 'message' && parsedEvent.data?.status)) {
+                        const progress = parsedEvent.data;
+                        if (progress.step !== undefined) {
+                            setSteps(prev => {
+                                const newSteps = [...prev];
+                                const idx = progress.step - 1;
+                                newSteps[idx] = {
+                                    step: progress.step,
+                                    total: progress.total,
+                                    message: progress.message,
+                                    status: progress.status as 'active' | 'completed' | 'pending' | 'error'
+                                };
+                                return newSteps.sort((a, b) => a.step - b.step);
+                            });
                         }
                     }
+
+                    if (parsedEvent.event === 'result' || (parsedEvent.event === 'message' && parsedEvent.data?.success && parsedEvent.data?.data)) {
+                        const result = parsedEvent.data;
+                        setData(result.data);
+                        setIsLoading(false);
+                        setIsStreaming(false);
+                        receivedTerminalEvent = true;
+                    }
+
+                    if (parsedEvent.event === 'error' || (parsedEvent.event === 'message' && parsedEvent.data?.error)) {
+                        const message = parsedEvent.data?.error || 'Connection failed';
+                        setError(message);
+                        setIsLoading(false);
+                        setIsStreaming(false);
+                        receivedTerminalEvent = true;
+                    }
+
+                    if (parsedEvent.event === 'end' && !receivedTerminalEvent) {
+                        setError('Stream finished without a result');
+                        setIsLoading(false);
+                        setIsStreaming(false);
+                        receivedTerminalEvent = true;
+                    }
+
+                    separatorIndex = buffer.indexOf('\n\n');
                 }
             }
 
+            if (!receivedTerminalEvent) {
+                setError('Connection closed before a result was returned');
+            }
             setIsLoading(false);
             setIsStreaming(false);
         } catch (err: any) {
@@ -159,15 +214,8 @@ export default function GoogleSerpPage() {
     };
 
     return (
-        <div className="relative min-h-screen p-8 lg:p-12 overflow-x-hidden">
-            {/* Background Gradients */}
-            <div className="fixed inset-0 -z-10 bg-[#f8fafc]">
-                <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-100/50 rounded-full blur-[120px] mix-blend-multiply opacity-70 animate-blob" />
-                <div className="absolute top-[20%] left-[-10%] w-[500px] h-[500px] bg-indigo-100/50 rounded-full blur-[100px] mix-blend-multiply opacity-70 animate-blob animation-delay-2000" />
-                <div className="absolute bottom-[-10%] right-[20%] w-[400px] h-[400px] bg-sky-100/50 rounded-full blur-[80px] mix-blend-multiply opacity-70 animate-blob animation-delay-4000" />
-            </div>
-
-            <div className="max-w-[1600px] mx-auto z-10 relative">
+        <div className="space-y-6">
+            <div className="relative">
                 <GoogleSerpHeader
                     elapsedTime={elapsedTime}
                     isLoading={isLoading}

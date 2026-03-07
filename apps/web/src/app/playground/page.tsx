@@ -156,7 +156,7 @@ export default function PlaygroundPage() {
     };
 
     return (
-        <div className="space-y-10 pb-20">
+        <div className="space-y-6 pb-10">
             <PageHeader
                 title="Playground"
                 description="Experiment with our powerful scraping engines in real-time."
@@ -164,13 +164,13 @@ export default function PlaygroundPage() {
             />
 
             {/* Hero / Search Section */}
-            <div className="relative overflow-hidden rounded-[40px] border border-white/50 bg-white/40 backdrop-blur-2xl shadow-premium p-8 md:p-12 text-center">
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 md:p-10 text-center">
                 <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
                     <HugeiconsIcon icon={SparklesIcon} size={200} className="text-primary rotate-12" />
                 </div>
 
                 <div className="relative z-10 max-w-3xl mx-auto">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/50 border border-white/60 shadow-sm text-slate-600 text-sm font-semibold mb-6">
+                    <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-1.5 text-sm font-semibold text-slate-600">
                         <HugeiconsIcon icon={CommandLineIcon} size={16} className="text-primary" />
                         <span>Interactive API Playground</span>
                     </div>
@@ -185,7 +185,7 @@ export default function PlaygroundPage() {
 
                     <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto group">
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-violet-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                        <div className="relative flex items-center bg-white p-2 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/10 transition-all">
+                        <div className="relative flex items-center rounded-2xl border border-slate-200 bg-slate-50 p-2 focus-within:border-primary/40">
                             <div className="pl-4 text-slate-400">
                                 <HugeiconsIcon icon={Search01Icon} size={22} />
                             </div>
@@ -199,7 +199,7 @@ export default function PlaygroundPage() {
                             <Button
                                 type="submit"
                                 disabled={!searchUrl.trim()}
-                                className="h-12 px-8 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-medium transition-all shadow-lg shadow-slate-900/20 hover:shadow-slate-900/30"
+                                className="h-11 px-6 rounded-xl bg-slate-900 text-white hover:bg-slate-800 font-medium"
                             >
                                 Scrape
                             </Button>
@@ -213,7 +213,7 @@ export default function PlaygroundPage() {
                 {SCRAPERS.map((scraper) => (
                     scraper.available ? (
                         <Link href={scraper.href} key={scraper.id} className="group block h-full">
-                            <Card className="h-full border-white/60 bg-white/60 backdrop-blur-xl shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden rounded-3xl">
+                            <Card className="relative h-full overflow-hidden rounded-2xl border-slate-200 bg-white">
                                 <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-slate-50/50 z-0" />
                                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-primary/5 via-transparent to-transparent z-0" />
 
@@ -258,7 +258,7 @@ export default function PlaygroundPage() {
                         </Link>
                     ) : (
                         <div key={scraper.id} className="h-full block select-none">
-                            <Card className="h-full border-slate-100 bg-slate-50/50 transition-all duration-300 relative overflow-hidden rounded-3xl opacity-80 hover:opacity-100">
+                            <Card className="relative h-full overflow-hidden rounded-2xl border-slate-200 bg-slate-50 opacity-80 hover:opacity-100">
                                 <CardContent className="relative z-10 p-8 h-full flex flex-col">
                                     <div className="flex justify-between items-start mb-6">
                                         <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm bg-slate-100 text-slate-300 grayscale">

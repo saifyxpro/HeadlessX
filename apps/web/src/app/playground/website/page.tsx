@@ -9,6 +9,13 @@ import { ScraperHeader } from '@/components/playground/website/ScraperHeader';
 import { ConfigurationPanel } from '@/components/playground/website/ConfigurationPanel';
 import { ResultsPanel } from '@/components/playground/website/ResultsPanel';
 
+type StreamEventName = 'start' | 'progress' | 'result' | 'error' | 'cancelled' | 'done';
+
+type ParsedStreamEvent = {
+    event: StreamEventName | 'message';
+    data: any;
+};
+
 // Fetch profiles
 const fetchProfiles = async () => {
     const res = await fetch('/api/profiles');
@@ -33,9 +40,12 @@ function WebsiteScraperContent() {
     const [isStreaming, setIsStreaming] = useState(false);
     const [elapsedTime, setElapsedTime] = useState<number | null>(null);
     const [startTime, setStartTime] = useState<number | null>(null);
+    const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
     const [selectedProfileId, setSelectedProfileId] = useState<string>('');
     const abortControllerRef = useRef<AbortController | null>(null);
+    const streamCompletedRef = useRef(false);
+    const stopRequestedRef = useRef(false);
 
     // Fetch profiles
     const { data: profilesData } = useQuery({
@@ -71,22 +81,169 @@ function WebsiteScraperContent() {
     // In a full implementation, you'd retain the detailed reconnection logic from the original file.
     // For this refactor, we focus on the UI structure primarily, but I will keep the listener structure.
 
-    const stopScrape = () => {
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-            abortControllerRef.current = null;
-        }
+    const finishStreamingState = () => {
         setIsStreaming(false);
         setStartTime(null);
+        abortControllerRef.current = null;
+        setActiveJobId(null);
+    };
+
+    const setTerminalError = (message: string) => {
+        streamCompletedRef.current = true;
+        setResult({ type: 'error', data: message });
+    };
+
+    const applyResultPayload = (payload: any) => {
+        streamCompletedRef.current = true;
+
+        if (!payload?.success) {
+            setTerminalError(payload?.error || 'Scrape failed');
+            return;
+        }
+
+        if (payload.type === 'screenshot') {
+            setResult({ type: 'image', data: payload.data });
+            return;
+        }
+
+        setResult({ type: payload.type || 'html', data: payload.data || payload });
+    };
+
+    const applyProgressPayload = (payload: any) => {
+        if (!payload?.status || payload.step === undefined) {
+            return;
+        }
+
+        setSteps(prev => {
+            const newSteps = [...prev];
+            const idx = payload.step - 1;
+            newSteps[idx] = {
+                step: payload.step,
+                total: payload.total,
+                message: payload.message,
+                status: payload.status
+            };
+            return newSteps.sort((a, b) => a.step - b.step);
+        });
+    };
+
+    const handleStreamEvent = (parsedEvent: ParsedStreamEvent) => {
+        const { event, data } = parsedEvent;
+
+        switch (event) {
+            case 'start':
+                if (data?.jobId) {
+                    setActiveJobId(data.jobId);
+                }
+                break;
+            case 'progress':
+                applyProgressPayload(data);
+                break;
+            case 'result':
+                applyResultPayload(data);
+                break;
+            case 'error':
+                setTerminalError(data?.error || 'Connection failed');
+                break;
+            case 'cancelled':
+                setTerminalError('Scrape cancelled');
+                break;
+            case 'done':
+                if (data?.cancelled && !streamCompletedRef.current) {
+                    setTerminalError('Scrape cancelled');
+                } else if (!streamCompletedRef.current) {
+                    setTerminalError('Stream finished without returning a result');
+                }
+                finishStreamingState();
+                break;
+            default:
+                if (data?.status) {
+                    applyProgressPayload(data);
+                } else if (data?.success && data?.type) {
+                    applyResultPayload(data);
+                } else if (data?.error) {
+                    setTerminalError(data.error);
+                }
+                break;
+        }
+    };
+
+    const parseSseEvent = (rawEvent: string): ParsedStreamEvent | null => {
+        let event: ParsedStreamEvent['event'] = 'message';
+        const dataLines: string[] = [];
+
+        for (const line of rawEvent.split('\n')) {
+            if (!line) {
+                continue;
+            }
+
+            if (line.startsWith('event:')) {
+                event = line.slice(6).trim() as ParsedStreamEvent['event'];
+                continue;
+            }
+
+            if (line.startsWith('data:')) {
+                dataLines.push(line.slice(5).trim());
+            }
+        }
+
+        if (dataLines.length === 0) {
+            return null;
+        }
+
+        try {
+            return {
+                event,
+                data: JSON.parse(dataLines.join('\n'))
+            };
+        } catch {
+            return null;
+        }
+    };
+
+    const stopScrape = async () => {
+        stopRequestedRef.current = true;
+
+        if (activeJobId) {
+            try {
+                const cancelResponse = await fetch(`/api/jobs/${activeJobId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (cancelResponse.ok) {
+                    window.setTimeout(() => {
+                        if (!streamCompletedRef.current && abortControllerRef.current) {
+                            abortControllerRef.current.abort();
+                        }
+                    }, 1500);
+                    return;
+                }
+            } catch {
+                // Fall through to abort the local stream if the cancel request fails.
+            }
+        }
+
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+
+        setTerminalError('Scrape cancelled');
+        finishStreamingState();
     };
 
     const startStreamingScrape = async () => {
         abortControllerRef.current = new AbortController();
+        streamCompletedRef.current = false;
+        stopRequestedRef.current = false;
         setStartTime(Date.now());
         setElapsedTime(0);
         setResult(null);
         setSteps([]);
         setIsStreaming(true);
+        setActiveJobId(null);
 
         try {
             const response = await fetch('/api/website/stream', {
@@ -108,7 +265,10 @@ function WebsiteScraperContent() {
                 signal: abortControllerRef.current.signal
             });
 
-            if (!response.ok) throw new Error(`Status ${response.status}`);
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `Status ${response.status}`);
+            }
 
             const reader = response.body?.getReader();
             const decoder = new TextDecoder();
@@ -117,55 +277,43 @@ function WebsiteScraperContent() {
             let buffer = '';
             while (true) {
                 const { done, value } = await reader.read();
-                if (done) break;
+                if (done) {
+                    break;
+                }
 
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
+                buffer += decoder.decode(value, { stream: true }).replace(/\r/g, '');
 
-                for (const line of lines) {
-                    if (line.startsWith('data:')) {
-                        try {
-                            const data = JSON.parse(line.slice(5).trim());
-                            // Handle SSE events
-                            if (data.status) { // Progress update
-                                setSteps(prev => {
-                                    const newSteps = [...prev];
-                                    const idx = data.step - 1;
-                                    newSteps[idx] = {
-                                        step: data.step, total: data.total,
-                                        message: data.message, status: data.status
-                                    };
-                                    return newSteps.sort((a, b) => a.step - b.step);
-                                });
-                            }
-                            if (data.result || (data.success && data.type)) { // Result
-                                if (data.type === 'screenshot') setResult({ type: 'image', data: data.data });
-                                else setResult({ type: data.type || 'html', data: data.data || data });
-                            }
-                            if (data.error) {
-                                setResult({ type: 'error', data: data.error });
-                            }
-                        } catch (e) {
-                            // ignore parse errors
-                        }
+                let separatorIndex = buffer.indexOf('\n\n');
+                while (separatorIndex !== -1) {
+                    const rawEvent = buffer.slice(0, separatorIndex);
+                    buffer = buffer.slice(separatorIndex + 2);
+
+                    const parsedEvent = parseSseEvent(rawEvent);
+                    if (parsedEvent) {
+                        handleStreamEvent(parsedEvent);
                     }
+
+                    separatorIndex = buffer.indexOf('\n\n');
                 }
             }
 
-            setIsStreaming(false);
-            setStartTime(null);
-            abortControllerRef.current = null;
+            if (!streamCompletedRef.current) {
+                setTerminalError(stopRequestedRef.current
+                    ? 'Scrape cancelled'
+                    : 'Connection closed before a result was returned');
+            }
+
+            finishStreamingState();
 
         } catch (error: any) {
             if (error.name === 'AbortError') {
-                setResult({ type: 'error', data: 'Scrape cancelled' });
+                if (!streamCompletedRef.current) {
+                    setTerminalError(stopRequestedRef.current ? 'Scrape cancelled' : 'Stream connection aborted');
+                }
             } else {
-                setResult({ type: 'error', data: error.message || 'Connection failed' });
+                setTerminalError(error.message || 'Connection failed');
             }
-            setIsStreaming(false);
-            setStartTime(null);
-            abortControllerRef.current = null;
+            finishStreamingState();
         }
     };
 
@@ -174,14 +322,8 @@ function WebsiteScraperContent() {
     });
 
     return (
-        <div className="relative min-h-screen p-8 lg:p-12 overflow-x-hidden">
-            <div className="fixed inset-0 -z-10 bg-[#f8fafc]">
-                <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-100/50 rounded-full blur-[120px] mix-blend-multiply opacity-70 animate-blob" />
-                <div className="absolute top-[20%] left-[-10%] w-[500px] h-[500px] bg-indigo-100/50 rounded-full blur-[100px] mix-blend-multiply opacity-70 animate-blob animation-delay-2000" />
-                <div className="absolute bottom-[-10%] right-[20%] w-[400px] h-[400px] bg-sky-100/50 rounded-full blur-[80px] mix-blend-multiply opacity-70 animate-blob animation-delay-4000" />
-            </div>
-
-            <div className="max-w-[1600px] mx-auto z-10 relative">
+        <div className="space-y-6">
+            <div className="relative">
                 <ScraperHeader
                     elapsedTime={elapsedTime}
                     isPending={scrapeMutation.isPending || isStreaming}
@@ -221,7 +363,7 @@ function WebsiteScraperContent() {
 // Loading fallback for Suspense
 function WebsiteScraperLoading() {
     return (
-        <div className="relative min-h-screen -m-8 pb-10 flex items-center justify-center">
+        <div className="flex min-h-[320px] items-center justify-center rounded-2xl border border-slate-200 bg-white">
             <div className="text-center">
                 <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                 <p className="text-gray-500">Loading...</p>

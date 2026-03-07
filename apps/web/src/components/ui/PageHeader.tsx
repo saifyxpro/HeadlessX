@@ -9,22 +9,22 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, action, icon }: PageHeaderProps) {
     return (
-        <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-6 py-5 md:px-7 md:py-6">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 rounded-2xl border border-slate-200 bg-white px-5 py-4 md:px-6 md:py-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex min-w-0 items-start gap-4">
                     {icon && (
-                        <div className="hidden sm:flex mt-0.5 items-center justify-center w-12 h-12 rounded-2xl border border-slate-200 bg-slate-50 text-blue-600 shrink-0">
+                        <div className="mt-0.5 hidden h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-blue-600 sm:flex">
                             {icon}
                         </div>
                     )}
 
                     <div className="min-w-0">
-                        <div className="mb-2 h-px w-14 bg-slate-900/10" />
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight font-display">
+                        <div className="mb-2 h-px w-12 bg-slate-200" />
+                        <h2 className="font-display text-2xl font-bold leading-tight tracking-tight text-slate-900 md:text-[2rem]">
                             {title}
                         </h2>
                         {description && (
-                            <p className="mt-2 text-slate-500 text-base md:text-lg font-medium leading-relaxed max-w-3xl">
+                            <p className="mt-1.5 max-w-2xl text-sm font-medium leading-relaxed text-slate-500 md:text-base">
                                 {description}
                             </p>
                         )}
@@ -32,7 +32,7 @@ export function PageHeader({ title, description, action, icon }: PageHeaderProps
                 </div>
 
                 {action && (
-                    <div className="shrink-0 self-start sm:self-center sm:border-l sm:border-slate-200 sm:pl-5">
+                    <div className="shrink-0 self-start lg:self-center lg:border-l lg:border-slate-200 lg:pl-4">
                         {action}
                     </div>
                 )}
