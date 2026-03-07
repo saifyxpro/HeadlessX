@@ -202,6 +202,99 @@ class CloudflareChallengeService {
         await page.waitForTimeout(900);
         return this.detect(page);
     }
+
+    public async solveChallenge(page: Page): Promise<boolean> {
+        console.log('CF: Attempting to solve Cloudflare Challenge...');
+        try {
+            console.log('CF: Waiting 5 seconds for initial load...');
+            await page.waitForTimeout(5000);
+
+            const title = await page.title().catch(() => '');
+            const isCfInterstitial = title.toLowerCase().includes('just a moment');
+
+            if (!isCfInterstitial) {
+                const cfInput = page.locator('[name="cf-turnstile-response"]').first();
+                try {
+                    await cfInput.waitFor({ state: 'attached', timeout: 5000 });
+                } catch {
+                    console.log('CF: No Cloudflare Challenge input detected. Proceeding.');
+                    return false;
+                }
+            }
+
+            console.log('CF: Cloudflare challenge page detected! Waiting 3s...');
+            await page.waitForTimeout(3000);
+
+            const iframeElement = page.locator("iframe[src*='challenges.cloudflare.com']").first();
+            let box: { x: number; y: number; width: number; height: number } | null = null;
+            
+            try {
+                await iframeElement.waitFor({ state: 'attached', timeout: 8000 });
+                box = await iframeElement.boundingBox();
+                if (box) {
+                    console.log(`CF: Turnstile IFRAME bounds: x=${Math.round(box.x)} y=${Math.round(box.y)} w=${Math.round(box.width)} h=${Math.round(box.height)}`);
+                }
+            } catch (e) {
+                console.log(`CF: Could not get iframe bounding box: ${(e as Error).message}`);
+            }
+
+            if (!box || box.width === 0 || box.height === 0) {
+                console.log("CF: Iframe element has no visible bounds. Trying frame URL matching...");
+                for (const frame of page.frames()) {
+                    if (frame.url().includes("challenges.cloudflare.com")) {
+                        console.log(`CF: Found CF frame: ${frame.url().substring(0, 100)}`);
+                        try {
+                            const frameElement = await frame.frameElement();
+                            box = await frameElement.boundingBox();
+                            if (box) {
+                                console.log(`CF: Frame element bounds: x=${Math.round(box.x)} y=${Math.round(box.y)} w=${Math.round(box.width)} h=${Math.round(box.height)}`);
+                                break;
+                            }
+                        } catch (e2) {
+                            console.log(`CF: frameElement() fallback failed: ${(e2 as Error).message}`);
+                        }
+                    }
+                }
+            }
+
+            if (box && box.width > 0 && box.height > 0) {
+                const xTarget = box.x + 30 + (Math.random() * 10 - 5);
+                const yTarget = box.y + (box.height / 2) + (Math.random() * 6 - 3);
+
+                console.log(`CF: Clicking checkbox at (${xTarget.toFixed(1)}, ${yTarget.toFixed(1)})...`);
+
+                const steps = Math.floor(Math.random() * 9) + 10; // 10 to 18 steps
+                await page.mouse.move(xTarget, yTarget, { steps });
+                
+                const hoverDelay = Math.random() * 250 + 150; // 150 to 400ms
+                await page.waitForTimeout(hoverDelay);
+                
+                await page.mouse.down();
+                const clickDuration = Math.floor(Math.random() * 81) + 50; // 50 to 130ms
+                await page.waitForTimeout(clickDuration);
+                await page.mouse.up();
+
+                console.log("CF: Click executed. Waiting 8s for verification...");
+                await page.waitForTimeout(8000);
+
+                const newTitle = await page.title().catch(() => '');
+                if (!newTitle.toLowerCase().includes("just a moment")) {
+                    console.log("CF: Challenge appears solved! Page title changed.");
+                    return true;
+                } else {
+                    console.log("CF: Page title still shows challenge. May need retry.");
+                }
+            } else {
+                console.log("CF: FAILED - Could not find any clickable Turnstile iframe.");
+            }
+
+        } catch (e) {
+            console.error(`CF: Exception during bypass:`, e);
+        }
+
+        console.log("CF: Proceeding without successful bypass or bypass failed.");
+        return false;
+    }
 }
 
 export const cloudflareChallengeService = CloudflareChallengeService.getInstance();

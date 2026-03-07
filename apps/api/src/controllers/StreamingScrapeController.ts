@@ -50,6 +50,10 @@ export class StreamingScrapeController {
             // Helper to send SSE event
             // Helper to send SSE event
             const sendEvent = (event: string, data: any) => {
+                if (res.writableEnded || res.destroyed) {
+                    return;
+                }
+
                 // Optimization: Don't stringify large payloads for logging to prevent OOM
                 let logPreview = '';
                 if (data && (event === 'result' || event === 'progress')) {
@@ -76,14 +80,47 @@ export class StreamingScrapeController {
             // Add this response as a listener for the job
             jobManager.addListener(job.id, sendEvent);
 
-            req.on('close', () => {
+            let cleanedUp = false;
+            const cleanupStream = () => {
+                if (cleanedUp) {
+                    return;
+                }
+                cleanedUp = true;
                 jobManager.removeListener(job.id, sendEvent);
+                req.removeListener('aborted', handleRequestAborted);
+                res.removeListener('close', handleResponseClosed);
+                res.removeListener('finish', handleResponseFinished);
+            };
 
+            const cancelIfStillRunning = () => {
                 const currentJob = jobManager.getJob(job.id);
                 if (currentJob && (currentJob.status === 'pending' || currentJob.status === 'running')) {
                     jobManager.cancelJob(job.id);
                 }
-            });
+            };
+
+            const handleRequestAborted = () => {
+                cleanupStream();
+                cancelIfStillRunning();
+            };
+
+            const handleResponseClosed = () => {
+                cleanupStream();
+
+                // `close` fires after `finish` on normal completion. Only treat it as a disconnect
+                // when the response did not finish writing the SSE stream.
+                if (!res.writableEnded) {
+                    cancelIfStillRunning();
+                }
+            };
+
+            const handleResponseFinished = () => {
+                cleanupStream();
+            };
+
+            req.on('aborted', handleRequestAborted);
+            res.on('close', handleResponseClosed);
+            res.on('finish', handleResponseFinished);
 
             // Progress callback - stores in job and broadcasts
             const onProgress = (progress: StreamProgress) => {
@@ -139,7 +176,7 @@ export class StreamingScrapeController {
             }).catch(err => console.error('Log failed:', err));
 
             // Remove listener and end response
-            jobManager.removeListener(job.id, sendEvent);
+            cleanupStream();
             res.end();
 
         } catch (error) {
@@ -165,9 +202,11 @@ export class StreamingScrapeController {
                     }
                 });
             } else {
-                res.write(`event: error\n`);
-                res.write(`data: ${JSON.stringify({ error: (error as Error).message })}\n\n`);
-                res.end();
+                if (!res.writableEnded && !res.destroyed) {
+                    res.write(`event: error\n`);
+                    res.write(`data: ${JSON.stringify({ error: (error as Error).message })}\n\n`);
+                    res.end();
+                }
             }
         }
     }
