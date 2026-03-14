@@ -66,21 +66,22 @@ export function ScraperHeader({ tool, currentUrl, elapsedTime, isPending, result
     const hasSucceeded = Boolean(result && result.type !== 'error' && !isPending);
 
     return (
-        <div className="mb-6 rounded-[1.75rem] border border-slate-200 bg-white px-5 py-5 shadow-sm">
+        <div className="group mb-6 rounded-[1.75rem] border border-slate-200 bg-white px-5 py-5">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                 <div className="min-w-0">
                     <div className="flex items-start gap-4">
-                        <Link
-                            href="/playground"
-                            className="group rounded-2xl border border-slate-200 bg-slate-50 p-2.5 text-slate-600 transition-colors hover:border-slate-300 hover:bg-white"
-                        >
-                            <HugeiconsIcon icon={ArrowLeft01Icon} className="h-5 w-5" />
-                        </Link>
-
                         <div className="min-w-0">
                             <div className="flex items-center gap-3">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_60%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] text-blue-600 shadow-sm ring-1 ring-slate-200">
-                                    <HugeiconsIcon icon={CurrentIcon} className="h-5 w-5" />
+                                <div className="relative h-12 w-12 shrink-0">
+                                    <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_60%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] text-blue-600 ring-1 ring-slate-200 transition-opacity duration-200 group-hover:opacity-0">
+                                        <HugeiconsIcon icon={CurrentIcon} className="h-5 w-5" />
+                                    </div>
+                                    <Link
+                                        href="/playground"
+                                        className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 opacity-0 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 group-hover:pointer-events-auto group-hover:opacity-100"
+                                    >
+                                        <HugeiconsIcon icon={ArrowLeft01Icon} className="h-5 w-5" />
+                                    </Link>
                                 </div>
                                 <div className="min-w-0">
                                     <h1 className="text-2xl font-bold tracking-tight text-slate-900">
@@ -102,7 +103,7 @@ export function ScraperHeader({ tool, currentUrl, elapsedTime, isPending, result
                                             href={buildToolHref(key as WebsiteTool, currentUrl)}
                                             className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] transition-all ${
                                                 isActive
-                                                    ? 'border-slate-900 bg-slate-900 text-white shadow-lg shadow-slate-900/10'
+                                                    ? 'border-slate-900 bg-slate-900 text-white'
                                                     : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-white'
                                             }`}
                                         >

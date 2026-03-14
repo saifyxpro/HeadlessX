@@ -34,7 +34,7 @@ function CustomDropdown({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-full rounded-2xl border border-slate-200 bg-slate-50 py-4 text-left text-sm font-medium text-slate-900 shadow-sm transition-colors hover:border-slate-300 hover:bg-white ${Icon ? 'pl-11 pr-10' : 'px-4'}`}
+                className={`w-full rounded-2xl border border-slate-200 bg-slate-50 py-4 text-left text-sm font-medium text-slate-900 transition-colors hover:border-slate-300 hover:bg-white ${Icon ? 'pl-11 pr-10' : 'px-4'}`}
             >
                 {Icon && (
                     <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
@@ -52,7 +52,7 @@ function CustomDropdown({
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
-                    <div className="absolute left-0 right-0 z-[9999] mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+                    <div className="absolute left-0 right-0 z-[9999] mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white">
                         {options.map((option) => (
                             <button
                                 key={option.value}
@@ -108,7 +108,7 @@ function ToggleRow({
                 }`}
             >
                 <span
-                    className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    className={`absolute top-1 h-5 w-5 rounded-full bg-white transition-transform ${
                         checked ? 'translate-x-6' : 'translate-x-1'
                     }`}
                 />
@@ -225,10 +225,10 @@ export function ConfigurationPanel({
 
     return (
         <div className="space-y-6 lg:col-span-4">
-            <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6">
                 <div className={`space-y-6 ${isDisabled ? 'pointer-events-none opacity-70' : ''}`}>
                     <div className="flex items-start gap-4">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_60%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] text-slate-900 shadow-sm ring-1 ring-slate-200">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_60%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] text-slate-900 ring-1 ring-slate-200">
                             <HugeiconsIcon icon={PanelIcon} className="h-5 w-5" />
                         </div>
                         <div>
@@ -247,7 +247,7 @@ export function ConfigurationPanel({
                                 onChange={(event) => setUrl(event.target.value)}
                                 placeholder="https://example.com"
                                 disabled={isDisabled}
-                                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-slate-400"
+                                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-slate-400"
                             />
                             {url.startsWith('http') && (
                                 <a
@@ -289,7 +289,7 @@ export function ConfigurationPanel({
                                     max={tool === 'crawl' ? 100 : 250}
                                     value={crawlLimit}
                                     onChange={(event) => setCrawlLimit(Number(event.target.value))}
-                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition-colors hover:border-slate-300 hover:bg-white focus:border-slate-400"
+                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 outline-none transition-colors hover:border-slate-300 hover:bg-white focus:border-slate-400"
                                 />
                             </div>
 
@@ -304,7 +304,7 @@ export function ConfigurationPanel({
                                         max={4}
                                         value={crawlDepth}
                                         onChange={(event) => setCrawlDepth(Number(event.target.value))}
-                                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition-colors hover:border-slate-300 hover:bg-white focus:border-slate-400"
+                                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 outline-none transition-colors hover:border-slate-300 hover:bg-white focus:border-slate-400"
                                     />
                                 </div>
                             )}
@@ -352,7 +352,7 @@ export function ConfigurationPanel({
                             type="button"
                             onClick={() => !isDisabled && setShowAdvanced(!showAdvanced)}
                             disabled={isDisabled}
-                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-left shadow-sm transition-colors hover:border-slate-300 hover:bg-white"
+                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-left transition-colors hover:border-slate-300 hover:bg-white"
                         >
                             <div className="flex items-center justify-between gap-3">
                                 <div className="flex min-w-0 items-start gap-3">
@@ -400,7 +400,7 @@ export function ConfigurationPanel({
                                         <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
                                             Timeout
                                         </label>
-                                        <span className="rounded-full bg-white px-2 py-1 text-[11px] font-semibold text-slate-500 shadow-sm">
+                                        <span className="rounded-full bg-white px-2 py-1 text-[11px] font-semibold text-slate-500">
                                             {timeout / 1000}s
                                         </span>
                                     </div>
@@ -432,7 +432,7 @@ export function ConfigurationPanel({
                             type="button"
                             onClick={onRun}
                             disabled={isDisabled || !url}
-                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-4 text-sm font-semibold text-white shadow-lg shadow-slate-900/10 transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             <HugeiconsIcon icon={tool === 'map' ? LinkSquare01Icon : SparklesIcon} className="h-4 w-4" />
                             {buttonLabel}

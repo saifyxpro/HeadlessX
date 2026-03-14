@@ -164,7 +164,7 @@ export default function PlaygroundPage() {
             />
 
             {/* Hero / Search Section */}
-            <div className="ui-panel relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 md:p-10 text-center">
+            <div className="ui-panel relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-8 md:p-10 text-center">
                 <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
                     <HugeiconsIcon icon={SparklesIcon} size={200} className="text-primary rotate-12" />
                 </div>
@@ -213,7 +213,7 @@ export default function PlaygroundPage() {
                 {SCRAPERS.map((scraper) => (
                     scraper.available ? (
                         <Link href={scraper.href} key={scraper.id} className="group block h-full">
-                            <Card className="relative h-full overflow-hidden rounded-2xl border-slate-200 bg-white">
+                            <Card className="relative h-full overflow-hidden border-slate-200 bg-white">
                                 <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-slate-50/50 z-0" />
                                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-primary/5 via-transparent to-transparent z-0" />
 
@@ -258,7 +258,7 @@ export default function PlaygroundPage() {
                         </Link>
                     ) : (
                         <div key={scraper.id} className="h-full block select-none">
-                            <Card className="relative h-full overflow-hidden rounded-2xl border-slate-200 bg-slate-50 opacity-80 hover:opacity-100">
+                            <Card className="relative h-full overflow-hidden border-slate-200 bg-slate-50 opacity-80 hover:opacity-100">
                                 <CardContent className="relative z-10 p-8 h-full flex flex-col">
                                     <div className="flex justify-between items-start mb-6">
                                         <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm bg-slate-100 text-slate-300 grayscale">

@@ -268,7 +268,7 @@ pnpm --filter headlessx-api exec camoufox-js fetch
 
 Using Mise (Recommended):
 ```bash
-# Start both frontend and backend concurrently
+# Start API, queue worker, and web together
 mise run dev
 ```
 
@@ -278,6 +278,13 @@ pnpm dev
 ```
 
 `pnpm dev` now starts the API, queue worker, and web dashboard together.
+
+Using Nx directly:
+```bash
+pnpm exec nx dev headlessx-pro
+```
+
+All three commands now resolve to the same root dev target.
 
 ### 🐳 Docker Deployment
 

@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/nx/schemas/project-schema.json",
+  "name": "headlessx-pro",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "parallel": true,
+        "commands": [
+          "pnpm --filter headlessx-api dev",
+          "pnpm --filter headlessx-api worker:dev",
+          "pnpm --filter headlessx-web dev"
+        ]
+      }
+    },
+    "start": {
+      "executor": "nx:run-commands",
+      "options": {
+        "parallel": true,
+        "commands": [
+          "pnpm --filter headlessx-api start",
+          "pnpm --filter headlessx-api worker:start",
+          "pnpm --filter headlessx-web start"
+        ]
+      }
+    }
+  }
+}

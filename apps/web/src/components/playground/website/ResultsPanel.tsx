@@ -70,7 +70,7 @@ function EmptyState({ tool }: { tool: WebsiteTool }) {
 
     return (
         <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
-            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,1),rgba(241,245,249,1))] shadow-xl ring-1 ring-slate-200">
+            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,1),rgba(241,245,249,1))] ring-1 ring-slate-200">
                 <HugeiconsIcon icon={Search01Icon} className="h-10 w-10 text-slate-300" />
             </div>
             <p className="text-lg font-bold text-slate-700">{copy.title}</p>
@@ -167,7 +167,7 @@ function ScrapePreview({
                     </div>
                 </div>
             ) : (
-                <div className={`overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm ${expanded ? 'h-[52rem]' : 'h-[36rem]'}`}>
+                <div className={`overflow-hidden rounded-3xl border border-slate-200 bg-white ${expanded ? 'h-[52rem]' : 'h-[36rem]'}`}>
                     <iframe
                         srcDoc={result.data.html}
                         title="Scrape preview"
@@ -218,7 +218,7 @@ function CrawlResults({
                                     onClick={() => onSelectPage(page)}
                                     className={`w-full rounded-2xl border px-4 py-3 text-left transition-colors ${
                                         isActive
-                                            ? 'border-slate-900 bg-slate-900 text-white shadow-lg shadow-slate-900/10'
+                                            ? 'border-slate-900 bg-slate-900 text-white'
                                             : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                                     }`}
                                 >
@@ -322,7 +322,7 @@ function MapResults({
 
                 <div className="mt-4 grid gap-3 lg:grid-cols-2">
                     {filteredLinks.map((link) => (
-                        <div key={link.url} className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                        <div key={link.url} className="rounded-2xl border border-slate-200 bg-white px-4 py-4">
                             <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
                                     <div className="truncate text-sm font-semibold text-slate-900">
@@ -491,21 +491,21 @@ export function ResultsPanel({
             : 'Map Results';
 
     return (
-        <div className="relative min-h-[700px] overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-sm xl:col-span-8">
+        <div className="relative min-h-[700px] overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white xl:col-span-8">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-6 py-4">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-rose-400 shadow-sm" />
-                        <div className="h-3 w-3 rounded-full bg-amber-400 shadow-sm" />
-                        <div className="h-3 w-3 rounded-full bg-emerald-400 shadow-sm" />
+                        <div className="h-3 w-3 rounded-full bg-rose-400" />
+                        <div className="h-3 w-3 rounded-full bg-amber-400" />
+                        <div className="h-3 w-3 rounded-full bg-emerald-400" />
                     </div>
                     <div className="hidden h-5 w-px bg-slate-200 sm:block" />
-                    <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-slate-500 shadow-sm">
+                    <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
                         <HugeiconsIcon icon={SourceCodeSquareIcon} className="h-3.5 w-3.5 text-slate-400" />
                         {title}
                     </div>
                     {elapsedTime !== null && (
-                        <div className="rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-slate-500 shadow-sm">
+                        <div className="rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-slate-500">
                             {`${(elapsedTime / 1000).toFixed(1)}s`}
                         </div>
                     )}
@@ -569,7 +569,7 @@ export function ResultsPanel({
 
                 {result && !isStreaming && !isPending && result.type === 'error' && (
                     <div className="flex h-full min-h-[640px] flex-col items-center justify-center px-8 text-center">
-                        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-50 shadow-xl shadow-red-500/10 ring-1 ring-red-100">
+                        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-50 ring-1 ring-red-100">
                             <HugeiconsIcon icon={Cancel01Icon} className="h-10 w-10 text-red-500" />
                         </div>
                         <h3 className="text-xl font-bold text-slate-900">Request Failed</h3>
@@ -577,7 +577,7 @@ export function ResultsPanel({
                         <button
                             type="button"
                             onClick={onRetry}
-                            className="mt-8 rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/10 transition-transform hover:-translate-y-0.5"
+                            className="mt-8 rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
                         >
                             Try Again
                         </button>
@@ -586,7 +586,7 @@ export function ResultsPanel({
 
                 {result && !isStreaming && !isPending && result.type === 'image' && (
                     <div className="flex min-h-[640px] items-center justify-center p-8">
-                        <div className="overflow-hidden rounded-[2rem] border-[6px] border-white shadow-2xl">
+                        <div className="overflow-hidden rounded-[2rem] border-[6px] border-white">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={result.data} alt="Screenshot result" className="max-h-[80vh] max-w-full object-contain" />
                         </div>

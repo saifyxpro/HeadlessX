@@ -56,7 +56,7 @@ function RecentActivityList() {
     }) || [];
 
     if (activityItems.length === 0) {
-        return <div className="ui-panel-soft rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">No recent activity</div>;
+        return <div className="ui-panel-soft rounded-[1.75rem] border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">No recent activity</div>;
     }
 
     return (

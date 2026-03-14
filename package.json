@@ -9,10 +9,10 @@
     },
     "scripts": {
         "preinstall": "npx only-allow pnpm",
-        "dev": "concurrently -k -n api,worker,web \"pnpm --filter headlessx-api dev\" \"pnpm --filter headlessx-api worker:dev\" \"pnpm --filter headlessx-web dev\"",
+        "dev": "pnpm exec nx run headlessx-pro:dev",
         "markdown:dev": "go run ./apps/go-html-to-md-service",
         "build": "nx run-many -t build",
-        "start": "concurrently -k -n api,worker,web \"pnpm --filter headlessx-api start\" \"pnpm --filter headlessx-api worker:start\" \"pnpm --filter headlessx-web start\"",
+        "start": "pnpm exec nx run headlessx-pro:start",
         "lint": "biome check .",
         "lint:fix": "biome check --write .",
         "format": "biome format --write .",

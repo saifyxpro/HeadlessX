@@ -85,6 +85,10 @@
 }
 
 /* Base Styles */
+html {
+    font-size: 100%;
+}
+
 body {
     color: var(--foreground);
     background: var(--background);
@@ -128,31 +132,25 @@ samp {
 .ui-panel {
     transition:
         border-color 160ms ease,
-        background-color 160ms ease,
-        transform 160ms ease,
-        box-shadow 160ms ease;
+        background-color 160ms ease;
 }
 
 .ui-panel:hover,
 .ui-panel:focus-within {
     border-color: #cbd5e1 !important;
     background-color: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.05);
 }
 
 .ui-panel-soft {
     transition:
         border-color 160ms ease,
-        background-color 160ms ease,
-        box-shadow 160ms ease;
+        background-color 160ms ease;
 }
 
 .ui-panel-soft:hover,
 .ui-panel-soft:focus-within {
     border-color: #cbd5e1 !important;
     background-color: #ffffff;
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
 }
 
 .ui-row {
@@ -171,8 +169,7 @@ samp {
 .ui-field {
     transition:
         border-color 160ms ease,
-        background-color 160ms ease,
-        box-shadow 160ms ease;
+        background-color 160ms ease;
 }
 
 .ui-field:hover,
@@ -180,21 +177,17 @@ samp {
 .ui-field:focus-within {
     border-color: #cbd5e1 !important;
     background-color: #ffffff;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.06);
 }
 
 .ui-action {
     transition:
         border-color 160ms ease,
         background-color 160ms ease,
-        color 160ms ease,
-        transform 160ms ease,
-        box-shadow 160ms ease;
+        color 160ms ease;
 }
 
 .ui-action:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+    border-color: #cbd5e1;
 }
 
 .ui-tab {

@@ -286,7 +286,7 @@ function LogsPageSkeleton() {
                         <Skeleton className="h-4 w-64" />
                     </CardHeader>
                     <CardContent className="px-5 pb-5 pt-0 md:px-6">
-                        <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 md:p-5">
+                        <div className="space-y-4 rounded-[1.75rem] border border-slate-200 bg-slate-50/70 p-4 md:p-5">
                             <div className="flex flex-wrap gap-2">
                                 <Skeleton className="h-7 w-20 rounded-full" />
                                 <Skeleton className="h-7 w-20 rounded-full" />
@@ -307,7 +307,7 @@ function LogsPageSkeleton() {
                         <Skeleton className="h-4 w-56" />
                     </CardHeader>
                     <CardContent className="px-5 pb-5 pt-0 md:px-6">
-                        <div className="overflow-hidden rounded-2xl border border-slate-200">
+                        <div className="overflow-hidden rounded-[1.75rem] border border-slate-200">
                             <div className="border-b border-slate-100 bg-slate-50 px-5 py-3">
                                 <Skeleton className="h-5 w-32" />
                             </div>
@@ -503,7 +503,7 @@ export default function LogsPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="px-5 pb-5 pt-0 md:px-6">
-                            <div className="ui-panel-soft space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 md:p-5">
+                            <div className="ui-panel-soft space-y-4 rounded-[1.75rem] border border-slate-200 bg-slate-50/70 p-4 md:p-5">
                                 <div className="flex flex-wrap items-center gap-2">
                                     <Badge variant="outline" className="rounded-full border-slate-200 bg-white px-3 py-1 text-slate-600">
                                         {filteredLogs.length} visible
@@ -585,7 +585,7 @@ export default function LogsPage() {
                         </CardHeader>
                         <CardContent className="px-5 pb-5 pt-0 md:px-6">
                             {filteredLogs.length === 0 ? (
-                                <div className="ui-panel-soft flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-2xl border border-slate-200 bg-slate-50/60 px-6 py-12 text-center">
+                                <div className="ui-panel-soft flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-[1.75rem] border border-slate-200 bg-slate-50/60 px-6 py-12 text-center">
                                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-400">
                                         <HugeiconsIcon icon={Search01Icon} size={24} />
                                     </div>
@@ -597,7 +597,7 @@ export default function LogsPage() {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="overflow-hidden rounded-2xl border border-slate-200">
+                                <div className="overflow-hidden rounded-[1.75rem] border border-slate-200">
                                     <div className="ui-panel-soft flex flex-col gap-3 border-b border-slate-100 bg-slate-50/80 px-5 py-4 md:flex-row md:items-center md:justify-between">
                                         <div className="text-sm text-slate-600">
                                             Showing <span className="font-medium text-slate-800">{filteredLogs.length}</span> rows on page <span className="font-medium text-slate-800">{page}</span> of <span className="font-medium text-slate-800">{totalPages}</span>

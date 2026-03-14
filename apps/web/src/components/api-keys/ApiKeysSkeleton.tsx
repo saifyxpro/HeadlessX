@@ -28,7 +28,7 @@ export function ApiKeysSkeleton() {
                 </div>
 
                 {/* List Items Skeleton */}
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white">
                     {[1, 2, 3, 4].map((i) => (
                         <div key={i} className="flex items-center gap-4 p-4 border-b border-slate-100 last:border-b-0">
                             <Skeleton className="h-10 w-10 rounded-xl shrink-0" />

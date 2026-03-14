@@ -1,8 +1,6 @@
-
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
     Cancel01Icon,
     CheckmarkCircle02Icon,
@@ -11,6 +9,7 @@ import {
     DocumentCodeIcon,
     Download01Icon,
     File01Icon,
+    LinkSquare01Icon,
     Loading03Icon,
     Search01Icon,
     SourceCodeSquareIcon,
@@ -28,6 +27,90 @@ interface ResultsPanelProps {
     onRetry: () => void;
 }
 
+function ResultStat({
+    label,
+    value,
+}: {
+    label: string;
+    value: string | number;
+}) {
+    return (
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">{label}</div>
+            <div className="mt-2 text-xl font-bold text-slate-900">{value}</div>
+        </div>
+    );
+}
+
+function EmptyState() {
+    return (
+        <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
+            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] border border-slate-200 bg-slate-50">
+                <HugeiconsIcon icon={Search01Icon} className="h-10 w-10 text-slate-300" />
+            </div>
+            <p className="text-lg font-bold text-slate-700">Ready to search</p>
+            <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
+                Run a Google query and the results summary, markdown report, and raw data will appear here.
+            </p>
+        </div>
+    );
+}
+
+function ProgressState({ steps }: { steps: ProgressStep[] }) {
+    return (
+        <div className="absolute inset-0 overflow-auto px-6 py-8">
+            <div className="mx-auto max-w-2xl space-y-3">
+                {steps.length === 0 && (
+                    <div className="flex items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-8 text-sm text-slate-500">
+                        <HugeiconsIcon icon={Loading03Icon} className="h-5 w-5 animate-spin text-slate-400" />
+                        Waiting for the worker to publish progress
+                    </div>
+                )}
+
+                {steps.map((step) => (
+                    <div
+                        key={`${step.step}-${step.message}`}
+                        className={`flex items-start gap-4 rounded-2xl border px-4 py-4 ${
+                            step.status === 'completed'
+                                ? 'border-emerald-200 bg-emerald-50'
+                                : step.status === 'error'
+                                    ? 'border-red-200 bg-red-50'
+                                    : 'border-slate-200 bg-slate-50'
+                        }`}
+                    >
+                        <div
+                            className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-xs font-bold ${
+                                step.status === 'completed'
+                                    ? 'border-emerald-300 bg-white text-emerald-600'
+                                    : step.status === 'error'
+                                        ? 'border-red-300 bg-white text-red-600'
+                                        : 'border-slate-200 bg-white text-slate-600'
+                            }`}
+                        >
+                            {step.status === 'active' ? (
+                                <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+                            ) : step.status === 'completed' ? (
+                                <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-4 w-4" />
+                            ) : (
+                                step.step
+                            )}
+                        </div>
+
+                        <div className="min-w-0">
+                            <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                                Step {step.step} of {step.total}
+                            </div>
+                            <div className="mt-1 text-sm font-semibold leading-6 text-slate-800">
+                                {step.message}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 export function ResultsPanel({
     data,
     isStreaming,
@@ -35,21 +118,32 @@ export function ResultsPanel({
     error,
     steps,
     elapsedTime,
-    onRetry
+    onRetry,
 }: ResultsPanelProps) {
     const [viewMode, setViewMode] = useState<'visual' | 'raw' | 'json'>('visual');
     const [copied, setCopied] = useState(false);
 
-    const handleCopy = () => {
+    const sites = data?.results.sites ?? [];
+
+    const handleCopy = async () => {
         if (!data) return;
-        const text = viewMode === 'json' ? JSON.stringify(data.results, null, 2) : data.markdown;
-        navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+
+        const text = viewMode === 'json'
+            ? JSON.stringify(data.results, null, 2)
+            : data.markdown;
+
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopied(true);
+            window.setTimeout(() => setCopied(false), 2000);
+        } catch {
+            setCopied(false);
+        }
     };
 
     const handleDownload = () => {
         if (!data) return;
+
         const isJson = viewMode === 'json';
         const content = isJson ? JSON.stringify(data.results, null, 2) : data.markdown;
         const mimeType = isJson ? 'application/json' : 'text/markdown';
@@ -58,55 +152,72 @@ export function ResultsPanel({
 
         const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        a.click();
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = filename;
+        anchor.click();
         URL.revokeObjectURL(url);
     };
 
     return (
-        <div className="relative flex h-full min-h-[600px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white lg:col-span-8">
-
-            {/* Terminal Header */}
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-rose-400 shadow-sm" />
-                        <div className="w-3 h-3 rounded-full bg-amber-400 shadow-sm" />
-                        <div className="w-3 h-3 rounded-full bg-emerald-400 shadow-sm" />
+        <div className="relative min-h-[700px] overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white xl:col-span-8">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-6 py-4">
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                        <HugeiconsIcon icon={SourceCodeSquareIcon} className="h-3.5 w-3.5 text-slate-400" />
+                        Search Results
                     </div>
-                    <div className="h-5 w-px bg-slate-200/50" />
-                    <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-white/50 border border-white/60 text-xs font-bold text-slate-600 shadow-sm">
-                        <HugeiconsIcon icon={SourceCodeSquareIcon} className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Search Results</span>
-                    </div>
+                    {elapsedTime !== null && (
+                        <div className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-500">
+                            {(elapsedTime / 1000).toFixed(1)}s
+                        </div>
+                    )}
                 </div>
 
-                <div className="flex items-center gap-2">
-                    {/* View Toggles */}
+                <div className="flex flex-wrap items-center gap-2">
                     {data && (
-                        <div className="flex items-center gap-1 bg-white/40 p-1 rounded-lg border border-slate-200/50 mr-2">
+                        <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1">
                             <button
+                                type="button"
                                 onClick={() => setViewMode('visual')}
-                                className={`p-1.5 rounded-md transition-all ${viewMode === 'visual' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-                                title="Visual Report"
+                                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                    viewMode === 'visual'
+                                        ? 'bg-slate-900 text-white'
+                                        : 'text-slate-500 hover:bg-slate-50'
+                                }`}
                             >
-                                <HugeiconsIcon icon={File01Icon} className="w-4 h-4" />
+                                <span className="inline-flex items-center gap-1.5">
+                                    <HugeiconsIcon icon={File01Icon} className="h-3.5 w-3.5" />
+                                    Visual
+                                </span>
                             </button>
                             <button
+                                type="button"
                                 onClick={() => setViewMode('raw')}
-                                className={`p-1.5 rounded-md transition-all ${viewMode === 'raw' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-                                title="Raw Markdown"
+                                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                    viewMode === 'raw'
+                                        ? 'bg-slate-900 text-white'
+                                        : 'text-slate-500 hover:bg-slate-50'
+                                }`}
                             >
-                                <HugeiconsIcon icon={CodeSquareIcon} className="w-4 h-4" />
+                                <span className="inline-flex items-center gap-1.5">
+                                    <HugeiconsIcon icon={CodeSquareIcon} className="h-3.5 w-3.5" />
+                                    Raw
+                                </span>
                             </button>
                             <button
+                                type="button"
                                 onClick={() => setViewMode('json')}
-                                className={`p-1.5 rounded-md transition-all ${viewMode === 'json' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-                                title="JSON Data"
+                                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                    viewMode === 'json'
+                                        ? 'bg-slate-900 text-white'
+                                        : 'text-slate-500 hover:bg-slate-50'
+                                }`}
                             >
-                                <HugeiconsIcon icon={DocumentCodeIcon} className="w-4 h-4" />
+                                <span className="inline-flex items-center gap-1.5">
+                                    <HugeiconsIcon icon={DocumentCodeIcon} className="h-3.5 w-3.5" />
+                                    JSON
+                                </span>
                             </button>
                         </div>
                     )}
@@ -114,162 +225,124 @@ export function ResultsPanel({
                     {data && (
                         <>
                             <button
-                            onClick={handleDownload}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100/80 text-xs font-bold transition-colors border border-emerald-100"
-                        >
-                            <HugeiconsIcon icon={Download01Icon} className="w-3.5 h-3.5" />
-                            Save
-                        </button>
+                                type="button"
+                                onClick={handleCopy}
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-300"
+                            >
+                                <HugeiconsIcon icon={copied ? CheckmarkCircle02Icon : Copy01Icon} className={`h-3.5 w-3.5 ${copied ? 'text-emerald-500' : ''}`} />
+                                {copied ? 'Copied' : 'Copy'}
+                            </button>
                             <button
-                            onClick={handleCopy}
-                            className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-colors"
-                        >
-                            {copied ? (
-                                <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-4 h-4 text-emerald-500" />
-                            ) : (
-                                <HugeiconsIcon icon={Copy01Icon} className="w-4 h-4" />
-                            )}
-                        </button>
+                                type="button"
+                                onClick={handleDownload}
+                                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
+                            >
+                                <HugeiconsIcon icon={Download01Icon} className="h-3.5 w-3.5" />
+                                Save
+                            </button>
                         </>
                     )}
                 </div>
             </div>
 
-            {/* Content Area */}
-            <div className="relative flex-1 overflow-hidden bg-white">
-                {/* Empty State */}
-                {(!data && !isStreaming && !isPending && !error) && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-white/40 backdrop-blur-sm z-10">
-                        <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-tr from-white to-slate-50 shadow-xl border border-white flex items-center justify-center mb-6">
-                            <HugeiconsIcon icon={Search01Icon} className="w-10 h-10 text-slate-300" />
+            <div className="relative min-h-[640px] bg-white">
+                {!data && !isStreaming && !isPending && !error && <EmptyState />}
+
+                {(isStreaming || isPending) && <ProgressState steps={steps} />}
+
+                {error && !isStreaming && !isPending && (
+                    <div className="flex h-full min-h-[640px] flex-col items-center justify-center px-8 text-center">
+                        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-50 ring-1 ring-red-100">
+                            <HugeiconsIcon icon={Cancel01Icon} className="h-10 w-10 text-red-500" />
                         </div>
-                        <p className="font-bold text-slate-600 text-lg mb-2">Ready to Search</p>
-                        <p className="text-sm text-slate-400 max-w-xs text-center leading-relaxed">
-                            Enter a query on the left to start scraping Google SERP results.
-                        </p>
+                        <h3 className="text-xl font-bold text-slate-900">Search failed</h3>
+                        <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">{error}</p>
+                        <button
+                            type="button"
+                            onClick={onRetry}
+                            className="mt-8 rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+                        >
+                            Try Again
+                        </button>
                     </div>
                 )}
 
-                {/* Loading / Progress Steps */}
-                {(isPending || isStreaming) && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-8 z-20">
-                        <div className="relative z-10 w-full max-w-md">
-                            <AnimatePresence mode="popLayout" initial={false}>
-                                {steps.filter(s => s.status !== 'pending').map((step) => (
-                                    <motion.div
-                                        layout
-                                        key={step.step}
-                                        initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                                        animate={{
-                                            opacity: step.status === 'completed' ? 0.7 : 1,
-                                            y: 0,
-                                            scale: step.status === 'completed' ? 0.95 : 1,
-                                        }}
-                                        transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                                        className="flex gap-4 group items-center justify-center py-1"
-                                    >
-                                        <div className="relative flex flex-col items-center">
-                                            <div className={`
-                                                w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 border-2 z-10 bg-white transition-all duration-300
-                                                ${step.status === 'active' ? 'border-blue-500 text-blue-600 shadow-blue-200 scale-110' :
-                                                    step.status === 'completed' ? 'border-emerald-500 text-emerald-600 bg-emerald-50' :
-                                                        step.status === 'error' ? 'border-red-500 text-red-600' :
-                                                            'border-slate-200 text-slate-400'}
-                                            `}>
-                                                {step.status === 'active' ? <HugeiconsIcon icon={Loading03Icon} className="w-4 h-4 animate-spin" /> :
-                                                    step.status === 'completed' ? <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-4 h-4" /> : step.step}
-                                            </div>
-                                        </div>
-                                        <div className="w-[280px]">
-                                            <p className={`transition-colors duration-300 ${step.status === 'error'
-                                                ? 'text-red-500 whitespace-pre-wrap break-words text-xs font-mono bg-red-50 p-2 rounded border border-red-100'
-                                                : `text-base font-bold whitespace-nowrap overflow-hidden text-ellipsis ${step.status === 'active' ? 'text-slate-800' : 'text-slate-400'}`
-                                                }`}>
-                                                {step.message}
-                                            </p>
-                                            {step.status === 'active' && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, width: 0 }}
-                                                    animate={{ opacity: 1, width: "100%" }}
-                                                    className="h-1 bg-blue-100 rounded-full mt-1.5 overflow-hidden"
-                                                >
-                                                    <motion.div
-                                                        animate={{ x: ["-100%", "100%"] }}
-                                                        transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                                        className="h-full w-1/2 bg-blue-500 rounded-full"
-                                                    />
-                                                </motion.div>
-                                            )}
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </AnimatePresence>
-
-                            {/* Waiting for worker spinner - Matching Website Scraper */}
-                            {steps.length === 0 && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="flex flex-col items-center justify-center text-slate-400 text-sm gap-3 opacity-60 absolute inset-0"
-                                >
-                                    <HugeiconsIcon icon={Loading03Icon} className="w-6 h-6 animate-spin text-slate-300" />
-                                    <span>Waiting for worker...</span>
-                                </motion.div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* Error State */}
-                {error && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-white/40 backdrop-blur-sm z-10">
-                        <div className="w-20 h-20 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mb-6 shadow-xl shadow-red-500/10">
-                            <HugeiconsIcon icon={Cancel01Icon} className="w-10 h-10 text-red-500" />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-2">Search Failed</h3>
-                        <p className="text-slate-500 max-w-sm mx-auto mb-8 leading-relaxed">
-                            {error}
-                        </p>
-                    </div>
-                )}
-
-                {/* Results Display */}
                 {data && !isStreaming && !isPending && !error && (
-                    <div className="absolute inset-0 overflow-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent bg-white/40">
-                        <div className="min-h-full">
-                            {viewMode === 'visual' ? (
-                                <div
-                                    className="p-8 prose prose-slate prose-sm max-w-none"
-                                >
-                                    <ReactMarkdown
-                                        remarkPlugins={[remarkGfm]}
-                                        components={{
-                                            h1: ({ children }) => <h1 className="text-2xl font-bold text-slate-900 mt-6 mb-4 pb-2 border-b border-slate-200 first:mt-0">{children}</h1>,
-                                            h2: ({ children }) => <h2 className="text-xl font-bold text-slate-800 mt-5 mb-3">{children}</h2>,
-                                            h3: ({ children }) => <h3 className="text-lg font-semibold text-slate-800 mt-4 mb-2">{children}</h3>,
-                                            a: ({ href, children }) => <a href={href} className="text-blue-600 hover:text-blue-700 underline break-words" target="_blank" rel="noopener noreferrer">{children}</a>,
-                                            blockquote: ({ children }) => <blockquote className="border-l-4 border-blue-500 pl-4 italic text-slate-500 my-4 bg-slate-50 p-2 rounded-r">{children}</blockquote>,
-                                            code: ({ className, children }) => {
-                                                const isInline = !className;
-                                                return isInline ? (
-                                                    <code className="bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded text-sm font-mono">{children}</code>
-                                                ) : (
-                                                    <code className="block bg-slate-900 text-slate-100 p-4 rounded-lg text-sm font-mono overflow-x-auto my-4">{children}</code>
-                                                );
-                                            },
-                                        }}
-                                    >
-                                        {data.markdown}
-                                    </ReactMarkdown>
+                    <div className="overflow-auto p-6">
+                        {viewMode === 'visual' ? (
+                            <div className="space-y-6">
+                                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                                    <ResultStat label="Query" value={data.query} />
+                                    <ResultStat label="Sites" value={sites.length} />
+                                    <ResultStat label="AI Overview" value={data.results.ai_overview ? 'Yes' : 'No'} />
+                                    <ResultStat label="Timestamp" value={new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
                                 </div>
-                            ) : (
-                                <pre
-                                    className="p-6 text-xs font-mono text-slate-600 leading-relaxed overflow-x-auto whitespace-pre-wrap break-all"
-                                >
-                                    {viewMode === 'json' ? JSON.stringify(data.results, null, 2) : data.markdown}
-                                </pre>
-                            )}
-                        </div>
+
+                                {data.results.ai_overview && (
+                                    <section className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                                        <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">AI Overview</div>
+                                        <div className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-700">
+                                            {data.results.ai_overview}
+                                        </div>
+                                    </section>
+                                )}
+
+                                <section className="rounded-3xl border border-slate-200 bg-white p-5">
+                                    <div className="mb-4 flex items-center justify-between gap-3">
+                                        <div>
+                                            <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Organic Results</div>
+                                            <div className="mt-1 text-sm text-slate-500">Top sources captured from the SERP.</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        {sites.length > 0 ? (
+                                            sites.map((site) => (
+                                                <div key={site.url} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div className="min-w-0">
+                                                            <div className="text-sm font-semibold text-slate-900">{site.title}</div>
+                                                            <div className="mt-1 text-sm leading-6 text-slate-500">{site.description}</div>
+                                                        </div>
+                                                        <a
+                                                            href={site.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
+                                                        >
+                                                            <HugeiconsIcon icon={LinkSquare01Icon} className="h-4 w-4" />
+                                                        </a>
+                                                    </div>
+                                                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                                                        <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
+                                                            {site.source}
+                                                        </span>
+                                                        <span className="truncate rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500">
+                                                            {site.url}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500">
+                                                No site results were returned for this search.
+                                            </div>
+                                        )}
+                                    </div>
+                                </section>
+
+                                <section className="rounded-3xl border border-slate-200 bg-white p-6">
+                                    <div className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Markdown Report</div>
+                                    <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-blue-600 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:before:content-none prose-code:after:content-none prose-pre:bg-slate-950 prose-pre:text-slate-100">
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{data.markdown}</ReactMarkdown>
+                                    </div>
+                                </section>
+                            </div>
+                        ) : (
+                            <pre className="overflow-auto rounded-3xl border border-slate-200 bg-slate-950 p-5 text-xs leading-6 text-slate-100">
+                                {viewMode === 'json' ? JSON.stringify(data.results, null, 2) : data.markdown}
+                            </pre>
+                        )}
                     </div>
                 )}
             </div>

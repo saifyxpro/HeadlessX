@@ -9,12 +9,12 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, action, icon }: PageHeaderProps) {
     return (
-        <div className="mb-6 rounded-[1.75rem] border border-slate-200 bg-white px-5 py-5 shadow-sm md:px-6">
+        <div className="mb-6 rounded-[1.75rem] border border-slate-200 bg-white px-5 py-5 md:px-6">
             <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
                 <div className="min-w-0 flex-1">
                     <div className="flex items-start gap-4">
                         {icon && (
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_60%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] text-blue-600 shadow-sm ring-1 ring-slate-200">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_60%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] text-blue-600 ring-1 ring-slate-200">
                                 {icon}
                             </div>
                         )}

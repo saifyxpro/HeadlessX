@@ -142,7 +142,7 @@ export default function StackedList({ items, title = "Items", onSearch, onAdd, r
     return (
         <div className="w-full bg-transparent font-sans not-prose">
             <div className={cn(
-                "ui-panel relative w-full rounded-2xl border border-slate-200 bg-white flex flex-col overflow-hidden",
+                "ui-panel relative w-full rounded-[1.75rem] border border-slate-200 bg-white flex flex-col overflow-hidden",
                 isExpanded ? "min-h-[600px]" : "h-auto"
             )}>
                 <div className="flex flex-col h-full">

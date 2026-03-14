@@ -14,7 +14,7 @@ import {
     LinkSquare01Icon,
     SidebarLeft01Icon,
     SidebarRight01Icon,
-    Activity01Icon
+    Activity01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { cn } from '@/lib/utils';
@@ -22,15 +22,114 @@ import { useSidebar } from '@/contexts/SidebarContext';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from "@/components/ui/Skeleton";
 
-const NAV_ITEMS = [
-    { href: '/', label: 'Overview', icon: DashboardSquare01Icon },
-    { href: '/ai-agent', label: 'AI Agent', icon: SparklesIcon },
-    { href: '/playground', label: 'Playground', icon: PlayCircleIcon },
-    { href: '/api-keys', label: 'API Keys', icon: Key01Icon },
-    { href: '/logs', label: 'Request Logs', icon: File01Icon },
-    { label: 'Settings', href: '/settings', icon: Settings01Icon },
-    { label: 'Docs', href: 'https://headlessx.saify.me/docs/introduction', icon: BookOpen01Icon, external: true },
+type NavItem = {
+    href: string;
+    label: string;
+    icon: any;
+    external?: boolean;
+};
+
+const NAV_SECTIONS: Array<{
+    id: string;
+    label: string;
+    items: NavItem[];
+}> = [
+    {
+        id: 'workspace',
+        label: 'Workspace',
+        items: [
+            { href: '/', label: 'Overview', icon: DashboardSquare01Icon },
+            { href: '/ai-agent', label: 'AI Agent', icon: SparklesIcon },
+            { href: '/playground', label: 'Playground', icon: PlayCircleIcon },
+        ],
+    },
+    {
+        id: 'control',
+        label: 'Control',
+        items: [
+            { href: '/api-keys', label: 'API Keys', icon: Key01Icon },
+            { href: '/logs', label: 'Request Logs', icon: File01Icon },
+            { href: '/settings', label: 'Settings', icon: Settings01Icon },
+        ],
+    },
+    {
+        id: 'resources',
+        label: 'Resources',
+        items: [
+            { href: 'https://headlessx.saify.me/docs/introduction', label: 'Docs', icon: BookOpen01Icon, external: true },
+        ],
+    },
 ];
+
+function isActivePath(pathname: string, href: string, external?: boolean) {
+    if (external) {
+        return false;
+    }
+
+    if (href === '/') {
+        return pathname === '/';
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function SidebarNavItem({
+    item,
+    collapsed,
+    pathname,
+}: {
+    item: NavItem;
+    collapsed: boolean;
+    pathname: string;
+}) {
+    const active = isActivePath(pathname, item.href, item.external);
+    const isExternal = item.external || item.href.startsWith('http');
+
+    return (
+        <Link
+            href={item.href}
+            target={isExternal ? "_blank" : undefined}
+            title={collapsed ? item.label : undefined}
+            className={cn(
+                "group/nav-item relative flex items-center gap-3 overflow-hidden transition-colors",
+                collapsed
+                    ? "mx-auto h-13 w-13 justify-center rounded-[1.4rem] px-0 py-0"
+                    : "w-full rounded-[1.4rem] px-3 py-3",
+                active
+                    ? "bg-slate-100 text-slate-950"
+                    : "text-slate-600 hover:bg-white"
+            )}
+        >
+            <div
+                className={cn(
+                    "flex shrink-0 items-center justify-center rounded-[1rem] border transition-colors",
+                    collapsed ? "h-11 w-11" : "h-10 w-10",
+                    active
+                        ? "border-blue-100 bg-blue-50 text-blue-600"
+                        : "border-slate-200 bg-slate-50 text-slate-500 group-hover/nav-item:bg-slate-100"
+                )}
+            >
+                <HugeiconsIcon icon={item.icon} size={20} />
+            </div>
+
+            {!collapsed && (
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                        <span className={cn("truncate text-sm font-semibold", active ? "text-slate-950" : "text-slate-800")}>
+                            {item.label}
+                        </span>
+                        {isExternal && (
+                            <HugeiconsIcon
+                                icon={LinkSquare01Icon}
+                                className={cn("h-3.5 w-3.5 shrink-0", active ? "text-slate-500" : "text-slate-400")}
+                            />
+                        )}
+                    </div>
+                </div>
+            )}
+        </Link>
+    );
+}
 
 export function Sidebar() {
     const pathname = usePathname();
@@ -54,158 +153,171 @@ export function Sidebar() {
     return (
         <aside
             className={cn(
-                "group border-r border-slate-200 bg-white flex flex-col h-full z-20 relative",
-                collapsed ? "w-[80px]" : "w-[280px]"
+                "group relative z-20 flex h-full flex-col border-r border-slate-200 bg-[linear-gradient(180deg,#fcfdff_0%,#f8fafc_100%)]",
+                collapsed ? "w-[88px]" : "w-[304px]"
             )}
         >
-            {/* Header */}
-            <div className={cn("border-b border-slate-200 bg-slate-50/80", collapsed ? "px-3 py-4" : "px-4 py-4")}>
-                <div className={cn("flex gap-3", collapsed ? "flex-col items-center" : "items-center justify-between")}>
-                    <div className={cn("flex items-center gap-3 min-w-0", collapsed && "flex-col")}>
-                        <div className="relative shrink-0 w-10 h-10">
-                            <Image
-                                src="/logo.svg"
-                                alt="HeadlessX"
-                                width={40}
-                                height={40}
-                                className={cn(
-                                    "rounded-xl relative z-10 transition-opacity duration-200",
-                                    collapsed && "group-hover:opacity-0"
+            <div className={cn(collapsed ? "px-3 py-4" : "px-4 py-4")}>
+                <div className={cn(
+                    "rounded-[1.75rem] border border-slate-200 bg-white",
+                    collapsed ? "px-2.5 py-3" : "px-4 py-4"
+                )}>
+                    <div className={cn("flex gap-3", collapsed ? "flex-col items-center" : "items-start justify-between")}>
+                        <div className={cn("flex min-w-0 items-center gap-3", collapsed && "flex-col")}>
+                            <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-[1rem] border border-slate-200 bg-white">
+                                <Image
+                                    src="/logo.svg"
+                                    alt="HeadlessX"
+                                    width={44}
+                                    height={44}
+                                    className={cn(
+                                        "relative z-10 rounded-[0.9rem] transition-opacity duration-200",
+                                        collapsed && "group-hover:opacity-0"
+                                    )}
+                                />
+                                {collapsed && (
+                                    <button
+                                        onClick={toggle}
+                                        aria-label="Expand sidebar"
+                                        className="pointer-events-none absolute inset-0 z-20 rounded-[1rem] border border-transparent bg-transparent text-slate-500 opacity-0 transition-all duration-200 hover:border-transparent hover:bg-transparent hover:text-slate-900 group-hover:pointer-events-auto group-hover:opacity-100"
+                                    >
+                                        <span className="flex h-full w-full items-center justify-center">
+                                            <HugeiconsIcon icon={SidebarRight01Icon} size={20} />
+                                        </span>
+                                    </button>
                                 )}
-                            />
-                            {collapsed && (
-                                <button
-                                    onClick={toggle}
-                                    aria-label="Expand sidebar"
-                                    className="pointer-events-none absolute inset-0 z-20 rounded-xl bg-white/95 text-slate-500 opacity-0 transition-all duration-200 hover:bg-white hover:text-slate-900 group-hover:pointer-events-auto group-hover:opacity-100"
-                                >
-                                    <span className="flex h-full w-full items-center justify-center">
-                                        <HugeiconsIcon icon={SidebarRight01Icon} size={20} />
-                                    </span>
-                                </button>
+                            </div>
+
+                            {!collapsed && (
+                                <div className="min-w-0 flex-1 pt-0.5">
+                                    <h1 className="text-[1.45rem] font-bold leading-none tracking-[-0.03em] text-slate-950">
+                                        Headless<span className="text-blue-600">X</span>
+                                    </h1>
+                                    <div className="mt-2">
+                                        <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-600">
+                                            v2.0.4
+                                        </span>
+                                    </div>
+                                </div>
                             )}
                         </div>
+
                         {!collapsed && (
-                            <div className="overflow-hidden whitespace-nowrap min-w-0">
-                                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1">
-                                    Headless<span className="text-blue-600">X</span>
-                                </h1>
-                                <span className="text-[11px] font-semibold text-primary/80 bg-primary/5 px-1.5 py-0.5 rounded-full mt-1 inline-block">v2.0.4</span>
-                            </div>
+                            <button
+                                onClick={toggle}
+                                aria-label="Collapse sidebar"
+                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] border border-slate-200 bg-slate-50 text-slate-500 transition-colors hover:border-slate-300 hover:bg-white hover:text-slate-900"
+                            >
+                                <HugeiconsIcon icon={SidebarLeft01Icon} size={20} />
+                            </button>
                         )}
                     </div>
-
-                    {!collapsed && (
-                        <button
-                            onClick={toggle}
-                            aria-label="Collapse sidebar"
-                            className="h-9 w-9 shrink-0 rounded-xl bg-white text-slate-500 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900"
-                        >
-                            <span className="flex h-full w-full items-center justify-center">
-                                <HugeiconsIcon icon={SidebarLeft01Icon} size={20} />
-                            </span>
-                        </button>
-                    )}
-
                 </div>
             </div>
 
-            {/* Nav */}
-            <nav className="flex-1 px-3 space-y-1 py-6 overflow-y-auto overflow-x-hidden custom-scrollbar">
-                {!collapsed && <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3 px-3 opacity-80">Platform</div>}
-                {NAV_ITEMS.map((item: any) => {
-                    const isActive = pathname === item.href;
-                    const isExternal = item.external || item.href.startsWith('http');
-                    return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            target={isExternal ? "_blank" : undefined}
-                            className={cn(
-                                "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium border border-transparent relative overflow-hidden",
-                                isActive
-                                    ? "bg-primary/8 text-primary border-primary/15"
-                                    : "text-slate-500 hover:bg-slate-50",
-                                collapsed && "justify-center px-0 w-12 h-12 mx-auto mb-2"
-                            )}
-                            title={collapsed ? item.label : undefined}
-                        >
-                            <HugeiconsIcon icon={item.icon} className={cn(
-                                "w-5 h-5 shrink-0",
-                                isActive ? "text-primary" : "text-slate-400"
-                            )} size={20} />
+            <nav className={cn("flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar", collapsed ? "px-3 py-5" : "px-4 py-5")}>
+                <div className="space-y-5">
+                    {NAV_SECTIONS.map((section) => (
+                        <section key={section.id}>
                             {!collapsed && (
-                                <div className="flex-1 flex items-center justify-between overflow-hidden">
-                                    <span className="whitespace-nowrap overflow-hidden">{item.label}</span>
-                                    {isExternal && <HugeiconsIcon icon={LinkSquare01Icon} className="w-3 h-3 text-slate-400 ml-2 shrink-0" />}
+                                <div className="mb-3 flex items-center gap-3 px-2">
+                                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                                        {section.label}
+                                    </div>
+                                    <div className="h-px flex-1 bg-slate-200" />
                                 </div>
                             )}
-                        </Link>
-                    );
-                })}
 
+                            <div className="space-y-1">
+                                {section.items.map((item) => (
+                                    <SidebarNavItem
+                                        key={item.href}
+                                        item={item}
+                                        collapsed={collapsed}
+                                        pathname={pathname}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    ))}
+                </div>
             </nav>
 
-            {/* Footer */}
-            <div className={cn("border-t border-slate-200 bg-slate-50", collapsed ? "p-3" : "p-4")}>
-                <div className={cn(
-                    "rounded-2xl border border-slate-200 bg-white overflow-hidden",
-                    collapsed ? "p-2 aspect-square flex items-center justify-center bg-transparent border-0" : "p-4"
-                )}>
+            <div className={cn(collapsed ? "px-3 py-4" : "px-4 py-4")}>
+                <div
+                    className={cn(
+                        "rounded-[1.75rem] border border-slate-200 bg-white",
+                        collapsed ? "p-2.5" : "p-4"
+                    )}
+                >
                     {collapsed ? (
-                        <div title={`System Load: ${systemLoad}%`} className="relative">
-                            <svg className="w-8 h-8 transform -rotate-90">
-                                <circle
-                                    className="text-slate-100"
-                                    strokeWidth="3"
-                                    stroke="currentColor"
-                                    fill="transparent"
-                                    r="14"
-                                    cx="16"
-                                    cy="16"
-                                />
-                                <circle
-                                    className="text-emerald-500"
-                                    strokeWidth="3"
-                                    strokeDasharray={88}
-                                    strokeDashoffset={88 - (88 * systemLoad) / 100}
-                                    strokeLinecap="round"
-                                    stroke="currentColor"
-                                    fill="transparent"
-                                    r="14"
-                                    cx="16"
-                                    cy="16"
-                                />
-                            </svg>
+                        <div title={`System Load: ${systemLoad}%`} className="flex items-center justify-center">
+                            <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-emerald-600">
+                                <svg className="absolute inset-0 h-10 w-10 -rotate-90">
+                                    <circle
+                                        className="text-slate-200"
+                                        strokeWidth="3"
+                                        stroke="currentColor"
+                                        fill="transparent"
+                                        r="15"
+                                        cx="20"
+                                        cy="20"
+                                    />
+                                    <circle
+                                        className="text-emerald-500"
+                                        strokeWidth="3"
+                                        strokeDasharray={94}
+                                        strokeDashoffset={94 - (94 * systemLoad) / 100}
+                                        strokeLinecap="round"
+                                        stroke="currentColor"
+                                        fill="transparent"
+                                        r="15"
+                                        cx="20"
+                                        cy="20"
+                                    />
+                                </svg>
+                                {statsLoading ? (
+                                    <Skeleton className="h-5 w-5 rounded-full bg-slate-200" />
+                                ) : (
+                                    <HugeiconsIcon icon={Activity01Icon} size={16} className="relative z-10" />
+                                )}
+                            </div>
                         </div>
                     ) : (
                         <>
-                            <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                    <div className="p-1.5 bg-emerald-50 rounded-lg">
-                                        <HugeiconsIcon icon={Activity01Icon} size={14} className="text-emerald-600" />
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-emerald-100 bg-emerald-50 text-emerald-600">
+                                        <HugeiconsIcon icon={Activity01Icon} size={16} />
                                     </div>
-                                    <span className="text-xs font-semibold text-slate-700">System Load</span>
+                                    <div>
+                                        <div className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">System Load</div>
+                                        <div className="mt-1 text-sm font-semibold text-slate-900">Resource usage</div>
+                                    </div>
                                 </div>
+
                                 {statsLoading ? (
-                                    <Skeleton className="h-4 w-8" />
+                                    <Skeleton className="h-5 w-10 rounded-full" />
                                 ) : (
-                                    <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">{systemLoad}%</span>
+                                    <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-600">
+                                        {systemLoad}%
+                                    </span>
                                 )}
                             </div>
-                            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+
+                            <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
                                 {statsLoading ? (
-                                    <Skeleton className="h-full w-full bg-slate-200" />
+                                    <Skeleton className="h-full w-full rounded-full bg-slate-200" />
                                 ) : (
                                     <div
-                                        className="h-full bg-emerald-500"
+                                        className="h-full rounded-full bg-emerald-500"
                                         style={{ width: `${systemLoad}%` }}
                                     />
                                 )}
                             </div>
-                            <div className="flex items-center gap-1.5 mt-3 text-[10px] text-slate-400 font-medium">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                All systems operational
+                            <div className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                Auto refresh enabled
                             </div>
                         </>
                     )}

@@ -23,7 +23,7 @@ export default function AiAgentPage() {
                 </CardHeader>
                 <CardContent className="flex min-h-[320px] items-center justify-center p-8">
                     <div className="max-w-md text-center">
-                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-[1.75rem] bg-blue-50 text-blue-600">
                             <HugeiconsIcon icon={SparklesIcon} size={28} />
                         </div>
                         <h2 className="text-2xl font-bold text-slate-900">Coming soon</h2>
