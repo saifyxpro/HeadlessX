@@ -2,6 +2,7 @@ import { Camoufox } from 'camoufox-js';
 import { Browser, BrowserContext, Page } from 'playwright-core';
 import { closeAnonymizedProxy } from 'proxy-chain';
 import { configService } from '../config/ConfigService';
+import { normalizeConfiguredProxyUrl } from '../proxy/ProxyConnection';
 
 interface BrowserContextOptions {
     stealth?: boolean;
@@ -29,12 +30,9 @@ class BrowserService {
     private async launchDefaultBrowser(stealth?: boolean): Promise<Browser> {
         const config = await configService.getConfig();
 
-        let proxyServer: string | undefined;
-        if (config.proxyEnabled && config.proxyUrl) {
-            proxyServer = config.proxyUrl.includes('://')
-                ? config.proxyUrl
-                : `${config.proxyProtocol || 'http'}://${config.proxyUrl}`;
-        }
+        const proxyServer = config.proxyEnabled
+            ? normalizeConfiguredProxyUrl(config.proxyUrl, config.proxyProtocol)
+            : undefined;
 
         const proxyConfig = proxyServer ? { server: proxyServer } : undefined;
         const isSpeedMode = stealth === false;

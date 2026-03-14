@@ -362,7 +362,7 @@ class StreamingScraperService {
                 if (type === 'content') {
                     // Step 5: Converting to Markdown
                     onProgress({ step: 5, total: totalSteps, message: 'Converting to Markdown...', status: 'active' });
-                    const markdown = markdownService.convert(html);
+                    const markdown = await markdownService.convert(html);
                     onProgress({ step: 5, total: totalSteps, message: 'Markdown ready', status: 'completed' });
 
                     resultData = {

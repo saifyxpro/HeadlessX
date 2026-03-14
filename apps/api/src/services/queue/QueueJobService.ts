@@ -18,6 +18,7 @@ import { createRedisConnection } from './redis';
 
 const PRISMA_TYPE_MAP: Record<QueueJobTypeName, QueueJobType> = {
     scrape: QueueJobType.SCRAPE,
+    crawl: QueueJobType.CRAWL,
     extract: QueueJobType.EXTRACT,
     index: QueueJobType.INDEX,
 };

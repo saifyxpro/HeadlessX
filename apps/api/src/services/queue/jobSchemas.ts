@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const QueueJobTypeSchema = z.enum(['scrape', 'extract', 'index']);
+export const QueueJobTypeSchema = z.enum(['scrape', 'crawl', 'extract', 'index']);
 export const ScrapeOutputTypeSchema = z.enum(['html', 'html-js', 'screenshot']);
 
 export const QueueEnqueueOptionsSchema = z.object({
@@ -19,6 +19,16 @@ export const ScrapeJobPayloadSchema = z.object({
 
 export const ExtractJobPayloadSchema = z.object({
     url: z.string().url(),
+    waitForSelector: z.string().min(1).optional(),
+    timeout: z.number().int().positive().optional(),
+    stealth: z.boolean().optional(),
+});
+
+export const CrawlJobPayloadSchema = z.object({
+    url: z.string().url(),
+    limit: z.number().int().min(1).max(100).optional(),
+    maxDepth: z.number().int().min(0).max(4).optional(),
+    includeSubdomains: z.boolean().optional(),
     waitForSelector: z.string().min(1).optional(),
     timeout: z.number().int().positive().optional(),
     stealth: z.boolean().optional(),
@@ -44,6 +54,11 @@ export const CreateQueueJobSchema = z.discriminatedUnion('type', [
         options: QueueEnqueueOptionsSchema,
     }),
     z.object({
+        type: z.literal('crawl'),
+        payload: CrawlJobPayloadSchema,
+        options: QueueEnqueueOptionsSchema,
+    }),
+    z.object({
         type: z.literal('index'),
         payload: IndexJobPayloadSchema,
         options: QueueEnqueueOptionsSchema,
@@ -60,6 +75,7 @@ export type QueueJobTypeName = z.infer<typeof QueueJobTypeSchema>;
 export type ScrapeOutputTypeName = z.infer<typeof ScrapeOutputTypeSchema>;
 export type QueueEnqueueOptions = NonNullable<z.infer<typeof QueueEnqueueOptionsSchema>>;
 export type ScrapeJobPayload = z.infer<typeof ScrapeJobPayloadSchema>;
+export type CrawlJobPayload = z.infer<typeof CrawlJobPayloadSchema>;
 export type ExtractJobPayload = z.infer<typeof ExtractJobPayloadSchema>;
 export type IndexJobPayload = z.infer<typeof IndexJobPayloadSchema>;
 export type CreateQueueJobInput = z.infer<typeof CreateQueueJobSchema>;
@@ -70,5 +86,5 @@ export interface QueueJobEnvelope {
     type: QueueJobTypeName;
     apiKeyId: string | null;
     createdAt: number;
-    payload: ScrapeJobPayload | ExtractJobPayload | IndexJobPayload;
+    payload: ScrapeJobPayload | CrawlJobPayload | ExtractJobPayload | IndexJobPayload;
 }

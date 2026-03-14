@@ -56,7 +56,7 @@ function RecentActivityList() {
     }) || [];
 
     if (activityItems.length === 0) {
-        return <div className="p-8 text-center text-slate-500">No recent activity</div>;
+        return <div className="ui-panel-soft rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-slate-500">No recent activity</div>;
     }
 
     return (
@@ -92,6 +92,7 @@ export default function Overview() {
             <PageHeader
                 title="Overview"
                 description="Welcome back to your scraping command center."
+                icon={<HugeiconsIcon icon={ComputerIcon} size={22} />}
             />
 
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
@@ -231,7 +232,7 @@ export default function Overview() {
                                     <span>Global Proxy</span>
                                     <span className="text-slate-900">{stats?.proxyEnabled ? 'Enabled' : 'Disabled'}</span>
                                 </div>
-                                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                                <div className="ui-panel-soft rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
                                     {stats?.proxyEnabled
                                         ? 'Every browser session now routes through the configured global proxy.'
                                         : 'Requests are running directly unless you enable a proxy in Settings.'}

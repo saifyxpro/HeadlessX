@@ -1,14 +1,14 @@
 import { Suspense } from 'react';
 import { WebsiteWorkbench } from '@/components/playground/website/WebsiteWorkbench';
 
-function WebsiteScrapeFallback() {
+function WebsiteMapFallback() {
     return <div className="min-h-[70vh] rounded-[1.75rem] border border-slate-200 bg-white" />;
 }
 
-export default function WebsitePage() {
+export default function WebsiteMapPage() {
     return (
-        <Suspense fallback={<WebsiteScrapeFallback />}>
-            <WebsiteWorkbench tool="scrape" />
+        <Suspense fallback={<WebsiteMapFallback />}>
+            <WebsiteWorkbench tool="map" />
         </Suspense>
     );
 }

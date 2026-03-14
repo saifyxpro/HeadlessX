@@ -113,6 +113,7 @@ export default function SettingsPage() {
             <PageHeader
                 title="Settings"
                 description="Configure your scraping engine and behavior."
+                icon={<HugeiconsIcon icon={Shield01Icon} size={22} />}
                 action={
                     <Button
                         onClick={handleSave}
@@ -134,16 +135,17 @@ export default function SettingsPage() {
             <div className="grid gap-6 xl:grid-cols-[260px_minmax(0,1fr)] items-start">
                 {/* Sidebar */}
                 <div className="space-y-2">
-                    <div className="sticky top-6 rounded-2xl border border-slate-200 bg-white p-2">
+                    <div className="ui-panel sticky top-6 rounded-2xl border border-slate-200 bg-white p-2">
                         {tabs.map(tab => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
+                                data-active={activeTab === tab.id}
                                 className={cn(
-                                    "w-full flex items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-sm font-medium",
+                                    "ui-tab w-full flex items-center gap-3 rounded-xl border border-transparent px-4 py-3 text-sm font-medium",
                                     activeTab === tab.id
-                                        ? "border-primary/15 bg-primary/8 text-primary"
-                                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                                        ? "text-primary"
+                                        : "text-slate-500"
                                 )}
                             >
                                 <HugeiconsIcon icon={tab.icon} size={20} className={activeTab === tab.id ? "text-primary" : "text-slate-400"} />
@@ -170,7 +172,7 @@ export default function SettingsPage() {
                                 <p className="text-sm text-slate-500 mt-1">Control basic application behavior</p>
                             </CardHeader>
                             <CardContent className="space-y-6 pt-6">
-                                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                <div className="ui-panel-soft flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <div className="space-y-1">
                                         <div className="font-semibold text-slate-900 flex items-center gap-2">
                                             Headless Mode
@@ -180,7 +182,7 @@ export default function SettingsPage() {
                                     </div>
                                     <Switch checked={formData.browserHeadless ?? true} onCheckedChange={(c) => handleChange('browserHeadless', c)} />
                                 </div>
-                                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                <div className="ui-panel-soft space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <label className="text-sm font-semibold text-slate-900">Browser Timeout (ms)</label>
                                     <div className="flex items-center gap-4">
                                         <Input
@@ -192,7 +194,7 @@ export default function SettingsPage() {
                                         <p className="text-xs text-slate-400">Max execution time per job</p>
                                     </div>
                                 </div>
-                                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                <div className="ui-panel-soft space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <label className="text-sm font-semibold text-slate-900">Max Concurrent Jobs</label>
                                     <div className="flex items-center gap-4">
                                         <Input
@@ -215,7 +217,7 @@ export default function SettingsPage() {
                                 <p className="text-sm text-slate-500 mt-1">Apply one proxy to every browser session in HeadlessX.</p>
                             </CardHeader>
                             <CardContent className="space-y-6 pt-6">
-                                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                <div className="ui-panel-soft flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <div className="space-y-1">
                                         <div className="font-semibold text-slate-900 flex items-center gap-2">
                                             Global Proxy Routing
@@ -226,7 +228,7 @@ export default function SettingsPage() {
                                     <Switch checked={formData.proxyEnabled ?? false} onCheckedChange={(c) => handleChange('proxyEnabled', c)} />
                                 </div>
 
-                                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                <div className="ui-panel-soft space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <label className="text-sm font-semibold text-slate-900">Protocol</label>
                                     <div className="flex flex-wrap gap-2">
                                         {['http', 'https', 'socks4', 'socks5'].map((protocol) => (
@@ -244,7 +246,7 @@ export default function SettingsPage() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                <div className="ui-panel-soft space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <label className="text-sm font-semibold text-slate-900">Proxy Endpoint</label>
                                     <Input
                                         value={formData.proxyUrl || ''}
@@ -267,21 +269,21 @@ export default function SettingsPage() {
                                 <p className="text-sm text-slate-500 mt-1">Advanced anti-detect browser configuration</p>
                             </CardHeader>
                             <CardContent className="space-y-6 pt-6">
-                                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                <div className="ui-panel-soft flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <div className="space-y-1">
                                         <div className="font-semibold text-slate-900">Block WebRTC</div>
                                         <div className="text-sm text-slate-500">Prevent IP leaks via WebRTC</div>
                                     </div>
                                     <Switch checked={formData.camoufoxBlockWebrtc} onCheckedChange={(c) => handleChange('camoufoxBlockWebrtc', c)} />
                                 </div>
-                                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                <div className="ui-panel-soft flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <div className="space-y-1">
                                         <div className="font-semibold text-slate-900">Camoufox GeoIP</div>
                                         <div className="text-sm text-slate-500">Spoof location based on IP</div>
                                     </div>
                                     <Switch checked={formData.camoufoxGeoip} onCheckedChange={(c) => handleChange('camoufoxGeoip', c)} />
                                 </div>
-                                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                <div className="ui-panel-soft flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <div className="space-y-1">
                                         <div className="font-semibold text-slate-900">Enable Cache</div>
                                         <div className="text-sm text-slate-500">Cache resources for speed</div>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Add01Icon } from '@hugeicons/core-free-icons';
+import { Add01Icon, Key01Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -99,6 +99,7 @@ export default function ApiKeysPage() {
             <PageHeader
                 title="API Keys"
                 description="Manage access tokens and authentication for your applications."
+                icon={<HugeiconsIcon icon={Key01Icon} size={22} />}
                 action={
                     <Button onClick={() => setIsCreateOpen(true)} className="h-10 px-5">
                         <HugeiconsIcon icon={Add01Icon} className="mr-2 h-5 w-5" />

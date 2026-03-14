@@ -1,5 +1,6 @@
 import { createHash } from 'crypto';
 import type { StreamScrapeResult } from '../scrape/StreamingScraperService';
+import type { CrawlExecutionResult } from '../scrape/WebsiteCrawlService';
 import type { IndexJobPayload, ScrapeOutputTypeName } from './jobSchemas';
 
 function stripMarkdown(markdown: string) {
@@ -73,6 +74,27 @@ export function formatQueueExtractResult(result: StreamScrapeResult) {
         url: result.url,
         duration: result.duration,
         statusCode: result.statusCode,
+    };
+}
+
+export function formatQueueCrawlResult(result: CrawlExecutionResult) {
+    if (!result.success) {
+        return {
+            success: false,
+            type: result.cancelled ? 'cancelled' : 'error',
+            error: result.cancelled ? 'Job cancelled' : result.error,
+            code: result.code,
+            cancelled: result.cancelled,
+            duration: result.duration,
+        };
+    }
+
+    return {
+        success: true,
+        type: 'crawl',
+        data: result.data,
+        url: result.url,
+        duration: result.duration,
     };
 }
 

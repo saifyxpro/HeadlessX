@@ -33,6 +33,24 @@ services:
       - headlessx-network
     profiles: ["api", "queue", "all"]
 
+  html-to-md:
+    build:
+      context: ../../
+      dockerfile: apps/go-html-to-md-service/Dockerfile
+    container_name: headlessx-html-to-md
+    environment:
+      - PORT=8080
+    ports:
+      - "${HTML_TO_MARKDOWN_HOST_PORT:-8081}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - headlessx-network
+    profiles: ["api", "queue", "all"]
+
   api:
     build:
       context: ../../
@@ -43,9 +61,13 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      html-to-md:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-headlessx}?schema=public
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - HTML_TO_MARKDOWN_SERVICE_URL=${HTML_TO_MARKDOWN_SERVICE_URL:-http://html-to-md:8080}
+      - HTML_TO_MARKDOWN_TIMEOUT_MS=${HTML_TO_MARKDOWN_TIMEOUT_MS:-60000}
       - PORT=${PORT:-8000}
       - NODE_ENV=production
       - FRONTEND_URL=http://localhost:${WEB_PORT:-3000}
@@ -74,10 +96,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      html-to-md:
+        condition: service_healthy
     command: ["/usr/local/bin/headlessx-worker-entrypoint"]
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-headlessx}?schema=public
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - HTML_TO_MARKDOWN_SERVICE_URL=${HTML_TO_MARKDOWN_SERVICE_URL:-http://html-to-md:8080}
+      - HTML_TO_MARKDOWN_TIMEOUT_MS=${HTML_TO_MARKDOWN_TIMEOUT_MS:-60000}
       - NODE_ENV=production
       - DASHBOARD_INTERNAL_API_KEY=${DASHBOARD_INTERNAL_API_KEY}
       - CREDENTIAL_ENCRYPTION_KEY=${CREDENTIAL_ENCRYPTION_KEY}

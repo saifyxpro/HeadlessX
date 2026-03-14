@@ -10,6 +10,7 @@
     "scripts": {
         "preinstall": "npx only-allow pnpm",
         "dev": "concurrently -k -n api,worker,web \"pnpm --filter headlessx-api dev\" \"pnpm --filter headlessx-api worker:dev\" \"pnpm --filter headlessx-web dev\"",
+        "markdown:dev": "go run ./apps/go-html-to-md-service",
         "build": "nx run-many -t build",
         "start": "concurrently -k -n api,worker,web \"pnpm --filter headlessx-api start\" \"pnpm --filter headlessx-api worker:start\" \"pnpm --filter headlessx-web start\"",
         "lint": "biome check .",

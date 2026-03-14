@@ -3,9 +3,11 @@ import { QueueJobStatus, type QueueJobType } from '@prisma/client';
 import { prisma } from '../../database/client';
 import { jobManager } from '../JobManager';
 import { type StreamProgress, streamingScraperService } from '../scrape/StreamingScraperService';
+import { websiteCrawlService } from '../scrape/WebsiteCrawlService';
 import { queueCancellationChannel } from './cancellationChannel';
-import { formatQueueExtractResult, formatQueueIndexResult, formatQueueScrapeResult } from './jobFormatter';
+import { formatQueueCrawlResult, formatQueueExtractResult, formatQueueIndexResult, formatQueueScrapeResult } from './jobFormatter';
 import type {
+    CrawlJobPayload,
     ExtractJobPayload,
     IndexJobPayload,
     QueueJobEnvelope,
@@ -116,6 +118,9 @@ class QueueWorkerService {
                 case 'scrape':
                     resultPayload = await this.runScrapeJob(queueJobId, job, job.data.payload as ScrapeJobPayload);
                     break;
+                case 'crawl':
+                    resultPayload = await this.runCrawlJob(queueJobId, job, job.data.payload as CrawlJobPayload);
+                    break;
                 case 'extract':
                     resultPayload = await this.runExtractJob(queueJobId, job, job.data.payload as ExtractJobPayload);
                     break;
@@ -169,6 +174,32 @@ class QueueWorkerService {
         if (!result.success) {
             await this.persistExecutionError(queueJobId, job, result.error || 'Scrape job failed');
             throw new Error(result.error || 'Scrape job failed');
+        }
+
+        await this.markCompleted(queueJobId, resultPayload);
+        return resultPayload;
+    }
+
+    private async runCrawlJob(
+        queueJobId: string,
+        job: BullJob<QueueJobEnvelope, unknown, QueueJobTypeName>,
+        payload: CrawlJobPayload
+    ) {
+        const result = await websiteCrawlService.crawl(payload, {
+            jobId: queueJobId,
+            abortSignal: jobManager.getAbortSignal(queueJobId),
+            onProgress: (progress) => this.persistProgress(queueJobId, job, progress),
+        });
+
+        const resultPayload = formatQueueCrawlResult(result);
+        if (result.cancelled || jobManager.isCancelled(queueJobId)) {
+            await this.markCancelled(queueJobId, resultPayload);
+            return resultPayload;
+        }
+
+        if (!result.success) {
+            await this.persistExecutionError(queueJobId, job, result.error || 'Crawl job failed');
+            throw new Error(result.error || 'Crawl job failed');
         }
 
         await this.markCompleted(queueJobId, resultPayload);

@@ -74,7 +74,7 @@ export function ApiKeysList({ keys, revokeMutation, onDeleteClick }: ApiKeysList
                         {item.active ? (
                             <StatusButton
                                 textMap={{ idle: "Revoke", loading: "Revoking", success: "Revoked" }}
-                                className="h-9 px-4 text-xs font-semibold bg-white text-slate-500 hover:text-red-600 hover:bg-red-50 border border-slate-200 hover:border-red-200 shadow-sm rounded-lg transition-all"
+                                className="h-9 rounded-xl border border-slate-200 bg-white px-4 text-xs font-semibold text-slate-500 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
                                 onClick={() => revokeMutation.mutate(item.id)}
                                 status={revokeMutation.status === 'pending' && revokeMutation.variables === item.id ? 'loading' : revokeMutation.status === 'success' && revokeMutation.variables === item.id ? 'success' : 'idle'}
                                 showBadge={false}
@@ -83,7 +83,7 @@ export function ApiKeysList({ keys, revokeMutation, onDeleteClick }: ApiKeysList
                             <Button
                                 size="sm"
                                 variant="ghost"
-                                className="text-slate-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100 rounded-lg h-9 w-9 p-0 transition-all"
+                                className="h-9 w-9 rounded-xl border border-transparent p-0 text-slate-400 hover:border-rose-100 hover:bg-rose-50 hover:text-rose-600"
                                 onClick={() => {
                                     if (originalKey) onDeleteClick(originalKey);
                                 }}

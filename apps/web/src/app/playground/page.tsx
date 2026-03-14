@@ -164,7 +164,7 @@ export default function PlaygroundPage() {
             />
 
             {/* Hero / Search Section */}
-            <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 md:p-10 text-center">
+            <div className="ui-panel relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-8 md:p-10 text-center">
                 <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
                     <HugeiconsIcon icon={SparklesIcon} size={200} className="text-primary rotate-12" />
                 </div>
@@ -185,7 +185,7 @@ export default function PlaygroundPage() {
 
                     <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto group">
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-violet-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                        <div className="relative flex items-center rounded-2xl border border-slate-200 bg-slate-50 p-2 focus-within:border-primary/40">
+                        <div className="ui-panel-soft relative flex items-center rounded-2xl border border-slate-200 bg-slate-50 p-2 focus-within:border-primary/40">
                             <div className="pl-4 text-slate-400">
                                 <HugeiconsIcon icon={Search01Icon} size={22} />
                             </div>

@@ -90,6 +90,8 @@ app.get('/api/health', (req, res) => {
         browser: 'Camoufox (Anti-detect Firefox)',
         endpoints: {
             website: '/api/website/*',
+            websiteMap: '/api/website/map',
+            websiteCrawl: '/api/website/crawl',
             googleSerp: '/api/google-serp/* (coming soon)',
             proxies: '/api/proxies/*',
             config: '/api/config',

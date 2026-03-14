@@ -1,5 +1,6 @@
 import { type Request, type Response } from 'express';
 import {
+    CrawlJobPayloadSchema,
     CreateQueueJobSchema,
     ExtractJobPayloadSchema,
     IndexJobPayloadSchema,
@@ -50,6 +51,22 @@ export class QueueJobController {
             res.status(400).json({
                 success: false,
                 error: error instanceof Error ? error.message : 'Invalid extract job request',
+            });
+        }
+    }
+
+    static async enqueueCrawlJob(req: Request, res: Response) {
+        try {
+            const payload = CrawlJobPayloadSchema.parse(req.body);
+            const job = await queueJobService.createJob(
+                { type: 'crawl', payload, options: undefined },
+                req.apiKeyId || null
+            );
+            res.status(202).json({ success: true, job });
+        } catch (error) {
+            res.status(400).json({
+                success: false,
+                error: error instanceof Error ? error.message : 'Invalid crawl job request',
             });
         }
     }

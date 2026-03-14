@@ -3,6 +3,8 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { ComputerIcon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 
 export function OverviewSkeleton() {
     return (
@@ -10,6 +12,7 @@ export function OverviewSkeleton() {
             <PageHeader
                 title="Overview"
                 description="Welcome back to your scraping command center."
+                icon={<HugeiconsIcon icon={ComputerIcon} size={22} />}
             />
 
             {/* Stats Cards Skeleton */}

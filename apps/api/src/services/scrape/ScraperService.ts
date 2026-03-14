@@ -332,7 +332,7 @@ class ScraperService {
      */
     public async scrapeContent(url: string, options: ScrapeOptions = {}): Promise<ScrapeResult> {
         const result = await this.scrape(url, options);
-        result.markdown = markdownService.convert(result.html);
+        result.markdown = await markdownService.convert(result.html);
         return result;
     }
 

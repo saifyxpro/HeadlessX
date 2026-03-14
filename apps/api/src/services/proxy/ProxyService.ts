@@ -1,8 +1,7 @@
 import { prisma } from '../../database/client';
 import axios from 'axios';
-import { SocksProxyAgent } from 'socks-proxy-agent';
-import { HttpsProxyAgent } from 'https-proxy-agent';
 import { decryptSecret, normalizeSecretForCreate, normalizeSecretForUpdate } from '../../utils/security';
+import { createProxyAgentBundle } from './ProxyConnection';
 
 export interface ProxyTestResult {
     success: boolean;
@@ -170,31 +169,21 @@ class ProxyService {
         const startTime = Date.now();
 
         try {
-            let agent;
             const auth = proxy.username ? `${encodeURIComponent(proxy.username)}:${encodeURIComponent(proxy.password || '')}@` : '';
             const host = proxy.host;
             const port = proxy.port;
             const protocol = proxy.protocol.toLowerCase();
-
-            // Construct Agent based on protocol
-            if (protocol.startsWith('socks')) {
-                // SOCKS5/4 (socks-proxy-agent handles both, mostly socks5)
-                const proxyUrl = `socks5://${auth}${host}:${port}`;
-                console.log(`Testing SOCKS proxy: ${host}:${port} (${protocol})`);
-                agent = new SocksProxyAgent(proxyUrl);
-            } else {
-                // HTTP/HTTPS
-                const proxyUrl = `http://${auth}${host}:${port}`;
-                console.log(`Testing HTTP proxy: ${host}:${port}`);
-                agent = new HttpsProxyAgent(proxyUrl);
-            }
+            const proxyUrl = protocol.startsWith('socks')
+                ? `socks5://${auth}${host}:${port}`
+                : `http://${auth}${host}:${port}`;
+            const agents = createProxyAgentBundle(proxyUrl);
 
             // Test with robust IP service (ip-api.com is fast and reliable for proxies)
             // We use HTTP endpoint to avoid SSL handshake issues with some cheaper proxies, 
             // but the agent handles the tunnel.
             const response = await axios.get('http://ip-api.com/json/', {
-                httpAgent: agent,
-                httpsAgent: agent,
+                httpAgent: agents.httpAgent,
+                httpsAgent: agents.httpsAgent,
                 timeout: 15000, // 15s timeout
                 validateStatus: (status) => status === 200
             });

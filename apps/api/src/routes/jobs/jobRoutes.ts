@@ -14,6 +14,7 @@ router.get('/', QueueJobController.listJobs);
 router.get('/metrics', QueueJobController.getMetrics);
 router.post('/', QueueJobController.createJob);
 router.post('/scrape', QueueJobController.enqueueScrapeJob);
+router.post('/crawl', QueueJobController.enqueueCrawlJob);
 router.post('/extract', QueueJobController.enqueueExtractJob);
 router.post('/index', QueueJobController.enqueueIndexJob);
 

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { ScrapeControllerV2 } from '../../controllers/scrape/ScrapeControllerV2';
 import { StreamingScrapeController } from '../../controllers/scrape/StreamingScrapeController';
+import { WebsiteWorkflowController } from '../../controllers/scrape/WebsiteWorkflowController';
 import { ApiKeyGuard } from '../../middleware/ApiKeyGuard';
 import { RequestLogger } from '../../middleware/RequestLogger';
 
@@ -17,6 +18,12 @@ router.use(ApiKeyGuard);
 
 // POST /api/website/stream - SSE Streaming scrape with real-time progress
 router.post('/stream', StreamingScrapeController.streamScrape);
+
+// POST /api/website/map - Fast website link discovery
+router.post('/map', WebsiteWorkflowController.map);
+
+// POST /api/website/crawl - Queue-backed website crawl
+router.post('/crawl', WebsiteWorkflowController.crawl);
 
 // POST /api/website/html - Basic HTML scrape (fast, no JS)
 router.post('/html', ScrapeControllerV2.getHtml);

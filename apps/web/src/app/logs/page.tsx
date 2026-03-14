@@ -448,7 +448,7 @@ export default function LogsPage() {
                     icon={<HugeiconsIcon icon={File01Icon} size={20} />}
                     action={
                         <div className="flex items-center gap-3">
-                            <div className="hidden md:flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500">
+                            <div className="ui-panel-soft hidden md:flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500">
                                 <span className={cn('h-2 w-2 rounded-full', isRefreshing ? 'bg-amber-500' : 'bg-emerald-500')} />
                                 {isRefreshing ? 'Refreshing' : 'Auto-refreshing'}
                             </div>
@@ -503,7 +503,7 @@ export default function LogsPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="px-5 pb-5 pt-0 md:px-6">
-                            <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 md:p-5">
+                            <div className="ui-panel-soft space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 md:p-5">
                                 <div className="flex flex-wrap items-center gap-2">
                                     <Badge variant="outline" className="rounded-full border-slate-200 bg-white px-3 py-1 text-slate-600">
                                         {filteredLogs.length} visible
@@ -585,7 +585,7 @@ export default function LogsPage() {
                         </CardHeader>
                         <CardContent className="px-5 pb-5 pt-0 md:px-6">
                             {filteredLogs.length === 0 ? (
-                                <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-2xl border border-slate-200 bg-slate-50/60 px-6 py-12 text-center">
+                                <div className="ui-panel-soft flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-2xl border border-slate-200 bg-slate-50/60 px-6 py-12 text-center">
                                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-400">
                                         <HugeiconsIcon icon={Search01Icon} size={24} />
                                     </div>
@@ -598,7 +598,7 @@ export default function LogsPage() {
                                 </div>
                             ) : (
                                 <div className="overflow-hidden rounded-2xl border border-slate-200">
-                                    <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/80 px-5 py-4 md:flex-row md:items-center md:justify-between">
+                                    <div className="ui-panel-soft flex flex-col gap-3 border-b border-slate-100 bg-slate-50/80 px-5 py-4 md:flex-row md:items-center md:justify-between">
                                         <div className="text-sm text-slate-600">
                                             Showing <span className="font-medium text-slate-800">{filteredLogs.length}</span> rows on page <span className="font-medium text-slate-800">{page}</span> of <span className="font-medium text-slate-800">{totalPages}</span>
                                         </div>
@@ -620,7 +620,7 @@ export default function LogsPage() {
                                                     tabIndex={0}
                                                     aria-label={`Open log details for ${log.url}`}
                                                     className={cn(
-                                                        'rounded-2xl border p-4 text-left transition-colors',
+                                                        'ui-row rounded-2xl border p-4 text-left',
                                                         isSelected
                                                             ? 'border-primary/20 bg-primary/5'
                                                             : 'border-slate-200 bg-white'
@@ -714,7 +714,7 @@ export default function LogsPage() {
                                                             tabIndex={0}
                                                             aria-label={`Open log details for ${log.url}`}
                                                             className={cn(
-                                                                'border-t border-slate-100 align-top transition-colors',
+                                                                'ui-row border-t border-slate-100 align-top',
                                                                 isSelected ? 'bg-primary/5' : 'hover:bg-slate-50/70 focus-within:bg-slate-50/70'
                                                             )}
                                                             onClick={() => setSelectedLogId(log.id)}

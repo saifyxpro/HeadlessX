@@ -5,7 +5,7 @@ import type { Page } from 'playwright-core';
 export interface Job {
     id: string;
     url: string;
-    type: 'html' | 'html-js' | 'content' | 'screenshot' | 'extract' | 'index';
+    type: 'html' | 'html-js' | 'content' | 'screenshot' | 'crawl' | 'extract' | 'index';
     options: {
         waitForSelector?: string;
         timeout?: number;
