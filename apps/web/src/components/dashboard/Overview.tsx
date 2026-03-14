@@ -12,13 +12,31 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/Skeleton";
 import Link from "next/link";
 import StackedList from "@/components/ui/stacked-list";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { OverviewSkeleton } from "./OverviewSkeleton";
 
+function RecentActivitySkeleton() {
+    return (
+        <div className="space-y-3 px-2 pb-2">
+            {[1, 2, 3, 4, 5].map((item) => (
+                <div key={item} className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-4">
+                    <Skeleton className="h-10 w-10 shrink-0 rounded-2xl" />
+                    <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                    </div>
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                </div>
+            ))}
+        </div>
+    );
+}
+
 function RecentActivityList() {
-    const { data: logsData } = useQuery({
+    const { data: logsData, isLoading } = useQuery({
         queryKey: ["dashboard-logs"],
         queryFn: async () => {
             const res = await fetch('/api/logs?limit=5');
@@ -27,6 +45,10 @@ function RecentActivityList() {
         },
         refetchInterval: 10000
     });
+
+    if (isLoading) {
+        return <RecentActivitySkeleton />;
+    }
 
     const activityItems = logsData?.logs?.map((log: any) => {
         let status = 'System';

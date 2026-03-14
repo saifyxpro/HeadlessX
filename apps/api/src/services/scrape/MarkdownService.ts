@@ -4,8 +4,9 @@ import { gfm } from 'turndown-plugin-gfm';
 
 class MarkdownService {
     private readonly turndownService: TurndownService;
-    private readonly serviceUrl = process.env.HTML_TO_MARKDOWN_SERVICE_URL?.trim();
+    private readonly serviceUrl = process.env.HTML_TO_MARKDOWN_SERVICE_URL?.trim() || '';
     private readonly requestTimeoutMs = Number(process.env.HTML_TO_MARKDOWN_TIMEOUT_MS || '60000');
+    private serviceWarningShown = false;
 
     constructor() {
         this.turndownService = new TurndownService({
@@ -52,7 +53,10 @@ class MarkdownService {
                     return this.postProcess(response.data.markdown);
                 }
             } catch (error) {
-                console.warn('⚠️ HTML-to-Markdown service unavailable, using local fallback.', (error as Error).message);
+                if (!this.serviceWarningShown) {
+                    console.warn('⚠️ HTML-to-Markdown service unavailable, using local fallback.', (error as Error).message);
+                    this.serviceWarningShown = true;
+                }
             }
         }
 

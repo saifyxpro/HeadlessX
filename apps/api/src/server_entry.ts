@@ -6,13 +6,14 @@ import { assertSecurityConfiguration } from './utils/security';
 import app from './app';
 
 const PORT = parseInt(process.env.PORT || '8000', 10);
+const HOST = process.env.HOST || '0.0.0.0';
 
 async function startServer() {
     try {
         assertSecurityConfiguration();
 
-        app.listen(PORT, () => {
-            console.log(`🚀 HeadlessX Backend running on http://localhost:${PORT}`);
+        app.listen(PORT, HOST, () => {
+            console.log(`🚀 HeadlessX Backend running on http://${HOST}:${PORT}`);
             console.log(`📂 Environment: ${process.env.NODE_ENV || 'development'}`);
         });
     } catch (error) {

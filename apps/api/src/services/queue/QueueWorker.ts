@@ -15,15 +15,57 @@ import type {
     ScrapeJobPayload,
 } from './jobSchemas';
 import { queueConfig } from './queueConfig';
-import { createRedisConnection } from './redis';
+import { createRedisConnection, isRedisConnectionError, probeRedisConnection } from './redis';
 
 class QueueWorkerService {
     private worker: Worker<QueueJobEnvelope, unknown, QueueJobTypeName> | null = null;
+    private startup: Promise<'running' | 'waiting'> | null = null;
+    private retryTimer: ReturnType<typeof setTimeout> | null = null;
+    private waitingLogged = false;
 
-    public async start() {
+    public async start(): Promise<'running' | 'waiting'> {
         if (this.worker) {
+            return 'running';
+        }
+
+        if (this.startup) {
+            return this.startup;
+        }
+
+        this.startup = this.startInternal().finally(() => {
+            this.startup = null;
+        });
+
+        return this.startup;
+    }
+
+    private scheduleRetry() {
+        if (this.retryTimer) {
             return;
         }
+
+        this.retryTimer = setTimeout(() => {
+            this.retryTimer = null;
+            this.start().catch((error) => {
+                console.error('❌ Failed to retry queue worker startup:', error);
+            });
+        }, queueConfig.connectionRetryMs);
+    }
+
+    private async startInternal(): Promise<'running' | 'waiting'> {
+        const redisReady = await probeRedisConnection('headlessx-queue-worker-probe');
+
+        if (!redisReady) {
+            if (!this.waitingLogged) {
+                console.warn('⚠️ Queue worker is waiting for Redis before it can process async jobs.');
+                this.waitingLogged = true;
+            }
+
+            this.scheduleRetry();
+            return 'waiting';
+        }
+
+        this.waitingLogged = false;
 
         await queueCancellationChannel.subscribe((jobId) => {
             jobManager.cancelJob(jobId);
@@ -70,8 +112,19 @@ class QueueWorkerService {
         });
 
         this.worker.on('error', (error) => {
+            if (isRedisConnectionError(error)) {
+                this.scheduleRetry();
+                return;
+            }
+
             console.error('❌ Queue worker error:', error);
         });
+
+        this.worker.on('closed', () => {
+            this.worker = null;
+        });
+
+        return 'running';
     }
 
     private async processJob(job: BullJob<QueueJobEnvelope, unknown, QueueJobTypeName>) {

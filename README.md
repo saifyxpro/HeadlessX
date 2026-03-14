@@ -239,6 +239,7 @@ CREDENTIAL_ENCRYPTION_KEY="replace-with-a-different-long-random-string"
 PORT=8000
 NODE_ENV=development
 REDIS_URL=redis://localhost:6379
+HTML_TO_MARKDOWN_PORT=8081
 ```
 
 Generate secure values before starting the app:
@@ -277,7 +278,8 @@ Or manually:
 pnpm dev
 ```
 
-`pnpm dev` now starts the API, queue worker, and web dashboard together.
+`pnpm dev` now starts the API, queue worker, web dashboard, and the local Go HTML-to-Markdown service together.
+If Redis is not running, the dashboard and API still boot, while async queue workers wait in standby until Redis becomes available.
 
 Using Nx directly:
 ```bash

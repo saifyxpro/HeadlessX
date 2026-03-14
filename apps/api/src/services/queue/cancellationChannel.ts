@@ -1,15 +1,31 @@
 import type IORedis from 'ioredis';
-import { createRedisConnection } from './redis';
+import { createQueueUnavailableError, createRedisConnection, isRedisConnectionError } from './redis';
 import { queueConfig } from './queueConfig';
 
 class QueueCancellationChannel {
     private readonly channelName = `${queueConfig.queueName}:cancel`;
-    private readonly publisher = createRedisConnection('headlessx-queue-cancel-publisher');
+    private publisher: IORedis | null = null;
     private subscriber: IORedis | null = null;
     private subscribed = false;
 
+    private getPublisher() {
+        if (!this.publisher) {
+            this.publisher = createRedisConnection('headlessx-queue-cancel-publisher');
+        }
+
+        return this.publisher;
+    }
+
     async publishCancel(jobId: string) {
-        await this.publisher.publish(this.channelName, jobId);
+        try {
+            await this.getPublisher().publish(this.channelName, jobId);
+        } catch (error) {
+            if (isRedisConnectionError(error)) {
+                throw createQueueUnavailableError();
+            }
+
+            throw error;
+        }
     }
 
     async subscribe(handler: (jobId: string) => void) {
@@ -17,14 +33,25 @@ class QueueCancellationChannel {
             return;
         }
 
-        this.subscriber = createRedisConnection('headlessx-queue-cancel-subscriber');
-        await this.subscriber.subscribe(this.channelName);
-        this.subscriber.on('message', (channel, message) => {
-            if (channel === this.channelName) {
-                handler(message);
+        try {
+            this.subscriber = createRedisConnection('headlessx-queue-cancel-subscriber');
+            await this.subscriber.subscribe(this.channelName);
+            this.subscriber.on('message', (channel, message) => {
+                if (channel === this.channelName) {
+                    handler(message);
+                }
+            });
+            this.subscribed = true;
+        } catch (error) {
+            this.subscriber?.disconnect(false);
+            this.subscriber = null;
+
+            if (isRedisConnectionError(error)) {
+                throw createQueueUnavailableError();
             }
-        });
-        this.subscribed = true;
+
+            throw error;
+        }
     }
 }
 

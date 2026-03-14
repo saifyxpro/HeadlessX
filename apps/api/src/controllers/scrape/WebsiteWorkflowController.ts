@@ -2,6 +2,7 @@ import { type Request, type Response } from 'express';
 import { z } from 'zod';
 import { queueJobService } from '../../services/queue/QueueJobService';
 import { CrawlJobPayloadSchema } from '../../services/queue/jobSchemas';
+import { isQueueUnavailableError } from '../../services/queue/redis';
 import { websiteDiscoveryService } from '../../services/scrape/WebsiteDiscoveryService';
 
 const MapRequestSchema = z.object({
@@ -43,7 +44,7 @@ export class WebsiteWorkflowController {
 
             res.status(202).json({ success: true, job });
         } catch (error) {
-            res.status(400).json({
+            res.status(isQueueUnavailableError(error) ? 503 : 400).json({
                 success: false,
                 error: error instanceof Error ? error.message : 'Invalid crawl job request',
             });

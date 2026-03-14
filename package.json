@@ -10,7 +10,8 @@
     "scripts": {
         "preinstall": "npx only-allow pnpm",
         "dev": "pnpm exec nx run headlessx-pro:dev",
-        "markdown:dev": "go run ./apps/go-html-to-md-service",
+        "markdown:dev": "cd apps/go-html-to-md-service && PORT=${HTML_TO_MARKDOWN_PORT:-8081} go run .",
+        "markdown:start": "cd apps/go-html-to-md-service && PORT=${HTML_TO_MARKDOWN_PORT:-8081} go run .",
         "build": "nx run-many -t build",
         "start": "pnpm exec nx run headlessx-pro:start",
         "lint": "biome check .",

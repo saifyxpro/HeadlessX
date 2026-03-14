@@ -14,7 +14,13 @@ import type {
     QueueJobTypeName,
 } from './jobSchemas';
 import { queueConfig } from './queueConfig';
-import { createRedisConnection } from './redis';
+import {
+    createQueueUnavailableError,
+    createRedisConnection,
+    formatRedisTarget,
+    isRedisConnectionError,
+    isQueueUnavailableError,
+} from './redis';
 
 const PRISMA_TYPE_MAP: Record<QueueJobTypeName, QueueJobType> = {
     scrape: QueueJobType.SCRAPE,
@@ -39,32 +45,40 @@ function formatStatus(status: QueueJobStatus) {
     return status.toLowerCase();
 }
 
-function formatRedisTarget(redisUrl: string) {
-    try {
-        const parsed = new URL(redisUrl);
-        const authPrefix = parsed.username || parsed.password ? '***@' : '';
-        const database = parsed.pathname && parsed.pathname !== '/' ? parsed.pathname : '';
-        return `${parsed.protocol}//${authPrefix}${parsed.hostname}${parsed.port ? `:${parsed.port}` : ''}${database}`;
-    } catch {
-        return 'configured';
-    }
-}
-
 function isQueueStateRemovable(state: string) {
     return state === 'waiting' || state === 'delayed' || state === 'prioritized';
 }
 
 class QueueJobService {
     private static instance: QueueJobService;
-    private readonly queue = new Queue<QueueJobEnvelope, unknown, QueueJobTypeName>(queueConfig.queueName, {
-        connection: createRedisConnection('headlessx-queue-producer'),
-    });
+    private queue: Queue<QueueJobEnvelope, unknown, QueueJobTypeName> | null = null;
 
     public static getInstance() {
         if (!QueueJobService.instance) {
             QueueJobService.instance = new QueueJobService();
         }
         return QueueJobService.instance;
+    }
+
+    private async getQueue() {
+        if (!this.queue) {
+            this.queue = new Queue<QueueJobEnvelope, unknown, QueueJobTypeName>(queueConfig.queueName, {
+                connection: createRedisConnection('headlessx-queue-producer'),
+            });
+        }
+
+        try {
+            await this.queue.waitUntilReady();
+            return this.queue;
+        } catch (error) {
+            this.queue = null;
+
+            if (isRedisConnectionError(error)) {
+                throw createQueueUnavailableError();
+            }
+
+            throw error;
+        }
     }
 
     public serializeJob(job: QueueJob) {
@@ -87,6 +101,7 @@ class QueueJobService {
     }
 
     public async createJob(input: CreateQueueJobInput, apiKeyId: string | null) {
+        const queue = await this.getQueue();
         const id = randomUUID();
         const attempts = input.options?.attempts ?? queueConfig.defaultJobAttempts;
         const queueType = PRISMA_TYPE_MAP[input.type];
@@ -106,7 +121,7 @@ class QueueJobService {
         });
 
         try {
-            await this.queue.add(
+            await queue.add(
                 input.type as QueueJobTypeName,
                 {
                     id,
@@ -136,6 +151,11 @@ class QueueJobService {
                     completed_at: new Date(),
                 },
             });
+
+            if (isRedisConnectionError(error)) {
+                throw createQueueUnavailableError();
+            }
+
             throw error;
         }
 
@@ -172,20 +192,43 @@ class QueueJobService {
     }
 
     public async getQueueMetrics() {
-        const counts = await this.queue.getJobCounts(
-            'active',
-            'waiting',
-            'delayed',
-            'completed',
-            'failed',
-            'paused'
-        );
+        try {
+            const queue = await this.getQueue();
+            const counts = await queue.getJobCounts(
+                'active',
+                'waiting',
+                'delayed',
+                'completed',
+                'failed',
+                'paused'
+            );
 
-        return {
-            queueName: queueConfig.queueName,
-            redisTarget: formatRedisTarget(queueConfig.redisUrl),
-            counts,
-        };
+            return {
+                queueName: queueConfig.queueName,
+                redisTarget: formatRedisTarget(queueConfig.redisUrl),
+                available: true,
+                counts,
+            };
+        } catch (error) {
+            if (!isRedisConnectionError(error) && !isQueueUnavailableError(error)) {
+                throw error;
+            }
+
+            return {
+                queueName: queueConfig.queueName,
+                redisTarget: formatRedisTarget(queueConfig.redisUrl),
+                available: false,
+                counts: {
+                    active: 0,
+                    waiting: 0,
+                    delayed: 0,
+                    completed: 0,
+                    failed: 0,
+                    paused: 0,
+                },
+                error: createQueueUnavailableError().message,
+            };
+        }
     }
 
     public async cancelJob(id: string) {
@@ -212,7 +255,40 @@ class QueueJobService {
             data: { cancel_requested: true },
         });
 
-        const bullJob = await this.queue.getJob(id);
+        let queue: Queue<QueueJobEnvelope, unknown, QueueJobTypeName> | null = null;
+
+        try {
+            queue = await this.getQueue();
+        } catch (error) {
+            if (!isRedisConnectionError(error) && !isQueueUnavailableError(error)) {
+                throw error;
+            }
+        }
+
+        if (!queue) {
+            await prisma.queueJob.update({
+                where: { id },
+                data: {
+                    status: QueueJobStatus.CANCELLED,
+                    error_message: 'Job cancelled while queue backend was unavailable',
+                    completed_at: new Date(),
+                    progress_payload: {
+                        step: 0,
+                        total: 0,
+                        message: 'Job cancelled while queue backend was unavailable',
+                        status: 'error',
+                    } as any,
+                },
+            });
+
+            return {
+                found: true as const,
+                cancelled: true as const,
+                mode: 'db-only',
+            };
+        }
+
+        const bullJob = await queue.getJob(id);
         if (!bullJob) {
             await prisma.queueJob.update({
                 where: { id },

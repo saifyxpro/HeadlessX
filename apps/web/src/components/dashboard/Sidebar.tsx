@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -134,6 +135,36 @@ function SidebarNavItem({
 export function Sidebar() {
     const pathname = usePathname();
     const { collapsed, toggle } = useSidebar();
+    const navRef = useRef<HTMLElement | null>(null);
+    const [navScrollState, setNavScrollState] = useState({
+        canScrollUp: false,
+        canScrollDown: false,
+    });
+
+    useEffect(() => {
+        const element = navRef.current;
+        if (!element) {
+            return;
+        }
+
+        const updateScrollState = () => {
+            const maxScrollTop = element.scrollHeight - element.clientHeight;
+            setNavScrollState({
+                canScrollUp: element.scrollTop > 6,
+                canScrollDown: maxScrollTop - element.scrollTop > 6,
+            });
+        };
+
+        updateScrollState();
+
+        element.addEventListener('scroll', updateScrollState, { passive: true });
+        window.addEventListener('resize', updateScrollState);
+
+        return () => {
+            element.removeEventListener('scroll', updateScrollState);
+            window.removeEventListener('resize', updateScrollState);
+        };
+    }, [collapsed]);
 
     const { data: systemStats, isLoading: statsLoading } = useQuery({
         queryKey: ['sidebar-dashboard-stats'],
@@ -215,7 +246,11 @@ export function Sidebar() {
                 </div>
             </div>
 
-            <nav className={cn("flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar", collapsed ? "px-3 py-5" : "px-4 py-5")}>
+            <div className="relative flex-1 min-h-0">
+                <nav
+                    ref={navRef}
+                    className={cn("h-full min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar", collapsed ? "px-3 py-5" : "px-4 py-5")}
+                >
                 <div className="space-y-5">
                     {NAV_SECTIONS.map((section) => (
                         <section key={section.id}>
@@ -241,7 +276,16 @@ export function Sidebar() {
                         </section>
                     ))}
                 </div>
-            </nav>
+                </nav>
+
+                {navScrollState.canScrollUp && (
+                    <div className="pointer-events-none absolute left-4 right-4 top-0 h-6 bg-[linear-gradient(180deg,rgba(248,250,252,0.96),rgba(248,250,252,0))]" />
+                )}
+
+                {navScrollState.canScrollDown && (
+                    <div className="pointer-events-none absolute bottom-0 left-4 right-4 h-8 bg-[linear-gradient(0deg,rgba(248,250,252,0.98),rgba(248,250,252,0))]" />
+                )}
+            </div>
 
             <div className={cn(collapsed ? "px-3 py-4" : "px-4 py-4")}>
                 <div

@@ -4,19 +4,21 @@ import cors from 'cors';
 // Note: dotenv is loaded in env.ts which is imported first in server_entry.ts
 
 const app = express();
+const frontendUrl = process.env.FRONTEND_URL?.trim();
+const webPort = process.env.WEB_PORT?.trim();
 
 // Build CORS origins from environment
-const corsOrigins: (string | RegExp)[] = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-];
+const corsOrigins: (string | RegExp)[] = [];
 
-// Add FRONTEND_URL if configured (for custom deployments)
-if (process.env.FRONTEND_URL) {
-    corsOrigins.push(process.env.FRONTEND_URL);
+if (frontendUrl) {
+    corsOrigins.push(frontendUrl);
 }
 
-// Add NEXT_PUBLIC_API_URL origin if it's different from backend
+if (webPort) {
+    corsOrigins.push(`http://localhost:${webPort}`);
+    corsOrigins.push(`http://127.0.0.1:${webPort}`);
+}
+
 if (process.env.NEXT_PUBLIC_API_URL) {
     const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL);
     const frontendOrigin = `${apiUrl.protocol}//${apiUrl.hostname}${apiUrl.port ? ':' + apiUrl.port : ''}`;

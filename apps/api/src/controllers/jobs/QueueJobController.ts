@@ -8,6 +8,11 @@ import {
     ScrapeJobPayloadSchema,
 } from '../../services/queue/jobSchemas';
 import { queueJobService } from '../../services/queue/QueueJobService';
+import { isQueueUnavailableError } from '../../services/queue/redis';
+
+function queueErrorStatus(error: unknown) {
+    return isQueueUnavailableError(error) ? 503 : 400;
+}
 
 export class QueueJobController {
     static async createJob(req: Request, res: Response) {
@@ -16,7 +21,7 @@ export class QueueJobController {
             const job = await queueJobService.createJob(input, req.apiKeyId || null);
             res.status(202).json({ success: true, job });
         } catch (error) {
-            res.status(400).json({
+            res.status(queueErrorStatus(error)).json({
                 success: false,
                 error: error instanceof Error ? error.message : 'Invalid queue job request',
             });
@@ -32,7 +37,7 @@ export class QueueJobController {
             );
             res.status(202).json({ success: true, job });
         } catch (error) {
-            res.status(400).json({
+            res.status(queueErrorStatus(error)).json({
                 success: false,
                 error: error instanceof Error ? error.message : 'Invalid scrape job request',
             });
@@ -48,7 +53,7 @@ export class QueueJobController {
             );
             res.status(202).json({ success: true, job });
         } catch (error) {
-            res.status(400).json({
+            res.status(queueErrorStatus(error)).json({
                 success: false,
                 error: error instanceof Error ? error.message : 'Invalid extract job request',
             });
@@ -64,7 +69,7 @@ export class QueueJobController {
             );
             res.status(202).json({ success: true, job });
         } catch (error) {
-            res.status(400).json({
+            res.status(queueErrorStatus(error)).json({
                 success: false,
                 error: error instanceof Error ? error.message : 'Invalid crawl job request',
             });
@@ -80,7 +85,7 @@ export class QueueJobController {
             );
             res.status(202).json({ success: true, job });
         } catch (error) {
-            res.status(400).json({
+            res.status(queueErrorStatus(error)).json({
                 success: false,
                 error: error instanceof Error ? error.message : 'Invalid index job request',
             });

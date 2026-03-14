@@ -5,8 +5,13 @@ import { queueWorkerService } from './services/queue/QueueWorker';
 async function startWorker() {
     try {
         assertSecurityConfiguration();
-        await queueWorkerService.start();
-        console.log('👷 HeadlessX Queue Worker is running');
+        const state = await queueWorkerService.start();
+
+        if (state === 'running') {
+            console.log('👷 HeadlessX Queue Worker is running');
+        } else {
+            console.log('⏳ HeadlessX Queue Worker is waiting for Redis');
+        }
     } catch (error) {
         console.error('❌ Failed to start queue worker:', error);
         process.exit(1);

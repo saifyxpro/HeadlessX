@@ -10,7 +10,8 @@
         "commands": [
           "pnpm --filter headlessx-api dev",
           "pnpm --filter headlessx-api worker:dev",
-          "pnpm --filter headlessx-web dev"
+          "pnpm --filter headlessx-web dev",
+          "pnpm markdown:dev"
         ]
       }
     },
@@ -21,7 +22,8 @@
         "commands": [
           "pnpm --filter headlessx-api start",
           "pnpm --filter headlessx-api worker:start",
-          "pnpm --filter headlessx-web start"
+          "pnpm --filter headlessx-web start",
+          "pnpm markdown:start"
         ]
       }
     }
