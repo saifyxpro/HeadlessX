@@ -34,6 +34,7 @@ COPY nx.json ./
 
 # Copy API app
 COPY apps/api ./apps/api
+COPY infra/docker/api-entrypoint.sh /usr/local/bin/headlessx-api-entrypoint
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
@@ -49,4 +50,5 @@ RUN pnpm exec nx run headlessx-api:build
 
 # Start the API
 WORKDIR /app/apps/api
-CMD ["pnpm", "start"]
+RUN chmod +x /usr/local/bin/headlessx-api-entrypoint
+CMD ["/usr/local/bin/headlessx-api-entrypoint"]

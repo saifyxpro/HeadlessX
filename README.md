@@ -285,6 +285,7 @@ docker compose -f infra/docker/docker-compose.yml up -d
 ```
 
 The Docker stack now requires `DASHBOARD_INTERNAL_API_KEY` and `CREDENTIAL_ENCRYPTION_KEY` in `.env`. The API will refuse to boot without them.
+The API container now applies Prisma migrations automatically on startup, so you do not need to run manual `pnpm db:*` commands for the Docker workflow.
 
 ### 6️⃣ Access the Application
 

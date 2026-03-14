@@ -41,17 +41,15 @@ export function Sidebar() {
         queryFn: async () => {
             const res = await fetch('/api/dashboard/stats');
             if (!res.ok) {
-                return { runningBrowsers: 0, maxConcurrency: 0 };
+                return { systemLoad: 0 };
             }
-            return res.json().catch(() => ({ runningBrowsers: 0, maxConcurrency: 0 }));
+            return res.json().catch(() => ({ systemLoad: 0 }));
         },
         refetchInterval: 5000,
         refetchOnWindowFocus: false,
     });
 
-    const systemLoad = systemStats?.maxConcurrency
-        ? Math.min(100, Math.round(((systemStats.runningBrowsers || 0) / systemStats.maxConcurrency) * 100))
-        : 0;
+    const systemLoad = Math.max(0, Math.min(100, Number(systemStats?.systemLoad) || 0));
 
     return (
         <aside

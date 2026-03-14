@@ -52,6 +52,7 @@ services:
     depends_on:
       - api
     environment:
+      - INTERNAL_API_URL=http://api:${PORT:-8000}
       - NEXT_PUBLIC_API_URL=http://localhost:${PORT:-8000}
       - NODE_ENV=production
       - DASHBOARD_INTERNAL_API_KEY=${DASHBOARD_INTERNAL_API_KEY}

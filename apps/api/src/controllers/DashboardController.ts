@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import os from 'os';
 import { prisma } from '../database/client';
 import { configService } from '../services/ConfigService';
 import { browserService } from '../services/BrowserService';
@@ -27,6 +28,11 @@ export class DashboardController {
 
             const browserStatus = browserService.getStatus();
             const runningBrowsersCount = browserStatus.default ? 1 : 0;
+            const totalMemory = os.totalmem();
+            const usedMemory = totalMemory - os.freemem();
+            const memoryLoadPercent = totalMemory > 0
+                ? Math.round((usedMemory / totalMemory) * 100)
+                : 0;
 
             // Calculate success rate
             const failedRateVal = totalJobs > 0
@@ -44,7 +50,8 @@ export class DashboardController {
                 runningBrowsers: runningBrowsersCount,
                 maxConcurrency: config.maxConcurrency,
                 browserHeadless: config.browserHeadless,
-                proxyEnabled: config.proxyEnabled
+                proxyEnabled: config.proxyEnabled,
+                systemLoad: memoryLoadPercent
             });
         } catch (error) {
             console.error('Dashboard Stats Error:', error);

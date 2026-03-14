@@ -21,6 +21,7 @@ This will start:
 3. **HeadlessX Web Dashboard** (Port `3000`)
 
 You can access the dashboard at [http://localhost:3000](http://localhost:3000).
+The API container automatically runs `prisma migrate deploy` before booting, so Docker users do not need to apply database migrations manually.
 
 ## Configuration
 

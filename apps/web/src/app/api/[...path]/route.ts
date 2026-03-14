@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 
-const backendApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const backendApiUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 const dashboardInternalApiKey = process.env.DASHBOARD_INTERNAL_API_KEY;
 
 export const dynamic = 'force-dynamic';
