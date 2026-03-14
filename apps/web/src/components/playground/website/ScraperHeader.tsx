@@ -32,14 +32,14 @@ export function ScraperHeader({ elapsedTime, isPending, result }: ScraperHeaderP
                                 <HugeiconsIcon icon={GlobeIcon} className="w-5 h-5" />
                         </div>
                         <div>
-                            <div className="flex items-center gap-2 mb-0.5">
+                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight leading-tight font-display">
+                                Website Scraper
+                            </h1>
+                            <div className="mt-1.5">
                                 <span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-600">
                                     Scraper Engine
                                 </span>
                             </div>
-                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight leading-tight font-display">
-                                Website Scraper
-                            </h1>
                         </div>
                     </div>
                 </div>

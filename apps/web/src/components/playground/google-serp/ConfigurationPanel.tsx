@@ -4,7 +4,6 @@ import {
     LanguageSquareIcon,
     Loading03Icon,
     Search01Icon,
-    Shield01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 
@@ -54,20 +53,6 @@ export function ConfigurationPanel({
                                 placeholder="e.g., 'best headphones 2026' or 'site:twitter.com ai'"
                                 className="w-full pl-11 pr-4 py-4 bg-white/50 border border-white/60 rounded-2xl text-slate-700 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all shadow-sm"
                             />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <div className="rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-4">
-                            <div className="flex items-start gap-3">
-                                <HugeiconsIcon icon={Shield01Icon} className="mt-0.5 h-4 w-4 text-blue-600" />
-                                <div>
-                                    <div className="text-xs font-bold uppercase tracking-wider text-blue-700">Global Proxy</div>
-                                    <p className="mt-1 text-sm leading-6 text-slate-600">
-                                        Browser profiles were removed. Google SERP now uses the single global proxy from Settings when it is enabled.
-                                    </p>
-                                </div>
-                            </div>
                         </div>
                     </div>
 

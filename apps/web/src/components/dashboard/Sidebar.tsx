@@ -125,7 +125,7 @@ export function Sidebar() {
                                 "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium border border-transparent relative overflow-hidden",
                                 isActive
                                     ? "bg-primary/8 text-primary border-primary/15"
-                                    : "text-slate-500",
+                                    : "text-slate-500 hover:bg-slate-50",
                                 collapsed && "justify-center px-0 w-12 h-12 mx-auto mb-2"
                             )}
                             title={collapsed ? item.label : undefined}

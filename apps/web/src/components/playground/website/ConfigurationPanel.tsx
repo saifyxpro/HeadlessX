@@ -7,7 +7,6 @@ import {
     Image01Icon,
     LinkSquare01Icon,
     Loading03Icon,
-    Shield01Icon,
     SparklesIcon,
     SquareIcon,
     Target01Icon,
@@ -215,26 +214,6 @@ export function ConfigurationPanel({
                                 </div>
                                 <div className="mt-1 text-xs leading-5">Reserved for multi-page crawling once the flow is ready.</div>
                             </button>
-                        </div>
-                    </div>
-
-                    <div className="h-px bg-gradient-to-r from-transparent via-slate-200/60 to-transparent" />
-
-                    <div className="space-y-3">
-                        <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-4">
-                            <div className="flex items-start gap-3">
-                                <div className="mt-0.5 text-blue-600">
-                                    <HugeiconsIcon icon={Shield01Icon} className="w-4 h-4" />
-                                </div>
-                                <div>
-                                    <div className="text-xs font-bold uppercase tracking-wider text-blue-700">
-                                        Global Proxy
-                                    </div>
-                                    <p className="mt-1 text-sm leading-6 text-slate-600">
-                                        Browser profiles were removed. If a proxy is enabled in Settings, it is applied automatically to every scrape session.
-                                    </p>
-                                </div>
-                            </div>
                         </div>
                     </div>
 

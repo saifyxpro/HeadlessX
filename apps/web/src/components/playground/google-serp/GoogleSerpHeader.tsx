@@ -33,11 +33,6 @@ export function GoogleSerpHeader({ elapsedTime, isLoading, hasResult, error }: G
                             <Image src="/icons/google.svg" alt="Google" width={32} height={32} />
                         </div>
                         <div>
-                            <div className="flex items-center gap-2 mb-1">
-                                <span className="rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-600">
-                                    Scraper Engine
-                                </span>
-                            </div>
                             <h1 className="text-2xl font-bold text-slate-900 tracking-tight leading-tight font-display">
                                 Google SERP Scraper
                             </h1>
