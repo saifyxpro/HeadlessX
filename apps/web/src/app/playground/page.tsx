@@ -164,10 +164,24 @@ export default function PlaygroundPage() {
             />
 
             {/* Hero / Search Section */}
-            <div className="ui-panel relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-8 md:p-10 text-center">
-                <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none">
-                    <HugeiconsIcon icon={SparklesIcon} size={200} className="text-primary rotate-12" />
+            <div className="group ui-panel relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-8 md:p-10 text-center transition-all duration-500 ease-out hover:border-blue-200">
+                {/* Background Decorations */}
+                <div className="absolute top-0 right-0 p-12 opacity-10 pointer-events-none select-none text-primary transition-all duration-700 group-hover:text-blue-500 group-hover:opacity-20 flex items-center justify-center group-hover:scale-110">
+                    <HugeiconsIcon icon={SparklesIcon} size={200} className="rotate-12" />
                 </div>
+                <div className="absolute -bottom-10 -left-10 opacity-[0.03] pointer-events-none select-none text-slate-900 transition-all duration-1000 group-hover:text-indigo-600 group-hover:opacity-10 flex items-center justify-center group-hover:rotate-12 group-hover:scale-105">
+                    <HugeiconsIcon icon={Globe02Icon} size={300} className="-rotate-12" />
+                </div>
+                <div className="absolute top-10 left-10 opacity-[0.04] pointer-events-none select-none text-blue-600 transition-all duration-700 group-hover:text-violet-500 group-hover:opacity-[0.08] flex items-center justify-center group-hover:-translate-y-2">
+                    <HugeiconsIcon icon={CommandLineIcon} size={80} className="rotate-12" />
+                </div>
+                <div className="absolute bottom-10 right-1/4 opacity-[0.05] pointer-events-none select-none text-emerald-500 transition-all duration-700 group-hover:text-amber-500 group-hover:opacity-10 flex items-center justify-center group-hover:-translate-y-4">
+                    <HugeiconsIcon icon={Search01Icon} size={100} className="-rotate-12" />
+                </div>
+                
+                {/* Ambient Glows */}
+                <div className="absolute -top-32 -right-32 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none transition-all duration-700 group-hover:bg-blue-500/15 group-hover:scale-110" />
+                <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none transition-all duration-700 group-hover:bg-indigo-500/15 group-hover:scale-110" />
 
                 <div className="relative z-10 max-w-3xl mx-auto">
                     <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-1.5 text-sm font-semibold text-slate-600">

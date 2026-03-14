@@ -22,6 +22,9 @@ router.post('/stream', StreamingScrapeController.streamScrape);
 // POST /api/website/map - Fast website link discovery
 router.post('/map', WebsiteWorkflowController.map);
 
+// POST /api/website/map/stream - SSE website link discovery
+router.post('/map/stream', WebsiteWorkflowController.streamMap);
+
 // POST /api/website/crawl - Queue-backed website crawl
 router.post('/crawl', WebsiteWorkflowController.crawl);
 

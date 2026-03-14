@@ -61,8 +61,11 @@ export class GoogleSerpController {
     static async searchStream(req: Request, res: Response) {
         const apiKeyId = (req as any).apiKeyId;
         const query = req.query.query as string;
-        // Parse timeout or default to 60s
-        const timeoutSeconds = parseInt(req.query.timeout as string) || 60;
+        // Clamp timeout to the range exposed by the UI.
+        const parsedTimeoutSeconds = parseInt(req.query.timeout as string, 10);
+        const timeoutSeconds = Number.isFinite(parsedTimeoutSeconds)
+            ? Math.max(30, Math.min(120, parsedTimeoutSeconds))
+            : 60;
         const timeoutMs = timeoutSeconds * 1000;
 
         if (!query) {

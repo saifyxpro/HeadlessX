@@ -2,6 +2,7 @@ import axios from 'axios';
 import { configService } from '../config/ConfigService';
 import { createProxyAgentBundle, normalizeConfiguredProxyUrl } from '../proxy/ProxyConnection';
 import { scraperService } from './ScraperService';
+import type { StreamProgress } from './StreamingScraperService';
 import {
     extractLinksFromHtml,
     extractLinksFromSitemap,
@@ -29,6 +30,11 @@ export interface MapResult {
     generatedAt: string;
 }
 
+interface MapExecutionContext {
+    abortSignal?: AbortSignal;
+    onProgress?: (progress: StreamProgress) => void;
+}
+
 class WebsiteDiscoveryService {
     private static instance: WebsiteDiscoveryService;
 
@@ -39,8 +45,29 @@ class WebsiteDiscoveryService {
         return WebsiteDiscoveryService.instance;
     }
 
-    public async map(request: MapRequestInput): Promise<MapResult> {
+    public async map(request: MapRequestInput, context: MapExecutionContext = {}): Promise<MapResult> {
         const limit = request.limit ?? 75;
+        const totalSteps = request.useSitemap === false ? 3 : 4;
+
+        const throwIfCancelled = () => {
+            if (context.abortSignal?.aborted) {
+                const error = new Error('Job cancelled');
+                error.name = 'JobCancelledError';
+                throw error;
+            }
+        };
+
+        const report = (step: number, message: string, status: StreamProgress['status']) => {
+            context.onProgress?.({
+                step,
+                total: totalSteps,
+                message,
+                status,
+            });
+        };
+
+        throwIfCancelled();
+        report(1, 'Loading website for link discovery', 'active');
         const scrapeResult = await scraperService.scrape(request.url, {
             waitForSelector: request.waitForSelector,
             timeout: request.timeout,
@@ -48,12 +75,16 @@ class WebsiteDiscoveryService {
             screenshotOnError: false,
             jsEnabled: true,
         });
+        throwIfCancelled();
+        report(1, 'Website loaded', 'completed');
 
+        report(2, 'Extracting page links', 'active');
         const pageLinks = extractLinksFromHtml(scrapeResult.html, scrapeResult.url, {
             includeExternal: request.includeExternal,
             includeSubdomains: request.includeSubdomains,
             limit,
         });
+        report(2, `Collected ${pageLinks.length} page links`, 'completed');
 
         const sitemapLinks = request.useSitemap === false
             ? []
@@ -61,9 +92,16 @@ class WebsiteDiscoveryService {
                 timeout: request.timeout,
                 includeExternal: request.includeExternal,
                 includeSubdomains: request.includeSubdomains,
+                abortSignal: context.abortSignal,
+                onProgress: (message, status) => {
+                    report(3, message, status);
+                },
             });
 
+        throwIfCancelled();
         const links = mergeWebsiteLinks(pageLinks, sitemapLinks).slice(0, limit);
+        const finalStep = request.useSitemap === false ? 3 : 4;
+        report(finalStep, `Prepared ${links.length} links`, 'completed');
 
         return {
             url: scrapeResult.url,
@@ -81,6 +119,8 @@ class WebsiteDiscoveryService {
             timeout?: number;
             includeSubdomains?: boolean;
             includeExternal?: boolean;
+            abortSignal?: AbortSignal;
+            onProgress?: (message: string, status: StreamProgress['status']) => void;
         }
     ) {
         const origin = new URL(pageUrl).origin;
@@ -89,16 +129,29 @@ class WebsiteDiscoveryService {
         const visited = new Set<string>();
         const discovered: WebsiteLink[] = [];
 
+        const throwIfCancelled = () => {
+            if (options.abortSignal?.aborted) {
+                const error = new Error('Job cancelled');
+                error.name = 'JobCancelledError';
+                throw error;
+            }
+        };
+
+        options.onProgress?.('Scanning sitemap sources', 'active');
+
         while (toVisit.length > 0 && visited.size < 6 && discovered.length < limit) {
+            throwIfCancelled();
             const sitemapUrl = toVisit.shift();
             if (!sitemapUrl || visited.has(sitemapUrl)) {
                 continue;
             }
 
             visited.add(sitemapUrl);
+            options.onProgress?.(`Scanning sitemap ${visited.size}`, 'active');
 
             try {
                 const xml = await this.fetchText(sitemapUrl, options.timeout);
+                throwIfCancelled();
                 const links = extractLinksFromSitemap(xml, pageUrl, {
                     includeExternal: options.includeExternal,
                     includeSubdomains: options.includeSubdomains,
@@ -123,6 +176,7 @@ class WebsiteDiscoveryService {
             }
         }
 
+        options.onProgress?.(`Collected ${discovered.length} sitemap links`, 'completed');
         return discovered.slice(0, limit);
     }
 

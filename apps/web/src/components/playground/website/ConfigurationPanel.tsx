@@ -154,6 +154,7 @@ const PANEL_META: Record<WebsiteTool, {
 interface ConfigurationPanelProps {
     url: string;
     setUrl: (url: string) => void;
+    lastUsedUrl?: string | null;
     tool: WebsiteTool;
     outputType: OutputType;
     setOutputType: (type: OutputType) => void;
@@ -183,6 +184,7 @@ interface ConfigurationPanelProps {
 export function ConfigurationPanel({
     url,
     setUrl,
+    lastUsedUrl,
     tool,
     outputType,
     setOutputType,
@@ -212,7 +214,7 @@ export function ConfigurationPanel({
     const PanelIcon = panelMeta.icon;
     const isDisabled = isPending;
     const advancedSummary = [
-        `${timeout / 1000}s timeout`,
+        ...(tool === 'scrape' ? [`${timeout / 1000}s timeout`] : []),
         selector ? 'Custom selector' : 'No selector',
         stealth ? 'Stealth on' : 'Stealth off',
     ].join(' • ');
@@ -226,7 +228,7 @@ export function ConfigurationPanel({
     return (
         <div className="space-y-6 lg:col-span-4">
             <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6">
-                <div className={`space-y-6 ${isDisabled ? 'pointer-events-none opacity-70' : ''}`}>
+                <div className="space-y-6">
                     <div className="flex items-start gap-4">
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_60%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] text-slate-900 ring-1 ring-slate-200">
                             <HugeiconsIcon icon={PanelIcon} className="h-5 w-5" />
@@ -237,192 +239,210 @@ export function ConfigurationPanel({
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                        <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                            Target URL
-                        </label>
-                        <div className="relative">
-                            <input
-                                value={url}
-                                onChange={(event) => setUrl(event.target.value)}
-                                placeholder="https://example.com"
-                                disabled={isDisabled}
-                                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-slate-400"
-                            />
-                            {url.startsWith('http') && (
-                                <a
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
-                                >
-                                    <HugeiconsIcon icon={LinkSquare01Icon} className="h-4 w-4" />
-                                </a>
-                            )}
-                        </div>
-                    </div>
-
-                    {tool === 'scrape' && (
-                        <div className="space-y-3">
-                            <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                                Output Format
-                            </label>
-                            <CustomDropdown
-                                value={outputType}
-                                onChange={(value) => setOutputType(value as OutputType)}
-                                options={OUTPUT_TYPE_OPTIONS}
-                                placeholder="Select output format"
-                                icon={File01Icon}
-                            />
-                        </div>
-                    )}
-
-                    {(tool === 'crawl' || tool === 'map') && (
-                        <div className="grid gap-3 sm:grid-cols-2">
+                    <div className={isDisabled ? 'pointer-events-none opacity-70' : ''}>
+                        <div className="space-y-6">
                             <div className="space-y-3">
-                                <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                                    {tool === 'crawl' ? 'Page Limit' : 'Link Limit'}
-                                </label>
-                                <input
-                                    type="number"
-                                    min={1}
-                                    max={tool === 'crawl' ? 100 : 250}
-                                    value={crawlLimit}
-                                    onChange={(event) => setCrawlLimit(Number(event.target.value))}
-                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 outline-none transition-colors hover:border-slate-300 hover:bg-white focus:border-slate-400"
-                                />
+                                <div className="flex items-center justify-between gap-3">
+                                    <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                                        Target URL
+                                    </label>
+                                    {lastUsedUrl && url.trim() === lastUsedUrl.trim() && (
+                                        <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-600">
+                                            Last Used
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="relative">
+                                    <input
+                                        value={url}
+                                        onChange={(event) => setUrl(event.target.value)}
+                                        placeholder="https://example.com"
+                                        disabled={isDisabled}
+                                        className={`w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-slate-400 ${
+                                            url.startsWith('http') ? 'pr-14' : ''
+                                        }`}
+                                    />
+                                    {url.startsWith('http') && (
+                                        <a
+                                            href={url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-xl p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                                            aria-label="Open target URL in a new tab"
+                                        >
+                                            <HugeiconsIcon icon={LinkSquare01Icon} className="h-4 w-4" />
+                                        </a>
+                                    )}
+                                </div>
                             </div>
 
-                            {tool === 'crawl' && (
+                            {tool === 'scrape' && (
                                 <div className="space-y-3">
                                     <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                                        Max Depth
+                                        Output Format
                                     </label>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        max={4}
-                                        value={crawlDepth}
-                                        onChange={(event) => setCrawlDepth(Number(event.target.value))}
-                                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 outline-none transition-colors hover:border-slate-300 hover:bg-white focus:border-slate-400"
+                                    <CustomDropdown
+                                        value={outputType}
+                                        onChange={(value) => setOutputType(value as OutputType)}
+                                        options={OUTPUT_TYPE_OPTIONS}
+                                        placeholder="Select output format"
+                                        icon={File01Icon}
                                     />
                                 </div>
                             )}
-                        </div>
-                    )}
 
-                    {tool === 'crawl' && (
-                        <ToggleRow
-                            label="Include Subdomains"
-                            description="Allow the crawl queue to follow pages on docs.example.com and other subdomains."
-                            checked={includeSubdomains}
-                            onChange={setIncludeSubdomains}
-                            disabled={isDisabled}
-                        />
-                    )}
-
-                    {tool === 'map' && (
-                        <div className="space-y-3">
-                            <ToggleRow
-                                label="Use Sitemap"
-                                description="Merge `/sitemap.xml` links with on-page discovery when available."
-                                checked={useSitemap}
-                                onChange={setUseSitemap}
-                                disabled={isDisabled}
-                            />
-                            <ToggleRow
-                                label="Include Subdomains"
-                                description="Keep docs/blog subdomains in the map output."
-                                checked={includeSubdomains}
-                                onChange={setIncludeSubdomains}
-                                disabled={isDisabled}
-                            />
-                            <ToggleRow
-                                label="Include External Links"
-                                description="Surface third-party links alongside internal discovery."
-                                checked={includeExternal}
-                                onChange={setIncludeExternal}
-                                disabled={isDisabled}
-                            />
-                        </div>
-                    )}
-
-                    <div className="space-y-3">
-                        <button
-                            type="button"
-                            onClick={() => !isDisabled && setShowAdvanced(!showAdvanced)}
-                            disabled={isDisabled}
-                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-left transition-colors hover:border-slate-300 hover:bg-white"
-                        >
-                            <div className="flex items-center justify-between gap-3">
-                                <div className="flex min-w-0 items-start gap-3">
-                                    <div className="mt-0.5 text-slate-400">
-                                        <HugeiconsIcon icon={Settings02Icon} className="h-4 w-4" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                                            Advanced
-                                        </div>
-                                        <div className="mt-1 text-sm font-semibold text-slate-900">
-                                            Browser and timing controls
-                                        </div>
-                                        <div className="mt-1 truncate text-xs text-slate-500">
-                                            {advancedSummary}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <HugeiconsIcon icon={ArrowDown01Icon} className={`h-4 w-4 text-slate-400 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
-                            </div>
-                        </button>
-
-                        <div
-                            className={`overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 transition-all ${
-                                showAdvanced ? 'max-h-[360px] opacity-100' : 'max-h-0 border-transparent opacity-0'
-                            }`}
-                        >
-                            <div className="space-y-4 px-4 py-4">
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                                        Wait For Selector
-                                    </label>
-                                    <input
-                                        value={selector}
-                                        onChange={(event) => setSelector(event.target.value)}
-                                        placeholder="#content, .article-body"
-                                        disabled={isDisabled}
-                                        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-slate-400"
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between">
+                            {(tool === 'crawl' || tool === 'map') && (
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <div className="space-y-3">
                                         <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                                            Timeout
+                                            {tool === 'crawl' ? 'Page Limit' : 'Link Limit'}
                                         </label>
-                                        <span className="rounded-full bg-white px-2 py-1 text-[11px] font-semibold text-slate-500">
-                                            {timeout / 1000}s
-                                        </span>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={tool === 'crawl' ? 100 : 250}
+                                            value={crawlLimit}
+                                            onChange={(event) => setCrawlLimit(Number(event.target.value))}
+                                            disabled={isDisabled}
+                                            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 outline-none transition-colors hover:border-slate-300 hover:bg-white focus:border-slate-400"
+                                        />
                                     </div>
-                                    <input
-                                        type="range"
-                                        min={5000}
-                                        max={60000}
-                                        step={1000}
-                                        value={timeout}
-                                        onChange={(event) => setTimeoutValue(Number(event.target.value))}
-                                        disabled={isDisabled}
-                                        className="w-full accent-slate-900"
-                                    />
-                                </div>
 
+                                    {tool === 'crawl' && (
+                                        <div className="space-y-3">
+                                            <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                                                Max Depth
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                max={4}
+                                                value={crawlDepth}
+                                                onChange={(event) => setCrawlDepth(Number(event.target.value))}
+                                                disabled={isDisabled}
+                                                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-900 outline-none transition-colors hover:border-slate-300 hover:bg-white focus:border-slate-400"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {tool === 'crawl' && (
                                 <ToggleRow
-                                    label="Stealth Mode"
-                                    description="Use the full anti-detection path instead of the faster reduced-interaction mode."
-                                    checked={stealth}
-                                    onChange={setStealth}
+                                    label="Include Subdomains"
+                                    description="Allow the crawl queue to follow pages on docs.example.com and other subdomains."
+                                    checked={includeSubdomains}
+                                    onChange={setIncludeSubdomains}
                                     disabled={isDisabled}
                                 />
+                            )}
+
+                            {tool === 'map' && (
+                                <div className="space-y-3">
+                                    <ToggleRow
+                                        label="Use Sitemap"
+                                        description="Merge `/sitemap.xml` links with on-page discovery when available."
+                                        checked={useSitemap}
+                                        onChange={setUseSitemap}
+                                        disabled={isDisabled}
+                                    />
+                                    <ToggleRow
+                                        label="Include Subdomains"
+                                        description="Keep docs/blog subdomains in the map output."
+                                        checked={includeSubdomains}
+                                        onChange={setIncludeSubdomains}
+                                        disabled={isDisabled}
+                                    />
+                                    <ToggleRow
+                                        label="Include External Links"
+                                        description="Surface third-party links alongside internal discovery."
+                                        checked={includeExternal}
+                                        onChange={setIncludeExternal}
+                                        disabled={isDisabled}
+                                    />
+                                </div>
+                            )}
+
+                            <div className="space-y-3">
+                                <button
+                                    type="button"
+                                    onClick={() => !isDisabled && setShowAdvanced(!showAdvanced)}
+                                    disabled={isDisabled}
+                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-left transition-colors hover:border-slate-300 hover:bg-white"
+                                >
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex min-w-0 items-start gap-3">
+                                            <div className="mt-0.5 text-slate-400">
+                                                <HugeiconsIcon icon={Settings02Icon} className="h-4 w-4" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                                                    Advanced
+                                                </div>
+                                                <div className="mt-1 text-sm font-semibold text-slate-900">
+                                                    Browser and timing controls
+                                                </div>
+                                                <div className="mt-1 truncate text-xs text-slate-500">
+                                                    {advancedSummary}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <HugeiconsIcon icon={ArrowDown01Icon} className={`h-4 w-4 text-slate-400 transition-transform ${showAdvanced ? 'rotate-180' : ''}`} />
+                                    </div>
+                                </button>
+
+                                <div
+                                    className={`overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 transition-all ${
+                                        showAdvanced ? 'max-h-[360px] opacity-100' : 'max-h-0 border-transparent opacity-0'
+                                    }`}
+                                >
+                                    <div className="space-y-4 px-4 py-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                                                Wait For Selector
+                                            </label>
+                                            <input
+                                                value={selector}
+                                                onChange={(event) => setSelector(event.target.value)}
+                                                placeholder="#content, .article-body"
+                                                disabled={isDisabled}
+                                                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-slate-400"
+                                            />
+                                        </div>
+
+                                        {tool === 'scrape' && (
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                                                        Timeout
+                                                    </label>
+                                                    <span className="rounded-full bg-white px-2 py-1 text-[11px] font-semibold text-slate-500">
+                                                        {timeout / 1000}s
+                                                    </span>
+                                                </div>
+                                                <input
+                                                    type="range"
+                                                    min={5000}
+                                                    max={60000}
+                                                    step={1000}
+                                                    value={timeout}
+                                                    onChange={(event) => setTimeoutValue(Number(event.target.value))}
+                                                    disabled={isDisabled}
+                                                    className="w-full accent-slate-900"
+                                                />
+                                            </div>
+                                        )}
+
+                                        <ToggleRow
+                                            label="Stealth Mode"
+                                            description="Use the full anti-detection path instead of the faster reduced-interaction mode."
+                                            checked={stealth}
+                                            onChange={setStealth}
+                                            disabled={isDisabled}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -17,6 +17,37 @@ export interface LinkFilterOptions {
     limit?: number;
 }
 
+const NON_WEB_PROTOCOLS = new Set([
+    'mailto:',
+    'tel:',
+    'javascript:',
+    'data:',
+    'ftp:',
+    'ftps:',
+    'file:',
+    'sms:',
+]);
+
+const SOCIAL_MEDIA_HOST_SNIPPETS = [
+    'facebook.com',
+    'twitter.com',
+    'x.com',
+    'linkedin.com',
+    'instagram.com',
+    'pinterest.com',
+    'tiktok.com',
+    'youtube.com',
+    'github.com',
+    'discord.gg',
+    'discord.com',
+    'calendly.com',
+];
+
+const BLOCKED_FILE_EXTENSIONS = new Set([
+    '.png', '.jpg', '.jpeg', '.gif', '.css', '.js', '.ico', '.svg', '.tiff', '.zip', '.exe', '.dmg',
+    '.mp4', '.mp3', '.wav', '.pptx', '.xlsx', '.avi', '.flv', '.woff', '.woff2', '.ttf', '.webp', '.pdf',
+]);
+
 const TRACKING_QUERY_PARAMS = new Set([
     'fbclid',
     'gclid',
@@ -43,6 +74,22 @@ function toCleanPathname(pathname: string) {
     return trimTrailingSlash(pathname || '/');
 }
 
+function isBlockedFilePath(pathname: string) {
+    const lowerPathname = pathname.toLowerCase();
+    for (const extension of BLOCKED_FILE_EXTENSIONS) {
+        if (lowerPathname.endsWith(extension)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function isSocialMediaUrl(url: URL) {
+    const hostname = url.hostname.toLowerCase();
+    return SOCIAL_MEDIA_HOST_SNIPPETS.some((domain) => hostname.includes(domain));
+}
+
 function mergeSource(current: WebsiteLinkSource, next: WebsiteLinkSource): WebsiteLinkSource {
     if (current === next) {
         return current;
@@ -53,7 +100,16 @@ function mergeSource(current: WebsiteLinkSource, next: WebsiteLinkSource): Websi
 
 export function normalizeWebsiteUrl(rawUrl: string, baseUrl?: string) {
     try {
-        const parsed = baseUrl ? new URL(rawUrl, baseUrl) : new URL(rawUrl);
+        const trimmed = rawUrl.trim();
+        const lowerValue = trimmed.toLowerCase();
+
+        for (const protocol of NON_WEB_PROTOCOLS) {
+            if (lowerValue.startsWith(protocol)) {
+                return null;
+            }
+        }
+
+        const parsed = baseUrl ? new URL(trimmed, baseUrl) : new URL(trimmed);
 
         if (!['http:', 'https:'].includes(parsed.protocol)) {
             return null;
@@ -72,6 +128,11 @@ export function normalizeWebsiteUrl(rawUrl: string, baseUrl?: string) {
         }
 
         parsed.pathname = toCleanPathname(parsed.pathname);
+
+        if (isBlockedFilePath(parsed.pathname)) {
+            return null;
+        }
+
         return parsed.toString();
     } catch {
         return null;
@@ -152,6 +213,10 @@ function buildWebsiteLink(
 
     const parsed = new URL(normalizedUrl);
 
+    if (isSocialMediaUrl(parsed)) {
+        return null;
+    }
+
     return {
         url: normalizedUrl,
         label: sanitizeLabel(label),
@@ -168,6 +233,7 @@ export function extractLinksFromHtml(
     options: LinkFilterOptions = {}
 ) {
     const dom = new JSDOM(html);
+    const baseHref = dom.window.document.querySelector('base[href]')?.getAttribute('href') || pageUrl;
     const links = new Map<string, WebsiteLink>();
     const anchors = Array.from(dom.window.document.querySelectorAll('a[href]')) as Array<{
         getAttribute: (name: string) => string | null;
@@ -182,13 +248,13 @@ export function extractLinksFromHtml(
 
         const link = buildWebsiteLink(
             href,
-            pageUrl,
+            baseHref,
             'page',
             options,
             anchor.textContent
         );
 
-        if (!link || link.url === normalizeWebsiteUrl(pageUrl)) {
+        if (!link || link.url === normalizeWebsiteUrl(pageUrl, baseHref)) {
             continue;
         }
 
@@ -204,16 +270,42 @@ export function extractLinksFromHtml(
     return Array.from(links.values());
 }
 
+function decodeXmlEntities(value: string) {
+    return value
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'");
+}
+
+function extractSitemapLocsWithDom(sitemapXml: string) {
+    try {
+        const dom = new JSDOM(sitemapXml, { contentType: 'text/xml' });
+        return Array.from(dom.window.document.getElementsByTagName('loc'))
+            .map((node) => (node as Element).textContent?.trim() || '')
+            .filter(Boolean);
+    } catch {
+        return [];
+    }
+}
+
+function extractSitemapLocsWithRegex(sitemapXml: string) {
+    return Array.from(sitemapXml.matchAll(/<loc\b[^>]*>([\s\S]*?)<\/loc>/gi))
+        .map((match) => decodeXmlEntities(match[1]?.trim() || ''))
+        .filter(Boolean);
+}
+
 export function extractLinksFromSitemap(
     sitemapXml: string,
     pageUrl: string,
     options: LinkFilterOptions = {}
 ) {
     const links = new Map<string, WebsiteLink>();
-    const matches = sitemapXml.matchAll(/<loc>([\s\S]*?)<\/loc>/gi);
+    const locs = extractSitemapLocsWithDom(sitemapXml);
+    const values = locs.length > 0 ? locs : extractSitemapLocsWithRegex(sitemapXml);
 
-    for (const match of matches) {
-        const rawValue = match[1]?.trim();
+    for (const rawValue of values) {
         if (!rawValue) {
             continue;
         }
@@ -233,6 +325,45 @@ export function extractLinksFromSitemap(
     }
 
     return Array.from(links.values());
+}
+
+export function extractWebsiteMetadata(html: string, pageUrl: string) {
+    const dom = new JSDOM(html, { url: pageUrl });
+    const document = dom.window.document;
+    const getMeta = (...selectors: string[]) => {
+        for (const selector of selectors) {
+            const content = document.querySelector(selector)?.getAttribute('content')?.trim();
+            if (content) {
+                return content;
+            }
+        }
+        return undefined;
+    };
+
+    const faviconHref = document.querySelector('link[rel="icon"], link[rel*="icon"]')?.getAttribute('href');
+    const canonicalHref = document.querySelector('link[rel="canonical"]')?.getAttribute('href');
+    const baseHref = document.querySelector('base[href]')?.getAttribute('href');
+    const normalizedCanonicalUrl = canonicalHref ? normalizeWebsiteUrl(canonicalHref, pageUrl) : undefined;
+    const normalizedFaviconUrl = faviconHref ? normalizeWebsiteUrl(faviconHref, pageUrl) : undefined;
+    const normalizedBaseUrl = baseHref ? normalizeWebsiteUrl(baseHref, pageUrl) : undefined;
+    const jsonLdCount = document.querySelectorAll('script[type="application/ld+json"]').length;
+
+    return {
+        title: document.title || undefined,
+        language: document.documentElement.getAttribute('lang') || undefined,
+        canonicalUrl: normalizedCanonicalUrl,
+        baseUrl: normalizedBaseUrl,
+        favicon: normalizedFaviconUrl,
+        description: getMeta('meta[name="description"]', 'meta[property="og:description"]', 'meta[name="twitter:description"]'),
+        keywords: getMeta('meta[name="keywords"]'),
+        author: getMeta('meta[name="author"]'),
+        robots: getMeta('meta[name="robots"]'),
+        image: getMeta('meta[property="og:image"]', 'meta[name="twitter:image"]'),
+        siteName: getMeta('meta[property="og:site_name"]'),
+        publishedTime: getMeta('meta[property="article:published_time"]'),
+        modifiedTime: getMeta('meta[property="article:modified_time"]'),
+        jsonLdCount,
+    };
 }
 
 export function summarizeWebsiteLinks(links: WebsiteLink[]) {

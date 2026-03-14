@@ -5,7 +5,7 @@ import type { Page } from 'playwright-core';
 export interface Job {
     id: string;
     url: string;
-    type: 'html' | 'html-js' | 'content' | 'screenshot' | 'crawl' | 'extract' | 'index';
+    type: 'html' | 'html-js' | 'content' | 'screenshot' | 'crawl' | 'map' | 'extract' | 'index';
     options: {
         waitForSelector?: string;
         timeout?: number;
@@ -13,7 +13,7 @@ export interface Job {
     };
     status: 'pending' | 'running' | 'completed' | 'error' | 'cancelled';
     progress: StreamProgress[];
-    result?: StreamScrapeResult;
+    result?: any;
     error?: string;
     createdAt: number;
     updatedAt: number;

@@ -98,9 +98,35 @@ function parseSseEvent(rawEvent: string): ParsedStreamEvent | null {
     }
 }
 
+function normalizeTargetUrl(input: string) {
+    const trimmed = input.trim();
+    if (!trimmed) {
+        return '';
+    }
+
+    const withProtocol = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(trimmed)
+        ? trimmed
+        : `https://${trimmed}`;
+
+    try {
+        return new URL(withProtocol).toString();
+    } catch {
+        return trimmed;
+    }
+}
+
 interface WebsiteWorkbenchProps {
     tool: WebsiteTool;
 }
+
+type PersistedAdvancedSettings = {
+    url: string;
+    outputType: OutputType;
+    showAdvanced: boolean;
+    selector: string;
+    timeout: number;
+    stealth: boolean;
+};
 
 export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
     const searchParams = useSearchParams();
@@ -121,9 +147,65 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
     const [elapsedTime, setElapsedTime] = useState<number | null>(null);
     const [startTime, setStartTime] = useState<number | null>(null);
     const [activeJobId, setActiveJobId] = useState<string | null>(null);
+    const [advancedSettingsReady, setAdvancedSettingsReady] = useState(false);
+    const [lastUsedUrl, setLastUsedUrl] = useState<string | null>(null);
 
     const abortControllerRef = useRef<AbortController | null>(null);
     const streamCompletedRef = useRef(false);
+
+    useEffect(() => {
+        setAdvancedSettingsReady(false);
+        const storageKey = `headlessx.playground.website.${tool}.advanced`;
+        const storedValue = window.localStorage.getItem(storageKey);
+
+        if (storedValue) {
+            try {
+                const parsed = JSON.parse(storedValue) as Partial<PersistedAdvancedSettings>;
+                if (typeof parsed.url === 'string' && parsed.url.trim().length > 0) {
+                    setUrl(parsed.url);
+                    setLastUsedUrl(parsed.url);
+                }
+                if (parsed.outputType === 'html' || parsed.outputType === 'html-js' || parsed.outputType === 'markdown' || parsed.outputType === 'screenshot') {
+                    setOutputType(parsed.outputType);
+                }
+                if (typeof parsed.showAdvanced === 'boolean') {
+                    setShowAdvanced(parsed.showAdvanced);
+                }
+                if (typeof parsed.selector === 'string') {
+                    setSelector(parsed.selector);
+                }
+                if (typeof parsed.timeout === 'number' && Number.isFinite(parsed.timeout)) {
+                    setTimeoutValue(parsed.timeout);
+                }
+                if (typeof parsed.stealth === 'boolean') {
+                    setStealth(parsed.stealth);
+                }
+            } catch {
+                window.localStorage.removeItem(storageKey);
+            }
+        }
+
+        setAdvancedSettingsReady(true);
+    }, [tool]);
+
+    useEffect(() => {
+        if (!advancedSettingsReady) {
+            return;
+        }
+
+        const storageKey = `headlessx.playground.website.${tool}.advanced`;
+        const payload: PersistedAdvancedSettings = {
+            url,
+            outputType,
+            showAdvanced,
+            selector,
+            timeout,
+            stealth,
+        };
+
+        window.localStorage.setItem(storageKey, JSON.stringify(payload));
+        setLastUsedUrl(url.trim() ? url : null);
+    }, [advancedSettingsReady, outputType, selector, showAdvanced, stealth, timeout, tool, url]);
 
     useEffect(() => {
         const nextUrl = searchParams.get('url');
@@ -304,7 +386,7 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
         await consumeSseResponse(response);
     };
 
-    const runScrape = async () => {
+    const runScrapeWithUrl = async (targetUrl: string) => {
         beginRun();
 
         const response = await fetch('/api/website/stream', {
@@ -314,7 +396,7 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
                 Accept: 'text/event-stream',
             },
             body: JSON.stringify({
-                url,
+                url: targetUrl,
                 type: outputType === 'markdown' ? 'content' : outputType,
                 stealth,
                 fullPage: outputType === 'screenshot' ? true : undefined,
@@ -329,11 +411,11 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
         await consumeSseResponse(response);
     };
 
-    const runCrawl = async () => {
+    const runCrawlWithUrl = async (targetUrl: string) => {
         beginRun();
         pushProgress({
             step: 1,
-            total: crawlLimit,
+            total: Math.max(crawlLimit, 2),
             message: 'Queueing crawl job',
             status: 'active',
         });
@@ -344,12 +426,11 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                url,
+                url: targetUrl,
                 limit: crawlLimit,
                 maxDepth: crawlDepth,
                 includeSubdomains,
                 waitForSelector: selector || undefined,
-                timeout,
                 stealth,
             }),
             signal: abortControllerRef.current?.signal,
@@ -364,76 +445,54 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
         setActiveJobId(payload.job.id);
         pushProgress({
             step: 1,
-            total: crawlLimit,
-            message: 'Crawl job queued',
+            total: Math.max(crawlLimit, 2),
+            message: 'Crawl job queued, waiting for worker',
             status: 'completed',
         });
 
         await streamQueuedJob(payload.job.id);
     };
 
-    const runMap = async () => {
+    const runMapWithUrl = async (targetUrl: string) => {
         beginRun();
-        pushProgress({
-            step: 1,
-            total: 2,
-            message: 'Discovering links',
-            status: 'active',
-        });
-
-        const response = await fetch('/api/website/map', {
+        const response = await fetch('/api/website/map/stream', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                Accept: 'text/event-stream',
             },
             body: JSON.stringify({
-                url,
+                url: targetUrl,
                 limit: crawlLimit,
                 includeSubdomains,
                 includeExternal,
                 useSitemap,
                 waitForSelector: selector || undefined,
-                timeout,
                 stealth,
             }),
             signal: abortControllerRef.current?.signal,
         });
-
-        const payload = await response.json();
-
-        if (!response.ok || !payload?.success) {
-            throw new Error(payload?.error || 'Map request failed');
-        }
-
-        pushProgress({
-            step: 1,
-            total: 2,
-            message: 'Links discovered',
-            status: 'completed',
-        });
-        pushProgress({
-            step: 2,
-            total: 2,
-            message: 'Map ready',
-            status: 'completed',
-        });
-        applyResultPayload(payload);
-        finishRun();
+        await consumeSseResponse(response);
     };
 
     const handleRun = async () => {
+        const normalizedUrl = normalizeTargetUrl(url);
+        if (normalizedUrl !== url) {
+            setUrl(normalizedUrl);
+        }
+
         try {
             if (tool === 'scrape') {
-                await runScrape();
+                await runScrapeWithUrl(normalizedUrl);
                 return;
             }
 
             if (tool === 'crawl') {
-                await runCrawl();
+                await runCrawlWithUrl(normalizedUrl);
                 return;
             }
 
-            await runMap();
+            await runMapWithUrl(normalizedUrl);
         } catch (error) {
             if ((error as Error).name === 'AbortError') {
                 setErrorResult('Request cancelled');
@@ -475,6 +534,7 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
                 <ConfigurationPanel
                     url={url}
                     setUrl={setUrl}
+                    lastUsedUrl={lastUsedUrl}
                     tool={tool}
                     outputType={outputType}
                     setOutputType={setOutputType}

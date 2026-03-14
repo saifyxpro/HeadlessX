@@ -5,7 +5,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/PageHeader";
 
-export default function AiAgentPage() {
+export default function AgentPage() {
     return (
         <div className="space-y-6">
             <PageHeader
@@ -17,7 +17,7 @@ export default function AiAgentPage() {
             <Card className="overflow-hidden border-slate-200 bg-white">
                 <CardHeader className="border-b border-slate-200 pb-4">
                     <CardTitle className="text-lg text-slate-900">Coming Soon</CardTitle>
-                    <p className="text-sm text-slate-500 mt-1">
+                    <p className="mt-1 text-sm text-slate-500">
                         This section is reserved for agent-driven crawl and scrape orchestration.
                     </p>
                 </CardHeader>

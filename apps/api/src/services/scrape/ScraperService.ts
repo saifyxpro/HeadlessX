@@ -10,6 +10,7 @@ import {
     CloudflareChallengeError
 } from './CloudflareChallengeService';
 import { waitForPageStability } from '../../utils/pageStability';
+import { extractWebsiteMetadata } from './WebsiteLinkUtils';
 
 export interface ScrapeOptions {
     waitForSelector?: string;
@@ -209,16 +210,7 @@ class ScraperService {
             const html = await page.content();
             const title = await page.title();
 
-            // Extract Meta (using string to avoid compile-time artifacts like __name)
-            const metadata = await page.evaluate(`(() => {
-                const getMeta = (name) => document.querySelector('meta[name="' + name + '"]')?.getAttribute('content');
-                return {
-                    description: getMeta('description') || getMeta('og:description'),
-                    keywords: getMeta('keywords'),
-                    author: getMeta('author'),
-                    image: getMeta('og:image')
-                };
-            })()`);
+            const metadata = extractWebsiteMetadata(html, page.url());
 
             return {
                 url,

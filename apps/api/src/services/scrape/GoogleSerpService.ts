@@ -29,6 +29,8 @@ export class GoogleSerpService {
         onProgress: (progress: { step: number; total: number; message: string; status: 'active' | 'completed' | 'pending' }) => void
     ): Promise<SearchResponse> {
         const TOTAL_STEPS = 6;
+        const operationTimeout = Math.max(timeout, 5000);
+        const interactionTimeout = Math.min(operationTimeout, 15000);
         let browserContext: BrowserContext | null = null;
         let page: Page | null = null;
 
@@ -43,7 +45,10 @@ export class GoogleSerpService {
             // STEP 2: Navigating to Google (Includes Consent & AI Mode setup)
             onProgress({ step: 2, total: TOTAL_STEPS, message: 'Navigating to Google', status: 'active' });
             await page.setViewportSize({ width: 1920, height: 1080 }); // Match Python logic
-            await page.goto('https://www.google.com', { waitUntil: 'domcontentloaded' });
+            await page.goto('https://www.google.com', {
+                waitUntil: 'domcontentloaded',
+                timeout: operationTimeout,
+            });
             await page.waitForTimeout(2000); // Wait like Python script
 
             // Helper function to check and solve CAPTCHA
@@ -66,7 +71,10 @@ export class GoogleSerpService {
                         // If still on sorry page, navigate back to Google
                         if (page.url().includes('/sorry/')) {
                             console.log('   🔄 Navigating back to Google after CAPTCHA...');
-                            await page.goto('https://www.google.com', { waitUntil: 'domcontentloaded' });
+                            await page.goto('https://www.google.com', {
+                                waitUntil: 'domcontentloaded',
+                                timeout: operationTimeout,
+                            });
                             await page.waitForTimeout(2000);
                         }
                         return true;
@@ -179,7 +187,7 @@ export class GoogleSerpService {
             await page.waitForTimeout(5000);
 
             // Wait loop for results or captcha
-            const maxWait = Math.max(timeout, 5000);
+            const maxWait = operationTimeout;
             let resultFound = false;
             let waited = 5000; // already waited 5s
 
@@ -530,7 +538,7 @@ export class GoogleSerpService {
             // Step 6: Type Query
             // We can't use 'humanType' helper easily with Locators if we didn't update it to accept Locator vs selector string
             // But we can just use the element handle we found
-            await searchInput.click({ timeout: 120000 });
+            await searchInput.click({ timeout: 15000 });
             await page.waitForTimeout(500);
 
             for (const char of query) {

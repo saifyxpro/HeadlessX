@@ -40,7 +40,7 @@ const NAV_SECTIONS: Array<{
         label: 'Workspace',
         items: [
             { href: '/', label: 'Overview', icon: DashboardSquare01Icon },
-            { href: '/ai-agent', label: 'Agent', icon: SparklesIcon },
+            { href: '/agent', label: 'Agent', icon: SparklesIcon },
             { href: '/playground', label: 'Playground', icon: PlayCircleIcon },
         ],
     },
@@ -92,7 +92,7 @@ function SidebarNavItem({
             target={isExternal ? "_blank" : undefined}
             title={collapsed ? item.label : undefined}
             className={cn(
-                "group/nav-item relative flex items-center gap-3 overflow-hidden transition-colors",
+                "group/nav-item relative flex items-center gap-3 overflow-hidden transition-all duration-300 ease-out",
                 collapsed
                     ? "mx-auto h-13 w-13 justify-center rounded-[1.4rem] px-0 py-0"
                     : "w-full rounded-[1.4rem] px-3 py-3",
@@ -103,11 +103,11 @@ function SidebarNavItem({
         >
             <div
                 className={cn(
-                    "flex shrink-0 items-center justify-center rounded-[1rem] border transition-colors",
+                    "flex shrink-0 items-center justify-center rounded-[1rem] border transition-all duration-300 ease-out",
                     collapsed ? "h-11 w-11" : "h-10 w-10",
                     active
                         ? "border-blue-100 bg-blue-50 text-blue-600"
-                        : "border-slate-200 bg-slate-50 text-slate-500 group-hover/nav-item:bg-slate-100"
+                        : "border-slate-200 bg-white text-slate-500 group-hover/nav-item:bg-white"
                 )}
             >
                 <HugeiconsIcon icon={item.icon} size={20} />

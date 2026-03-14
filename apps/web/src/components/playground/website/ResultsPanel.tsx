@@ -17,6 +17,12 @@ import {
 import { HugeiconsIcon } from '@hugeicons/react';
 import type { CrawlPageData, MapLinkData, ScrapeResult, ProgressStep, WebsiteTool } from './types';
 
+const RAW_CODE_BLOCK_CLASSNAME =
+    'custom-scrollbar overflow-auto rounded-3xl border border-slate-200 bg-white p-5 font-mono text-xs leading-6 text-slate-700';
+
+const MARKDOWN_PROSE_CLASSNAME =
+    'prose prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-blue-600 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-slate-800 prose-code:before:content-none prose-code:after:content-none prose-pre:custom-scrollbar prose-pre:overflow-auto prose-pre:rounded-3xl prose-pre:border prose-pre:border-slate-200 prose-pre:bg-white prose-pre:p-5 prose-pre:text-slate-700 prose-img:rounded-2xl';
+
 interface ResultsPanelProps {
     tool: WebsiteTool;
     result: ScrapeResult | null;
@@ -45,7 +51,7 @@ function ResultStat({
     value: string | number;
 }) {
     return (
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
             <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">{label}</div>
             <div className="mt-2 text-xl font-bold text-slate-900">{value}</div>
         </div>
@@ -157,12 +163,12 @@ function ScrapePreview({
             </div>
 
             {viewRaw ? (
-                <pre className={`overflow-auto rounded-3xl border border-slate-200 bg-slate-950 p-5 text-xs leading-6 text-slate-100 ${expanded ? 'max-h-none' : 'max-h-[36rem]'}`}>
+                <pre className={`${RAW_CODE_BLOCK_CLASSNAME} ${expanded ? 'max-h-none' : 'max-h-[36rem]'}`}>
                     {content}
                 </pre>
             ) : isMarkdown ? (
                 <div className={`rounded-3xl border border-slate-200 bg-white p-6 ${expanded ? 'max-h-none' : 'max-h-[36rem] overflow-auto'}`}>
-                    <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-blue-600 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:before:content-none prose-code:after:content-none prose-pre:bg-slate-950 prose-pre:text-slate-100 prose-img:rounded-2xl">
+                    <div className={MARKDOWN_PROSE_CLASSNAME}>
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.data.markdown}</ReactMarkdown>
                     </div>
                 </div>
@@ -252,12 +258,12 @@ function CrawlResults({
                                 </div>
 
                                 {viewRaw ? (
-                                    <pre className="max-h-[42rem] overflow-auto rounded-2xl bg-slate-950 p-5 text-xs leading-6 text-slate-100">
+                                    <pre className={`${RAW_CODE_BLOCK_CLASSNAME} max-h-[42rem] rounded-2xl`}>
                                         {selectedPage.markdown}
                                     </pre>
                                 ) : (
                                     <div className="max-h-[42rem] overflow-auto rounded-2xl border border-slate-200 p-5">
-                                        <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-blue-600 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:before:content-none prose-code:after:content-none prose-pre:bg-slate-950 prose-pre:text-slate-100">
+                                        <div className={MARKDOWN_PROSE_CLASSNAME}>
                                             <ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedPage.markdown}</ReactMarkdown>
                                         </div>
                                     </div>
@@ -383,6 +389,7 @@ export function ResultsPanel({
     const [selectedCrawlPageUrl, setSelectedCrawlPageUrl] = useState<string | null>(null);
     const [mapQuery, setMapQuery] = useState('');
     const deferredMapQuery = useDeferredValue(mapQuery);
+    const latestStep = steps.length > 0 ? steps[steps.length - 1] : null;
 
     useEffect(() => {
         setExpanded(false);
@@ -490,25 +497,86 @@ export function ResultsPanel({
             ? 'Crawl Results'
             : 'Map Results';
 
+    const runState = (() => {
+        if (isStreaming || isPending) {
+            return {
+                label: tool === 'crawl' ? 'Streaming Queue Job' : 'Streaming Run',
+                tone: 'border-blue-100 bg-blue-50 text-blue-700',
+                detail: latestStep?.message || (tool === 'crawl'
+                    ? 'Waiting for crawl progress from the worker'
+                    : tool === 'map'
+                        ? 'Discovering site links and sitemap entries'
+                        : 'Processing scrape request'),
+            };
+        }
+
+        if (result?.type === 'error') {
+            return {
+                label: 'Failed',
+                tone: 'border-red-200 bg-red-50 text-red-600',
+                detail: 'The last run ended with an error.',
+            };
+        }
+
+        if (result) {
+            return {
+                label: 'Ready',
+                tone: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+                detail: '',
+            };
+        }
+
+        return {
+            label: 'Idle',
+            tone: 'border-slate-200 bg-white text-slate-500',
+            detail: tool === 'crawl'
+                ? 'Queue a crawl to inspect multi-page markdown output.'
+                : tool === 'map'
+                    ? 'Run discovery to inspect internal and sitemap links.'
+                    : 'Run a website extraction to inspect the result.',
+        };
+    })();
+
     return (
         <div className="relative min-h-[700px] overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white xl:col-span-8">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-6 py-4">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
+                <div className="flex min-w-0 flex-wrap items-center gap-4">
+                    <div className="flex shrink-0 items-center gap-2">
                         <div className="h-3 w-3 rounded-full bg-rose-400" />
                         <div className="h-3 w-3 rounded-full bg-amber-400" />
                         <div className="h-3 w-3 rounded-full bg-emerald-400" />
                     </div>
                     <div className="hidden h-5 w-px bg-slate-200 sm:block" />
-                    <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-                        <HugeiconsIcon icon={SourceCodeSquareIcon} className="h-3.5 w-3.5 text-slate-400" />
-                        {title}
-                    </div>
-                    {elapsedTime !== null && (
-                        <div className="rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-slate-500">
-                            {`${(elapsedTime / 1000).toFixed(1)}s`}
+                    <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                                <HugeiconsIcon icon={SourceCodeSquareIcon} className="h-3.5 w-3.5 text-slate-400" />
+                                {title}
+                            </div>
+                            <div className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold ${runState.tone}`}>
+                                {(isStreaming || isPending) && (
+                                    <HugeiconsIcon icon={Loading03Icon} className="h-3.5 w-3.5 animate-spin" />
+                                )}
+                                {!(isStreaming || isPending) && result?.type === 'error' && (
+                                    <HugeiconsIcon icon={Cancel01Icon} className="h-3.5 w-3.5" />
+                                )}
+                                {!(isStreaming || isPending) && result && result.type !== 'error' && (
+                                    <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-3.5 w-3.5" />
+                                )}
+                                {runState.label}
+                            </div>
+                            {elapsedTime !== null && (
+                                <div className="rounded-xl bg-white px-3 py-1.5 text-xs font-semibold text-slate-500">
+                                    {`${(elapsedTime / 1000).toFixed(1)}s`}
+                                </div>
+                            )}
                         </div>
-                    )}
+                        {runState.detail && (
+                            <div className="mt-2 truncate text-sm text-slate-500">
+                                {runState.detail}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
