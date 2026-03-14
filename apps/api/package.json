@@ -33,6 +33,7 @@
   "author": "SaifyXPRO",
   "license": "MIT",
   "dependencies": {
+    "@tavily/core": "^0.7.2",
     "@mozilla/readability": "^0.6.0",
     "@prisma/adapter-pg": "^7.4.1",
     "@prisma/client": "^7.4.1",

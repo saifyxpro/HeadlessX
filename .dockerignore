@@ -3,6 +3,8 @@ dist
 build
 .next
 .nx
+.nx/cache
+.nx/workspace-data
 .cache
 .git
 .env
@@ -20,3 +22,5 @@ tests/
 tmp/
 *.swp
 *.swo
+*.db-shm
+*.db-wal

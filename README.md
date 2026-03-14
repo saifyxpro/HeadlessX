@@ -144,8 +144,8 @@
 ### BrowserScan (100% Passed)
 ![BrowserScan](assets/Browserscan_Bot_Detection_Passed.png)
 
-### Cloudflare Turnstile Bypass
-![Cloudflare Challenge Passed](assets/cloudflare.png)
+### Cloudflare Challenge Page Solved
+![Cloudflare Challenge Page Solved](assets/cloudfare.png)
 
 <div align="center">
 

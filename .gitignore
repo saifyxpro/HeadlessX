@@ -56,6 +56,9 @@ Thumbs.db
 *.swo
 *~
 
+# Nx workspace cache
+.nx/
+
 # Docker
 .dockerignore
 
@@ -69,6 +72,8 @@ out/
 *.db
 *.sqlite
 *.sqlite3
+*.db-shm
+*.db-wal
 
 # Large Model Files & Binaries
 /backend/models/

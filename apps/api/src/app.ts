@@ -48,6 +48,10 @@ app.use('/api/website', websiteRoutes);
 import googleSerpRoutes from './routes/scrape/googleSerpRoutes';
 app.use('/api/google-serp', googleSerpRoutes);
 
+// Tavily: /api/tavily/*
+import tavilyRoutes from './routes/ai/tavilyRoutes';
+app.use('/api/tavily', tavilyRoutes);
+
 // Configuration: /api/config
 import configRoutes from './routes/config/configRoutes';
 app.use('/api/config', configRoutes);
@@ -95,6 +99,7 @@ app.get('/api/health', (req, res) => {
             websiteMap: '/api/website/map',
             websiteCrawl: '/api/website/crawl',
             googleSerp: '/api/google-serp/* (coming soon)',
+            tavily: '/api/tavily/*',
             proxies: '/api/proxies/*',
             config: '/api/config',
             keys: '/api/keys',
