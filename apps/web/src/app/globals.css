@@ -98,7 +98,6 @@ body {
         system-ui,
         -apple-system,
         sans-serif;
-    overflow: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -266,14 +265,14 @@ samp {
     }
 
     html {
-        scroll-behavior: auto;
+        scroll-behavior: smooth;
     }
 }
 
-/* Custom Scrollbar */
+/* Custom Linear Scrollbar */
 ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -283,25 +282,23 @@ samp {
 ::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 99px;
+    transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: #94b3b8;
 }
 
 /* Viewport Utilities */
 .view-container {
-    height: 100vh;
+    min-height: 100vh;
     display: flex;
     flex-direction: row;
     /* Sidebar LEFT, Content RIGHT */
-    overflow: hidden;
 }
 
 .scroll-container {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
 }
 
 /* Swipe Button Animation */

@@ -1,136 +1,19 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { ConfigurationPanel } from './ConfigurationPanel';
-import { ResultsPanel } from './ResultsPanel';
+import { ConfigurationPanel } from './config';
+import { ResultsPanel } from './results';
 import { ScraperHeader } from './ScraperHeader';
-import type {
-    CrawlResultData,
-    MapResultData,
-    OutputType,
-    ProgressStep,
-    ScrapeHtmlData,
-    ScrapeMarkdownData,
-    ScrapeResult,
-    WebsiteTool,
-} from './types';
-
-type StreamEventName = 'start' | 'progress' | 'result' | 'error' | 'cancelled' | 'done' | 'reconnect';
-
-type ParsedStreamEvent = {
-    event: StreamEventName | 'message';
-    data: any;
-};
-
-function mapPayloadToResult(payload: any): ScrapeResult {
-    if (!payload?.success) {
-        return {
-            type: 'error',
-            data: payload?.error || 'Request failed',
-        };
-    }
-
-    if (payload.type === 'screenshot') {
-        return {
-            type: 'image',
-            data: typeof payload.data === 'string' ? payload.data : payload.data?.image || '',
-        };
-    }
-
-    if (payload.type === 'content' || payload.type === 'markdown' || payload.type === 'extract') {
-        return {
-            type: 'markdown',
-            data: payload.data as ScrapeMarkdownData,
-        };
-    }
-
-    if (payload.type === 'crawl') {
-        return {
-            type: 'crawl',
-            data: payload.data as CrawlResultData,
-        };
-    }
-
-    if (payload.type === 'map') {
-        return {
-            type: 'map',
-            data: payload.data as MapResultData,
-        };
-    }
-
-    return {
-        type: payload.type === 'html-js' ? 'html-js' : 'html',
-        data: payload.data as ScrapeHtmlData,
-    };
-}
-
-function parseSseEvent(rawEvent: string): ParsedStreamEvent | null {
-    let event: ParsedStreamEvent['event'] = 'message';
-    const dataLines: string[] = [];
-
-    for (const line of rawEvent.split('\n')) {
-        if (!line) {
-            continue;
-        }
-
-        if (line.startsWith('event:')) {
-            event = line.slice(6).trim() as ParsedStreamEvent['event'];
-            continue;
-        }
-
-        if (line.startsWith('data:')) {
-            dataLines.push(line.slice(5).trim());
-        }
-    }
-
-    if (dataLines.length === 0) {
-        return null;
-    }
-
-    try {
-        return {
-            event,
-            data: JSON.parse(dataLines.join('\n')),
-        };
-    } catch {
-        return null;
-    }
-}
-
-function normalizeTargetUrl(input: string) {
-    const trimmed = input.trim();
-    if (!trimmed) {
-        return '';
-    }
-
-    const withProtocol = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(trimmed)
-        ? trimmed
-        : `https://${trimmed}`;
-
-    try {
-        return new URL(withProtocol).toString();
-    } catch {
-        return trimmed;
-    }
-}
+import { useWebsiteStorage } from './hooks/useWebsiteStorage';
+import { mapPayloadToResult, normalizeTargetUrl, parseSseEvent, type ParsedStreamEvent } from './shared/stream';
+import type { OutputType, ProgressStep, ScrapeResult, WebsiteTool } from './types';
 
 interface WebsiteWorkbenchProps {
     tool: WebsiteTool;
 }
 
-type PersistedAdvancedSettings = {
-    url: string;
-    outputType: OutputType;
-    showAdvanced: boolean;
-    selector: string;
-    timeout: number;
-    stealth: boolean;
-};
-
 export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
-    const searchParams = useSearchParams();
-    const [url, setUrl] = useState(searchParams.get('url') || 'https://example.com');
+    const [url, setUrl] = useState('https://example.com');
     const [outputType, setOutputType] = useState<OutputType>('html');
     const [selector, setSelector] = useState('');
     const [timeout, setTimeoutValue] = useState(30000);
@@ -147,72 +30,24 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
     const [elapsedTime, setElapsedTime] = useState<number | null>(null);
     const [startTime, setStartTime] = useState<number | null>(null);
     const [activeJobId, setActiveJobId] = useState<string | null>(null);
-    const [advancedSettingsReady, setAdvancedSettingsReady] = useState(false);
-    const [lastUsedUrl, setLastUsedUrl] = useState<string | null>(null);
 
     const abortControllerRef = useRef<AbortController | null>(null);
     const streamCompletedRef = useRef(false);
-
-    useEffect(() => {
-        setAdvancedSettingsReady(false);
-        const storageKey = `headlessx.playground.website.${tool}.advanced`;
-        const storedValue = window.localStorage.getItem(storageKey);
-
-        if (storedValue) {
-            try {
-                const parsed = JSON.parse(storedValue) as Partial<PersistedAdvancedSettings>;
-                if (typeof parsed.url === 'string' && parsed.url.trim().length > 0) {
-                    setUrl(parsed.url);
-                    setLastUsedUrl(parsed.url);
-                }
-                if (parsed.outputType === 'html' || parsed.outputType === 'html-js' || parsed.outputType === 'markdown' || parsed.outputType === 'screenshot') {
-                    setOutputType(parsed.outputType);
-                }
-                if (typeof parsed.showAdvanced === 'boolean') {
-                    setShowAdvanced(parsed.showAdvanced);
-                }
-                if (typeof parsed.selector === 'string') {
-                    setSelector(parsed.selector);
-                }
-                if (typeof parsed.timeout === 'number' && Number.isFinite(parsed.timeout)) {
-                    setTimeoutValue(parsed.timeout);
-                }
-                if (typeof parsed.stealth === 'boolean') {
-                    setStealth(parsed.stealth);
-                }
-            } catch {
-                window.localStorage.removeItem(storageKey);
-            }
-        }
-
-        setAdvancedSettingsReady(true);
-    }, [tool]);
-
-    useEffect(() => {
-        if (!advancedSettingsReady) {
-            return;
-        }
-
-        const storageKey = `headlessx.playground.website.${tool}.advanced`;
-        const payload: PersistedAdvancedSettings = {
-            url,
-            outputType,
-            showAdvanced,
-            selector,
-            timeout,
-            stealth,
-        };
-
-        window.localStorage.setItem(storageKey, JSON.stringify(payload));
-        setLastUsedUrl(url.trim() ? url : null);
-    }, [advancedSettingsReady, outputType, selector, showAdvanced, stealth, timeout, tool, url]);
-
-    useEffect(() => {
-        const nextUrl = searchParams.get('url');
-        if (nextUrl) {
-            setUrl(nextUrl);
-        }
-    }, [searchParams]);
+    const { lastUsedUrl } = useWebsiteStorage({
+        tool,
+        url,
+        setUrl,
+        outputType,
+        setOutputType,
+        showAdvanced,
+        setShowAdvanced,
+        selector,
+        setSelector,
+        timeout,
+        setTimeoutValue,
+        stealth,
+        setStealth,
+    });
 
     useEffect(() => {
         if (tool === 'map') {

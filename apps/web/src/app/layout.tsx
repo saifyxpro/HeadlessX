@@ -42,9 +42,11 @@ export default function RootLayout({
       >
         <Providers>
           <SidebarProvider>
-            <div className="flex h-screen overflow-hidden view-container">
-              <Sidebar />
-              <main className="flex-1 overflow-y-auto overflow-x-hidden scroll-container premium-bg">
+            <div className="flex min-h-screen view-container">
+              <div className="sticky top-0 h-screen shrink-0">
+                <Sidebar />
+              </div>
+              <main className="flex-1 min-h-screen min-w-0 scroll-container premium-bg relative">
                 <div className="mx-auto w-full max-w-[1500px] space-y-6 px-5 py-6 lg:px-8 lg:py-8">
                   {children}
                 </div>

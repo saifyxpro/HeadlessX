@@ -184,7 +184,7 @@ export function Sidebar() {
     return (
         <aside
             className={cn(
-                "group relative z-20 flex h-full flex-col bg-[linear-gradient(180deg,#fcfdff_0%,#f8fafc_100%)] rounded-r-[2rem] border-r border-slate-200/60 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300",
+                "group relative z-20 flex h-full flex-col bg-[linear-gradient(180deg,#fcfdff_0%,#f8fafc_100%)] rounded-r-[2rem] border-r border-slate-200/60 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-500 ease-in-out",
                 collapsed ? "w-[88px]" : "w-[304px]"
             )}
         >
@@ -202,7 +202,7 @@ export function Sidebar() {
                                     width={44}
                                     height={44}
                                     className={cn(
-                                        "relative z-10 rounded-[0.9rem] transition-opacity duration-200",
+                                        "relative z-10 rounded-[0.9rem] transition-opacity duration-500 ease-in-out",
                                         collapsed && "group-hover:opacity-0"
                                     )}
                                 />
@@ -210,7 +210,7 @@ export function Sidebar() {
                                     <button
                                         onClick={toggle}
                                         aria-label="Expand sidebar"
-                                        className="pointer-events-none absolute inset-0 z-20 rounded-[1rem] border border-slate-200/50 bg-white/90 text-slate-500 opacity-0 shadow-sm backdrop-blur-sm transition-all duration-200 hover:border-slate-300 hover:bg-white hover:text-slate-900 group-hover:pointer-events-auto group-hover:opacity-100"
+                                        className="pointer-events-none absolute inset-0 z-20 rounded-[1rem] border border-slate-200/50 bg-white/90 text-slate-500 opacity-0 shadow-sm backdrop-blur-sm transition-all duration-300 ease-in-out hover:border-slate-300 hover:bg-white hover:text-slate-900 group-hover:pointer-events-auto group-hover:opacity-100"
                                     >
                                         <span className="flex h-full w-full items-center justify-center">
                                             <HugeiconsIcon icon={SidebarRight01Icon} size={20} />
@@ -249,6 +249,7 @@ export function Sidebar() {
             <div className="relative flex-1 min-h-0">
                 <nav
                     ref={navRef}
+                    data-lenis-prevent="true"
                     className={cn("h-full min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar", collapsed ? "px-3 py-5" : "px-4 py-5")}
                 >
                 <div className="space-y-5">

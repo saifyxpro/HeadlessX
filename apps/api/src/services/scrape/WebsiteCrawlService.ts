@@ -74,6 +74,20 @@ function describeProgress(url: string, message: string) {
     return `${message} • ${shortUrl}`;
 }
 
+function mapScrapeProgressMessage(message: string) {
+    if (/Launching browser/i.test(message)) return 'Launching browser';
+    if (/Browser launched/i.test(message)) return 'Browser ready';
+    if (/Navigating to page/i.test(message)) return 'Opening page';
+    if (/Page loaded/i.test(message)) return 'Page opened';
+    if (/Waiting for content/i.test(message)) return 'Waiting for page content';
+    if (/Content ready/i.test(message)) return 'Page content ready';
+    if (/Extracting HTML/i.test(message)) return 'Extracting page content';
+    if (/HTML extracted/i.test(message)) return 'Page content extracted';
+    if (/Converting to Markdown/i.test(message)) return 'Formatting markdown';
+    if (/Markdown ready/i.test(message)) return 'Markdown ready';
+    return message;
+}
+
 class WebsiteCrawlService {
     private static instance: WebsiteCrawlService;
 
@@ -88,6 +102,7 @@ class WebsiteCrawlService {
         const startedAt = Date.now();
         const limit = Math.max(1, Math.min(payload.limit ?? 10, 100));
         const maxDepth = Math.max(0, Math.min(payload.maxDepth ?? 1, 4));
+        const totalSteps = 6;
         const pages: CrawlPageResult[] = [];
         const failures: CrawlFailure[] = [];
         const queued: Array<{ url: string; depth: number }> = [{ url: payload.url, depth: 0 }];
@@ -104,12 +119,12 @@ class WebsiteCrawlService {
         while (queued.length > 0 && pages.length < limit) {
             throwIfCancelled();
             const current = queued.shift()!;
-            const step = pages.length + failures.length + 1;
+            const pageIndex = pages.length + failures.length + 1;
 
             context.onProgress({
-                step,
-                total: limit,
-                message: describeProgress(current.url, 'Starting page'),
+                step: 3,
+                total: totalSteps,
+                message: describeProgress(current.url, `Starting page ${pageIndex} of ${limit}`),
                 status: 'active',
             });
 
@@ -125,9 +140,9 @@ class WebsiteCrawlService {
                 },
                 (progress) => {
                     context.onProgress({
-                        step,
-                        total: limit,
-                        message: describeProgress(current.url, progress.message),
+                        step: Math.min(progress.step + 1, 5),
+                        total: totalSteps,
+                        message: describeProgress(current.url, `${mapScrapeProgressMessage(progress.message)} (page ${pageIndex} of ${limit})`),
                         status: progress.status === 'completed' ? 'active' : progress.status,
                     });
                 }
@@ -152,13 +167,20 @@ class WebsiteCrawlService {
                 });
 
                 context.onProgress({
-                    step,
-                    total: limit,
-                    message: describeProgress(current.url, result.error || 'Page crawl failed'),
+                    step: 5,
+                    total: totalSteps,
+                    message: describeProgress(current.url, `${result.error || 'Page crawl failed'} (page ${pageIndex} of ${limit})`),
                     status: 'error',
                 });
                 continue;
             }
+
+            context.onProgress({
+                step: 5,
+                total: totalSteps,
+                message: describeProgress(current.url, `Discovering links (page ${pageIndex} of ${limit})`),
+                status: 'active',
+            });
 
             const discoveredLinks = extractLinksFromHtml(result.html, current.url, {
                 includeExternal: false,
@@ -189,9 +211,9 @@ class WebsiteCrawlService {
             }
 
             context.onProgress({
-                step,
-                total: limit,
-                message: describeProgress(current.url, 'Page stored'),
+                step: 6,
+                total: totalSteps,
+                message: describeProgress(current.url, `Stored page ${pageIndex} of ${limit}`),
                 status: 'completed',
             });
         }
@@ -208,6 +230,13 @@ class WebsiteCrawlService {
         const combinedMarkdown = pages
             .map((page) => `# ${page.title}\n\nSource: ${page.url}\n\n${page.markdown}`)
             .join('\n\n---\n\n');
+
+        context.onProgress({
+            step: 6,
+            total: totalSteps,
+            message: `Prepared ${pages.length} crawled pages`,
+            status: 'completed',
+        });
 
         return {
             success: true,

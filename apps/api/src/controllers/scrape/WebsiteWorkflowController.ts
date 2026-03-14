@@ -82,6 +82,7 @@ export class WebsiteWorkflowController {
                 abortSignal: abortController.signal,
                 onProgress: (progress) => {
                     jobManager.updateProgress(job.id, progress);
+                    sendEvent('progress', progress);
                 },
             });
 

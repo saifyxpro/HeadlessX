@@ -383,6 +383,7 @@ export class StreamingScrapeController {
 
         let lastUpdatedAt = '';
         let isClosed = false;
+        let lastSyntheticProgressKey = '';
 
         const sendEvent = (event: string, data: any) => {
             if (res.writableEnded || res.destroyed) {
@@ -416,10 +417,44 @@ export class StreamingScrapeController {
                 });
             }
 
+            const maybeSendSyntheticProgress = () => {
+                let syntheticProgress: StreamProgress | null = null;
+
+                if (queuedJob.status === 'QUEUED') {
+                    syntheticProgress = {
+                        step: 1,
+                        total: 6,
+                        message: 'Queue accepted, waiting for worker',
+                        status: 'active',
+                    };
+                } else if (queuedJob.status === 'ACTIVE') {
+                    syntheticProgress = {
+                        step: 2,
+                        total: 6,
+                        message: 'Worker accepted job',
+                        status: 'active',
+                    };
+                }
+
+                if (!syntheticProgress) {
+                    return;
+                }
+
+                const nextKey = `${queuedJob.status}:${queuedJob.updated_at.toISOString()}`;
+                if (lastSyntheticProgressKey === nextKey) {
+                    return;
+                }
+
+                lastSyntheticProgressKey = nextKey;
+                sendEvent('progress', syntheticProgress);
+            };
+
             const nextUpdatedAt = queuedJob.updated_at.toISOString();
             if (lastUpdatedAt !== nextUpdatedAt) {
                 if (queuedJob.progress_payload) {
                     sendEvent('progress', queuedJob.progress_payload);
+                } else {
+                    maybeSendSyntheticProgress();
                 }
                 if (queuedJob.result_payload) {
                     sendEvent('result', queuedJob.result_payload);
@@ -432,6 +467,8 @@ export class StreamingScrapeController {
                 }
 
                 lastUpdatedAt = nextUpdatedAt;
+            } else if (!queuedJob.progress_payload) {
+                maybeSendSyntheticProgress();
             }
 
             if (queuedJob.status === 'COMPLETED' || queuedJob.status === 'FAILED' || queuedJob.status === 'CANCELLED') {

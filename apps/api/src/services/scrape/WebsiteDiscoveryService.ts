@@ -47,7 +47,7 @@ class WebsiteDiscoveryService {
 
     public async map(request: MapRequestInput, context: MapExecutionContext = {}): Promise<MapResult> {
         const limit = request.limit ?? 75;
-        const totalSteps = request.useSitemap === false ? 3 : 4;
+        const totalSteps = request.useSitemap === false ? 4 : 5;
 
         const throwIfCancelled = () => {
             if (context.abortSignal?.aborted) {
@@ -67,7 +67,7 @@ class WebsiteDiscoveryService {
         };
 
         throwIfCancelled();
-        report(1, 'Loading website for link discovery', 'active');
+        report(1, 'Launching browser', 'active');
         const scrapeResult = await scraperService.scrape(request.url, {
             waitForSelector: request.waitForSelector,
             timeout: request.timeout,
@@ -76,15 +76,18 @@ class WebsiteDiscoveryService {
             jsEnabled: true,
         });
         throwIfCancelled();
-        report(1, 'Website loaded', 'completed');
+        report(1, 'Browser ready', 'completed');
 
-        report(2, 'Extracting page links', 'active');
+        report(2, 'Opening target page', 'active');
+        report(2, 'Target page ready', 'completed');
+
+        report(3, 'Extracting page links', 'active');
         const pageLinks = extractLinksFromHtml(scrapeResult.html, scrapeResult.url, {
             includeExternal: request.includeExternal,
             includeSubdomains: request.includeSubdomains,
             limit,
         });
-        report(2, `Collected ${pageLinks.length} page links`, 'completed');
+        report(3, `Collected ${pageLinks.length} page links`, 'completed');
 
         const sitemapLinks = request.useSitemap === false
             ? []
@@ -94,13 +97,14 @@ class WebsiteDiscoveryService {
                 includeSubdomains: request.includeSubdomains,
                 abortSignal: context.abortSignal,
                 onProgress: (message, status) => {
-                    report(3, message, status);
+                    report(4, message, status);
                 },
             });
 
         throwIfCancelled();
         const links = mergeWebsiteLinks(pageLinks, sitemapLinks).slice(0, limit);
-        const finalStep = request.useSitemap === false ? 3 : 4;
+        const finalStep = request.useSitemap === false ? 4 : 5;
+        report(finalStep, 'Building map results', 'active');
         report(finalStep, `Prepared ${links.length} links`, 'completed');
 
         return {
@@ -137,7 +141,7 @@ class WebsiteDiscoveryService {
             }
         };
 
-        options.onProgress?.('Scanning sitemap sources', 'active');
+        options.onProgress?.('Checking sitemap sources', 'active');
 
         while (toVisit.length > 0 && visited.size < 6 && discovered.length < limit) {
             throwIfCancelled();
@@ -147,7 +151,7 @@ class WebsiteDiscoveryService {
             }
 
             visited.add(sitemapUrl);
-            options.onProgress?.(`Scanning sitemap ${visited.size}`, 'active');
+            options.onProgress?.(`Opening sitemap ${visited.size}`, 'active');
 
             try {
                 const xml = await this.fetchText(sitemapUrl, options.timeout);
