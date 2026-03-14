@@ -7,8 +7,10 @@ import {
     extractLinksFromHtml,
     extractLinksFromSitemap,
     mergeWebsiteLinks,
+    normalizeWebsiteUrl,
     summarizeWebsiteLinks,
     type WebsiteLink,
+    type LinkFilterOptions,
 } from './WebsiteLinkUtils';
 
 export interface MapRequestInput {
@@ -17,6 +19,11 @@ export interface MapRequestInput {
     includeSubdomains?: boolean;
     includeExternal?: boolean;
     useSitemap?: boolean;
+    maxDiscoveryDepth?: number;
+    includePaths?: string[];
+    excludePaths?: string[];
+    crawlEntireDomain?: boolean;
+    ignoreQueryParameters?: boolean;
     timeout?: number;
     stealth?: boolean;
     waitForSelector?: string;
@@ -47,7 +54,18 @@ class WebsiteDiscoveryService {
 
     public async map(request: MapRequestInput, context: MapExecutionContext = {}): Promise<MapResult> {
         const limit = request.limit ?? 75;
-        const totalSteps = request.useSitemap === false ? 4 : 5;
+        const maxDiscoveryDepth = Math.max(0, Math.min(request.maxDiscoveryDepth ?? 1, 3));
+        const totalSteps = request.useSitemap === false ? 5 : 6;
+        const linkFilterOptions: LinkFilterOptions = {
+            includeExternal: request.includeExternal,
+            includeSubdomains: request.includeSubdomains,
+            limit,
+            seedUrl: request.url,
+            includePaths: request.includePaths,
+            excludePaths: request.excludePaths,
+            crawlEntireDomain: request.crawlEntireDomain ?? true,
+            ignoreQueryParameters: request.ignoreQueryParameters ?? true,
+        };
 
         const throwIfCancelled = () => {
             if (context.abortSignal?.aborted) {
@@ -82,12 +100,34 @@ class WebsiteDiscoveryService {
         report(2, 'Target page ready', 'completed');
 
         report(3, 'Extracting page links', 'active');
-        const pageLinks = extractLinksFromHtml(scrapeResult.html, scrapeResult.url, {
-            includeExternal: request.includeExternal,
-            includeSubdomains: request.includeSubdomains,
-            limit,
-        });
+        const pageLinks = extractLinksFromHtml(scrapeResult.html, scrapeResult.url, linkFilterOptions);
         report(3, `Collected ${pageLinks.length} page links`, 'completed');
+
+        let recursiveLinks: WebsiteLink[] = [];
+        let recursivelyScannedPages = 0;
+        report(4, maxDiscoveryDepth > 0 ? 'Scanning linked pages' : 'Skipping linked page expansion', 'active');
+
+        if (maxDiscoveryDepth > 0 && pageLinks.length > 0) {
+            const recursiveDiscovery = await this.discoverAdditionalLinks(
+                scrapeResult.url,
+                pageLinks,
+                maxDiscoveryDepth,
+                request,
+                linkFilterOptions,
+                context,
+                limit
+            );
+            recursiveLinks = recursiveDiscovery.links;
+            recursivelyScannedPages = recursiveDiscovery.pagesScanned;
+        }
+
+        report(
+            4,
+            recursivelyScannedPages > 0
+                ? `Expanded discovery across ${recursivelyScannedPages} linked page${recursivelyScannedPages === 1 ? '' : 's'}`
+                : 'Linked page expansion complete',
+            'completed'
+        );
 
         const sitemapLinks = request.useSitemap === false
             ? []
@@ -95,15 +135,20 @@ class WebsiteDiscoveryService {
                 timeout: request.timeout,
                 includeExternal: request.includeExternal,
                 includeSubdomains: request.includeSubdomains,
+                includePaths: request.includePaths,
+                excludePaths: request.excludePaths,
+                crawlEntireDomain: request.crawlEntireDomain,
+                ignoreQueryParameters: request.ignoreQueryParameters,
+                seedUrl: request.url,
                 abortSignal: context.abortSignal,
                 onProgress: (message, status) => {
-                    report(4, message, status);
+                    report(5, message, status);
                 },
             });
 
         throwIfCancelled();
-        const links = mergeWebsiteLinks(pageLinks, sitemapLinks).slice(0, limit);
-        const finalStep = request.useSitemap === false ? 4 : 5;
+        const links = mergeWebsiteLinks(pageLinks, recursiveLinks, sitemapLinks).slice(0, limit);
+        const finalStep = request.useSitemap === false ? 5 : 6;
         report(finalStep, 'Building map results', 'active');
         report(finalStep, `Prepared ${links.length} links`, 'completed');
 
@@ -123,6 +168,11 @@ class WebsiteDiscoveryService {
             timeout?: number;
             includeSubdomains?: boolean;
             includeExternal?: boolean;
+            includePaths?: string[];
+            excludePaths?: string[];
+            crawlEntireDomain?: boolean;
+            ignoreQueryParameters?: boolean;
+            seedUrl?: string;
             abortSignal?: AbortSignal;
             onProgress?: (message: string, status: StreamProgress['status']) => void;
         }
@@ -159,6 +209,11 @@ class WebsiteDiscoveryService {
                 const links = extractLinksFromSitemap(xml, pageUrl, {
                     includeExternal: options.includeExternal,
                     includeSubdomains: options.includeSubdomains,
+                    includePaths: options.includePaths,
+                    excludePaths: options.excludePaths,
+                    crawlEntireDomain: options.crawlEntireDomain,
+                    ignoreQueryParameters: options.ignoreQueryParameters,
+                    seedUrl: options.seedUrl,
                     limit,
                 });
 
@@ -182,6 +237,96 @@ class WebsiteDiscoveryService {
 
         options.onProgress?.(`Collected ${discovered.length} sitemap links`, 'completed');
         return discovered.slice(0, limit);
+    }
+
+    private async discoverAdditionalLinks(
+        rootUrl: string,
+        seedLinks: WebsiteLink[],
+        maxDiscoveryDepth: number,
+        request: MapRequestInput,
+        linkFilterOptions: LinkFilterOptions,
+        context: MapExecutionContext,
+        limit: number
+    ) {
+        const rootNormalized = normalizeWebsiteUrl(rootUrl, undefined, {
+            ignoreQueryParameters: linkFilterOptions.ignoreQueryParameters,
+        }) || rootUrl;
+        const queued = seedLinks
+            .filter((link) => link.internal)
+            .map((link) => ({ url: link.url, depth: 1 }));
+        const queuedSet = new Set(queued.map((item) => item.url));
+        const visited = new Set<string>([rootNormalized]);
+        const discovered = new Map<string, WebsiteLink>();
+        let pagesScanned = 0;
+
+        const throwIfCancelled = () => {
+            if (context.abortSignal?.aborted) {
+                const error = new Error('Job cancelled');
+                error.name = 'JobCancelledError';
+                throw error;
+            }
+        };
+
+        while (queued.length > 0 && discovered.size < limit) {
+            throwIfCancelled();
+            const current = queued.shift()!;
+            queuedSet.delete(current.url);
+
+            if (visited.has(current.url)) {
+                continue;
+            }
+
+            visited.add(current.url);
+            context.onProgress?.({
+                step: 4,
+                total: request.useSitemap === false ? 5 : 6,
+                message: `Scanning linked page ${pagesScanned + 1} at depth ${current.depth}`,
+                status: 'active',
+            });
+
+            try {
+                const scrapeResult = await scraperService.scrape(current.url, {
+                    waitForSelector: request.waitForSelector,
+                    timeout: request.timeout,
+                    stealth: request.stealth,
+                    screenshotOnError: false,
+                    jsEnabled: true,
+                });
+                pagesScanned += 1;
+
+                const links = extractLinksFromHtml(scrapeResult.html, scrapeResult.url, linkFilterOptions);
+                for (const link of links) {
+                    if (link.url === rootNormalized) {
+                        continue;
+                    }
+
+                    if (!discovered.has(link.url)) {
+                        discovered.set(link.url, link);
+                    }
+
+                    if (
+                        link.internal &&
+                        current.depth < maxDiscoveryDepth &&
+                        !visited.has(link.url) &&
+                        !queuedSet.has(link.url)
+                    ) {
+                        queued.push({ url: link.url, depth: current.depth + 1 });
+                        queuedSet.add(link.url);
+                    }
+
+                    if (discovered.size >= limit) {
+                        break;
+                    }
+                }
+            } catch {
+                // Discovery should continue even if one linked page fails.
+            }
+        }
+
+        return {
+            links: Array.from(discovered.values()).slice(0, limit),
+            pagesScanned,
+        };
     }
 
     private async fetchText(url: string, timeout = 20_000) {

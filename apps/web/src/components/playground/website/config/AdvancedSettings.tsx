@@ -1,6 +1,7 @@
 import { ArrowDown01Icon, Settings02Icon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import type { WebsiteTool } from '../types';
+import { PathPatternFields } from './PathPatternFields';
 import { ToggleRow } from './ToggleRow';
 
 interface AdvancedSettingsProps {
@@ -13,6 +14,10 @@ interface AdvancedSettingsProps {
     setShowAdvanced: (show: boolean) => void;
     stealth: boolean;
     setStealth: (value: boolean) => void;
+    includePaths: string;
+    setIncludePaths: (value: string) => void;
+    excludePaths: string;
+    setExcludePaths: (value: string) => void;
     disabled: boolean;
 }
 
@@ -26,6 +31,10 @@ export function AdvancedSettings({
     setShowAdvanced,
     stealth,
     setStealth,
+    includePaths,
+    setIncludePaths,
+    excludePaths,
+    setExcludePaths,
     disabled,
 }: AdvancedSettingsProps) {
     const advancedSummary = [
@@ -66,7 +75,7 @@ export function AdvancedSettings({
 
             <div
                 className={`overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 transition-all ${
-                    showAdvanced ? 'max-h-[360px] opacity-100' : 'max-h-0 border-transparent opacity-0'
+                    showAdvanced ? 'max-h-[640px] opacity-100' : 'max-h-0 border-transparent opacity-0'
                 }`}
             >
                 <div className="space-y-4 px-4 py-4">
@@ -113,6 +122,16 @@ export function AdvancedSettings({
                         onChange={setStealth}
                         disabled={disabled}
                     />
+
+                    {(tool === 'crawl' || tool === 'map') && (
+                        <PathPatternFields
+                            includePaths={includePaths}
+                            setIncludePaths={setIncludePaths}
+                            excludePaths={excludePaths}
+                            setExcludePaths={setExcludePaths}
+                            disabled={disabled}
+                        />
+                    )}
                 </div>
             </div>
         </div>

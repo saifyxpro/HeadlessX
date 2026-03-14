@@ -99,6 +99,33 @@ function formatRelativeTime(value: string) {
     return `${diffDays}d ago`;
 }
 
+function formatCompactUrl(value: string, maxLength = 72) {
+    try {
+        const parsed = new URL(value);
+        const compact = `${parsed.hostname}${parsed.pathname}${parsed.search}`;
+        if (compact.length <= maxLength) {
+            return compact;
+        }
+
+        return `${compact.slice(0, Math.max(0, maxLength - 3))}...`;
+    } catch {
+        if (value.length <= maxLength) {
+            return value;
+        }
+
+        return `${value.slice(0, Math.max(0, maxLength - 3))}...`;
+    }
+}
+
+function formatCompactText(value: string, maxLength = 72) {
+    const normalized = value.replace(/\s+/g, ' ').trim();
+    if (normalized.length <= maxLength) {
+        return normalized;
+    }
+
+    return `${normalized.slice(0, Math.max(0, maxLength - 3))}...`;
+}
+
 function getStatusMeta(statusCode?: number | null) {
     if (statusCode === 0 || statusCode === undefined || statusCode === null) {
         return {
@@ -214,7 +241,10 @@ function LogDetailsDialog({ log, open, onOpenChange }: { log: LogEntry | null; o
                     </DialogHeader>
                 </div>
 
-                <div className="max-h-[calc(85vh-108px)] space-y-6 overflow-y-auto px-6 py-6">
+                <div
+                    data-lenis-prevent="true"
+                    className="custom-scrollbar max-h-[calc(85vh-108px)] space-y-6 overflow-y-auto overscroll-contain px-6 py-6"
+                >
                     <div className="space-y-2">
                         <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Request URL</div>
                         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm break-all text-slate-700">
@@ -647,11 +677,11 @@ export default function LogsPage() {
                                                     </div>
 
                                                     <div className="mt-3 break-words font-medium leading-6 text-slate-900">
-                                                        {log.url}
+                                                        {formatCompactUrl(log.url, 68)}
                                                     </div>
 
                                                     <div className="mt-2 text-sm leading-6 text-slate-500">
-                                                        {log.error_message || 'No error recorded'}
+                                                        {log.error_message ? formatCompactText(log.error_message, 96) : 'No error recorded'}
                                                     </div>
 
                                                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -690,7 +720,15 @@ export default function LogsPage() {
                                     </div>
 
                                     <div className="hidden lg:block">
-                                        <table className="min-w-full text-sm">
+                                        <table className="min-w-full table-fixed text-sm">
+                                            <colgroup>
+                                                <col className="w-[42%]" />
+                                                <col className="w-[15%]" />
+                                                <col className="w-[12%]" />
+                                                <col className="w-[14%]" />
+                                                <col className="w-[11%]" />
+                                                <col className="w-[6%]" />
+                                            </colgroup>
                                             <thead className="bg-white text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                                                 <tr>
                                                     <th className="px-5 py-3.5">Request</th>
@@ -735,11 +773,13 @@ export default function LogsPage() {
                                                                             {log.method}
                                                                         </Badge>
                                                                         <div className="min-w-0 flex-1">
-                                                                            <div className="truncate font-medium text-slate-900">{log.url}</div>
+                                                                            <div className="truncate font-medium text-slate-900" title={log.url}>
+                                                                                {formatCompactUrl(log.url, 60)}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div className="truncate text-xs leading-5 text-slate-500">
-                                                                        {log.error_message || 'No error recorded'}
+                                                                    <div className="truncate text-xs leading-5 text-slate-500" title={log.error_message || 'No error recorded'}>
+                                                                        {log.error_message ? formatCompactText(log.error_message, 72) : 'No error recorded'}
                                                                     </div>
                                                                 </div>
                                                             </td>
@@ -750,7 +790,11 @@ export default function LogsPage() {
                                                                 </Badge>
                                                             </td>
                                                             <td className="px-5 py-4 align-top font-medium text-slate-700">{formatLatency(log.duration_ms)}</td>
-                                                            <td className="px-5 py-4 align-top text-slate-600">{log.api_key?.name || 'Dashboard / Internal'}</td>
+                                                            <td className="px-5 py-4 align-top text-slate-600">
+                                                                <div className="truncate" title={log.api_key?.name || 'Dashboard / Internal'}>
+                                                                    {log.api_key?.name || 'Dashboard / Internal'}
+                                                                </div>
+                                                            </td>
                                                             <td className="px-5 py-4 align-top text-slate-500">{formatRelativeTime(log.created_at)}</td>
                                                             <td className="px-5 py-4 align-top text-right">
                                                                 <Button

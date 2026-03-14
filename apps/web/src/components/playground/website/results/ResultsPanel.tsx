@@ -30,6 +30,47 @@ function downloadTextFile(filename: string, content: string, mimeType: string) {
     URL.revokeObjectURL(url);
 }
 
+function slugifySegment(value: string) {
+    return value
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 48) || 'result';
+}
+
+function buildMapMarkdown(result: Extract<ScrapeResult, { type: 'map' }>, filteredLinks: { url: string; label: string | null; source: string; internal: boolean }[]) {
+    const summary = result.data.summary;
+    const lines = filteredLinks.map((link) => {
+        const label = link.label?.trim() || link.url;
+        const badges = [
+            link.internal ? 'internal' : 'external',
+            link.source,
+        ].join(', ');
+
+        return `- [${label}](${link.url}) (${badges})`;
+    });
+
+    return [
+        `# ${result.data.title || 'Website Map'}`,
+        '',
+        `Source: ${result.data.url}`,
+        `Generated: ${result.data.generatedAt}`,
+        '',
+        '## Summary',
+        '',
+        `- Total: ${summary.total}`,
+        `- Internal: ${summary.internal}`,
+        `- External: ${summary.external}`,
+        `- Sitemap: ${summary.sitemap}`,
+        `- Page: ${summary.page}`,
+        `- Both: ${summary.both}`,
+        '',
+        '## Links',
+        '',
+        ...(lines.length > 0 ? lines : ['- No links found']),
+    ].join('\n');
+}
+
 export function ResultsPanel({
     tool,
     result,
@@ -75,7 +116,7 @@ export function ResultsPanel({
             case 'crawl':
                 return selectedCrawlPage?.markdown || result.data.combinedMarkdown;
             case 'map':
-                return filteredMapLinks.map((link) => link.url).join('\n');
+                return buildMapMarkdown(result, filteredMapLinks);
             default:
                 return '';
         }
@@ -115,11 +156,16 @@ export function ResultsPanel({
             case 'markdown':
                 downloadTextFile(`website-${stamp}.md`, result.data.markdown, 'text/markdown');
                 return;
-            case 'crawl':
-                downloadTextFile(`crawl-${stamp}.md`, result.data.combinedMarkdown, 'text/markdown');
+            case 'crawl': {
+                const content = selectedCrawlPage?.markdown || result.data.combinedMarkdown;
+                const filename = selectedCrawlPage
+                    ? `crawl-${slugifySegment(selectedCrawlPage.title || selectedCrawlPage.url)}-${stamp}.md`
+                    : `crawl-${stamp}.md`;
+                downloadTextFile(filename, content, 'text/markdown');
                 return;
+            }
             case 'map':
-                downloadTextFile(`map-${stamp}.json`, JSON.stringify(result.data, null, 2), 'application/json');
+                downloadTextFile(`map-${stamp}.md`, buildMapMarkdown(result, filteredMapLinks), 'text/markdown');
                 return;
             case 'image': {
                 const anchor = document.createElement('a');

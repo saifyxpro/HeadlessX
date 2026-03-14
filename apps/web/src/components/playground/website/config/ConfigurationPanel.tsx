@@ -69,6 +69,14 @@ export interface WebsiteConfigurationPanelProps {
     setIncludeExternal: (value: boolean) => void;
     useSitemap: boolean;
     setUseSitemap: (value: boolean) => void;
+    crawlEntireDomain: boolean;
+    setCrawlEntireDomain: (value: boolean) => void;
+    ignoreQueryParameters: boolean;
+    setIgnoreQueryParameters: (value: boolean) => void;
+    includePaths: string;
+    setIncludePaths: (value: string) => void;
+    excludePaths: string;
+    setExcludePaths: (value: string) => void;
     isPending: boolean;
     onRun: () => void;
     onStop: () => void;
@@ -99,6 +107,14 @@ export function ConfigurationPanel({
     setIncludeExternal,
     useSitemap,
     setUseSitemap,
+    crawlEntireDomain,
+    setCrawlEntireDomain,
+    ignoreQueryParameters,
+    setIgnoreQueryParameters,
+    includePaths,
+    setIncludePaths,
+    excludePaths,
+    setExcludePaths,
     isPending,
     onRun,
     onStop,
@@ -156,15 +172,15 @@ export function ConfigurationPanel({
                                         />
                                     </div>
 
-                                    {tool === 'crawl' && (
+                                    {(tool === 'crawl' || tool === 'map') && (
                                         <div className="space-y-3">
                                             <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                                                Max Depth
+                                                {tool === 'crawl' ? 'Max Depth' : 'Discovery Depth'}
                                             </label>
                                             <input
                                                 type="number"
                                                 min={0}
-                                                max={4}
+                                                max={tool === 'crawl' ? 4 : 3}
                                                 value={crawlDepth}
                                                 onChange={(event) => setCrawlDepth(Number(event.target.value))}
                                                 disabled={isPending}
@@ -176,13 +192,36 @@ export function ConfigurationPanel({
                             )}
 
                             {tool === 'crawl' && (
-                                <ToggleRow
-                                    label="Include Subdomains"
-                                    description="Allow the crawl queue to follow pages on docs.example.com and other subdomains."
-                                    checked={includeSubdomains}
-                                    onChange={setIncludeSubdomains}
-                                    disabled={isPending}
-                                />
+                                <div className="space-y-3">
+                                    <ToggleRow
+                                        label="Full Domain Scope"
+                                        description="Follow internal links across the whole domain instead of keeping the crawl under the starting path."
+                                        checked={crawlEntireDomain}
+                                        onChange={setCrawlEntireDomain}
+                                        disabled={isPending}
+                                    />
+                                    <ToggleRow
+                                        label="Include Subdomains"
+                                        description="Allow the crawl queue to follow pages on docs.example.com and other subdomains."
+                                        checked={includeSubdomains}
+                                        onChange={setIncludeSubdomains}
+                                        disabled={isPending}
+                                    />
+                                    <ToggleRow
+                                        label="Include External Links"
+                                        description="Allow the crawl queue to follow third-party links that pass the configured filters."
+                                        checked={includeExternal}
+                                        onChange={setIncludeExternal}
+                                        disabled={isPending}
+                                    />
+                                    <ToggleRow
+                                        label="Ignore Query Parameters"
+                                        description="Collapse `?page=1` style URL variants into a cleaner canonical crawl list."
+                                        checked={ignoreQueryParameters}
+                                        onChange={setIgnoreQueryParameters}
+                                        disabled={isPending}
+                                    />
+                                </div>
                             )}
 
                             {tool === 'map' && (
@@ -192,6 +231,13 @@ export function ConfigurationPanel({
                                         description="Merge `/sitemap.xml` links with on-page discovery when available."
                                         checked={useSitemap}
                                         onChange={setUseSitemap}
+                                        disabled={isPending}
+                                    />
+                                    <ToggleRow
+                                        label="Full Domain Scope"
+                                        description="Expand discovery across the full domain instead of staying under the starting path."
+                                        checked={crawlEntireDomain}
+                                        onChange={setCrawlEntireDomain}
                                         disabled={isPending}
                                     />
                                     <ToggleRow
@@ -208,6 +254,13 @@ export function ConfigurationPanel({
                                         onChange={setIncludeExternal}
                                         disabled={isPending}
                                     />
+                                    <ToggleRow
+                                        label="Ignore Query Parameters"
+                                        description="Deduplicate `?ref=` and faceted URL variants while building the map."
+                                        checked={ignoreQueryParameters}
+                                        onChange={setIgnoreQueryParameters}
+                                        disabled={isPending}
+                                    />
                                 </div>
                             )}
 
@@ -221,6 +274,10 @@ export function ConfigurationPanel({
                                 setShowAdvanced={setShowAdvanced}
                                 stealth={stealth}
                                 setStealth={setStealth}
+                                includePaths={includePaths}
+                                setIncludePaths={setIncludePaths}
+                                excludePaths={excludePaths}
+                                setExcludePaths={setExcludePaths}
                                 disabled={isPending}
                             />
                         </div>

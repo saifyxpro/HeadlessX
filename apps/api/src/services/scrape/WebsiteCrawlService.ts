@@ -7,6 +7,11 @@ export interface CrawlRequestInput {
     limit?: number;
     maxDepth?: number;
     includeSubdomains?: boolean;
+    includeExternal?: boolean;
+    includePaths?: string[];
+    excludePaths?: string[];
+    crawlEntireDomain?: boolean;
+    ignoreQueryParameters?: boolean;
     waitForSelector?: string;
     timeout?: number;
     stealth?: boolean;
@@ -103,6 +108,16 @@ class WebsiteCrawlService {
         const limit = Math.max(1, Math.min(payload.limit ?? 10, 100));
         const maxDepth = Math.max(0, Math.min(payload.maxDepth ?? 1, 4));
         const totalSteps = 6;
+        const linkFilterOptions = {
+            includeExternal: payload.includeExternal,
+            includeSubdomains: payload.includeSubdomains,
+            limit: limit * 8,
+            seedUrl: payload.url,
+            includePaths: payload.includePaths,
+            excludePaths: payload.excludePaths,
+            crawlEntireDomain: payload.crawlEntireDomain ?? true,
+            ignoreQueryParameters: payload.ignoreQueryParameters ?? false,
+        };
         const pages: CrawlPageResult[] = [];
         const failures: CrawlFailure[] = [];
         const queued: Array<{ url: string; depth: number }> = [{ url: payload.url, depth: 0 }];
@@ -183,9 +198,7 @@ class WebsiteCrawlService {
             });
 
             const discoveredLinks = extractLinksFromHtml(result.html, current.url, {
-                includeExternal: false,
-                includeSubdomains: payload.includeSubdomains,
-                limit: limit * 8,
+                ...linkFilterOptions,
             });
 
             pages.push({

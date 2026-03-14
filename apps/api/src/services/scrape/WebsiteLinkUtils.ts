@@ -15,6 +15,11 @@ export interface LinkFilterOptions {
     includeSubdomains?: boolean;
     includeExternal?: boolean;
     limit?: number;
+    seedUrl?: string;
+    includePaths?: string[];
+    excludePaths?: string[];
+    crawlEntireDomain?: boolean;
+    ignoreQueryParameters?: boolean;
 }
 
 const NON_WEB_PROTOCOLS = new Set([
@@ -90,6 +95,58 @@ function isSocialMediaUrl(url: URL) {
     return SOCIAL_MEDIA_HOST_SNIPPETS.some((domain) => hostname.includes(domain));
 }
 
+function matchesPatternList(value: string, patterns?: string[]) {
+    if (!patterns || patterns.length === 0) {
+        return false;
+    }
+
+    for (const pattern of patterns) {
+        try {
+            if (new RegExp(pattern).test(value)) {
+                return true;
+            }
+        } catch {
+            // Ignore invalid patterns rather than failing discovery entirely.
+        }
+    }
+
+    return false;
+}
+
+function isWithinScopedPath(targetUrl: URL, seedUrl?: string) {
+    if (!seedUrl) {
+        return true;
+    }
+
+    try {
+        const seed = new URL(seedUrl);
+        const seedPath = toCleanPathname(seed.pathname);
+        const targetPath = toCleanPathname(targetUrl.pathname);
+
+        if (seedPath === '/') {
+            return true;
+        }
+
+        return targetPath === seedPath || targetPath.startsWith(`${seedPath}/`);
+    } catch {
+        return true;
+    }
+}
+
+function matchesPathFilters(targetUrl: URL, options: LinkFilterOptions) {
+    const pathValue = toCleanPathname(targetUrl.pathname);
+
+    if (matchesPatternList(pathValue, options.excludePaths)) {
+        return false;
+    }
+
+    if (options.includePaths && options.includePaths.length > 0) {
+        return matchesPatternList(pathValue, options.includePaths);
+    }
+
+    return true;
+}
+
 function mergeSource(current: WebsiteLinkSource, next: WebsiteLinkSource): WebsiteLinkSource {
     if (current === next) {
         return current;
@@ -98,7 +155,11 @@ function mergeSource(current: WebsiteLinkSource, next: WebsiteLinkSource): Websi
     return 'both';
 }
 
-export function normalizeWebsiteUrl(rawUrl: string, baseUrl?: string) {
+export function normalizeWebsiteUrl(
+    rawUrl: string,
+    baseUrl?: string,
+    options: { ignoreQueryParameters?: boolean } = {}
+) {
     try {
         const trimmed = rawUrl.trim();
         const lowerValue = trimmed.toLowerCase();
@@ -117,14 +178,18 @@ export function normalizeWebsiteUrl(rawUrl: string, baseUrl?: string) {
 
         parsed.hash = '';
 
-        for (const [key] of parsed.searchParams.entries()) {
-            if (TRACKING_QUERY_PARAMS.has(key.toLowerCase())) {
-                parsed.searchParams.delete(key);
-            }
-        }
-
-        if (!parsed.search) {
+        if (options.ignoreQueryParameters) {
             parsed.search = '';
+        } else {
+            for (const [key] of parsed.searchParams.entries()) {
+                if (TRACKING_QUERY_PARAMS.has(key.toLowerCase())) {
+                    parsed.searchParams.delete(key);
+                }
+            }
+
+            if (!parsed.search) {
+                parsed.search = '';
+            }
         }
 
         parsed.pathname = toCleanPathname(parsed.pathname);
@@ -199,7 +264,9 @@ function buildWebsiteLink(
     options: LinkFilterOptions,
     label?: string | null
 ) {
-    const normalizedUrl = normalizeWebsiteUrl(candidateUrl, baseUrl);
+    const normalizedUrl = normalizeWebsiteUrl(candidateUrl, baseUrl, {
+        ignoreQueryParameters: options.ignoreQueryParameters,
+    });
 
     if (!normalizedUrl) {
         return null;
@@ -212,6 +279,14 @@ function buildWebsiteLink(
     }
 
     const parsed = new URL(normalizedUrl);
+
+    if (internal && options.crawlEntireDomain === false && !isWithinScopedPath(parsed, options.seedUrl || baseUrl)) {
+        return null;
+    }
+
+    if (!matchesPathFilters(parsed, options)) {
+        return null;
+    }
 
     if (isSocialMediaUrl(parsed)) {
         return null;
@@ -254,7 +329,7 @@ export function extractLinksFromHtml(
             anchor.textContent
         );
 
-        if (!link || link.url === normalizeWebsiteUrl(pageUrl, baseHref)) {
+        if (!link || link.url === normalizeWebsiteUrl(pageUrl, baseHref, { ignoreQueryParameters: options.ignoreQueryParameters })) {
             continue;
         }
 

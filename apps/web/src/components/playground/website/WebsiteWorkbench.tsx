@@ -24,6 +24,10 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
     const [includeSubdomains, setIncludeSubdomains] = useState(false);
     const [includeExternal, setIncludeExternal] = useState(false);
     const [useSitemap, setUseSitemap] = useState(true);
+    const [crawlEntireDomain, setCrawlEntireDomain] = useState(true);
+    const [ignoreQueryParameters, setIgnoreQueryParameters] = useState(tool === 'map');
+    const [includePaths, setIncludePaths] = useState('');
+    const [excludePaths, setExcludePaths] = useState('');
     const [result, setResult] = useState<ScrapeResult | null>(null);
     const [steps, setSteps] = useState<ProgressStep[]>([]);
     const [isRunning, setIsRunning] = useState(false);
@@ -47,6 +51,24 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
         setTimeoutValue,
         stealth,
         setStealth,
+        crawlLimit,
+        setCrawlLimit,
+        crawlDepth,
+        setCrawlDepth,
+        includeSubdomains,
+        setIncludeSubdomains,
+        includeExternal,
+        setIncludeExternal,
+        useSitemap,
+        setUseSitemap,
+        crawlEntireDomain,
+        setCrawlEntireDomain,
+        ignoreQueryParameters,
+        setIgnoreQueryParameters,
+        includePaths,
+        setIncludePaths,
+        excludePaths,
+        setExcludePaths,
     });
 
     useEffect(() => {
@@ -246,6 +268,11 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
         await consumeSseResponse(response);
     };
 
+    const parsePatternInput = (value: string) => value
+        .split('\n')
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+
     const runCrawlWithUrl = async (targetUrl: string) => {
         beginRun();
         pushProgress({
@@ -265,6 +292,11 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
                 limit: crawlLimit,
                 maxDepth: crawlDepth,
                 includeSubdomains,
+                includeExternal,
+                includePaths: parsePatternInput(includePaths),
+                excludePaths: parsePatternInput(excludePaths),
+                crawlEntireDomain,
+                ignoreQueryParameters,
                 waitForSelector: selector || undefined,
                 stealth,
             }),
@@ -299,9 +331,14 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
             body: JSON.stringify({
                 url: targetUrl,
                 limit: crawlLimit,
+                maxDiscoveryDepth: crawlDepth,
                 includeSubdomains,
                 includeExternal,
                 useSitemap,
+                includePaths: parsePatternInput(includePaths),
+                excludePaths: parsePatternInput(excludePaths),
+                crawlEntireDomain,
+                ignoreQueryParameters,
                 waitForSelector: selector || undefined,
                 stealth,
             }),
@@ -391,6 +428,14 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
                     setIncludeExternal={setIncludeExternal}
                     useSitemap={useSitemap}
                     setUseSitemap={setUseSitemap}
+                    crawlEntireDomain={crawlEntireDomain}
+                    setCrawlEntireDomain={setCrawlEntireDomain}
+                    ignoreQueryParameters={ignoreQueryParameters}
+                    setIgnoreQueryParameters={setIgnoreQueryParameters}
+                    includePaths={includePaths}
+                    setIncludePaths={setIncludePaths}
+                    excludePaths={excludePaths}
+                    setExcludePaths={setExcludePaths}
                     isPending={isRunning}
                     onRun={handleRun}
                     onStop={handleStop}
