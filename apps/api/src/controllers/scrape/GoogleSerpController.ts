@@ -79,7 +79,7 @@ export class GoogleSerpController {
 
         const startTime = Date.now();
 
-        // Helper to send SSE event (matching website scraper format)
+        // Helper to send SSE event (matching website stream format)
         const sendEvent = (event: string, data: any) => {
             console.log(`📤 Sending SSE: ${event}`, JSON.stringify(data).slice(0, 150));
             res.write(`event: ${event}\n`);

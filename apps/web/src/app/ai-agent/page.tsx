@@ -9,7 +9,7 @@ export default function AiAgentPage() {
     return (
         <div className="space-y-6">
             <PageHeader
-                title="AI Agent"
+                title="Agent"
                 description="Automated agent workflows will live here."
                 icon={<HugeiconsIcon icon={SparklesIcon} size={24} />}
             />
@@ -18,7 +18,7 @@ export default function AiAgentPage() {
                 <CardHeader className="border-b border-slate-200 pb-4">
                     <CardTitle className="text-lg text-slate-900">Coming Soon</CardTitle>
                     <p className="text-sm text-slate-500 mt-1">
-                        This section is reserved for AI-driven crawl and scrape orchestration.
+                        This section is reserved for agent-driven crawl and scrape orchestration.
                     </p>
                 </CardHeader>
                 <CardContent className="flex min-h-[320px] items-center justify-center p-8">
@@ -28,7 +28,7 @@ export default function AiAgentPage() {
                         </div>
                         <h2 className="text-2xl font-bold text-slate-900">Coming soon</h2>
                         <p className="mt-3 text-sm leading-6 text-slate-500">
-                            The AI Agent workspace is not live yet. It will be added here without changing the rest of your dashboard navigation.
+                            The Agent workspace is not live yet. It will be added here without changing the rest of your dashboard navigation.
                         </p>
                     </div>
                 </CardContent>

@@ -24,13 +24,13 @@ import { cn } from "@/lib/utils";
 const SCRAPERS = [
     {
         id: 'website',
-        name: 'Website Scraper',
-        tagline: 'Universal web extractor',
-        description: 'Scrape HTML, render JavaScript, and capture screenshots with enterprise-grade stealth technology.',
+        name: 'Website',
+        tagline: 'Universal web extraction',
+        description: 'Extract HTML, render JavaScript, capture screenshots, crawl pages, and map links with enterprise-grade stealth technology.',
         icon: Globe02Icon,
         available: true,
         href: '/playground/website',
-        features: ['HTML Extraction', 'JS Rendering', 'Screenshots'],
+        features: ['Extract', 'Crawl', 'Map'],
         color: 'text-blue-600',
         bg: 'bg-blue-600/10'
     },
@@ -180,7 +180,7 @@ export default function PlaygroundPage() {
                     </h2>
 
                     <p className="text-lg text-slate-500 mb-10 leading-relaxed max-w-2xl mx-auto">
-                        Enter a URL to instantly extract data using our universal web scraper, or select a specialized engine below.
+                        Enter a URL to instantly extract website data, or select a specialized engine below.
                     </p>
 
                     <form onSubmit={handleSearch} className="relative max-w-2xl mx-auto group">

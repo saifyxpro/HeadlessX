@@ -36,7 +36,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="light" suppressHydrationWarning>
-      <body className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased bg-background text-foreground [font-synthesis-weight:none]`}>
+      <body
+        suppressHydrationWarning
+        className={`${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased bg-background text-foreground [font-synthesis-weight:none]`}
+      >
         <Providers>
           <SidebarProvider>
             <div className="flex h-screen overflow-hidden view-container">

@@ -23,7 +23,7 @@ const TOOL_META: Record<WebsiteTool, {
     scrape: {
         href: '/playground/website',
         label: 'Scrape',
-        title: 'Website Scraper',
+        title: 'Website',
         description: 'Single-page extraction with HTML, rendered DOM, markdown, or screenshot output.',
         icon: CodeSquareIcon,
     },

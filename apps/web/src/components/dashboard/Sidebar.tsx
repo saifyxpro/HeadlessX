@@ -40,7 +40,7 @@ const NAV_SECTIONS: Array<{
         label: 'Workspace',
         items: [
             { href: '/', label: 'Overview', icon: DashboardSquare01Icon },
-            { href: '/ai-agent', label: 'AI Agent', icon: SparklesIcon },
+            { href: '/ai-agent', label: 'Agent', icon: SparklesIcon },
             { href: '/playground', label: 'Playground', icon: PlayCircleIcon },
         ],
     },
@@ -184,7 +184,7 @@ export function Sidebar() {
     return (
         <aside
             className={cn(
-                "group relative z-20 flex h-full flex-col border-r border-slate-200 bg-[linear-gradient(180deg,#fcfdff_0%,#f8fafc_100%)]",
+                "group relative z-20 flex h-full flex-col bg-[linear-gradient(180deg,#fcfdff_0%,#f8fafc_100%)] rounded-r-[2rem] border-r border-slate-200/60 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300",
                 collapsed ? "w-[88px]" : "w-[304px]"
             )}
         >
@@ -210,7 +210,7 @@ export function Sidebar() {
                                     <button
                                         onClick={toggle}
                                         aria-label="Expand sidebar"
-                                        className="pointer-events-none absolute inset-0 z-20 rounded-[1rem] border border-transparent bg-transparent text-slate-500 opacity-0 transition-all duration-200 hover:border-transparent hover:bg-transparent hover:text-slate-900 group-hover:pointer-events-auto group-hover:opacity-100"
+                                        className="pointer-events-none absolute inset-0 z-20 rounded-[1rem] border border-slate-200/50 bg-white/90 text-slate-500 opacity-0 shadow-sm backdrop-blur-sm transition-all duration-200 hover:border-slate-300 hover:bg-white hover:text-slate-900 group-hover:pointer-events-auto group-hover:opacity-100"
                                     >
                                         <span className="flex h-full w-full items-center justify-center">
                                             <HugeiconsIcon icon={SidebarRight01Icon} size={20} />
@@ -237,7 +237,7 @@ export function Sidebar() {
                             <button
                                 onClick={toggle}
                                 aria-label="Collapse sidebar"
-                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] border border-slate-200 bg-slate-50 text-slate-500 transition-colors hover:border-slate-300 hover:bg-white hover:text-slate-900"
+                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] border border-slate-200 bg-white text-slate-500 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
                             >
                                 <HugeiconsIcon icon={SidebarLeft01Icon} size={20} />
                             </button>
