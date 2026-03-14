@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { Check, Copy, MessageSquare, ExternalLink, Search, Zap, FileText } from 'lucide-react';
+import {
+    CheckmarkCircle02Icon,
+    Copy01Icon,
+    File01Icon,
+    LinkSquare01Icon,
+    Message01Icon,
+    Search01Icon,
+    ZapIcon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 
 interface DocsPageActionsProps {
     title?: string;
@@ -83,7 +92,7 @@ export const DocsPageActions = ({ title = "Documentation" }: DocsPageActionsProp
                     onClick={() => setShowAIMenu(!showAIMenu)}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-violet-500 to-purple-600 text-white text-sm font-medium shadow-md shadow-purple-500/25 hover:shadow-purple-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all"
                 >
-                    <MessageSquare className="w-4 h-4" />
+                    <HugeiconsIcon icon={Message01Icon} className="w-4 h-4" />
                     Ask AI
                 </button>
                 {showAIMenu && (
@@ -92,21 +101,21 @@ export const DocsPageActions = ({ title = "Documentation" }: DocsPageActionsProp
                             onClick={() => openInAI('chatgpt')}
                             className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                         >
-                            <ExternalLink className="w-4 h-4 text-emerald-500" />
+                            <HugeiconsIcon icon={LinkSquare01Icon} className="w-4 h-4 text-emerald-500" />
                             Ask ChatGPT
                         </button>
                         <button
                             onClick={() => openInAI('perplexity')}
                             className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                         >
-                            <Search className="w-4 h-4 text-blue-500" />
+                            <HugeiconsIcon icon={Search01Icon} className="w-4 h-4 text-blue-500" />
                             Ask Perplexity
                         </button>
                         <button
                             onClick={() => openInAI('grok')}
                             className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                         >
-                            <Zap className="w-4 h-4 text-orange-500" />
+                            <HugeiconsIcon icon={ZapIcon} className="w-4 h-4 text-orange-500" />
                             Ask Grok
                         </button>
                     </div>
@@ -120,12 +129,12 @@ export const DocsPageActions = ({ title = "Documentation" }: DocsPageActionsProp
             >
                 {copied ? (
                     <>
-                        <Check className="w-4 h-4 text-emerald-500" />
+                        <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-4 h-4 text-emerald-500" />
                         <span className="text-emerald-600">Copied!</span>
                     </>
                 ) : (
                     <>
-                        <FileText className="w-4 h-4" />
+                        <HugeiconsIcon icon={File01Icon} className="w-4 h-4" />
                         Copy as Markdown
                     </>
                 )}

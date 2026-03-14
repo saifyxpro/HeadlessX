@@ -1,6 +1,12 @@
 "use client";
 
 import {
+    AlertCircleIcon,
+    CheckmarkCircle02Icon,
+    Copy01Icon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
     Dialog,
     DialogContent,
     DialogHeader,
@@ -9,7 +15,6 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Copy, Check, AlertTriangle } from 'lucide-react';
 import { StatusButton } from "@/components/ui/status-button";
 import { SwipeButton } from "@/components/ui/swipe-button";
 import { useState } from "react";
@@ -80,13 +85,17 @@ export function CreateKeyDialog({
                                         className="p-2 rounded-lg hover:bg-slate-50 transition-colors shrink-0 group relative"
                                         title="Copy to clipboard"
                                     >
-                                        {copied ? <Check className="w-5 h-5 text-emerald-500" /> : <Copy className="w-5 h-5 text-slate-400 group-hover:text-blue-500" />}
+                                        {copied ? (
+                                            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-5 h-5 text-emerald-500" />
+                                        ) : (
+                                            <HugeiconsIcon icon={Copy01Icon} className="w-5 h-5 text-slate-400 group-hover:text-blue-500" />
+                                        )}
                                     </button>
                                 </div>
                             </div>
                             <div className="flex items-start gap-3 p-4 bg-amber-50 rounded-xl border border-amber-100">
                                 <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
-                                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                                    <HugeiconsIcon icon={AlertCircleIcon} className="w-4 h-4 text-amber-600" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold text-amber-800">Save this key now!</p>

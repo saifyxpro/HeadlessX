@@ -1,7 +1,14 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Clock, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import {
+    ArrowLeft01Icon,
+    Cancel01Icon,
+    CheckmarkCircle02Icon,
+    Clock03Icon,
+    Loading03Icon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 
 interface GoogleSerpHeaderProps {
     elapsedTime: number | null;
@@ -19,7 +26,7 @@ export function GoogleSerpHeader({ elapsedTime, isLoading, hasResult, error }: G
                         href="/playground"
                         className="group rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-slate-600"
                     >
-                        <ArrowLeft className="w-5 h-5" />
+                        <HugeiconsIcon icon={ArrowLeft01Icon} className="w-5 h-5" />
                     </Link>
                         <div className="flex items-center gap-3">
                             <div className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-2">
@@ -47,27 +54,27 @@ export function GoogleSerpHeader({ elapsedTime, isLoading, hasResult, error }: G
                         : 'opacity-0 translate-y-4 pointer-events-none absolute right-0'
                     }
                 `}>
-                        <Clock className="w-4 h-4 text-slate-400" />
+                        <HugeiconsIcon icon={Clock03Icon} className="w-4 h-4 text-slate-400" />
                         {elapsedTime !== null ? (elapsedTime / 1000).toFixed(1) : '0.0'}s
                     </div>
 
                     {/* Status Badge */}
                     {isLoading && (
                         <div className="flex items-center gap-2.5 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
-                            <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                            <HugeiconsIcon icon={Loading03Icon} className="w-4 h-4 animate-spin text-blue-400" />
                             Searching...
                         </div>
                     )}
 
                     {error && (
                         <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600">
-                            <XCircle className="w-4 h-4" /> Failed
+                            <HugeiconsIcon icon={Cancel01Icon} className="w-4 h-4" /> Failed
                         </div>
                     )}
 
                     {hasResult && !isLoading && !error && (
                         <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-600">
-                            <CheckCircle2 className="w-4 h-4" />
+                            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-4 h-4" />
                             Success
                         </div>
                     )}

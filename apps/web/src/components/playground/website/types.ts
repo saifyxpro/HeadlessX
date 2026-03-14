@@ -1,4 +1,6 @@
-import { LucideIcon } from 'lucide-react';
+import { CodeSquareIcon } from '@hugeicons/core-free-icons';
+
+export type HugeiconType = typeof CodeSquareIcon;
 
 export type OutputType = 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot';
 export type WebsiteTool = 'scrape' | 'crawl';
@@ -26,5 +28,5 @@ export interface ProgressStep {
 export interface OutputTypeOption {
     id: OutputType;
     label: string;
-    icon: LucideIcon;
+    icon: HugeiconType;
 }

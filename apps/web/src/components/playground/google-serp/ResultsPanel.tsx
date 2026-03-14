@@ -4,9 +4,18 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Terminal, Download, Copy, Check, Code,
-    Search, XCircle, Loader2, FileText, FileJson
-} from 'lucide-react';
+    Cancel01Icon,
+    CheckmarkCircle02Icon,
+    CodeSquareIcon,
+    Copy01Icon,
+    DocumentCodeIcon,
+    Download01Icon,
+    File01Icon,
+    Loading03Icon,
+    Search01Icon,
+    SourceCodeSquareIcon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import { SearchResponse, ProgressStep } from './types';
 
 interface ResultsPanelProps {
@@ -69,7 +78,7 @@ export function ResultsPanel({
                     </div>
                     <div className="h-5 w-px bg-slate-200/50" />
                     <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-white/50 border border-white/60 text-xs font-bold text-slate-600 shadow-sm">
-                        <Terminal className="w-3.5 h-3.5 text-slate-400" />
+                        <HugeiconsIcon icon={SourceCodeSquareIcon} className="w-3.5 h-3.5 text-slate-400" />
                         <span>Search Results</span>
                     </div>
                 </div>
@@ -83,21 +92,21 @@ export function ResultsPanel({
                                 className={`p-1.5 rounded-md transition-all ${viewMode === 'visual' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
                                 title="Visual Report"
                             >
-                                <FileText className="w-4 h-4" />
+                                <HugeiconsIcon icon={File01Icon} className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => setViewMode('raw')}
                                 className={`p-1.5 rounded-md transition-all ${viewMode === 'raw' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
                                 title="Raw Markdown"
                             >
-                                <Code className="w-4 h-4" />
+                                <HugeiconsIcon icon={CodeSquareIcon} className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => setViewMode('json')}
                                 className={`p-1.5 rounded-md transition-all ${viewMode === 'json' ? 'bg-white shadow-sm text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
                                 title="JSON Data"
                             >
-                                <FileJson className="w-4 h-4" />
+                                <HugeiconsIcon icon={DocumentCodeIcon} className="w-4 h-4" />
                             </button>
                         </div>
                     )}
@@ -105,18 +114,22 @@ export function ResultsPanel({
                     {data && (
                         <>
                             <button
-                                onClick={handleDownload}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100/80 text-xs font-bold transition-colors border border-emerald-100"
-                            >
-                                <Download className="w-3.5 h-3.5" />
-                                Save
-                            </button>
+                            onClick={handleDownload}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100/80 text-xs font-bold transition-colors border border-emerald-100"
+                        >
+                            <HugeiconsIcon icon={Download01Icon} className="w-3.5 h-3.5" />
+                            Save
+                        </button>
                             <button
-                                onClick={handleCopy}
-                                className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-colors"
-                            >
-                                {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                            </button>
+                            onClick={handleCopy}
+                            className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-colors"
+                        >
+                            {copied ? (
+                                <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-4 h-4 text-emerald-500" />
+                            ) : (
+                                <HugeiconsIcon icon={Copy01Icon} className="w-4 h-4" />
+                            )}
+                        </button>
                         </>
                     )}
                 </div>
@@ -128,7 +141,7 @@ export function ResultsPanel({
                 {(!data && !isStreaming && !isPending && !error) && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-white/40 backdrop-blur-sm z-10">
                         <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-tr from-white to-slate-50 shadow-xl border border-white flex items-center justify-center mb-6">
-                            <Search className="w-10 h-10 text-slate-300" />
+                            <HugeiconsIcon icon={Search01Icon} className="w-10 h-10 text-slate-300" />
                         </div>
                         <p className="font-bold text-slate-600 text-lg mb-2">Ready to Search</p>
                         <p className="text-sm text-slate-400 max-w-xs text-center leading-relaxed">
@@ -163,8 +176,8 @@ export function ResultsPanel({
                                                         step.status === 'error' ? 'border-red-500 text-red-600' :
                                                             'border-slate-200 text-slate-400'}
                                             `}>
-                                                {step.status === 'active' ? <Loader2 className="w-4 h-4 animate-spin" /> :
-                                                    step.status === 'completed' ? <Check className="w-4 h-4" /> : step.step}
+                                                {step.status === 'active' ? <HugeiconsIcon icon={Loading03Icon} className="w-4 h-4 animate-spin" /> :
+                                                    step.status === 'completed' ? <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-4 h-4" /> : step.step}
                                             </div>
                                         </div>
                                         <div className="w-[280px]">
@@ -199,7 +212,7 @@ export function ResultsPanel({
                                     animate={{ opacity: 1 }}
                                     className="flex flex-col items-center justify-center text-slate-400 text-sm gap-3 opacity-60 absolute inset-0"
                                 >
-                                    <Loader2 className="w-6 h-6 animate-spin text-slate-300" />
+                                    <HugeiconsIcon icon={Loading03Icon} className="w-6 h-6 animate-spin text-slate-300" />
                                     <span>Waiting for worker...</span>
                                 </motion.div>
                             )}
@@ -211,7 +224,7 @@ export function ResultsPanel({
                 {error && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-white/40 backdrop-blur-sm z-10">
                         <div className="w-20 h-20 rounded-full bg-red-50 border border-red-100 flex items-center justify-center mb-6 shadow-xl shadow-red-500/10">
-                            <XCircle className="w-10 h-10 text-red-500" />
+                            <HugeiconsIcon icon={Cancel01Icon} className="w-10 h-10 text-red-500" />
                         </div>
                         <h3 className="text-xl font-bold text-slate-900 mb-2">Search Failed</h3>
                         <p className="text-slate-500 max-w-sm mx-auto mb-8 leading-relaxed">

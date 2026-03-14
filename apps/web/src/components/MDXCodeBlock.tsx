@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { Check, Copy, ExternalLink, MessageSquare, Search, Zap } from 'lucide-react';
+import {
+    CheckmarkCircle02Icon,
+    Copy01Icon,
+    LinkSquare01Icon,
+    Message01Icon,
+    Search01Icon,
+    ZapIcon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 
 interface MDXCodeBlockProps {
     children: any;
@@ -79,7 +87,7 @@ export const MDXCodeBlock = ({ children, className }: MDXCodeBlockProps) => {
                             className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors" 
                             title="Ask AI"
                         >
-                            <MessageSquare className="w-4 h-4" />
+                            <HugeiconsIcon icon={Message01Icon} className="w-4 h-4" />
                         </button>
                         {showMenu && (
                             <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-xl border border-slate-200 py-1 z-[9999]">
@@ -87,21 +95,21 @@ export const MDXCodeBlock = ({ children, className }: MDXCodeBlockProps) => {
                                     onClick={() => openInAI('chatgpt')}
                                     className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                                 >
-                                    <ExternalLink className="w-4 h-4" />
+                                    <HugeiconsIcon icon={LinkSquare01Icon} className="w-4 h-4" />
                                     Ask ChatGPT
                                 </button>
                                 <button 
                                     onClick={() => openInAI('perplexity')}
                                     className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                                 >
-                                    <Search className="w-4 h-4" />
+                                    <HugeiconsIcon icon={Search01Icon} className="w-4 h-4" />
                                     Ask Perplexity
                                 </button>
                                 <button 
                                     onClick={() => openInAI('grok')}
                                     className="flex items-center gap-2 w-full px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                                 >
-                                    <Zap className="w-4 h-4" />
+                                    <HugeiconsIcon icon={ZapIcon} className="w-4 h-4" />
                                     Ask Grok
                                 </button>
                             </div>
@@ -113,7 +121,11 @@ export const MDXCodeBlock = ({ children, className }: MDXCodeBlockProps) => {
                         className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
                         title="Copy code"
                     >
-                        {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                        {copied ? (
+                            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="w-4 h-4 text-emerald-400" />
+                        ) : (
+                            <HugeiconsIcon icon={Copy01Icon} className="w-4 h-4" />
+                        )}
                     </button>
                 </div>
             </div>

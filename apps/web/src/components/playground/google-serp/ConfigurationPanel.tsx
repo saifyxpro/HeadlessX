@@ -1,5 +1,12 @@
-
-import { Search, Globe, Languages, ArrowRight, Loader2, Shield } from 'lucide-react';
+import {
+    ArrowRight01Icon,
+    GlobeIcon,
+    LanguageSquareIcon,
+    Loading03Icon,
+    Search01Icon,
+    Shield01Icon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 
 interface ConfigurationPanelProps {
     query: string;
@@ -24,7 +31,7 @@ export function ConfigurationPanel({
             <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-7">
                 <div className="flex items-center gap-3 mb-8">
                     <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                        <Search className="w-5 h-5" />
+                        <HugeiconsIcon icon={Search01Icon} className="w-5 h-5" />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-slate-800">Search Config</h2>
@@ -38,7 +45,7 @@ export function ConfigurationPanel({
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Search Query</label>
                         <div className="relative group">
                             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <Search className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                                <HugeiconsIcon icon={Search01Icon} className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                             </div>
                             <input
                                 type="text"
@@ -53,7 +60,7 @@ export function ConfigurationPanel({
                     <div className="space-y-2">
                         <div className="rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-4">
                             <div className="flex items-start gap-3">
-                                <Shield className="mt-0.5 h-4 w-4 text-blue-600" />
+                                <HugeiconsIcon icon={Shield01Icon} className="mt-0.5 h-4 w-4 text-blue-600" />
                                 <div>
                                     <div className="text-xs font-bold uppercase tracking-wider text-blue-700">Global Proxy</div>
                                     <p className="mt-1 text-sm leading-6 text-slate-600">
@@ -69,14 +76,14 @@ export function ConfigurationPanel({
                         <div className="space-y-2 opacity-50 cursor-not-allowed" title="Coming soon">
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Region</label>
                             <div className="w-full flex items-center gap-2 px-4 py-3 bg-white/30 border border-white/50 rounded-xl text-slate-400 text-sm font-medium">
-                                <Globe className="w-4 h-4" />
+                                <HugeiconsIcon icon={GlobeIcon} className="w-4 h-4" />
                                 <span>Global (US)</span>
                             </div>
                         </div>
                         <div className="space-y-2 opacity-50 cursor-not-allowed" title="Coming soon">
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Language</label>
                             <div className="w-full flex items-center gap-2 px-4 py-3 bg-white/30 border border-white/50 rounded-xl text-slate-400 text-sm font-medium">
-                                <Languages className="w-4 h-4" />
+                                <HugeiconsIcon icon={LanguageSquareIcon} className="w-4 h-4" />
                                 <span>English (en)</span>
                             </div>
                         </div>
@@ -116,13 +123,13 @@ export function ConfigurationPanel({
                         <div className="relative z-10 flex items-center justify-center gap-2">
                             {isLoading ? (
                                 <>
-                                    <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
+                                    <HugeiconsIcon icon={Loading03Icon} className="w-5 h-5 animate-spin text-blue-400" />
                                     <span>Searching...</span>
                                 </>
                             ) : (
                                 <>
                                     <span className="group-hover:mr-1 transition-all">Run Search</span>
-                                    <ArrowRight className="w-5 h-5 text-blue-400 group-hover:translate-x-1 transition-transform" />
+                                    <HugeiconsIcon icon={ArrowRight01Icon} className="w-5 h-5 text-blue-400 group-hover:translate-x-1 transition-transform" />
                                 </>
                             )}
                         </div>

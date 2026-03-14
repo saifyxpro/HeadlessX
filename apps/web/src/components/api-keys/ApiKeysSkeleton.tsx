@@ -3,7 +3,8 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Plus } from 'lucide-react';
+import { Add01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 
 export function ApiKeysSkeleton() {
     return (
@@ -13,7 +14,7 @@ export function ApiKeysSkeleton() {
                 description="Manage access tokens and authentication for your applications."
                 action={
                     <Button disabled className="h-10 px-5 opacity-60">
-                        <Plus className="mr-2 h-5 w-5" />
+                        <HugeiconsIcon icon={Add01Icon} className="mr-2 h-5 w-5" />
                         New Key
                     </Button>
                 }

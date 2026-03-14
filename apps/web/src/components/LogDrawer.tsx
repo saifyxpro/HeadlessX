@@ -1,4 +1,9 @@
 import {
+    AlertCircleIcon,
+    Image01Icon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
     Drawer,
     DrawerContent,
     DrawerHeader,
@@ -8,7 +13,6 @@ import {
     DrawerClose
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Image as ImageIcon } from "lucide-react";
 import StackedList from "@/components/ui/stacked-list";
 
 interface LogDrawerProps {
@@ -21,16 +25,16 @@ export function LogDrawer({ isOpen, onOpenChange, log }: LogDrawerProps) {
     if (!log) return null;
 
     const logDetails = [
-        { id: 'url', title: 'Target URL', subtitle: log.url, status: 'Request', icon: AlertTriangle },
-        { id: 'method', title: 'HTTP Method', subtitle: log.method || 'GET', status: 'Info', icon: AlertTriangle },
-        { id: 'status', title: 'Status Code', subtitle: log.status?.toString() || 'Unknown', status: log.status === 200 ? 'Success' : 'Error', icon: AlertTriangle },
-        { id: 'duration', title: 'Duration', subtitle: `${log.duration || 0}ms`, status: 'Performance', icon: AlertTriangle },
-        { id: 'timestamp', title: 'Timestamp', subtitle: log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A', status: 'Time', icon: AlertTriangle },
+        { id: 'url', title: 'Target URL', subtitle: log.url, status: 'Request', icon: AlertCircleIcon },
+        { id: 'method', title: 'HTTP Method', subtitle: log.method || 'GET', status: 'Info', icon: AlertCircleIcon },
+        { id: 'status', title: 'Status Code', subtitle: log.status?.toString() || 'Unknown', status: log.status === 200 ? 'Success' : 'Error', icon: AlertCircleIcon },
+        { id: 'duration', title: 'Duration', subtitle: `${log.duration || 0}ms`, status: 'Performance', icon: AlertCircleIcon },
+        { id: 'timestamp', title: 'Timestamp', subtitle: log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A', status: 'Time', icon: AlertCircleIcon },
     ];
 
     // Add error if present
     if (log.error) {
-        logDetails.push({ id: 'error', title: 'Error Message', subtitle: log.error, status: 'Critical', icon: AlertTriangle });
+        logDetails.push({ id: 'error', title: 'Error Message', subtitle: log.error, status: 'Critical', icon: AlertCircleIcon });
     }
 
     return (
@@ -58,7 +62,7 @@ export function LogDrawer({ isOpen, onOpenChange, log }: LogDrawerProps) {
                         {log.screenshot && (
                             <div className="space-y-4">
                                 <h4 className="text-sm font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                                    <ImageIcon size={16} /> Error Snapshot
+                                    <HugeiconsIcon icon={Image01Icon} size={16} /> Error Snapshot
                                 </h4>
                                 <div className="relative aspect-video bg-gray-100 dark:bg-zinc-900 rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-800 flex items-center justify-center group">
                                     <span className="text-gray-400 text-sm group-hover:hidden">Screenshot Placeholder ({log.screenshot})</span>

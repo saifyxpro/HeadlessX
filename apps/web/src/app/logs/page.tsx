@@ -4,17 +4,18 @@ import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
-    AlertCircle,
-    CheckCircle2,
-    Clock3,
-    ExternalLink,
-    Eye,
-    FileText,
-    Loader2,
-    RefreshCw,
-    Search,
-    XCircle,
-} from 'lucide-react';
+    AlertCircleIcon,
+    CheckmarkCircle02Icon,
+    Clock03Icon,
+    File01Icon,
+    LinkSquare01Icon,
+    Loading03Icon,
+    Refresh01Icon,
+    Search01Icon,
+    ViewIcon,
+    Cancel01Icon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -103,7 +104,7 @@ function getStatusMeta(statusCode?: number | null) {
         return {
             label: 'Pending',
             tone: 'pending' as const,
-            icon: Clock3,
+            icon: Clock03Icon,
             className: 'border-amber-200 bg-amber-50 text-amber-700',
         };
     }
@@ -112,7 +113,7 @@ function getStatusMeta(statusCode?: number | null) {
         return {
             label: 'Success',
             tone: 'success' as const,
-            icon: CheckCircle2,
+            icon: CheckmarkCircle02Icon,
             className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
         };
     }
@@ -121,7 +122,7 @@ function getStatusMeta(statusCode?: number | null) {
         return {
             label: 'Error',
             tone: 'error' as const,
-            icon: XCircle,
+            icon: Cancel01Icon,
             className: 'border-rose-200 bg-rose-50 text-rose-700',
         };
     }
@@ -129,7 +130,7 @@ function getStatusMeta(statusCode?: number | null) {
     return {
         label: 'System',
         tone: 'system' as const,
-        icon: AlertCircle,
+        icon: AlertCircleIcon,
         className: 'border-slate-200 bg-slate-100 text-slate-700',
     };
 }
@@ -197,7 +198,7 @@ function LogDetailsDialog({ log, open, onOpenChange }: { log: LogEntry | null; o
                                 {log.method}
                             </Badge>
                             <Badge className={cn('gap-1 rounded-full border px-2.5 py-1 font-medium', status.className)}>
-                                <StatusIcon className="h-3.5 w-3.5" />
+                                <HugeiconsIcon icon={StatusIcon} size={14} />
                                 {log.status_code ?? 'N/A'} · {status.label}
                             </Badge>
                             <Badge variant="outline" className="rounded-full border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
@@ -226,7 +227,7 @@ function LogDetailsDialog({ log, open, onOpenChange }: { log: LogEntry | null; o
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 text-sm font-medium text-primary"
                             >
-                                Open target <ExternalLink className="h-4 w-4" />
+                                Open target <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
                             </a>
                         )}
                     </div>
@@ -261,7 +262,7 @@ function LogsPageSkeleton() {
             <PageHeader
                 title="Request Logs"
                 description="Inspect request history, response health, and latency trends."
-                icon={<FileText className="h-5 w-5" />}
+                icon={<HugeiconsIcon icon={File01Icon} size={20} />}
             />
 
             <div className="space-y-7 pb-4">
@@ -413,28 +414,28 @@ export default function LogsPage() {
             value: statsData?.stats.totalRequests ?? 0,
             hint: 'Across dashboard and API traffic',
             accent: 'bg-blue-50 text-blue-700 border-blue-100',
-            icon: FileText,
+            icon: File01Icon,
         },
         {
             title: 'Success Rate',
             value: `${statsData?.stats.successRate ?? '0.0'}%`,
             hint: `${statsData?.stats.successfulRequests ?? 0} successful requests`,
             accent: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-            icon: CheckCircle2,
+            icon: CheckmarkCircle02Icon,
         },
         {
             title: 'Failed Requests',
             value: statsData?.stats.failedRequests ?? 0,
             hint: '4xx and 5xx responses',
             accent: 'bg-rose-50 text-rose-700 border-rose-100',
-            icon: XCircle,
+            icon: Cancel01Icon,
         },
         {
             title: 'Avg Latency',
             value: `${statsData?.stats.avgLatency ?? '0.00'} s`,
             hint: 'Average request duration',
             accent: 'bg-amber-50 text-amber-700 border-amber-100',
-            icon: Clock3,
+            icon: Clock03Icon,
         },
     ];
 
@@ -444,7 +445,7 @@ export default function LogsPage() {
                 <PageHeader
                     title="Request Logs"
                     description="Inspect request history, response health, and latency trends from the dashboard and API layer."
-                    icon={<FileText className="h-5 w-5" />}
+                    icon={<HugeiconsIcon icon={File01Icon} size={20} />}
                     action={
                         <div className="flex items-center gap-3">
                             <div className="hidden md:flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500">
@@ -452,7 +453,11 @@ export default function LogsPage() {
                                 {isRefreshing ? 'Refreshing' : 'Auto-refreshing'}
                             </div>
                             <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing} className="h-10">
-                                {isRefreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                                {isRefreshing ? (
+                                    <HugeiconsIcon icon={Loading03Icon} className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <HugeiconsIcon icon={Refresh01Icon} className="mr-2 h-4 w-4" />
+                                )}
                                 Refresh
                             </Button>
                         </div>
@@ -474,7 +479,7 @@ export default function LogsPage() {
                                                 <CardTitle className="mt-2 text-[1.65rem] font-bold tracking-tight">{card.value}</CardTitle>
                                             </div>
                                             <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl border', card.accent)}>
-                                                <Icon className="h-4 w-4" />
+                                                <HugeiconsIcon icon={Icon} size={16} />
                                             </div>
                                         </div>
                                     </CardHeader>
@@ -520,7 +525,7 @@ export default function LogsPage() {
                                     <div className="space-y-2">
                                         <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Search</label>
                                         <div className="relative">
-                                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                            <HugeiconsIcon icon={Search01Icon} className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                                             <Input
                                                 value={search}
                                                 onChange={(event) => setSearch(event.target.value)}
@@ -582,7 +587,7 @@ export default function LogsPage() {
                             {filteredLogs.length === 0 ? (
                                 <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-2xl border border-slate-200 bg-slate-50/60 px-6 py-12 text-center">
                                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-400">
-                                        <Search className="h-6 w-6" />
+                                        <HugeiconsIcon icon={Search01Icon} size={24} />
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-semibold text-slate-900">No logs matched this filter set</h3>
@@ -598,11 +603,93 @@ export default function LogsPage() {
                                             Showing <span className="font-medium text-slate-800">{filteredLogs.length}</span> rows on page <span className="font-medium text-slate-800">{page}</span> of <span className="font-medium text-slate-800">{totalPages}</span>
                                         </div>
                                         <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500">
-                                            Table stays dense. Details open in overlay.
+                                            Responsive cards on small screens. Details open in overlay.
                                         </div>
                                     </div>
 
-                                    <div className="overflow-x-auto">
+                                    <div className="grid gap-3 p-4 lg:hidden">
+                                        {filteredLogs.map((log) => {
+                                            const status = getStatusMeta(log.status_code);
+                                            const StatusIcon = status.icon;
+                                            const isSelected = log.id === selectedLogId;
+
+                                            return (
+                                                <div
+                                                    key={log.id}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    aria-label={`Open log details for ${log.url}`}
+                                                    className={cn(
+                                                        'rounded-2xl border p-4 text-left transition-colors',
+                                                        isSelected
+                                                            ? 'border-primary/20 bg-primary/5'
+                                                            : 'border-slate-200 bg-white'
+                                                    )}
+                                                    onClick={() => setSelectedLogId(log.id)}
+                                                    onKeyDown={(event) => {
+                                                        if (event.key === 'Enter' || event.key === ' ') {
+                                                            event.preventDefault();
+                                                            setSelectedLogId(log.id);
+                                                        }
+                                                    }}
+                                                >
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="rounded-lg border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[11px] uppercase text-slate-600"
+                                                        >
+                                                            {log.method}
+                                                        </Badge>
+                                                        <Badge className={cn('gap-1 rounded-full border px-2.5 py-1 font-medium', status.className)}>
+                                                            <HugeiconsIcon icon={StatusIcon} size={14} />
+                                                            {log.status_code ?? 'N/A'} · {status.label}
+                                                        </Badge>
+                                                    </div>
+
+                                                    <div className="mt-3 break-words font-medium leading-6 text-slate-900">
+                                                        {log.url}
+                                                    </div>
+
+                                                    <div className="mt-2 text-sm leading-6 text-slate-500">
+                                                        {log.error_message || 'No error recorded'}
+                                                    </div>
+
+                                                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                                                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                                                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Latency</div>
+                                                            <div className="mt-1 text-sm font-medium text-slate-700">{formatLatency(log.duration_ms)}</div>
+                                                        </div>
+                                                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                                                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">API Key</div>
+                                                            <div className="mt-1 truncate text-sm font-medium text-slate-700">{log.api_key?.name || 'Dashboard / Internal'}</div>
+                                                        </div>
+                                                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 sm:col-span-2">
+                                                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Time</div>
+                                                            <div className="mt-1 text-sm font-medium text-slate-700">
+                                                                {formatRelativeTime(log.created_at)} · {formatTimestamp(log.created_at)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="mt-4 flex justify-end">
+                                                        <Button
+                                                            variant="outline"
+                                                            className="h-9 rounded-lg px-3 text-xs"
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                setSelectedLogId(log.id);
+                                                            }}
+                                                        >
+                                                            <HugeiconsIcon icon={ViewIcon} className="mr-1.5 h-3.5 w-3.5" />
+                                                            View
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <div className="hidden lg:block">
                                         <table className="min-w-full text-sm">
                                             <thead className="bg-white text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                                                 <tr>
@@ -658,7 +745,7 @@ export default function LogsPage() {
                                                             </td>
                                                             <td className="px-5 py-4 align-top">
                                                                 <Badge className={cn('gap-1 rounded-full border px-2.5 py-1 font-medium', status.className)}>
-                                                                    <StatusIcon className="h-3.5 w-3.5" />
+                                                                    <HugeiconsIcon icon={StatusIcon} size={14} />
                                                                     {log.status_code ?? 'N/A'} · {status.label}
                                                                 </Badge>
                                                             </td>
@@ -674,7 +761,7 @@ export default function LogsPage() {
                                                                         setSelectedLogId(log.id);
                                                                     }}
                                                                 >
-                                                                    <Eye className="mr-1.5 h-3.5 w-3.5" />
+                                                                    <HugeiconsIcon icon={ViewIcon} className="mr-1.5 h-3.5 w-3.5" />
                                                                     View
                                                                 </Button>
                                                             </td>

@@ -1,7 +1,20 @@
 import { useState } from 'react';
-import { Target, ExternalLink, ChevronDown, FileText, Code, Zap, Sparkles, Image as ImageIcon, Square, Loader2, Shield } from 'lucide-react';
-import { OutputType, OutputTypeOption, WebsiteTool } from './types';
-import type { LucideIcon } from 'lucide-react';
+import {
+    ArrowDown01Icon,
+    ArrowRight01Icon,
+    CodeSquareIcon,
+    File01Icon,
+    Image01Icon,
+    LinkSquare01Icon,
+    Loading03Icon,
+    Shield01Icon,
+    SparklesIcon,
+    SquareIcon,
+    Target01Icon,
+    ZapIcon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { HugeiconType, OutputType, OutputTypeOption, WebsiteTool } from './types';
 
 // Custom Dropdown Component
 function CustomDropdown({
@@ -15,7 +28,7 @@ function CustomDropdown({
     onChange: (value: string) => void;
     options: { value: string; label: string; suffix?: string }[];
     placeholder?: string;
-    icon?: LucideIcon;
+    icon?: HugeiconType;
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const selectedOption = options.find(o => o.value === value);
@@ -29,7 +42,7 @@ function CustomDropdown({
             >
                 {Icon && (
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                        <Icon className="w-4.5 h-4.5 text-slate-400" />
+                        <HugeiconsIcon icon={Icon} className="w-4.5 h-4.5 text-slate-400" />
                     </div>
                 )}
                 <span className={selectedOption ? 'text-slate-900' : 'text-slate-400'}>
@@ -40,7 +53,7 @@ function CustomDropdown({
                 )}
             </button>
             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <HugeiconsIcon icon={ArrowDown01Icon} className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </div>
 
             {isOpen && (
@@ -70,10 +83,10 @@ function CustomDropdown({
 }
 
 const OUTPUT_TYPES: OutputTypeOption[] = [
-    { id: 'html', label: 'HTML', icon: Code },
-    { id: 'html-js', label: 'HTML + JS', icon: Zap },
-    { id: 'content', label: 'Content', icon: FileText },
-    { id: 'screenshot', label: 'Screenshot', icon: ImageIcon },
+    { id: 'html', label: 'HTML', icon: CodeSquareIcon },
+    { id: 'html-js', label: 'HTML + JS', icon: ZapIcon },
+    { id: 'content', label: 'Content', icon: File01Icon },
+    { id: 'screenshot', label: 'Screenshot', icon: Image01Icon },
 ];
 
 const OUTPUT_TYPE_OPTIONS = OUTPUT_TYPES.map((type) => ({
@@ -130,7 +143,7 @@ export function ConfigurationPanel({
                 <div className={`space-y-6 ${isDisabled ? 'opacity-60 pointer-events-none grayscale-[0.5]' : ''}`}>
                     <div className="flex items-start gap-4 mb-5">
                         <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0">
-                            <Target className="w-5 h-5" />
+                            <HugeiconsIcon icon={Target01Icon} className="w-5 h-5" />
                         </div>
                         <div className="min-w-0">
                             <h2 className="text-xl font-bold text-slate-800">Scrape Config</h2>
@@ -143,7 +156,7 @@ export function ConfigurationPanel({
                     {/* URL Input */}
                     <div className="space-y-3">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <Target className="w-4 h-4 text-blue-500" />
+                            <HugeiconsIcon icon={Target01Icon} className="w-4 h-4 text-blue-500" />
                             Target URL
                         </label>
                         <div className="relative group">
@@ -161,7 +174,7 @@ export function ConfigurationPanel({
                                     rel="noopener noreferrer"
                                     className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-all"
                                 >
-                                    <ExternalLink className="w-4 h-4" />
+                                    <HugeiconsIcon icon={LinkSquare01Icon} className="w-4 h-4" />
                                 </a>
                             )}
                         </div>
@@ -171,7 +184,7 @@ export function ConfigurationPanel({
 
                     <div className="space-y-3">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <Zap className="w-4 h-4 text-violet-500" />
+                            <HugeiconsIcon icon={ZapIcon} className="w-4 h-4 text-violet-500" />
                             Select Tool
                         </label>
                         <div className="grid grid-cols-2 gap-3">
@@ -211,7 +224,7 @@ export function ConfigurationPanel({
                         <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-4">
                             <div className="flex items-start gap-3">
                                 <div className="mt-0.5 text-blue-600">
-                                    <Shield className="w-4 h-4" />
+                                    <HugeiconsIcon icon={Shield01Icon} className="w-4 h-4" />
                                 </div>
                                 <div>
                                     <div className="text-xs font-bold uppercase tracking-wider text-blue-700">
@@ -230,14 +243,14 @@ export function ConfigurationPanel({
                     {/* Format Selection */}
                     <div className="space-y-3">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-emerald-500" />
+                            <HugeiconsIcon icon={File01Icon} className="w-4 h-4 text-emerald-500" />
                             Output Format
                         </label>
                         <CustomDropdown
                             value={outputType}
                             onChange={(value) => setOutputType(value as OutputType)}
                             placeholder="Select output format"
-                            icon={FileText}
+                            icon={File01Icon}
                             options={OUTPUT_TYPE_OPTIONS}
                         />
                         <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400 px-1">
@@ -259,7 +272,7 @@ export function ConfigurationPanel({
                             <div className="flex items-center justify-between gap-3">
                                 <div className="min-w-0 flex items-start gap-3">
                                     <div className="mt-0.5 shrink-0 text-orange-400">
-                                        <Sparkles className="w-4 h-4" />
+                                        <HugeiconsIcon icon={SparklesIcon} className="w-4 h-4" />
                                     </div>
                                     <div className="min-w-0">
                                         <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -273,7 +286,8 @@ export function ConfigurationPanel({
                                         </div>
                                     </div>
                                 </div>
-                                <ChevronDown
+                                <HugeiconsIcon
+                                    icon={ArrowDown01Icon}
                                     className={`w-4 h-4 text-slate-400 transition-transform duration-300 shrink-0 ${showAdvanced ? 'rotate-180' : ''}`}
                                 />
                             </div>
@@ -356,7 +370,7 @@ export function ConfigurationPanel({
                             onClick={onStop}
                             className="w-full py-4 bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 rounded-xl font-bold transition-all flex items-center justify-center gap-2 group active:scale-[0.98]"
                         >
-                            <Square className="w-5 h-5 fill-current" />
+                            <HugeiconsIcon icon={SquareIcon} className="w-5 h-5 fill-current" />
                             Stop Scraping
                         </button>
                     ) : (
@@ -368,12 +382,12 @@ export function ConfigurationPanel({
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                             {isPending ? (
                                 <span className="flex items-center gap-2">
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <HugeiconsIcon icon={Loading03Icon} className="w-5 h-5 animate-spin" />
                                     Starting...
                                 </span>
                             ) : (
                                 <>
-                                    <Zap className="w-5 h-5 fill-current group-hover:scale-110 transition-transform text-yellow-400" />
+                                    <HugeiconsIcon icon={ZapIcon} className="w-5 h-5 fill-current group-hover:scale-110 transition-transform text-yellow-400" />
                                     Run Scraper
                                 </>
                             )}

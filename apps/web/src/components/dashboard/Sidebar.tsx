@@ -3,7 +3,6 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ExternalLink } from 'lucide-react';
 import {
     DashboardSquare01Icon,
     SparklesIcon,
@@ -12,8 +11,9 @@ import {
     File01Icon,
     Settings01Icon,
     BookOpen01Icon,
-    ArrowLeft01Icon,
-    ArrowRight01Icon,
+    LinkSquare01Icon,
+    SidebarLeft01Icon,
+    SidebarRight01Icon,
     Activity01Icon
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -77,10 +77,10 @@ export function Sidebar() {
                                 <button
                                     onClick={toggle}
                                     aria-label="Expand sidebar"
-                                    className="pointer-events-none absolute inset-0 z-20 rounded-xl border border-slate-200 bg-white/95 text-slate-500 opacity-0 transition-all duration-200 hover:text-slate-900 hover:border-slate-300 group-hover:pointer-events-auto group-hover:opacity-100"
+                                    className="pointer-events-none absolute inset-0 z-20 rounded-xl bg-white/95 text-slate-500 opacity-0 transition-all duration-200 hover:bg-white hover:text-slate-900 group-hover:pointer-events-auto group-hover:opacity-100"
                                 >
                                     <span className="flex h-full w-full items-center justify-center">
-                                        <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
+                                        <HugeiconsIcon icon={SidebarRight01Icon} size={20} />
                                     </span>
                                 </button>
                             )}
@@ -99,10 +99,10 @@ export function Sidebar() {
                         <button
                             onClick={toggle}
                             aria-label="Collapse sidebar"
-                            className="h-9 w-9 shrink-0 rounded-xl border border-slate-200 bg-white text-slate-500 transition-all duration-200 hover:text-slate-900 hover:border-slate-300"
+                            className="h-9 w-9 shrink-0 rounded-xl bg-white text-slate-500 transition-all duration-200 hover:bg-slate-50 hover:text-slate-900"
                         >
                             <span className="flex h-full w-full items-center justify-center">
-                                <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
+                                <HugeiconsIcon icon={SidebarLeft01Icon} size={20} />
                             </span>
                         </button>
                     )}
@@ -125,19 +125,19 @@ export function Sidebar() {
                                 "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium border border-transparent relative overflow-hidden",
                                 isActive
                                     ? "bg-primary/8 text-primary border-primary/15"
-                                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-50",
+                                    : "text-slate-500",
                                 collapsed && "justify-center px-0 w-12 h-12 mx-auto mb-2"
                             )}
                             title={collapsed ? item.label : undefined}
                         >
                             <HugeiconsIcon icon={item.icon} className={cn(
                                 "w-5 h-5 shrink-0",
-                                isActive ? "text-primary" : "text-slate-400 group-hover:text-slate-700"
+                                isActive ? "text-primary" : "text-slate-400"
                             )} size={20} />
                             {!collapsed && (
                                 <div className="flex-1 flex items-center justify-between overflow-hidden">
                                     <span className="whitespace-nowrap overflow-hidden">{item.label}</span>
-                                    {isExternal && <ExternalLink className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity ml-2 shrink-0" />}
+                                    {isExternal && <HugeiconsIcon icon={LinkSquare01Icon} className="w-3 h-3 text-slate-400 ml-2 shrink-0" />}
                                 </div>
                             )}
                         </Link>
