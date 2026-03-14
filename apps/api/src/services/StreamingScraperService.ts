@@ -141,7 +141,6 @@ class StreamingScraperService {
             abortSignal?: AbortSignal;
             waitForSelector?: string;
             timeout?: number;
-            profileId?: string;
             stealth?: boolean; // false = speed mode, skip humanize
             jsEnabled?: boolean;
             fullPage?: boolean;  // For screenshots: true = full page scroll, false = viewport only
@@ -172,7 +171,6 @@ class StreamingScraperService {
         try {
             throwIfCancelled();
             const result = await browserService.getPage({
-                profileId: options.profileId,
                 stealth: options.stealth // Pass stealth for speed mode
             });
             page = result.page;
@@ -480,7 +478,7 @@ class StreamingScraperService {
             if (options.jobId && page) {
                 jobManager.detachPage(options.jobId, page);
             }
-            await browserService.release(context, options.profileId);
+            await browserService.release(context);
         }
     }
 }

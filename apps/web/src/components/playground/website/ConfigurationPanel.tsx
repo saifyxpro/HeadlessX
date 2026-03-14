@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Target, ExternalLink, User, ChevronDown, FileText, Code, Zap, Sparkles, Image as ImageIcon, Square, Loader2 } from 'lucide-react';
-import { OutputType, Profile, OutputTypeOption } from './types';
+import { Target, ExternalLink, ChevronDown, FileText, Code, Zap, Sparkles, Image as ImageIcon, Square, Loader2, Shield } from 'lucide-react';
+import { OutputType, OutputTypeOption, WebsiteTool } from './types';
 import type { LucideIcon } from 'lucide-react';
 
 // Custom Dropdown Component
@@ -84,9 +84,8 @@ const OUTPUT_TYPE_OPTIONS = OUTPUT_TYPES.map((type) => ({
 interface ConfigurationPanelProps {
     url: string;
     setUrl: (url: string) => void;
-    selectedProfileId: string;
-    setSelectedProfileId: (id: string) => void;
-    profiles: Profile[];
+    tool: WebsiteTool;
+    setTool: (tool: WebsiteTool) => void;
     outputType: OutputType;
     setOutputType: (type: OutputType) => void;
     selector: string;
@@ -105,7 +104,7 @@ interface ConfigurationPanelProps {
 
 export function ConfigurationPanel({
     url, setUrl,
-    selectedProfileId, setSelectedProfileId, profiles,
+    tool, setTool,
     outputType, setOutputType,
     selector, setSelector,
     timeout, setTimeoutValue,
@@ -119,6 +118,7 @@ export function ConfigurationPanel({
     const isDisabled = isStreaming || isPending;
     const outputTypeLabel = OUTPUT_TYPES.find((type) => type.id === outputType)?.label ?? 'HTML';
     const advancedSummary = [
+        tool === 'scrape' ? 'Scrape tool' : 'Crawl tool',
         selector ? 'Custom selector' : 'No selector',
         `${timeout / 1000}s timeout`,
         stealth ? 'Stealth on' : 'Stealth off'
@@ -169,33 +169,59 @@ export function ConfigurationPanel({
 
                     <div className="h-px bg-gradient-to-r from-transparent via-slate-200/60 to-transparent" />
 
-                    {/* Profile Selection */}
                     <div className="space-y-3">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                            <User className="w-4 h-4 text-purple-500" />
-                            Browser Profile
+                            <Zap className="w-4 h-4 text-violet-500" />
+                            Select Tool
                         </label>
-                        <div className="relative">
-                            <CustomDropdown
-                                value={selectedProfileId}
-                                onChange={setSelectedProfileId}
-                                placeholder="Fresh Session (No Profile)"
-                                icon={User}
-                                options={[
-                                    { value: '', label: 'Fresh Session (No Profile)' },
-                                    ...profiles
-                                        .filter(p => p.name !== 'Default Profile')
-                                        .map((profile) => ({
-                                            value: profile.id,
-                                            label: `${profile.name}`,
-                                            suffix: profile.is_running ? 'Running' : undefined
-                                        }))
-                                ]}
-                            />
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setTool('scrape')}
+                                className={`rounded-xl border px-4 py-4 text-left transition-all ${
+                                    tool === 'scrape'
+                                        ? 'border-blue-200 bg-blue-50 text-blue-700'
+                                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white'
+                                }`}
+                            >
+                                <div className="text-sm font-semibold">Scrape</div>
+                                <div className="mt-1 text-xs leading-5">Run the current page extractor and stream results.</div>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setTool('crawl')}
+                                className={`rounded-xl border px-4 py-4 text-left transition-all ${
+                                    tool === 'crawl'
+                                        ? 'border-amber-200 bg-amber-50 text-amber-700'
+                                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-white'
+                                }`}
+                            >
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-sm font-semibold">Crawl</span>
+                                    <span className="rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">Soon</span>
+                                </div>
+                                <div className="mt-1 text-xs leading-5">Reserved for multi-page crawling once the flow is ready.</div>
+                            </button>
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400 px-1">
-                            <div className="w-1 h-1 rounded-full bg-slate-300" />
-                            Preserve cookies & storage
+                    </div>
+
+                    <div className="h-px bg-gradient-to-r from-transparent via-slate-200/60 to-transparent" />
+
+                    <div className="space-y-3">
+                        <div className="rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-4">
+                            <div className="flex items-start gap-3">
+                                <div className="mt-0.5 text-blue-600">
+                                    <Shield className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <div className="text-xs font-bold uppercase tracking-wider text-blue-700">
+                                        Global Proxy
+                                    </div>
+                                    <p className="mt-1 text-sm leading-6 text-slate-600">
+                                        Browser profiles were removed. If a proxy is enabled in Settings, it is applied automatically to every scrape session.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -216,7 +242,7 @@ export function ConfigurationPanel({
                         />
                         <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400 px-1">
                             <div className="w-1 h-1 rounded-full bg-slate-300" />
-                            {outputTypeLabel} selected
+                            {tool === 'scrape' ? `${outputTypeLabel} selected` : 'Crawl workflow is not live yet'}
                         </div>
                     </div>
 
@@ -315,8 +341,8 @@ export function ConfigurationPanel({
                                         </div>
                                         <p className="text-[10px] text-slate-400 leading-relaxed">
                                             {stealth
-                                                ? '🎭 Human-like interactions enabled (slower, better detection evasion)'
-                                                : '⚡ Speed mode - fast scraping, minimal stealth (use with profiles for 2-5s)'}
+                                                ? 'Humanized interactions enabled for tougher targets.'
+                                                : 'Speed mode favors faster execution with less browser mimicry.'}
                                         </p>
                                     </div>
                             </div>

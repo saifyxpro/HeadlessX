@@ -136,12 +136,6 @@ class ProxyService {
      * Delete a proxy
      */
     public async delete(id: string): Promise<void> {
-        // First, remove proxy reference from any profiles using it
-        await prisma.profile.updateMany({
-            where: { proxy_id: id },
-            data: { proxy_id: null },
-        });
-
         await prisma.proxy.delete({
             where: { id },
         });

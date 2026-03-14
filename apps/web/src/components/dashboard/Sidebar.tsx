@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { ExternalLink } from 'lucide-react';
 import {
     DashboardSquare01Icon,
-    UserGroupIcon,
+    SparklesIcon,
     PlayCircleIcon,
     Key01Icon,
     File01Icon,
@@ -24,7 +24,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 const NAV_ITEMS = [
     { href: '/', label: 'Overview', icon: DashboardSquare01Icon },
-    { href: '/profiles', label: 'Profiles', icon: UserGroupIcon },
+    { href: '/ai-agent', label: 'AI Agent', icon: SparklesIcon },
     { href: '/playground', label: 'Playground', icon: PlayCircleIcon },
     { href: '/api-keys', label: 'API Keys', icon: Key01Icon },
     { href: '/logs', label: 'Request Logs', icon: File01Icon },
@@ -36,24 +36,27 @@ export function Sidebar() {
     const pathname = usePathname();
     const { collapsed, toggle } = useSidebar();
 
-    // Real system load from API
     const { data: systemStats, isLoading: statsLoading } = useQuery({
-        queryKey: ['system-recommendations'],
+        queryKey: ['sidebar-dashboard-stats'],
         queryFn: async () => {
-            const res = await fetch('/api/profiles/recommendations');
-            if (!res.ok) return { usagePercent: 0 };
-            return res.json().catch(() => ({ usagePercent: 0 }));
+            const res = await fetch('/api/dashboard/stats');
+            if (!res.ok) {
+                return { runningBrowsers: 0, maxConcurrency: 0 };
+            }
+            return res.json().catch(() => ({ runningBrowsers: 0, maxConcurrency: 0 }));
         },
         refetchInterval: 5000,
         refetchOnWindowFocus: false,
     });
 
-    const systemLoad = systemStats?.usagePercent || 0;
+    const systemLoad = systemStats?.maxConcurrency
+        ? Math.min(100, Math.round(((systemStats.runningBrowsers || 0) / systemStats.maxConcurrency) * 100))
+        : 0;
 
     return (
         <aside
             className={cn(
-                "border-r border-slate-200 bg-white flex flex-col h-full z-20 relative",
+                "group border-r border-slate-200 bg-white flex flex-col h-full z-20 relative",
                 collapsed ? "w-[80px]" : "w-[280px]"
             )}
         >
@@ -67,8 +70,22 @@ export function Sidebar() {
                                 alt="HeadlessX"
                                 width={40}
                                 height={40}
-                                className="rounded-xl relative z-10"
+                                className={cn(
+                                    "rounded-xl relative z-10 transition-opacity duration-200",
+                                    collapsed && "group-hover:opacity-0"
+                                )}
                             />
+                            {collapsed && (
+                                <button
+                                    onClick={toggle}
+                                    aria-label="Expand sidebar"
+                                    className="pointer-events-none absolute inset-0 z-20 rounded-xl border border-slate-200 bg-white/95 text-slate-500 opacity-0 transition-all duration-200 hover:text-slate-900 hover:border-slate-300 group-hover:pointer-events-auto group-hover:opacity-100"
+                                >
+                                    <span className="flex h-full w-full items-center justify-center">
+                                        <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
+                                    </span>
+                                </button>
+                            )}
                         </div>
                         {!collapsed && (
                             <div className="overflow-hidden whitespace-nowrap min-w-0">
@@ -80,20 +97,18 @@ export function Sidebar() {
                         )}
                     </div>
 
-                    <button
-                        onClick={toggle}
-                        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                        className={cn(
-                            "h-9 w-9 shrink-0 rounded-xl border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:text-slate-900 hover:border-slate-300",
-                            collapsed && "mx-auto"
-                        )}
-                    >
-                        {collapsed ? (
-                            <HugeiconsIcon icon={ArrowRight01Icon} size={16} />
-                        ) : (
-                            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
-                        )}
-                    </button>
+                    {!collapsed && (
+                        <button
+                            onClick={toggle}
+                            aria-label="Collapse sidebar"
+                            className="h-9 w-9 shrink-0 rounded-xl border border-slate-200 bg-white text-slate-500 transition-all duration-200 hover:text-slate-900 hover:border-slate-300"
+                        >
+                            <span className="flex h-full w-full items-center justify-center">
+                                <HugeiconsIcon icon={ArrowLeft01Icon} size={16} />
+                            </span>
+                        </button>
+                    )}
+
                 </div>
             </div>
 

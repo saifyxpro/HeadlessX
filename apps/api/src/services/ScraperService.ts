@@ -17,7 +17,6 @@ export interface ScrapeOptions {
     jsEnabled?: boolean;
     screenshotOnError?: boolean;
     apiKeyId?: string;
-    profileId?: string;
     stealth?: boolean;
 }
 
@@ -127,7 +126,6 @@ class ScraperService {
 
     public async scrape(url: string, options: ScrapeOptions = {}): Promise<ScrapeResult> {
         const { page, context } = await browserService.getPage({
-            profileId: options.profileId,
             stealth: options.stealth
         });
         const startTime = Date.now();
@@ -239,8 +237,7 @@ class ScraperService {
         } finally {
             const duration = Date.now() - startTime;
 
-            // Release pages (for profiles, context stays open; pages are closed)
-            await browserService.release(context, options.profileId);
+            await browserService.release(context);
 
             // Async Logging
             prisma.requestLog.create({
@@ -259,7 +256,6 @@ class ScraperService {
 
     public async screenshot(url: string, options: ScrapeOptions = {}): Promise<Buffer> {
         const { page, context } = await browserService.getPage({
-            profileId: options.profileId,
             stealth: options.stealth
         });
         try {
@@ -327,7 +323,7 @@ class ScraperService {
 
             return await page.screenshot({ fullPage: true, type: 'jpeg', quality: 90 });
         } finally {
-            await browserService.release(context, options.profileId);
+            await browserService.release(context);
         }
     }
 

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../database/client';
-import { profileService } from '../services/ProfileService';
+import { configService } from '../services/ConfigService';
 import { browserService } from '../services/BrowserService';
 
 export class DashboardController {
@@ -13,26 +13,20 @@ export class DashboardController {
             // Run queries in parallel for performance
             const [
                 activeProxies,
+                totalProxies,
                 totalJobs,
                 successfulJobs,
-                profileStats
+                config
             ] = await Promise.all([
                 prisma.proxy.count({ where: { is_active: true } }),
+                prisma.proxy.count(),
                 prisma.requestLog.count(),
                 prisma.requestLog.count({ where: { status_code: 200 } }),
-                prisma.profile.aggregate({
-                    _count: { id: true },
-                    _sum: { cookies_count: true, storage_size_mb: true },
-                    where: {
-                        name: { not: 'Default Profile' }
-                    }
-                })
+                configService.getConfig()
             ]);
 
-            // Get Helper Service Stats
-            const ramInfo = profileService.getRAMRecommendations();
             const browserStatus = browserService.getStatus();
-            const runningBrowsersCount = browserStatus.profiles.length + (browserStatus.default ? 1 : 0);
+            const runningBrowsersCount = browserStatus.default ? 1 : 0;
 
             // Calculate success rate
             const failedRateVal = totalJobs > 0
@@ -44,16 +38,13 @@ export class DashboardController {
 
             res.json({
                 activeProxies,
+                totalProxies,
                 totalJobs,
                 failedRate,
-                credits: 5000,
-                // Profile Stats
-                totalProfiles: profileStats._count.id,
-                totalCookies: profileStats._sum.cookies_count || 0,
-                storageUsage: (profileStats._sum.storage_size_mb || 0).toFixed(1),
-                // Browser Stats (Fix for System Status)
                 runningBrowsers: runningBrowsersCount,
-                system: ramInfo
+                maxConcurrency: config.maxConcurrency,
+                browserHeadless: config.browserHeadless,
+                proxyEnabled: config.proxyEnabled
             });
         } catch (error) {
             console.error('Dashboard Stats Error:', error);

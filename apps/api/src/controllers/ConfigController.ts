@@ -20,15 +20,22 @@ export class ConfigController {
                 browserHeadless,
                 browserTimeout,
                 maxConcurrency,
-                // Camoufox settings
+                proxyEnabled,
+                proxyUrl,
+                proxyProtocol,
                 profileRotationInterval,
-                // Camoufox settings
                 camoufoxGeoip,
                 camoufoxBlockWebrtc,
                 camoufoxBlockImages,
                 camoufoxEnableCache,
                 camoufoxHumanize
             } = req.body;
+
+            const normalizedProxyUrl = typeof proxyUrl === 'string' ? proxyUrl.trim() : '';
+            const normalizedProxyProtocol = typeof proxyProtocol === 'string' && proxyProtocol.trim()
+                ? proxyProtocol.trim()
+                : 'http';
+            const shouldEnableProxy = Boolean(proxyEnabled && normalizedProxyUrl);
 
             // Use upsert to create if not exists
             const updated = await prisma.systemSettings.upsert({
@@ -37,8 +44,10 @@ export class ConfigController {
                     browser_headless: browserHeadless,
                     browser_timeout: browserTimeout,
                     max_concurrency: maxConcurrency,
+                    proxy_enabled: shouldEnableProxy,
+                    proxy_url: normalizedProxyUrl || null,
+                    proxy_protocol: normalizedProxyProtocol,
                     profile_rotation_interval: profileRotationInterval,
-                    // Camoufox settings
                     camoufox_geoip: camoufoxGeoip,
                     camoufox_block_webrtc: camoufoxBlockWebrtc,
                     camoufox_block_images: camoufoxBlockImages,
@@ -50,12 +59,11 @@ export class ConfigController {
                     browser_headless: browserHeadless ?? true,
                     browser_timeout: browserTimeout ?? 60000,
                     max_concurrency: maxConcurrency ?? 5,
-                    proxy_enabled: false,
-                    proxy_url: '',
-                    proxy_protocol: 'http',
+                    proxy_enabled: shouldEnableProxy,
+                    proxy_url: normalizedProxyUrl || null,
+                    proxy_protocol: normalizedProxyProtocol,
                     profile_rotation: false,
                     profile_rotation_interval: profileRotationInterval ?? 3600000,
-                    // Camoufox settings
                     camoufox_geoip: camoufoxGeoip ?? true,
                     camoufox_block_webrtc: camoufoxBlockWebrtc ?? true,
                     camoufox_block_images: camoufoxBlockImages ?? false,

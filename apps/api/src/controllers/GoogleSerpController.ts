@@ -4,20 +4,19 @@ import { z } from 'zod';
 import { prisma } from '../database/client';
 
 const SearchSchema = z.object({
-    query: z.string().min(1),
-    profileId: z.string().optional()
+    query: z.string().min(1)
 });
 
 export class GoogleSerpController {
     static async search(req: Request, res: Response) {
         const startTime = Date.now();
         try {
-            const { query, profileId } = SearchSchema.parse(req.body);
+            const { query } = SearchSchema.parse(req.body);
 
             // Set headers for long polling/streaming if needed, but for now standard JSON response
             // The scraping might take 10-20s, so ensure client timeout is high enough.
 
-            const data = await googleSerpService.search(query, profileId);
+            const data = await googleSerpService.search(query);
 
             // Log successful request
             const duration = Date.now() - startTime;
@@ -62,7 +61,6 @@ export class GoogleSerpController {
     static async searchStream(req: Request, res: Response) {
         const apiKeyId = (req as any).apiKeyId;
         const query = req.query.query as string;
-        const profileId = req.query.profileId as string;
         // Parse timeout or default to 60s
         const timeoutSeconds = parseInt(req.query.timeout as string) || 60;
         const timeoutMs = timeoutSeconds * 1000;
@@ -95,7 +93,6 @@ export class GoogleSerpController {
             const googleSerpService = new GoogleSerpService();
             const result = await googleSerpService.scrapeWithProgress(
                 query,
-                profileId,
                 timeoutMs, // Pass timeout here
                 (progress) => {
                     console.log('⏳ Progress:', progress);

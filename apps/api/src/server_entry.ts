@@ -1,6 +1,5 @@
 // Load environment variables FIRST
 import './env';
-import { profileService } from './services/ProfileService';
 import { assertSecurityConfiguration } from './utils/security';
 
 // Now import app after env is loaded
@@ -11,13 +10,6 @@ const PORT = parseInt(process.env.PORT || '8000', 10);
 async function startServer() {
     try {
         assertSecurityConfiguration();
-
-        // Ensure there is always a baseline profile available for "default" usage
-        await profileService.ensureDefaultProfile();
-
-        // Reset running status for all profiles (since server restarted)
-        console.log('🔄 Resetting profile states...');
-        await profileService.resetAllRunningStatuses();
 
         app.listen(PORT, () => {
             console.log(`🚀 HeadlessX Backend running on http://localhost:${PORT}`);

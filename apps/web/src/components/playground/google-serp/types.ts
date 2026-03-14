@@ -16,15 +16,6 @@ export interface SearchResponse {
     markdown: string;
 }
 
-export interface Profile {
-    id: string;
-    name: string;
-    is_running: boolean;
-    screen_width: number;
-    screen_height: number;
-    locale: string;
-}
-
 export interface ProgressStep {
     step: number;
     total: number;
@@ -34,7 +25,6 @@ export interface ProgressStep {
 
 export interface GoogleSerpConfig {
     query: string;
-    profileId: string;
     country: string; // future-proofing
     language: string; // future-proofing
 }

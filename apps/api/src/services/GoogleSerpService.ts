@@ -25,7 +25,6 @@ export class GoogleSerpService {
      */
     async scrapeWithProgress(
         query: string,
-        profileId: string | undefined,
         timeout: number,
         onProgress: (progress: { step: number; total: number; message: string; status: 'active' | 'completed' | 'pending' }) => void
     ): Promise<SearchResponse> {
@@ -36,7 +35,7 @@ export class GoogleSerpService {
         try {
             // STEP 1: Launch Browser
             onProgress({ step: 1, total: TOTAL_STEPS, message: 'Launching browser', status: 'active' });
-            const browserResult = await browserService.getPage({ profileId });
+            const browserResult = await browserService.getPage();
             page = browserResult.page;
             browserContext = browserResult.context;
             onProgress({ step: 1, total: TOTAL_STEPS, message: 'Launching browser', status: 'completed' });
@@ -180,7 +179,7 @@ export class GoogleSerpService {
             await page.waitForTimeout(5000);
 
             // Wait loop for results or captcha
-            const maxWait = 120000;
+            const maxWait = Math.max(timeout, 5000);
             let resultFound = false;
             let waited = 5000; // already waited 5s
 
@@ -239,15 +238,11 @@ export class GoogleSerpService {
             console.error('Google SERP Scrape Error:', error);
             throw error;
         } finally {
-            if (!profileId) {
-                if (page) {
-                    try { await page.close(); } catch { }
-                }
-                if (browserContext) {
-                    await browserService.release(browserContext, profileId);
-                }
-            } else {
-                console.log(`   ℹ️ Keeping profile ${profileId} open (Persistent Mode)`);
+            if (page) {
+                try { await page.close(); } catch { }
+            }
+            if (browserContext) {
+                await browserService.release(browserContext);
             }
         }
     }
@@ -348,9 +343,9 @@ export class GoogleSerpService {
         return md;
     }
 
-    public async search(query: string, profileId?: string): Promise<SearchResponse> {
-        console.log(`Starting Google SERP search for: ${query} (Profile: ${profileId || 'Default'})`);
-        const { page, context } = await browserService.getPage({ profileId });
+    public async search(query: string): Promise<SearchResponse> {
+        console.log(`Starting Google SERP search for: ${query}`);
+        const { page, context } = await browserService.getPage();
 
         try {
             // Step 1: Navigate
@@ -649,17 +644,7 @@ export class GoogleSerpService {
 
         } finally {
             await page.close();
-            // Don't close context here as it might be default shared one, usage of BrowserService.release(context) is better if we owned it?
-            // browserService.getPage returns a fresh page in an existing or new context.
-            // If it's a new ad-hoc context (no profile), we should probably ask BrowserService to clean up if we were implementing strict resource management.
-            // But checking BrowserService.ts, getPage returns { page, context }. 
-            // If no profile, it creates a new context. We should probably accept that `page.close()` is enough for the page, but the context might leak if we don't close it?
-            // BrowserService logic: `if (options?.profileId) ... return { page, context }` (reused context)
-            // `else ... const context = await browser.newContext() ... return { page, context }` (new context)
-            // So we SHOULD close the context if it's not a profile context.
-            // But we don't know if we got a profile context or not easily without checking args. 
-            // Here we called getPage() with no args, so it's a raw context.
-            await context.close();
+            await browserService.release(context);
         }
     }
 }

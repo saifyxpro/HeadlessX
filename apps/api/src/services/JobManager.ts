@@ -9,7 +9,6 @@ export interface Job {
     options: {
         waitForSelector?: string;
         timeout?: number;
-        profileId?: string;
         fullPage?: boolean;
     };
     status: 'pending' | 'running' | 'completed' | 'error' | 'cancelled';

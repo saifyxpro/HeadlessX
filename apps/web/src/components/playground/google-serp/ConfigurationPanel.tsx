@@ -1,17 +1,11 @@
 
-import { Search, Globe, Languages, ArrowRight, Loader2 } from 'lucide-react';
-import { UserIcon } from '@hugeicons/core-free-icons';
-import { CustomDropdown } from '@/components/ui/CustomDropdown';
-import { Profile } from './types';
+import { Search, Globe, Languages, ArrowRight, Loader2, Shield } from 'lucide-react';
 
 interface ConfigurationPanelProps {
     query: string;
     setQuery: (query: string) => void;
-    selectedProfileId: string;
-    setSelectedProfileId: (id: string) => void;
     timeout: number;
     setTimeout: (timeout: number) => void;
-    profiles: Profile[];
     onSearch: (e?: React.FormEvent) => void;
     isLoading: boolean;
 }
@@ -19,11 +13,8 @@ interface ConfigurationPanelProps {
 export function ConfigurationPanel({
     query,
     setQuery,
-    selectedProfileId,
-    setSelectedProfileId,
     timeout,
     setTimeout,
-    profiles,
     onSearch,
     isLoading
 }: ConfigurationPanelProps) {
@@ -59,28 +50,18 @@ export function ConfigurationPanel({
                         </div>
                     </div>
 
-                    {/* Profile Selection */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Browser Profile</label>
-                        <CustomDropdown
-                            value={selectedProfileId}
-                            onChange={setSelectedProfileId}
-                            placeholder="Fresh Session (No Profile)"
-                            icon={UserIcon}
-                            options={[
-                                { value: '', label: 'Fresh Session (No Profile)' },
-                                ...profiles
-                                    .filter(p => p.name !== 'Default Profile') // Filter out the internal system default
-                                    .map((profile) => ({
-                                        value: profile.id,
-                                        label: `${profile.name} (${profile.screen_width}x${profile.screen_height})`,
-                                        suffix: profile.is_running ? '●' : undefined
-                                    }))
-                            ]}
-                        />
-                        <p className="text-[10px] text-slate-400 px-1 leading-relaxed">
-                            Select "Fresh Session" for a clean, incognito-like environment, or choose a saved profile to use persistent cookies and history.
-                        </p>
+                        <div className="rounded-2xl border border-blue-100 bg-blue-50/70 px-4 py-4">
+                            <div className="flex items-start gap-3">
+                                <Shield className="mt-0.5 h-4 w-4 text-blue-600" />
+                                <div>
+                                    <div className="text-xs font-bold uppercase tracking-wider text-blue-700">Global Proxy</div>
+                                    <p className="mt-1 text-sm leading-6 text-slate-600">
+                                        Browser profiles were removed. Google SERP now uses the single global proxy from Settings when it is enabled.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Region & Language (Visual placeholders for now as per minimal implementation) */}

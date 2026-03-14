@@ -59,12 +59,22 @@ export default function SettingsPage() {
         }
     });
 
-    const [formData, setFormData] = useState<any>({ browserHeadless: true });
+    const [formData, setFormData] = useState<any>({
+        browserHeadless: true,
+        proxyEnabled: false,
+        proxyProtocol: 'http',
+        proxyUrl: ''
+    });
     const [activeTab, setActiveTab] = useState('general');
 
     useEffect(() => {
         if (data?.config) {
-            setFormData(data.config);
+            setFormData({
+                proxyEnabled: false,
+                proxyProtocol: 'http',
+                proxyUrl: '',
+                ...data.config
+            });
         }
     }, [data]);
 
@@ -73,6 +83,10 @@ export default function SettingsPage() {
     };
 
     const handleSave = () => {
+        if (formData.proxyEnabled && !String(formData.proxyUrl || '').trim()) {
+            setError('Enter a proxy URL or disable Global Proxy.');
+            return;
+        }
         mutation.mutate(formData);
     };
 
@@ -195,7 +209,61 @@ export default function SettingsPage() {
                         </Card>
                     )}
 
-                    {activeTab === 'proxies' && <ProxiesTab />}
+                    {activeTab === 'proxies' && (
+                        <div className="space-y-6">
+                            <Card>
+                                <CardHeader className="border-b border-slate-200 pb-4">
+                                    <CardTitle className="text-lg text-slate-900">Global Proxy</CardTitle>
+                                    <p className="text-sm text-slate-500 mt-1">Apply one proxy to every browser session in HeadlessX</p>
+                                </CardHeader>
+                                <CardContent className="space-y-6 pt-6">
+                                    <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                        <div className="space-y-1">
+                                            <div className="font-semibold text-slate-900 flex items-center gap-2">
+                                                Global Proxy Routing
+                                                <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">ONE PROXY</span>
+                                            </div>
+                                            <div className="text-sm text-slate-500">When enabled, every scraper session uses the proxy below</div>
+                                        </div>
+                                        <Switch checked={formData.proxyEnabled ?? false} onCheckedChange={(c) => handleChange('proxyEnabled', c)} />
+                                    </div>
+
+                                    <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                        <label className="text-sm font-semibold text-slate-900">Protocol</label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {['http', 'https', 'socks4', 'socks5'].map((protocol) => (
+                                                <Button
+                                                    key={protocol}
+                                                    type="button"
+                                                    size="sm"
+                                                    variant={(formData.proxyProtocol || 'http') === protocol ? 'default' : 'outline'}
+                                                    onClick={() => handleChange('proxyProtocol', protocol)}
+                                                    className="rounded-lg uppercase text-xs"
+                                                >
+                                                    {protocol}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                        <label className="text-sm font-semibold text-slate-900">Proxy URL</label>
+                                        <Input
+                                            value={formData.proxyUrl || ''}
+                                            onChange={(e) => handleChange('proxyUrl', e.target.value)}
+                                            placeholder="host:port or username:password@host:port"
+                                            className="bg-white font-mono"
+                                        />
+                                        <p className="text-xs text-slate-400">
+                                            Paste either a bare endpoint like <code>1.2.3.4:8080</code> or a full value with credentials. Saved proxies below are for storage and testing.
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <ProxiesTab />
+                        </div>
+                    )}
 
                     {activeTab === 'camoufox' && (
                         <Card>

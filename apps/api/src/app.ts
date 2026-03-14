@@ -62,10 +62,6 @@ app.use('/api/keys', keysRoutes);
 import logsRoutes from './routes/logsRoutes';
 app.use('/api/logs', logsRoutes);
 
-// Profiles: /api/profiles
-import profileRoutes from './routes/profileRoutes';
-app.use('/api/profiles', profileRoutes);
-
 // Proxies: /api/proxies
 import proxyRoutes from './routes/proxyRoutes';
 app.use('/api/proxies', proxyRoutes);
@@ -95,7 +91,6 @@ app.get('/api/health', (req, res) => {
         endpoints: {
             website: '/api/website/*',
             googleSerp: '/api/google-serp/* (coming soon)',
-            profiles: '/api/profiles/*',
             proxies: '/api/proxies/*',
             config: '/api/config',
             keys: '/api/keys',
@@ -107,4 +102,3 @@ app.get('/api/health', (req, res) => {
 // Server startup is handled by server_entry.ts
 
 export default app;
-

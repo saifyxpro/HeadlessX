@@ -225,7 +225,7 @@ export default function ProxiesTab() {
                 <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-slate-200">
                     <div>
                         <CardTitle className="text-xl text-slate-900">Saved Proxies</CardTitle>
-                        <p className="text-sm text-slate-500 mt-1">Manage your proxy servers for use across profiles</p>
+                        <p className="text-sm text-slate-500 mt-1">Store and test proxy endpoints, then use one global proxy from Settings above</p>
                     </div>
                     <Button
                         onClick={() => { resetForm(); setEditingProxy(null); setShowModal(true); }}

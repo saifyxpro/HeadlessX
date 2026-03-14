@@ -3,10 +3,11 @@
 import { useQuery } from "@tanstack/react-query";
 import {
     Activity02Icon,
-    UserGroupIcon,
     Key01Icon,
     PlayCircleIcon,
-    File01Icon
+    File01Icon,
+    Database01Icon as Server01Icon,
+    ComputerIcon
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -81,6 +82,11 @@ export default function Overview() {
         return <OverviewSkeleton />;
     }
 
+    const failedRate = Number.parseFloat(stats?.failedRate || "0");
+    const browserUsage = stats?.maxConcurrency
+        ? Math.min(100, ((stats?.runningBrowsers || 0) / stats.maxConcurrency) * 100)
+        : 0;
+
     return (
         <div className="space-y-6">
             <PageHeader
@@ -94,54 +100,56 @@ export default function Overview() {
                         <CardTitle className="text-sm font-medium text-slate-500">
                             Total Jobs
                         </CardTitle>
-                        <HugeiconsIcon icon={UserGroupIcon} className="h-4 w-4 text-blue-500" />
+                        <HugeiconsIcon icon={PlayCircleIcon} className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-slate-900">{stats?.totalJobs || 0}</div>
                         <p className="text-xs text-slate-500 mt-1">
-                            +180 from yesterday
+                            Request logs captured by the API
                         </p>
                     </CardContent>
                 </Card>
                 <Card className="col-span-1 h-full">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">
-                            Success Rate
+                            Failure Rate
                         </CardTitle>
                         <HugeiconsIcon icon={Activity02Icon} className="h-4 w-4 text-emerald-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-slate-900">99.6%</div>
+                        <div className="text-2xl font-bold text-slate-900">{stats?.failedRate || "0.0%"}</div>
                         <p className="text-xs text-slate-500 mt-1">
-                            Failure rate: {stats?.failedRate || "0%"}
+                            Lower is better for scrape reliability
                         </p>
                     </CardContent>
                 </Card>
                 <Card className="col-span-1 h-full">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">
-                            Active Profiles
+                            Saved Proxies
                         </CardTitle>
-                        <HugeiconsIcon icon={File01Icon} className="h-4 w-4 text-violet-500" />
+                        <HugeiconsIcon icon={Server01Icon} className="h-4 w-4 text-violet-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-slate-900">{stats?.totalProfiles || 0}</div>
+                        <div className="text-2xl font-bold text-slate-900">{stats?.totalProxies || 0}</div>
                         <p className="text-xs text-slate-500 mt-1">
-                            Storage: {stats?.storageUsage || "0.0"} MB
+                            {stats?.activeProxies || 0} marked active for reuse
                         </p>
                     </CardContent>
                 </Card>
                 <Card className="col-span-1 h-full">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">
-                            Cookies Saved
+                            Browser Capacity
                         </CardTitle>
-                        <HugeiconsIcon icon={Key01Icon} className="h-4 w-4 text-amber-500" />
+                        <HugeiconsIcon icon={ComputerIcon} className="h-4 w-4 text-amber-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-slate-900">{stats?.totalCookies || 0}</div>
+                        <div className="text-2xl font-bold text-slate-900">
+                            {stats?.runningBrowsers || 0} / {stats?.maxConcurrency || 0}
+                        </div>
                         <p className="text-xs text-slate-500 mt-1">
-                            Across all profiles
+                            {stats?.browserHeadless ? 'Headless' : 'Visible'} browser mode
                         </p>
                     </CardContent>
                 </Card>
@@ -175,10 +183,10 @@ export default function Overview() {
                                     <span className="font-medium">Playground</span>
                                 </Button>
                             </Link>
-                            <Link href="/api-keys" className="w-full">
+                            <Link href="/settings" className="w-full">
                                 <Button className="w-full justify-start h-11 px-5" variant="outline">
-                                    <HugeiconsIcon icon={Key01Icon} className="mr-3 h-5 w-5 text-amber-500" />
-                                    <span className="font-medium">Manage Keys</span>
+                                    <HugeiconsIcon icon={ComputerIcon} className="mr-3 h-5 w-5 text-amber-500" />
+                                    <span className="font-medium">Settings</span>
                                 </Button>
                             </Link>
                             <Link href="/logs" className="w-full">
@@ -205,26 +213,38 @@ export default function Overview() {
                         <CardContent className="p-6 pt-2 space-y-6">
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm font-medium text-slate-600">
-                                    <span>Active Browsers</span>
-                                    <span className="text-slate-900">{stats?.runningBrowsers || 0} / {stats?.system?.recommendedProfiles || 5}</span>
+                                    <span>Browser Usage</span>
+                                    <span className="text-slate-900">{stats?.runningBrowsers || 0} / {stats?.maxConcurrency || 0}</span>
                                 </div>
                                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                                     <div
                                         className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                                        style={{ width: `${Math.min(100, ((stats?.runningBrowsers || 0) / (stats?.system?.recommendedProfiles || 5)) * 100)}%` }}
+                                        style={{ width: `${browserUsage}%` }}
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm font-medium text-slate-600">
-                                    <span>Memory Usage (Est.)</span>
-                                    <span className="text-slate-900">{stats?.runningBrowsers ? Math.round(stats.runningBrowsers * 400) : 0} MB</span>
+                                    <span>Global Proxy</span>
+                                    <span className="text-slate-900">{stats?.proxyEnabled ? 'Enabled' : 'Disabled'}</span>
+                                </div>
+                                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                                    {stats?.proxyEnabled
+                                        ? 'Every browser session now routes through the configured global proxy.'
+                                        : 'Requests are running directly unless you enable a proxy in Settings.'}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm font-medium text-slate-600">
+                                    <span>Estimated Success Rate</span>
+                                    <span className="text-slate-900">{Math.max(0, 100 - failedRate).toFixed(1)}%</span>
                                 </div>
                                 <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                                     <div
                                         className="h-full bg-violet-500 rounded-full transition-all duration-500"
-                                        style={{ width: `${Math.min(100, ((stats?.runningBrowsers || 0) * 400 / (stats?.system?.totalRAM * 1024 || 16384)) * 100)}%` }}
+                                        style={{ width: `${Math.max(0, 100 - failedRate)}%` }}
                                     />
                                 </div>
                             </div>

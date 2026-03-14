@@ -5,7 +5,6 @@ import { CloudflareChallengeError } from '../services/CloudflareChallengeService
 
 const ScrapeRequestSchema = z.object({
     url: z.string().url(),
-    profileId: z.string().optional(),
     // Backward-compatible top-level fields
     stealth: z.boolean().optional(),
     timeout: z.number().optional(),
@@ -66,7 +65,7 @@ export class ScrapeControllerV2 {
     static async getHtml(req: Request, res: Response) {
         try {
             const parsed = ScrapeRequestSchema.parse(req.body);
-            const { url, profileId } = parsed;
+            const { url } = parsed;
             const normalized = normalizeOptions(parsed);
 
             const start = Date.now();
@@ -74,7 +73,6 @@ export class ScrapeControllerV2 {
                 waitForSelector: normalized.waitForSelector,
                 timeout: normalized.timeout,
                 apiKeyId: req.apiKeyId,
-                profileId,
                 stealth: normalized.stealth,
                 screenshotOnError: normalized.screenshotOnError,
                 jsEnabled: false // Standard HTML scrape
@@ -98,7 +96,7 @@ export class ScrapeControllerV2 {
     static async getHtmlJs(req: Request, res: Response) {
         try {
             const parsed = ScrapeRequestSchema.parse(req.body);
-            const { url, profileId } = parsed;
+            const { url } = parsed;
             const normalized = normalizeOptions(parsed);
 
             const start = Date.now();
@@ -107,7 +105,6 @@ export class ScrapeControllerV2 {
                 waitForSelector: normalized.waitForSelector || 'body',
                 timeout: normalized.timeout,
                 apiKeyId: req.apiKeyId,
-                profileId,
                 stealth: normalized.stealth ?? true, // Default to stealth for JS sites
                 screenshotOnError: normalized.screenshotOnError,
                 jsEnabled: true
@@ -131,14 +128,13 @@ export class ScrapeControllerV2 {
     static async getContent(req: Request, res: Response) {
         try {
             const parsed = ScrapeRequestSchema.parse(req.body);
-            const { url, profileId } = parsed;
+            const { url } = parsed;
             const normalized = normalizeOptions(parsed);
 
             const result = await scraperService.scrapeContent(url, {
                 waitForSelector: normalized.waitForSelector,
                 timeout: normalized.timeout,
                 apiKeyId: req.apiKeyId,
-                profileId,
                 stealth: normalized.stealth,
                 screenshotOnError: normalized.screenshotOnError
             });
@@ -165,13 +161,12 @@ export class ScrapeControllerV2 {
     static async getScreenshot(req: Request, res: Response) {
         try {
             const parsed = ScrapeRequestSchema.parse(req.body);
-            const { url, profileId } = parsed;
+            const { url } = parsed;
             const normalized = normalizeOptions(parsed);
             const buffer = await scraperService.screenshot(url, {
                 waitForSelector: normalized.waitForSelector,
                 timeout: normalized.timeout,
                 apiKeyId: req.apiKeyId,
-                profileId,
                 stealth: normalized.stealth
             });
 

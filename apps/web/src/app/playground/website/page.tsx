@@ -1,10 +1,9 @@
 'use client';
 
-import { Suspense } from 'react';
-import { useState, useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { OutputType, Profile, ScrapeResult, ProgressStep } from '@/components/playground/website/types';
+import { useMutation } from '@tanstack/react-query';
+import { OutputType, ScrapeResult, ProgressStep, WebsiteTool } from '@/components/playground/website/types';
 import { ScraperHeader } from '@/components/playground/website/ScraperHeader';
 import { ConfigurationPanel } from '@/components/playground/website/ConfigurationPanel';
 import { ResultsPanel } from '@/components/playground/website/ResultsPanel';
@@ -16,18 +15,12 @@ type ParsedStreamEvent = {
     data: any;
 };
 
-// Fetch profiles
-const fetchProfiles = async () => {
-    const res = await fetch('/api/profiles');
-    // Handle potential API transform if needed, or assume consistent response
-    return res.json();
-};
-
 // Inner component that uses useSearchParams - must be wrapped in Suspense
 function WebsiteScraperContent() {
     const searchParams = useSearchParams();
     const initialUrl = searchParams.get('url') || 'https://example.com';
     const [url, setUrl] = useState(initialUrl);
+    const [tool, setTool] = useState<WebsiteTool>('scrape');
     const [outputType, setOutputType] = useState<OutputType>('html');
     const [selector, setSelector] = useState('');
     const [timeout, setTimeoutValue] = useState(30000);
@@ -42,18 +35,9 @@ function WebsiteScraperContent() {
     const [startTime, setStartTime] = useState<number | null>(null);
     const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
-    const [selectedProfileId, setSelectedProfileId] = useState<string>('');
     const abortControllerRef = useRef<AbortController | null>(null);
     const streamCompletedRef = useRef(false);
     const stopRequestedRef = useRef(false);
-
-    // Fetch profiles
-    const { data: profilesData } = useQuery({
-        queryKey: ['profiles'],
-        queryFn: fetchProfiles,
-        refetchInterval: 5000,
-    });
-    const profiles: Profile[] = profilesData?.profiles || [];
 
     // Timer logic
     useEffect(() => {
@@ -235,6 +219,18 @@ function WebsiteScraperContent() {
     };
 
     const startStreamingScrape = async () => {
+        if (tool === 'crawl') {
+            setStartTime(Date.now());
+            setElapsedTime(0);
+            setSteps([]);
+            setResult({
+                type: 'error',
+                data: 'Crawl is coming soon in the website playground.'
+            });
+            setIsStreaming(false);
+            return;
+        }
+
         abortControllerRef.current = new AbortController();
         streamCompletedRef.current = false;
         stopRequestedRef.current = false;
@@ -254,8 +250,7 @@ function WebsiteScraperContent() {
                 body: JSON.stringify({
                     url,
                     type: outputType,
-                    profileId: selectedProfileId || undefined,
-                    stealth: stealth, // Pass stealth parameter
+                    stealth,
                     fullPage: outputType === 'screenshot' ? true : undefined,
                     options: {
                         waitForSelector: selector || undefined,
@@ -333,8 +328,7 @@ function WebsiteScraperContent() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     <ConfigurationPanel
                         url={url} setUrl={setUrl}
-                        selectedProfileId={selectedProfileId} setSelectedProfileId={setSelectedProfileId}
-                        profiles={profiles}
+                        tool={tool} setTool={setTool}
                         outputType={outputType} setOutputType={setOutputType}
                         selector={selector} setSelector={setSelector}
                         timeout={timeout} setTimeoutValue={setTimeoutValue}
