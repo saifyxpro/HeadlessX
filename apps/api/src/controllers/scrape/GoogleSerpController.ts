@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { googleSerpService, GoogleSerpService } from '../services/GoogleSerpService';
+import { googleSerpService, GoogleSerpService } from '../../services/scrape/GoogleSerpService';
 import { z } from 'zod';
-import { prisma } from '../database/client';
+import { prisma } from '../../database/client';
 
 const SearchSchema = z.object({
     query: z.string().min(1)

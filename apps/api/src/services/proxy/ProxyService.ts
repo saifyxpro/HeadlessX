@@ -1,8 +1,8 @@
-import { prisma } from '../database/client';
+import { prisma } from '../../database/client';
 import axios from 'axios';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { HttpsProxyAgent } from 'https-proxy-agent';
-import { decryptSecret, normalizeSecretForCreate, normalizeSecretForUpdate } from '../utils/security';
+import { decryptSecret, normalizeSecretForCreate, normalizeSecretForUpdate } from '../../utils/security';
 
 export interface ProxyTestResult {
     success: boolean;

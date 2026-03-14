@@ -15,6 +15,46 @@ model ApiKey {
   last_used_at DateTime?
   is_active    Boolean      @default(true)
   logs         RequestLog[]
+  jobs         QueueJob[]
+}
+
+enum QueueJobType {
+  SCRAPE
+  EXTRACT
+  INDEX
+}
+
+enum QueueJobStatus {
+  QUEUED
+  ACTIVE
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model QueueJob {
+  id               String         @id
+  api_key_id       String?
+  type             QueueJobType
+  status           QueueJobStatus @default(QUEUED)
+  queue_name       String         @default("headlessx-jobs")
+  target           String?
+  request_payload  Json
+  progress_payload Json?
+  result_payload   Json?
+  error_message    String?
+  attempts_made    Int            @default(0)
+  max_attempts     Int            @default(3)
+  cancel_requested Boolean        @default(false)
+  started_at       DateTime?
+  completed_at     DateTime?
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+  api_key          ApiKey?        @relation(fields: [api_key_id], references: [id])
+
+  @@index([status, created_at])
+  @@index([type, created_at])
+  @@index([cancel_requested])
 }
 
 model RequestLog {

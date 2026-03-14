@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import os from 'os';
-import { prisma } from '../database/client';
-import { configService } from '../services/ConfigService';
-import { browserService } from '../services/BrowserService';
+import { prisma } from '../../database/client';
+import { configService } from '../../services/config/ConfigService';
+import { browserService } from '../../services/scrape/BrowserService';
 
 export class DashboardController {
     /**
@@ -13,14 +13,10 @@ export class DashboardController {
         try {
             // Run queries in parallel for performance
             const [
-                activeProxies,
-                totalProxies,
                 totalJobs,
                 successfulJobs,
                 config
             ] = await Promise.all([
-                prisma.proxy.count({ where: { is_active: true } }),
-                prisma.proxy.count(),
                 prisma.requestLog.count(),
                 prisma.requestLog.count({ where: { status_code: 200 } }),
                 configService.getConfig()
@@ -43,8 +39,6 @@ export class DashboardController {
             const failedRate = `${failedRateVal.toFixed(1)}%`;
 
             res.json({
-                activeProxies,
-                totalProxies,
                 totalJobs,
                 failedRate,
                 runningBrowsers: runningBrowsersCount,

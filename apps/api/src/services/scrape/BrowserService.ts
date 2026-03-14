@@ -1,7 +1,7 @@
 import { Camoufox } from 'camoufox-js';
 import { Browser, BrowserContext, Page } from 'playwright-core';
 import { closeAnonymizedProxy } from 'proxy-chain';
-import { configService } from './ConfigService';
+import { configService } from '../config/ConfigService';
 
 interface BrowserContextOptions {
     stealth?: boolean;

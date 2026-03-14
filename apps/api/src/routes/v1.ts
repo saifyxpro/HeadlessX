@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { ScrapeController } from '../controllers/ScrapeController';
+import { ScrapeController } from '../controllers/scrape/ScrapeController';
 import { ApiKeyGuard } from '../middleware/ApiKeyGuard';
 import { RequestLogger } from '../middleware/RequestLogger';
 
@@ -18,7 +18,7 @@ router.post('/content', ScrapeController.gptContent);
 router.post('/screenshot', ScrapeController.screenshot);
 
 // Config Endpoints
-import { ConfigController } from '../controllers/ConfigController';
+import { ConfigController } from '../controllers/config/ConfigController';
 router.get('/config', ConfigController.getConfig);
 router.patch('/config', ConfigController.updateConfig);
 

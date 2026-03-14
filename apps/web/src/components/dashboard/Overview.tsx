@@ -6,7 +6,7 @@ import {
     Key01Icon,
     PlayCircleIcon,
     File01Icon,
-    Database01Icon as Server01Icon,
+    ServerStack01Icon,
     ComputerIcon
 } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -126,14 +126,16 @@ export default function Overview() {
                 <Card className="col-span-1 h-full">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-slate-500">
-                            Saved Proxies
+                            Global Proxy
                         </CardTitle>
-                        <HugeiconsIcon icon={Server01Icon} className="h-4 w-4 text-violet-500" />
+                        <HugeiconsIcon icon={ServerStack01Icon} className="h-4 w-4 text-violet-500" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-slate-900">{stats?.totalProxies || 0}</div>
+                        <div className="text-2xl font-bold text-slate-900">{stats?.proxyEnabled ? 'Enabled' : 'Disabled'}</div>
                         <p className="text-xs text-slate-500 mt-1">
-                            {stats?.activeProxies || 0} marked active for reuse
+                            {stats?.proxyEnabled
+                                ? 'Every scrape now routes through the configured global proxy.'
+                                : 'Scrapes run directly until you enable the global proxy in Settings.'}
                         </p>
                     </CardContent>
                 </Card>

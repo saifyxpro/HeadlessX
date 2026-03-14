@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { ApiKeyGuard } from '../middleware/ApiKeyGuard';
-import { RequestLogger } from '../middleware/RequestLogger';
-import { GoogleSerpController } from '../controllers/GoogleSerpController';
+import { ApiKeyGuard } from '../../middleware/ApiKeyGuard';
+import { RequestLogger } from '../../middleware/RequestLogger';
+import { GoogleSerpController } from '../../controllers/scrape/GoogleSerpController';
 
 const router = Router();
 

@@ -3,13 +3,13 @@ import fs from 'fs';
 import path from 'path';
 import { browserService } from './BrowserService';
 import { markdownService } from './MarkdownService';
-import { configService } from './ConfigService';
-import { prisma } from '../database/client';
+import { configService } from '../config/ConfigService';
+import { prisma } from '../../database/client';
 import {
     cloudflareChallengeService,
     CloudflareChallengeError
 } from './CloudflareChallengeService';
-import { waitForPageStability } from '../utils/pageStability';
+import { waitForPageStability } from '../../utils/pageStability';
 
 export interface ScrapeOptions {
     waitForSelector?: string;

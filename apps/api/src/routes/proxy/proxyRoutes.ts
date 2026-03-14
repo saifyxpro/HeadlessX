@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import * as ProxyController from '../controllers/ProxyController';
-import { ApiKeyGuard } from '../middleware/ApiKeyGuard';
-import { RequestLogger } from '../middleware/RequestLogger';
+import * as ProxyController from '../../controllers/proxy/ProxyController';
+import { ApiKeyGuard } from '../../middleware/ApiKeyGuard';
+import { RequestLogger } from '../../middleware/RequestLogger';
 
 const router = Router();
 

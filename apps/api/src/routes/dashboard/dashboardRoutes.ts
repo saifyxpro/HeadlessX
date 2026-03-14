@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { DashboardController } from '../controllers/DashboardController';
-import { ApiKeyGuard } from '../middleware/ApiKeyGuard';
-import { RequestLogger } from '../middleware/RequestLogger';
+import { DashboardController } from '../../controllers/dashboard/DashboardController';
+import { ApiKeyGuard } from '../../middleware/ApiKeyGuard';
+import { RequestLogger } from '../../middleware/RequestLogger';
 
 const router = Router();
 

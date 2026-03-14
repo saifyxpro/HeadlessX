@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { proxyService } from '../services/ProxyService';
+import { proxyService } from '../../services/proxy/ProxyService';
 
 const sanitizeProxy = (proxy: any) => ({
     ...proxy,

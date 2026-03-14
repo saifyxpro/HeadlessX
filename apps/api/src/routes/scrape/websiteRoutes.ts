@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { ScrapeControllerV2 } from '../controllers/ScrapeControllerV2';
-import { StreamingScrapeController } from '../controllers/StreamingScrapeController';
-import { ApiKeyGuard } from '../middleware/ApiKeyGuard';
-import { RequestLogger } from '../middleware/RequestLogger';
+import { ScrapeControllerV2 } from '../../controllers/scrape/ScrapeControllerV2';
+import { StreamingScrapeController } from '../../controllers/scrape/StreamingScrapeController';
+import { ApiKeyGuard } from '../../middleware/ApiKeyGuard';
+import { RequestLogger } from '../../middleware/RequestLogger';
 
 const router = Router();
 

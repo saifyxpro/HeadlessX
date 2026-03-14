@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { prisma } from '../database/client';
-import { configService } from '../services/ConfigService';
-import { browserService } from '../services/BrowserService';
+import { prisma } from '../../database/client';
+import { configService } from '../../services/config/ConfigService';
+import { browserService } from '../../services/scrape/BrowserService';
 
 export class ConfigController {
 

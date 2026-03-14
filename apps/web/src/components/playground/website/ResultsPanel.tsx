@@ -76,20 +76,8 @@ export function ResultsPanel({
 
     const handleCopy = () => {
         if (result && typeof result.data === 'object') {
-            let text: string;
-            if (result.type === 'html-css-js') {
-                const data = result.data as any;
-                text = JSON.stringify({
-                    html: data.html,
-                    styles: data.styles,
-                    scripts: data.scripts,
-                    inlineStyles: data.inlineStyles,
-                    inlineScripts: data.inlineScripts
-                }, null, 2);
-            } else {
-                const data = result.data as any;
-                text = data.html || data.markdown || '';
-            }
+            const data = result.data as any;
+            const text = data.html || data.markdown || '';
             navigator.clipboard.writeText(text);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
@@ -134,7 +122,7 @@ export function ResultsPanel({
     };
 
     const showViewToggle = result?.type === 'html' || result?.type === 'html-js' || result?.type === 'content';
-    const showCopy = showViewToggle || result?.type === 'html-css-js';
+    const showCopy = showViewToggle;
 
     return (
         <div className="relative flex h-full min-h-[600px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white lg:col-span-8">

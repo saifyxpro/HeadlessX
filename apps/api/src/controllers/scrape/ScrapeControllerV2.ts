@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
-import { scraperService } from '../services/ScraperService';
+import { scraperService } from '../../services/scrape/ScraperService';
 import { z } from 'zod';
-import { CloudflareChallengeError } from '../services/CloudflareChallengeService';
+import { CloudflareChallengeError } from '../../services/scrape/CloudflareChallengeService';
 
 const ScrapeRequestSchema = z.object({
     url: z.string().url(),

@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { ScrapeControllerV2 } from '../controllers/ScrapeControllerV2';
-import { ConfigController } from '../controllers/ConfigController';
+import { ScrapeControllerV2 } from '../controllers/scrape/ScrapeControllerV2';
+import { ConfigController } from '../controllers/config/ConfigController';
 import { ApiKeyGuard } from '../middleware/ApiKeyGuard';
 import { RequestLogger } from '../middleware/RequestLogger';
 

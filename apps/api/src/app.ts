@@ -39,19 +39,19 @@ app.use(express.json({ limit: process.env.BODY_LIMIT || '10mb' }));
 // =============================================
 
 // Website Scraping: /api/website/*
-import websiteRoutes from './routes/websiteRoutes';
+import websiteRoutes from './routes/scrape/websiteRoutes';
 app.use('/api/website', websiteRoutes);
 
 // Google SERP: /api/google-serp/* (Coming Soon)
-import googleSerpRoutes from './routes/googleSerpRoutes';
+import googleSerpRoutes from './routes/scrape/googleSerpRoutes';
 app.use('/api/google-serp', googleSerpRoutes);
 
 // Configuration: /api/config
-import configRoutes from './routes/configRoutes';
+import configRoutes from './routes/config/configRoutes';
 app.use('/api/config', configRoutes);
 
 // Dashboard: /api/dashboard
-import dashboardRoutes from './routes/dashboardRoutes';
+import dashboardRoutes from './routes/dashboard/dashboardRoutes';
 app.use('/api/dashboard', dashboardRoutes);
 
 // API Keys: /api/keys
@@ -63,11 +63,11 @@ import logsRoutes from './routes/logsRoutes';
 app.use('/api/logs', logsRoutes);
 
 // Proxies: /api/proxies
-import proxyRoutes from './routes/proxyRoutes';
+import proxyRoutes from './routes/proxy/proxyRoutes';
 app.use('/api/proxies', proxyRoutes);
 
 // Jobs: /api/jobs (for persistent scrape job tracking)
-import jobRoutes from './routes/jobRoutes';
+import jobRoutes from './routes/jobs/jobRoutes';
 app.use('/api/jobs', jobRoutes);
 
 // =============================================
@@ -94,7 +94,9 @@ app.get('/api/health', (req, res) => {
             proxies: '/api/proxies/*',
             config: '/api/config',
             keys: '/api/keys',
-            logs: '/api/logs'
+            logs: '/api/logs',
+            jobs: '/api/jobs',
+            queueMetrics: '/api/jobs/metrics'
         }
     });
 });

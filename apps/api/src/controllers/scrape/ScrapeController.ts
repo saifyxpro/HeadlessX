@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { scraperService } from '../services/ScraperService';
+import { scraperService } from '../../services/scrape/ScraperService';
+import { browserService } from '../../services/scrape/BrowserService';
 import { z } from 'zod';
 
 // Validation Schema
@@ -61,24 +62,8 @@ export class ScrapeController {
     }
 
     static async screenshot(req: Request, res: Response) {
-        // Keeping screenshot separate for now as ScraperService returns structured data, 
-        // but arguably ScraperService could support returning a Buffer.
-        // For now, let's leave screenshot using BrowserService directly or implement a wrapper in ScraperService later.
-        // Actually, let's stick to the current implementation for screenshot to minimize risk, 
-        // or just return 501 strictly if not crucial.
-        // The user wanted "Implementing Backend Architecture" so I should try to keep it working.
-        // I'll keep the direct BrowserService usage for screenshot for now, 
-        // or better, I will import browserService again since I removed it from imports.
-        // Wait, I am replacing the whole file content mostly?
-        // No, I am replacing lines 1-110 in the previous check.
-        // So I need to keep browserService import if I use it.
-
-        // Let's re-import browserService for screenshot method.
         try {
             const { url, waitForSelector } = ScrapeSchema.parse(req.body);
-            // Dynamic import to avoid circular dependency if any (though unlikely here)
-            const { browserService } = require('../services/BrowserService');
-
             const { page, context } = await browserService.getPage();
 
             try {
@@ -98,4 +83,3 @@ export class ScrapeController {
         }
     }
 }
-

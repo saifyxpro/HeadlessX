@@ -1,11 +1,11 @@
-import type { StreamProgress, StreamScrapeResult } from './StreamingScraperService';
+import type { StreamProgress, StreamScrapeResult } from './scrape/StreamingScraperService';
 import { randomUUID } from 'crypto';
 import type { Page } from 'playwright-core';
 
 export interface Job {
     id: string;
     url: string;
-    type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot';
+    type: 'html' | 'html-js' | 'content' | 'screenshot' | 'extract' | 'index';
     options: {
         waitForSelector?: string;
         timeout?: number;
@@ -50,8 +50,26 @@ class JobManager {
         type: Job['type'],
         options: Job['options']
     ): Job {
+        return this.registerJob(randomUUID(), url, type, options);
+    }
+
+    /**
+     * Register a job with a caller-supplied ID. Used by BullMQ workers so
+     * the abort controller and active page registry can follow the queue job ID.
+     */
+    public registerJob(
+        id: string,
+        url: string,
+        type: Job['type'],
+        options: Job['options']
+    ): Job {
+        const existing = this.jobs.get(id);
+        if (existing) {
+            return existing;
+        }
+
         const job: Job = {
-            id: randomUUID(),
+            id,
             url,
             type,
             options,
@@ -221,6 +239,16 @@ class JobManager {
         const job = this.jobs.get(jobId);
         if (job) {
             job.listeners.delete(listener);
+        }
+    }
+
+    /**
+     * Remove a job from the in-memory registry immediately.
+     */
+    public removeJob(jobId: string) {
+        this.jobs.delete(jobId);
+        if (this.activeJobId === jobId) {
+            this.activeJobId = null;
         }
     }
 

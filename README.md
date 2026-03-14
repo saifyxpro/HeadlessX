@@ -238,6 +238,7 @@ CREDENTIAL_ENCRYPTION_KEY="replace-with-a-different-long-random-string"
 # Optional: Server configuration
 PORT=8000
 NODE_ENV=development
+REDIS_URL=redis://localhost:6379
 ```
 
 Generate secure values before starting the app:
@@ -258,8 +259,9 @@ mise run setup
 Or manually:
 ```bash
 pnpm install
-pnpm --filter api db:push
-pnpm --filter api exec camoufox-js fetch
+pnpm --filter headlessx-api db:push
+pnpm --filter headlessx-api exec camoufox-js fetch
+# Redis is required for BullMQ-backed async jobs
 ```
 
 ### 3️⃣ Start Development Server
@@ -275,6 +277,8 @@ Or manually:
 pnpm dev
 ```
 
+`pnpm dev` now starts the API, queue worker, and web dashboard together.
+
 ### 🐳 Docker Deployment
 
 HeadlessX can be easily deployed using Docker Compose. See the [Docker Setup Guide](docs/docker_setup.md) for detailed instructions.
@@ -285,7 +289,8 @@ docker compose -f infra/docker/docker-compose.yml up -d
 ```
 
 The Docker stack now requires `DASHBOARD_INTERNAL_API_KEY` and `CREDENTIAL_ENCRYPTION_KEY` in `.env`. The API will refuse to boot without them.
-The API container now applies Prisma migrations automatically on startup, so you do not need to run manual `pnpm db:*` commands for the Docker workflow.
+The API and worker containers now apply Prisma migrations automatically on startup, so you do not need to run manual `pnpm db:*` commands for the Docker workflow.
+Docker Compose now starts `postgres`, `redis`, `api`, `worker`, and `web` for the full async queue-enabled stack.
 
 ### 6️⃣ Access the Application
 
@@ -300,10 +305,10 @@ You can customize ports via environment variables:
 
 ```bash
 # Backend (from root)
-PORT=8000 pnpm --filter api dev
+PORT=8000 pnpm --filter headlessx-api dev
 
 # Frontend
-WEB_PORT=3000 pnpm --filter web dev
+WEB_PORT=3000 pnpm --filter headlessx-web dev
 ```
 
 ---
@@ -364,6 +369,20 @@ WEB_PORT=3000 pnpm --filter web dev
 | `/api/google-serp/search` | `POST` | Extract Google search results |
 | `/api/google-serp/stream` | `GET`  | Real-time SSE Stream          |
 
+### Async Queue APIs
+
+| Endpoint               | Method | Description                                 |
+| ---------------------- | ------ | ------------------------------------------- |
+| `/api/jobs`            | `POST` | Enqueue a generic async scrape/extract/index job |
+| `/api/jobs`            | `GET`  | List recent async jobs                      |
+| `/api/jobs/metrics`    | `GET`  | BullMQ queue metrics                        |
+| `/api/jobs/scrape`     | `POST` | Enqueue an async scrape job                 |
+| `/api/jobs/extract`    | `POST` | Enqueue an async extraction job             |
+| `/api/jobs/index`      | `POST` | Enqueue an async indexing job               |
+| `/api/jobs/:id`        | `GET`  | Fetch async job status/result               |
+| `/api/jobs/:id/cancel` | `POST` | Cancel a queued or active async job         |
+| `/api/jobs/:id/stream` | `GET`  | Poll-backed SSE stream for async job state  |
+
 ### Example Request
 
 ```bash
@@ -405,6 +424,12 @@ Only the following core variables are required in `.env`:
 | `NEXT_PUBLIC_API_URL`        | `http://localhost:8000` | Frontend API URL                                          |
 | `DASHBOARD_INTERNAL_API_KEY` | -                       | Required server-side secret for dashboard to API traffic  |
 | `CREDENTIAL_ENCRYPTION_KEY`  | -                       | Required key for encrypting stored proxy/profile passwords |
+| `REDIS_URL`                  | `redis://localhost:6379`| Redis connection for BullMQ-backed async jobs             |
+| `BULLMQ_QUEUE_NAME`          | `headlessx-jobs`        | BullMQ queue namespace                                    |
+| `QUEUE_WORKER_CONCURRENCY`   | `2`                     | Worker concurrency for async jobs                         |
+| `QUEUE_JOB_ATTEMPTS`         | `3`                     | Retry attempts for queue jobs                             |
+| `QUEUE_JOB_BACKOFF_MS`       | `5000`                  | Exponential backoff seed for BullMQ retries               |
+| `QUEUE_STREAM_POLL_MS`       | `1000`                  | SSE polling interval for persisted queue jobs             |
 
 The dashboard now proxies `/api/*` requests server-side. Do not expose `DASHBOARD_INTERNAL_API_KEY` to browser code or public env vars.
 
@@ -450,6 +475,9 @@ npx prisma db push
 
 # 5. Start dev server
 pnpm dev
+
+# Queue worker only
+pnpm --filter headlessx-api worker:dev
 ```
 
 ### Frontend

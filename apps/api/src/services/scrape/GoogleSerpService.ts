@@ -1,6 +1,6 @@
 import { Page, BrowserContext } from 'playwright-core';
 import { browserService } from './BrowserService';
-import { captchaSolverService } from './CaptchaSolverService';
+import { captchaSolverService } from '../CaptchaSolverService';
 
 export interface SerpResult {
     ai_overview: string | null;

@@ -1,12 +1,14 @@
 import { Request, Response } from 'express';
-import { streamingScraperService, StreamProgress } from '../services/StreamingScraperService';
-import { jobManager, Job } from '../services/JobManager';
-import { prisma } from '../database/client';
+import { streamingScraperService, StreamProgress } from '../../services/scrape/StreamingScraperService';
+import { jobManager } from '../../services/JobManager';
+import { prisma } from '../../database/client';
+import { queueConfig } from '../../services/queue/queueConfig';
+import { queueJobService } from '../../services/queue/QueueJobService';
 import { z } from 'zod';
 
 const StreamRequestSchema = z.object({
     url: z.string().url(),
-    type: z.enum(['html', 'html-js', 'html-css-js', 'content', 'screenshot']),
+    type: z.enum(['html', 'html-js', 'content', 'screenshot']),
     stealth: z.boolean().optional(), // Speed mode when false
     fullPage: z.boolean().optional(),
     options: z.object({
@@ -213,23 +215,28 @@ export class StreamingScrapeController {
      * GET /api/jobs/active
      */
     static async getActiveJob(req: Request, res: Response) {
-        const job = jobManager.getActiveJob();
+        const streamJob = jobManager.getActiveJob();
+        if (streamJob) {
+            return res.json({
+                active: true,
+                job: {
+                    id: streamJob.id,
+                    url: streamJob.url,
+                    type: streamJob.type,
+                    status: streamJob.status,
+                    progress: streamJob.progress,
+                    createdAt: streamJob.createdAt,
+                    source: 'stream'
+                }
+            });
+        }
 
-        if (!job) {
+        const queueJob = await queueJobService.getFirstActiveJob();
+        if (!queueJob) {
             return res.json({ active: false, job: null });
         }
 
-        res.json({
-            active: true,
-            job: {
-                id: job.id,
-                url: job.url,
-                type: job.type,
-                status: job.status,
-                progress: job.progress,
-                createdAt: job.createdAt
-            }
-        });
+        res.json({ active: true, job: { ...queueJobService.serializeJob(queueJob), source: 'queue' } });
     }
 
     /**
@@ -238,29 +245,33 @@ export class StreamingScrapeController {
      */
     static async getJob(req: Request, res: Response) {
         const id = req.params.id as string;
-        const job = jobManager.getJob(id);
+        const streamJob = jobManager.getJob(id);
 
-        if (!job) {
+        if (streamJob) {
+            let formattedResult: any = null;
+            if ((streamJob.status === 'completed' || streamJob.status === 'cancelled') && streamJob.result) {
+                formattedResult = StreamingScrapeController.formatResult(streamJob.type, streamJob.result);
+            }
+
+            return res.json({
+                id: streamJob.id,
+                url: streamJob.url,
+                type: streamJob.type,
+                status: streamJob.status,
+                progress: streamJob.progress,
+                result: formattedResult,
+                error: streamJob.error,
+                createdAt: streamJob.createdAt,
+                updatedAt: streamJob.updatedAt
+            });
+        }
+
+        const queueJob = await queueJobService.getJobById(id);
+        if (!queueJob) {
             return res.status(404).json({ error: 'Job not found' });
         }
 
-        // Include result if job is completed
-        let formattedResult: any = null;
-        if ((job.status === 'completed' || job.status === 'cancelled') && job.result) {
-            formattedResult = StreamingScrapeController.formatResult(job.type, job.result);
-        }
-
-        res.json({
-            id: job.id,
-            url: job.url,
-            type: job.type,
-            status: job.status,
-            progress: job.progress,
-            result: formattedResult,
-            error: job.error,
-            createdAt: job.createdAt,
-            updatedAt: job.updatedAt
-        });
+        res.json(queueJobService.serializeJob(queueJob));
     }
 
     /**
@@ -272,7 +283,12 @@ export class StreamingScrapeController {
         const job = jobManager.getJob(id);
 
         if (!job) {
-            return res.status(404).json({ error: 'Job not found' });
+            const queuedJob = await queueJobService.getJobById(id);
+            if (!queuedJob) {
+                return res.status(404).json({ error: 'Job not found' });
+            }
+
+            return StreamingScrapeController.streamQueueJob(req, res, id);
         }
 
         // Set SSE headers
@@ -337,16 +353,115 @@ export class StreamingScrapeController {
         const id = req.params.id as string;
         const job = jobManager.getJob(id);
 
-        if (!job) {
+        if (job) {
+            if (job.status === 'completed' || job.status === 'error' || job.status === 'cancelled') {
+                return res.status(400).json({ error: 'Job is already finished' });
+            }
+
+            jobManager.cancelJob(id);
+            return res.json({ success: true, message: 'Job cancelled' });
+        }
+
+        const cancelled = await queueJobService.cancelJob(id);
+        if (!cancelled.found) {
             return res.status(404).json({ error: 'Job not found' });
         }
 
-        if (job.status === 'completed' || job.status === 'error' || job.status === 'cancelled') {
-            return res.status(400).json({ error: 'Job is already finished' });
+        if (!cancelled.cancelled) {
+            return res.status(400).json({ error: cancelled.reason });
         }
 
-        jobManager.cancelJob(id);
-        res.json({ success: true, message: 'Job cancelled' });
+        res.json({ success: true, message: 'Job cancellation requested', mode: cancelled.mode });
+    }
+
+    private static async streamQueueJob(req: Request, res: Response, jobId: string) {
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('X-Accel-Buffering', 'no');
+        res.flushHeaders();
+
+        let lastUpdatedAt = '';
+        let isClosed = false;
+
+        const sendEvent = (event: string, data: any) => {
+            if (res.writableEnded || res.destroyed) {
+                return;
+            }
+
+            res.write(`event: ${event}\n`);
+            res.write(`data: ${JSON.stringify(data)}\n\n`);
+        };
+
+        const poll = async () => {
+            if (isClosed) {
+                return;
+            }
+
+            const queuedJob = await queueJobService.getJobById(jobId);
+            if (!queuedJob) {
+                sendEvent('error', { success: false, error: 'Job not found' });
+                sendEvent('done', { timestamp: Date.now() });
+                res.end();
+                isClosed = true;
+                return;
+            }
+
+            if (!lastUpdatedAt) {
+                sendEvent('reconnect', {
+                    jobId: queuedJob.id,
+                    url: queuedJob.target,
+                    type: queuedJob.type.toLowerCase(),
+                    status: queuedJob.status.toLowerCase(),
+                });
+            }
+
+            const nextUpdatedAt = queuedJob.updated_at.toISOString();
+            if (lastUpdatedAt !== nextUpdatedAt) {
+                if (queuedJob.progress_payload) {
+                    sendEvent('progress', queuedJob.progress_payload);
+                }
+                if (queuedJob.result_payload) {
+                    sendEvent('result', queuedJob.result_payload);
+                } else if (queuedJob.error_message && queuedJob.status === 'FAILED') {
+                    sendEvent('error', { success: false, error: queuedJob.error_message });
+                }
+
+                if (queuedJob.status === 'CANCELLED') {
+                    sendEvent('cancelled', { jobId: queuedJob.id });
+                }
+
+                lastUpdatedAt = nextUpdatedAt;
+            }
+
+            if (queuedJob.status === 'COMPLETED' || queuedJob.status === 'FAILED' || queuedJob.status === 'CANCELLED') {
+                sendEvent('done', {
+                    timestamp: Date.now(),
+                    cancelled: queuedJob.status === 'CANCELLED',
+                });
+                res.end();
+                isClosed = true;
+            }
+        };
+
+        const interval = setInterval(() => {
+            poll().catch((error) => {
+                sendEvent('error', {
+                    success: false,
+                    error: error instanceof Error ? error.message : 'Queue stream polling failed',
+                });
+                sendEvent('done', { timestamp: Date.now() });
+                res.end();
+                isClosed = true;
+            });
+        }, queueConfig.streamPollMs);
+
+        req.on('close', () => {
+            isClosed = true;
+            clearInterval(interval);
+        });
+
+        await poll();
     }
 
     /**
@@ -385,36 +500,19 @@ export class StreamingScrapeController {
                 duration: result.duration,
                 statusCode: result.statusCode
             };
-        } else if (type === 'html-css-js') {
-            return {
-                success: true,
-                type,
-                data: {
-                    html: result.html,
-                    title: result.title,
-                    metadata: result.metadata,
-                    styles: result.styles,
-                    scripts: result.scripts,
-                    inlineStyles: result.inlineStyles,
-                    inlineScripts: result.inlineScripts
-                },
-                url: result.url,
-                duration: result.duration,
-                statusCode: result.statusCode
-            };
-        } else {
-            return {
-                success: true,
-                type,
-                data: {
-                    html: result.html,
-                    title: result.title,
-                    metadata: result.metadata
-                },
-                url: result.url,
-                duration: result.duration,
-                statusCode: result.statusCode
-            };
         }
+
+        return {
+            success: true,
+            type,
+            data: {
+                html: result.html,
+                title: result.title,
+                metadata: result.metadata
+            },
+            url: result.url,
+            duration: result.duration,
+            statusCode: result.statusCode
+        };
     }
 }

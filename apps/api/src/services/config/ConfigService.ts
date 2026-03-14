@@ -1,4 +1,4 @@
-import { prisma } from '../database/client';
+import { prisma } from '../../database/client';
 
 export interface SystemConfig {
     browserHeadless: boolean;

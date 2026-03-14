@@ -1,14 +1,14 @@
 import { Page } from 'playwright-core';
 import { browserService } from './BrowserService';
 import { markdownService } from './MarkdownService';
-import { configService } from './ConfigService';
+import { configService } from '../config/ConfigService';
 import {
     cloudflareChallengeService,
     CloudflareChallengeDetection,
     CloudflareChallengeError
 } from './CloudflareChallengeService';
-import { waitForPageStability } from '../utils/pageStability';
-import { jobManager } from './JobManager';
+import { waitForPageStability } from '../../utils/pageStability';
+import { jobManager } from '../JobManager';
 
 export interface StreamProgress {
     step: number;
@@ -27,10 +27,6 @@ export interface StreamScrapeResult {
     statusCode?: number;
     metadata?: Record<string, any>;
     screenshot?: Buffer;
-    styles?: string[];
-    scripts?: string[];
-    inlineStyles?: string;
-    inlineScripts?: string;
     error?: string;
     code?: string;
     challenge?: CloudflareChallengeDetection;
@@ -135,7 +131,7 @@ class StreamingScraperService {
      */
     public async scrapeWithProgress(
         url: string,
-        type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot',
+        type: 'html' | 'html-js' | 'content' | 'screenshot',
         options: {
             jobId?: string;
             abortSignal?: AbortSignal;
@@ -217,7 +213,7 @@ class StreamingScraperService {
 
             await this.ensureNoCloudflareChallenge(
                 page, 
-                options.jsEnabled || type === 'html-js' || type === 'html-css-js',
+                options.jsEnabled || type === 'html-js',
                 onProgress,
                 currentStep,
                 totalSteps
@@ -251,7 +247,7 @@ class StreamingScraperService {
             }
 
             // Only wait for networkidle on JS-heavy pages, with shorter timeout
-            if (options.jsEnabled || type === 'html-js' || type === 'html-css-js') {
+            if (options.jsEnabled || type === 'html-js') {
                 try {
                     await page.waitForLoadState('networkidle', { timeout: Math.min(requestTimeout, 15000) });
                 } catch (e) {
@@ -377,47 +373,6 @@ class StreamingScraperService {
                         title,
                         statusCode,
                         metadata: metadata as Record<string, any>,
-                        duration: Date.now() - startTime
-                    };
-                } else if (type === 'html-css-js') {
-                    // Extract all CSS and JS resources
-                    const resources = await page.evaluate(`(() => {
-                        // External stylesheets
-                        const styleLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-                            .map(el => el.href)
-                            .filter(href => href);
-                        
-                        // External scripts
-                        const scriptSrcs = Array.from(document.querySelectorAll('script[src]'))
-                            .map(el => el.src)
-                            .filter(src => src);
-                        
-                        // Inline styles
-                        const inlineStyles = Array.from(document.querySelectorAll('style'))
-                            .map(el => el.textContent)
-                            .filter(text => text)
-                            .join('\\n\\n/* --- */\\n\\n');
-                        
-                        // Inline scripts
-                        const inlineScripts = Array.from(document.querySelectorAll('script:not([src])'))
-                            .map(el => el.textContent)
-                            .filter(text => text && text.trim().length > 0)
-                            .join('\\n\\n/* --- */\\n\\n');
-                        
-                        return { styleLinks, scriptSrcs, inlineStyles, inlineScripts };
-                    })()`);
-
-                    resultData = {
-                        success: true,
-                        url,
-                        html,
-                        title,
-                        statusCode,
-                        metadata: metadata as Record<string, any>,
-                        styles: (resources as any).styleLinks,
-                        scripts: (resources as any).scriptSrcs,
-                        inlineStyles: (resources as any).inlineStyles,
-                        inlineScripts: (resources as any).inlineScripts,
                         duration: Date.now() - startTime
                     };
                 } else {
