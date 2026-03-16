@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { TavilyHeader } from './TavilyHeader';
 import { ConfigurationPanel } from './config/ConfigurationPanel';
 import { ResultsPanel } from './results/ResultsPanel';
+import { WorkbenchLayout } from '../shared';
 import type {
     TavilyCitationFormat,
     TavilyRawContentMode,
@@ -298,8 +299,9 @@ export function TavilyWorkbench({ available }: TavilyWorkbenchProps) {
     };
 
     return (
-        <div className="space-y-6">
-            <TavilyHeader
+        <WorkbenchLayout
+            header={
+                <TavilyHeader
                 available={available}
                 tool={tool}
                 onToolChange={setTool}
@@ -307,9 +309,9 @@ export function TavilyWorkbench({ available }: TavilyWorkbenchProps) {
                 isPending={isPending}
                 hasResult={tool === 'search' ? Boolean(searchResult) : Boolean(researchResult)}
                 hasError={Boolean(error)}
-            />
-
-            <div className="grid items-start gap-6 xl:grid-cols-12">
+                />
+            }
+            config={
                 <ConfigurationPanel
                     available={available}
                     tool={tool}
@@ -345,7 +347,8 @@ export function TavilyWorkbench({ available }: TavilyWorkbenchProps) {
                     onRun={tool === 'search' ? runSearch : runResearch}
                     onStop={stopCurrentRun}
                 />
-
+            }
+            results={
                 <ResultsPanel
                     tool={tool}
                     available={available}
@@ -358,7 +361,7 @@ export function TavilyWorkbench({ available }: TavilyWorkbenchProps) {
                     isPending={isPending}
                     elapsedTime={elapsedTime}
                 />
-            </div>
-        </div>
+            }
+        />
     );
 }

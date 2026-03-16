@@ -33,12 +33,29 @@ type PlaygroundTool = {
 };
 
 interface PlaygroundClientProps {
+    exaAvailable: boolean;
     tavilyAvailable: boolean;
 }
 
-export function PlaygroundClient({ tavilyAvailable }: PlaygroundClientProps) {
+export function PlaygroundClient({ exaAvailable, tavilyAvailable }: PlaygroundClientProps) {
     const router = useRouter();
     const [searchUrl, setSearchUrl] = useState('');
+
+    const getInactiveMessage = (tool: PlaygroundTool) => {
+        if (tool.inactiveLabel !== 'env required') {
+            return 'Not Available';
+        }
+
+        if (tool.id === 'exa') {
+            return 'Add Exa API key';
+        }
+
+        if (tool.id === 'tavily') {
+            return 'Add Tavily API key';
+        }
+
+        return 'Add API key';
+    };
 
     const scrapers: PlaygroundTool[] = [
         {
@@ -48,7 +65,7 @@ export function PlaygroundClient({ tavilyAvailable }: PlaygroundClientProps) {
             description: 'Extract HTML, render JavaScript, capture screenshots, crawl pages, and map links with enterprise-grade stealth technology.',
             icon: Globe02Icon,
             available: true,
-            href: '/playground/website',
+            href: '/playground/website/scrape',
             features: ['Extract', 'Crawl', 'Map'],
             color: 'text-blue-600',
             bg: 'bg-blue-600/10',
@@ -76,6 +93,19 @@ export function PlaygroundClient({ tavilyAvailable }: PlaygroundClientProps) {
             features: ['Search', 'Extract', 'Research'],
             color: 'text-emerald-600',
             bg: 'bg-emerald-600/10',
+            inactiveLabel: 'env required',
+        },
+        {
+            id: 'exa',
+            name: 'Exa',
+            tagline: 'LLM-first web search',
+            description: 'Search the web with Exa using highlights, text extraction, category filters, and optional deep search synthesis.',
+            icon: '/icons/exa.svg',
+            available: exaAvailable,
+            href: '/playground/exa',
+            features: ['Search', 'Highlights', 'Deep Search'],
+            color: 'text-slate-900',
+            bg: 'bg-slate-900/10',
             inactiveLabel: 'env required',
         },
         {
@@ -179,7 +209,7 @@ export function PlaygroundClient({ tavilyAvailable }: PlaygroundClientProps) {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (searchUrl.trim()) {
-            router.push(`/playground/website?url=${encodeURIComponent(searchUrl.trim())}`);
+            router.push(`/playground/website/scrape?url=${encodeURIComponent(searchUrl.trim())}`);
         }
     };
 
@@ -282,7 +312,7 @@ export function PlaygroundClient({ tavilyAvailable }: PlaygroundClientProps) {
                                     <div className="mt-auto">
                                         <div className="mb-6 flex flex-wrap gap-2">
                                             {scraper.features.map((feature) => (
-                                                <span key={feature} className="rounded-md border border-slate-200/50 bg-slate-100/80 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                                                <span key={feature} className="rounded-md border border-slate-200/60 bg-white shadow-sm px-2.5 py-1 text-[11px] font-semibold text-slate-600">
                                                     {feature}
                                                 </span>
                                             ))}
@@ -328,7 +358,7 @@ export function PlaygroundClient({ tavilyAvailable }: PlaygroundClientProps) {
                                         </div>
 
                                         <div className="flex items-center text-sm font-bold text-slate-400">
-                                            <span>{scraper.inactiveLabel === 'env required' ? 'Add Tavily API key' : 'Not Available'}</span>
+                                            <span>{getInactiveMessage(scraper)}</span>
                                         </div>
                                     </div>
                                 </CardContent>

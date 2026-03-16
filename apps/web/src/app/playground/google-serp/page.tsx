@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { GoogleSerpHeader } from '@/components/playground/google-serp/GoogleSerpHeader';
 import { ConfigurationPanel } from '@/components/playground/google-serp/ConfigurationPanel';
 import { ResultsPanel } from '@/components/playground/google-serp/ResultsPanel';
+import { WorkbenchLayout } from '@/components/playground/shared';
 import { SearchResponse, ProgressStep } from '@/components/playground/google-serp/types';
 
 type ParsedSerpStreamEvent = {
@@ -198,26 +199,27 @@ export default function GoogleSerpPage() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="relative">
+        <WorkbenchLayout
+            header={
                 <GoogleSerpHeader
                     elapsedTime={elapsedTime}
                     isLoading={isLoading}
                     hasResult={!!data}
                     error={error}
                 />
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    <ConfigurationPanel
+            }
+            config={
+                <ConfigurationPanel
                         query={query}
                         setQuery={setQuery}
                         timeout={timeout}
                         setTimeout={setTimeout}
                         onSearch={handleSearch}
                         isLoading={isLoading}
-                    />
-
-                    <ResultsPanel
+                />
+            }
+            results={
+                <ResultsPanel
                         data={data}
                         isStreaming={isStreaming}
                         isPending={isLoading && !isStreaming}
@@ -225,9 +227,9 @@ export default function GoogleSerpPage() {
                         steps={steps}
                         elapsedTime={elapsedTime}
                         onRetry={handleSearch}
-                    />
-                </div>
-            </div>
-        </div>
+                />
+            }
+            gridClassName="grid-cols-1 lg:grid-cols-12 gap-8"
+        />
     );
 }

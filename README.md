@@ -350,7 +350,7 @@ WEB_PORT=3000 pnpm --filter headlessx-web dev
 | 🎨 **HeroUI**       | Beautiful dark/light mode UI    |
 | ⚙️ **Live Config**  | Change settings without restart |
 | 📊 **Request Logs** | Full history with screenshots   |
-| 🧪 **Playground**   | Test scraping in real-time      |
+| 🧪 **Playground**   | Website, Google SERP, and Tavily workbenches |
 | 🔑 **API Keys**     | Secure key management           |
 
 </td>
@@ -439,8 +439,21 @@ Only the following core variables are required in `.env`:
 | `QUEUE_JOB_ATTEMPTS`         | `3`                     | Retry attempts for queue jobs                             |
 | `QUEUE_JOB_BACKOFF_MS`       | `5000`                  | Exponential backoff seed for BullMQ retries               |
 | `QUEUE_STREAM_POLL_MS`       | `1000`                  | SSE polling interval for persisted queue jobs             |
+| `TAVILY_API_KEY`             | -                       | Enables Tavily Search and Research in the playground/API  |
 
 The dashboard now proxies `/api/*` requests server-side. Do not expose `DASHBOARD_INTERNAL_API_KEY` to browser code or public env vars.
+
+### Tavily API Access
+
+<p>
+  <img src="apps/web/public/icons/tavily.svg" alt="Tavily" width="28" />
+</p>
+
+HeadlessX includes a Tavily playground and backend Tavily routes.
+
+- Sign up: [https://www.tavily.com/](https://www.tavily.com/)
+- Pricing: Tavily's current free plan advertises **1,000 API credits / month**
+- Add your Tavily key to `TAVILY_API_KEY` to activate `/playground/tavily` and `/api/tavily/*`
 
 ### Dashboard Settings
 

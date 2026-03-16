@@ -16,6 +16,7 @@ import {
 import { EmptyState } from './EmptyState';
 import { ProgressState } from './ProgressState';
 import { ResultsHeader } from './ResultsHeader';
+import { ResultsPanelShell } from '../../shared';
 
 interface ResultsPanelProps {
     tool: TavilyTool;
@@ -86,8 +87,9 @@ export function ResultsPanel(props: ResultsPanelProps) {
     };
 
     return (
-        <div className="relative flex min-h-[700px] flex-col overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white xl:col-span-8">
-            <ResultsHeader
+        <ResultsPanelShell
+            header={
+                <ResultsHeader
                 tool={tool}
                 hasResult={hasResult}
                 hasError={Boolean(error)}
@@ -103,9 +105,10 @@ export function ResultsPanel(props: ResultsPanelProps) {
                 onToggleRaw={() => setViewRaw((current) => !current)}
                 onCopy={handleCopy}
                 onSave={handleSave}
-            />
-
-            <div className="relative flex min-h-[640px] flex-1 flex-col bg-white">
+                />
+            }
+            bodyClassName="min-h-[640px]"
+        >
                 {!hasResult && !isPending && !error && <EmptyState tool={tool} available={available} />}
                 {isPending && !hasResult && (
                     <ProgressState
@@ -265,7 +268,6 @@ export function ResultsPanel(props: ResultsPanelProps) {
                         </div>
                     )
                 )}
-            </div>
-        </div>
+        </ResultsPanelShell>
     );
 }

@@ -9,6 +9,7 @@ import { MapResults } from './MapResults';
 import { ProgressState } from './ProgressState';
 import { ResultsHeader } from './ResultsHeader';
 import { ScrapePreview } from './ScrapePreview';
+import { ResultsPanelShell } from '../../shared';
 
 interface ResultsPanelProps {
     tool: WebsiteTool;
@@ -180,8 +181,9 @@ export function ResultsPanel({
     };
 
     return (
-        <div className="relative min-h-[700px] overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white xl:col-span-8">
-            <ResultsHeader
+        <ResultsPanelShell
+            header={
+                <ResultsHeader
                 tool={tool}
                 result={result}
                 isStreaming={isStreaming}
@@ -199,9 +201,10 @@ export function ResultsPanel({
                 onCopy={handleCopy}
                 canSave={canSave}
                 onSave={handleDownload}
-            />
-
-            <div className="relative min-h-[640px] bg-white">
+                />
+            }
+            bodyClassName="min-h-[640px]"
+        >
                 {!result && !isStreaming && !isPending && <EmptyState tool={tool} />}
                 {(isStreaming || isPending) && <ProgressState steps={steps} />}
 
@@ -254,7 +257,6 @@ export function ResultsPanel({
                         expanded={expanded}
                     />
                 )}
-            </div>
-        </div>
+        </ResultsPanelShell>
     );
 }

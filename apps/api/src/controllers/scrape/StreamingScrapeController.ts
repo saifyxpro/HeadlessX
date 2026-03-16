@@ -20,7 +20,7 @@ const StreamRequestSchema = z.object({
 export class StreamingScrapeController {
     /**
      * SSE Streaming endpoint for real-time scraping progress
-     * POST /api/website/stream
+     * POST /api/website/scrape
      */
     static async streamScrape(req: Request, res: Response) {
         const startTime = Date.now();

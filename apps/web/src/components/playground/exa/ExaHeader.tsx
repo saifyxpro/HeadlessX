@@ -7,66 +7,40 @@ import {
     Clock03Icon,
     Loading03Icon,
     Search01Icon,
-    SparklesIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import type { TavilyTool } from './types';
 import { PlaygroundHeaderShell } from '../shared';
 
-interface TavilyHeaderProps {
+interface ExaHeaderProps {
     available: boolean;
-    tool: TavilyTool;
-    onToolChange: (tool: TavilyTool) => void;
     elapsedTime: number | null;
     isPending: boolean;
     hasResult: boolean;
     hasError: boolean;
 }
 
-const TOOL_META: Record<TavilyTool, { label: string; title: string; description: string; icon: typeof Search01Icon }> = {
-    search: {
-        label: 'Search',
-        title: 'Tavily',
-        description: 'AI-focused web search with answers, domain controls, and raw source content.',
-        icon: Search01Icon,
-    },
-    research: {
-        label: 'Research',
-        title: 'Tavily Research',
-        description: 'Queued research reports with citations, polled from the backend until the final report is ready.',
-        icon: SparklesIcon,
-    },
-};
-
-export function TavilyHeader({ available, tool, onToolChange, elapsedTime, isPending, hasResult, hasError }: TavilyHeaderProps) {
-    const currentMeta = TOOL_META[tool];
-
+export function ExaHeader({
+    available,
+    elapsedTime,
+    isPending,
+    hasResult,
+    hasError,
+}: ExaHeaderProps) {
     return (
         <PlaygroundHeaderShell
-            title={currentMeta.title}
-            description={currentMeta.description}
+            title="Exa"
+            description="LLM-optimized web search with highlighted excerpts, category filters, and optional deep synthesis."
             iconSlot={
-                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.22),_transparent_58%),radial-gradient(circle_at_bottom_right,_rgba(45,212,191,0.18),_transparent_54%),linear-gradient(135deg,rgba(255,255,255,1),rgba(240,253,250,1))] ring-1 ring-emerald-100">
-                    <Image src="/icons/tavily.svg" alt="Tavily" width={24} height={24} className="h-6 w-6" />
+                <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.20),_transparent_58%),radial-gradient(circle_at_bottom_right,_rgba(15,23,42,0.18),_transparent_54%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] ring-1 ring-slate-200">
+                    <Image src="/icons/exa.svg" alt="Exa" width={24} height={24} className="h-6 w-6" />
                 </div>
             }
             secondary={
                 <div className="flex flex-wrap items-center gap-2">
-                    {Object.entries(TOOL_META).map(([key, meta]) => (
-                        <button
-                            key={key}
-                            type="button"
-                            onClick={() => onToolChange(key as TavilyTool)}
-                            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] transition-all ${
-                                tool === key
-                                    ? 'border-slate-900 bg-slate-900 text-white'
-                                    : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-white'
-                            }`}
-                        >
-                            <HugeiconsIcon icon={meta.icon} className="h-3.5 w-3.5" />
-                            {meta.label}
-                        </button>
-                    ))}
+                    <div className="inline-flex items-center gap-2 rounded-full border border-slate-900 bg-slate-900 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+                        <HugeiconsIcon icon={Search01Icon} className="h-3.5 w-3.5" />
+                        Search
+                    </div>
                 </div>
             }
             controls={
@@ -91,8 +65,8 @@ export function TavilyHeader({ available, tool, onToolChange, elapsedTime, isPen
 
                     {isPending && (
                         <div className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
-                            <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin text-emerald-300" />
-                            Processing
+                            <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin text-blue-300" />
+                            Searching
                         </div>
                     )}
 

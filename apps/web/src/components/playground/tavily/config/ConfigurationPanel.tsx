@@ -5,6 +5,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { Input } from '@/components/ui/input';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { AdvancedSettingsDialog } from '../../shared/AdvancedSettingsDialog';
+import { ConfigPanelShell } from '../../shared';
 import type {
     TavilyCitationFormat,
     TavilyRawContentMode,
@@ -124,32 +125,24 @@ export function ConfigurationPanel(props: ConfigurationPanelProps) {
         : [`${researchTimeout}s timeout`, `Model ${model}`, `Citations ${citationFormat}`].join(' • ');
 
     return (
-        <div className="space-y-6 lg:col-span-4">
-            <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6">
-                <div className="space-y-6">
-                    <div className="flex items-start gap-4">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_60%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] text-slate-900 ring-1 ring-slate-200">
-                            <HugeiconsIcon icon={tool === 'search' ? Search01Icon : SparklesIcon} className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-slate-900">
-                                {tool === 'search' ? 'Search Config' : 'Research Config'}
-                            </h2>
-                            <p className="mt-1 max-w-xs text-sm leading-6 text-slate-500">
-                                {tool === 'search'
-                                    ? 'Tune Tavily web search for answer quality, depth, and source richness.'
-                                    : 'Start a Tavily research job and poll the final report through the backend.'}
-                            </p>
-                        </div>
+        <ConfigPanelShell
+            disabled={isPending}
+            iconSlot={
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_60%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] text-slate-900 ring-1 ring-slate-200">
+                    <HugeiconsIcon icon={tool === 'search' ? Search01Icon : SparklesIcon} className="h-5 w-5" />
+                </div>
+            }
+            title={tool === 'search' ? 'Search Config' : 'Research Config'}
+            description={tool === 'search'
+                ? 'Tune Tavily web search for answer quality, depth, and source richness.'
+                : 'Start a Tavily research job and poll the final report through the backend.'}
+        >
+            <div className="space-y-6">
+                {!available && (
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-700">
+                        Add `TAVILY_API_KEY` to your environment to activate Tavily requests.
                     </div>
-
-                    <div className={isPending ? 'pointer-events-none opacity-70' : ''}>
-                        <div className="space-y-6">
-                            {!available && (
-                                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-700">
-                                    Add `TAVILY_API_KEY` to your environment to activate Tavily requests.
-                                </div>
-                            )}
+                )}
 
                             <div className="space-y-3">
                                 <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
@@ -356,18 +349,17 @@ export function ConfigurationPanel(props: ConfigurationPanelProps) {
                                 )}
                             </AdvancedSettingsDialog>
 
-                            <ActionButtons
-                                tool={tool}
-                                isPending={isPending}
-                                hasQuery={Boolean(activeQuery.trim())}
-                                hasApiKey={available}
-                                onRun={onRun}
-                                onStop={onStop}
-                            />
-                        </div>
-                    </div>
+                <div className="pt-1">
+                    <ActionButtons
+                        tool={tool}
+                        isPending={isPending}
+                        hasQuery={Boolean(activeQuery.trim())}
+                        hasApiKey={available}
+                        onRun={onRun}
+                        onStop={onStop}
+                    />
                 </div>
             </div>
-        </div>
+        </ConfigPanelShell>
     );
 }

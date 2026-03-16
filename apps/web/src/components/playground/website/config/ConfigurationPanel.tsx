@@ -13,6 +13,7 @@ import { AdvancedSettings } from './AdvancedSettings';
 import { CustomDropdown } from './CustomDropdown';
 import { ToggleRow } from './ToggleRow';
 import { UrlField } from './UrlField';
+import { ConfigPanelShell } from '../../shared';
 
 const OUTPUT_TYPES: OutputTypeOption[] = [
     { id: 'html', label: 'HTML', icon: File01Icon },
@@ -123,37 +124,33 @@ export function ConfigurationPanel({
     const PanelIcon = panelMeta.icon;
 
     return (
-        <div className="space-y-6 lg:col-span-4">
-            <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6">
-                <div className="space-y-6">
-                    <div className="flex items-start gap-4">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_60%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] text-slate-900 ring-1 ring-slate-200">
-                            <HugeiconsIcon icon={PanelIcon} className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-slate-900">{panelMeta.title}</h2>
-                            <p className="mt-1 max-w-xs text-sm leading-6 text-slate-500">{panelMeta.description}</p>
-                        </div>
+        <ConfigPanelShell
+            disabled={isPending}
+            iconSlot={
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_60%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] text-slate-900 ring-1 ring-slate-200">
+                    <HugeiconsIcon icon={PanelIcon} className="h-5 w-5" />
+                </div>
+            }
+            title={panelMeta.title}
+            description={panelMeta.description}
+        >
+            <div className="space-y-6">
+                <UrlField url={url} setUrl={setUrl} lastUsedUrl={lastUsedUrl} disabled={isPending} />
+
+                {tool === 'scrape' && (
+                    <div className="space-y-3">
+                        <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                            Output Format
+                        </label>
+                        <CustomDropdown
+                            value={outputType}
+                            onChange={(value) => setOutputType(value as OutputType)}
+                            options={OUTPUT_TYPE_OPTIONS}
+                            placeholder="Select output format"
+                            icon={File01Icon}
+                        />
                     </div>
-
-                    <div className={isPending ? 'pointer-events-none opacity-70' : ''}>
-                        <div className="space-y-6">
-                            <UrlField url={url} setUrl={setUrl} lastUsedUrl={lastUsedUrl} disabled={isPending} />
-
-                            {tool === 'scrape' && (
-                                <div className="space-y-3">
-                                    <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                                        Output Format
-                                    </label>
-                                    <CustomDropdown
-                                        value={outputType}
-                                        onChange={(value) => setOutputType(value as OutputType)}
-                                        options={OUTPUT_TYPE_OPTIONS}
-                                        placeholder="Select output format"
-                                        icon={File01Icon}
-                                    />
-                                </div>
-                            )}
+                )}
 
                             {(tool === 'crawl' || tool === 'map') && (
                                 <div className="grid gap-3 sm:grid-cols-2">
@@ -264,34 +261,33 @@ export function ConfigurationPanel({
                                 </div>
                             )}
 
-                            <AdvancedSettings
-                                tool={tool}
-                                selector={selector}
-                                setSelector={setSelector}
-                                timeout={timeout}
-                                setTimeoutValue={setTimeoutValue}
-                                showAdvanced={showAdvanced}
-                                setShowAdvanced={setShowAdvanced}
-                                stealth={stealth}
-                                setStealth={setStealth}
-                                includePaths={includePaths}
-                                setIncludePaths={setIncludePaths}
-                                excludePaths={excludePaths}
-                                setExcludePaths={setExcludePaths}
-                                disabled={isPending}
-                            />
-                        </div>
-                    </div>
-
-                    <ActionButtons
-                        tool={tool}
-                        isPending={isPending}
-                        hasUrl={Boolean(url)}
-                        onRun={onRun}
-                        onStop={onStop}
-                    />
-                </div>
+                <AdvancedSettings
+                    tool={tool}
+                    selector={selector}
+                    setSelector={setSelector}
+                    timeout={timeout}
+                    setTimeoutValue={setTimeoutValue}
+                    showAdvanced={showAdvanced}
+                    setShowAdvanced={setShowAdvanced}
+                    stealth={stealth}
+                    setStealth={setStealth}
+                    includePaths={includePaths}
+                    setIncludePaths={setIncludePaths}
+                    excludePaths={excludePaths}
+                    setExcludePaths={setExcludePaths}
+                    disabled={isPending}
+                />
             </div>
-        </div>
+
+            <div className="pt-4">
+                <ActionButtons
+                    tool={tool}
+                    isPending={isPending}
+                    hasUrl={Boolean(url)}
+                    onRun={onRun}
+                    onStop={onStop}
+                />
+            </div>
+        </ConfigPanelShell>
     );
 }

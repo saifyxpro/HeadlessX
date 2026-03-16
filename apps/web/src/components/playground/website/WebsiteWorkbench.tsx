@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ConfigurationPanel } from './config';
 import { ResultsPanel } from './results';
 import { ScraperHeader } from './ScraperHeader';
+import { WorkbenchLayout } from '../shared';
 import { useWebsiteStorage } from './hooks/useWebsiteStorage';
 import { mapPayloadToResult, normalizeTargetUrl, parseSseEvent, type ParsedStreamEvent } from './shared/stream';
 import type { OutputType, ProgressStep, ScrapeResult, WebsiteTool } from './types';
@@ -246,7 +247,7 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
     const runScrapeWithUrl = async (targetUrl: string) => {
         beginRun();
 
-        const response = await fetch('/api/website/stream', {
+        const response = await fetch('/api/website/scrape', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -393,16 +394,17 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
     };
 
     return (
-        <div className="space-y-6">
-            <ScraperHeader
+        <WorkbenchLayout
+            header={
+                <ScraperHeader
                 tool={tool}
                 currentUrl={url}
                 elapsedTime={elapsedTime}
                 isPending={isRunning}
                 result={result}
-            />
-
-            <div className="grid items-start gap-6 xl:grid-cols-12">
+                />
+            }
+            config={
                 <ConfigurationPanel
                     url={url}
                     setUrl={setUrl}
@@ -440,7 +442,8 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
                     onRun={handleRun}
                     onStop={handleStop}
                 />
-
+            }
+            results={
                 <ResultsPanel
                     tool={tool}
                     result={result}
@@ -450,7 +453,7 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
                     elapsedTime={elapsedTime}
                     onRetry={handleRun}
                 />
-            </div>
-        </div>
+            }
+        />
     );
 }

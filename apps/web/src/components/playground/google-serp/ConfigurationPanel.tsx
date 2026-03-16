@@ -6,6 +6,7 @@ import {
     Search01Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
+import { ConfigPanelShell } from '../shared';
 
 interface ConfigurationPanelProps {
     query: string;
@@ -47,22 +48,17 @@ export function ConfigurationPanel({
     isLoading,
 }: ConfigurationPanelProps) {
     return (
-        <div className="space-y-6 lg:col-span-4">
-            <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6">
-                <div className={`${isLoading ? 'pointer-events-none opacity-70' : ''} space-y-6`}>
-                    <div className="flex items-start gap-4">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-900">
-                            <HugeiconsIcon icon={Search01Icon} className="h-5 w-5" />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold text-slate-900">Search Config</h2>
-                            <p className="mt-1 max-w-xs text-sm leading-6 text-slate-500">
-                                Run a Google search and turn the result page into a clean report.
-                            </p>
-                        </div>
-                    </div>
-
-                    <form onSubmit={onSearch} className="space-y-6">
+        <ConfigPanelShell
+            disabled={isLoading}
+            iconSlot={
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-900">
+                    <HugeiconsIcon icon={Search01Icon} className="h-5 w-5" />
+                </div>
+            }
+            title="Search Config"
+            description="Run a Google search and turn the result page into a clean report."
+        >
+            <form onSubmit={onSearch} className="space-y-6">
                         <div className="space-y-3">
                             <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
                                 Search Query
@@ -132,9 +128,7 @@ export function ConfigurationPanel({
                                 </>
                             )}
                         </button>
-                    </form>
-                </div>
-            </div>
-        </div>
+            </form>
+        </ConfigPanelShell>
     );
 }

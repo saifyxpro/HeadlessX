@@ -16,6 +16,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { SearchResponse, ProgressStep } from './types';
+import { ResultsPanelShell } from '../shared';
 
 interface ResultsPanelProps {
     data: SearchResponse | null;
@@ -160,8 +161,9 @@ export function ResultsPanel({
     };
 
     return (
-        <div className="relative min-h-[700px] overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white xl:col-span-8">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-6 py-4">
+        <ResultsPanelShell
+            header={
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-6 py-4">
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
                         <HugeiconsIcon icon={SourceCodeSquareIcon} className="h-3.5 w-3.5 text-slate-400" />
@@ -243,9 +245,10 @@ export function ResultsPanel({
                         </>
                     )}
                 </div>
-            </div>
-
-            <div className="relative min-h-[640px] bg-white">
+                </div>
+            }
+            bodyClassName="min-h-[640px]"
+        >
                 {!data && !isStreaming && !isPending && !error && <EmptyState />}
 
                 {(isStreaming || isPending) && <ProgressState steps={steps} />}
@@ -345,7 +348,6 @@ export function ResultsPanel({
                         )}
                     </div>
                 )}
-            </div>
-        </div>
+        </ResultsPanelShell>
     );
 }

@@ -1,13 +1,12 @@
-import Link from 'next/link';
 import Image from 'next/image';
 import {
-    ArrowLeft01Icon,
     Cancel01Icon,
     CheckmarkCircle02Icon,
     Clock03Icon,
     Loading03Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
+import { PlaygroundHeaderShell } from '../shared';
 
 interface GoogleSerpHeaderProps {
     elapsedTime: number | null;
@@ -18,37 +17,16 @@ interface GoogleSerpHeaderProps {
 
 export function GoogleSerpHeader({ elapsedTime, isLoading, hasResult, error }: GoogleSerpHeaderProps) {
     return (
-        <div className="group mb-6 rounded-[1.75rem] border border-slate-200 bg-white px-5 py-5">
-            <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                <div className="min-w-0">
-                    <div className="flex items-start gap-4">
-                        <div className="min-w-0">
-                            <div className="flex items-center gap-3">
-                                <div className="relative h-12 w-12 shrink-0">
-                                    <div className="absolute inset-0 flex items-center justify-center rounded-2xl border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(66,133,244,0.18),_transparent_48%),radial-gradient(circle_at_top_right,_rgba(234,67,53,0.16),_transparent_52%),radial-gradient(circle_at_bottom_left,_rgba(251,188,5,0.18),_transparent_50%),radial-gradient(circle_at_bottom_right,_rgba(52,168,83,0.18),_transparent_50%),linear-gradient(135deg,rgba(255,255,255,1),rgba(248,250,252,1))] px-2 transition-opacity duration-200 group-hover:opacity-0">
-                                        <Image src="/icons/google.svg" alt="Google" width={28} height={28} />
-                                    </div>
-                                    <Link
-                                        href="/playground"
-                                        className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 opacity-0 transition-all duration-200 hover:border-slate-300 hover:bg-slate-50 group-hover:pointer-events-auto group-hover:opacity-100"
-                                    >
-                                        <HugeiconsIcon icon={ArrowLeft01Icon} className="h-5 w-5" />
-                                    </Link>
-                                </div>
-                                <div className="min-w-0">
-                                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                                        Google SERP
-                                    </h1>
-                                    <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
-                                        Extract AI overviews, organic results, and source metadata from Google search result pages.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <PlaygroundHeaderShell
+            title="Google SERP"
+            description="Extract AI overviews, organic results, and source metadata from Google search result pages."
+            iconSlot={
+                <div className="absolute inset-0 flex items-center justify-center rounded-2xl border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(66,133,244,0.18),_transparent_48%),radial-gradient(circle_at_top_right,_rgba(234,67,53,0.16),_transparent_52%),radial-gradient(circle_at_bottom_left,_rgba(251,188,5,0.18),_transparent_50%),radial-gradient(circle_at_bottom_right,_rgba(52,168,83,0.18),_transparent_50%),linear-gradient(135deg,rgba(255,255,255,1),rgba(248,250,252,1))] px-2">
+                    <Image src="/icons/google.svg" alt="Google" width={28} height={28} />
                 </div>
-
-                <div className="flex flex-wrap items-center gap-3 xl:justify-end">
+            }
+            controls={
+                <>
                     <div
                         className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium font-mono ${
                             elapsedTime !== null
@@ -80,8 +58,8 @@ export function GoogleSerpHeader({ elapsedTime, isLoading, hasResult, error }: G
                             Ready
                         </div>
                     )}
-                </div>
-            </div>
-        </div>
+                </>
+            }
+        />
     );
 }

@@ -16,7 +16,10 @@ router.use(ApiKeyGuard);
  * Base: /api/website
  */
 
-// POST /api/website/stream - SSE Streaming scrape with real-time progress
+// POST /api/website/scrape - SSE streaming scrape with real-time progress
+router.post('/scrape', StreamingScrapeController.streamScrape);
+
+// POST /api/website/stream - Legacy SSE streaming scrape alias
 router.post('/stream', StreamingScrapeController.streamScrape);
 
 // POST /api/website/map - Fast website link discovery
