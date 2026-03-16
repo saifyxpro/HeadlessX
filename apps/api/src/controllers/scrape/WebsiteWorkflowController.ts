@@ -31,7 +31,7 @@ export class WebsiteWorkflowController {
             const job = jobManager.createJob(input.url, 'map', {
                 waitForSelector: input.waitForSelector,
                 timeout: input.timeout,
-            });
+            }, req.apiKeyId || null);
             jobManager.updateStatus(job.id, 'running');
 
             const abortController = new AbortController();

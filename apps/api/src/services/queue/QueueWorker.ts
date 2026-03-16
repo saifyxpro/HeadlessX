@@ -136,7 +136,7 @@ class QueueWorkerService {
             waitForSelector: (job.data.payload as any).waitForSelector,
             timeout: (job.data.payload as any).timeout,
             fullPage: (job.data.payload as any).fullPage,
-        });
+        }, job.data.apiKeyId || null);
         jobManager.updateStatus(queueJobId, 'running');
 
         await prisma.queueJob.update({

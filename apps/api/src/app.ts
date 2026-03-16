@@ -84,14 +84,9 @@ app.use('/api/proxies', proxyRoutes);
 import jobRoutes from './routes/jobs/jobRoutes';
 app.use('/api/jobs', jobRoutes);
 
-// =============================================
-// Legacy Routes (v1/v2 - keep for backwards compatibility)
-// =============================================
-import v1Router from './routes/v1';
-import v2Router from './routes/v2';
-
-app.use('/api/v1', v1Router);
-app.use('/api/v2', v2Router);
+// MCP: /mcp
+import { handleMcpRequest } from './mcp/server';
+app.all('/mcp', handleMcpRequest);
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -115,7 +110,8 @@ app.get('/api/health', (req, res) => {
             keys: '/api/keys',
             logs: '/api/logs',
             jobs: '/api/jobs',
-            queueMetrics: '/api/jobs/metrics'
+            queueMetrics: '/api/jobs/metrics',
+            mcp: '/mcp'
         }
     });
 });

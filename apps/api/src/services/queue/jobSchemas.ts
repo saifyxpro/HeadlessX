@@ -74,6 +74,7 @@ export const ListQueueJobsSchema = z.object({
     type: QueueJobTypeSchema.optional(),
     status: z.enum(['queued', 'active', 'completed', 'failed', 'cancelled']).optional(),
     limit: z.coerce.number().int().min(1).max(100).default(20),
+    offset: z.coerce.number().int().min(0).default(0),
 });
 
 export type QueueJobTypeName = z.infer<typeof QueueJobTypeSchema>;

@@ -47,6 +47,7 @@ Google SERP currently ends its stream with `end` instead of `done`.
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/health` | Public health check and route summary |
+| `ALL` | `/mcp` | Remote MCP endpoint over Streamable HTTP |
 | `GET` | `/api/config` | Read current system settings |
 | `PATCH` | `/api/config` | Update system settings and restart browser runtime |
 | `GET` | `/api/dashboard/stats` | Read dashboard summary metrics |
@@ -139,38 +140,10 @@ Google SERP currently ends its stream with `end` instead of `done`.
 | `GET` | `/api/jobs/:id/stream` | Reconnect to job progress stream | SSE |
 | `POST` | `/api/jobs/:id/cancel` | Cancel running or queued job | Uses active job manager / queue cancellation |
 
-## Legacy Compatibility Routes
-
-These routes are still mounted for backward compatibility.
-
-### `/api/v1`
-
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `POST` | `/api/v1/html` | Legacy HTML scrape |
-| `POST` | `/api/v1/html-js` | Legacy JS HTML scrape |
-| `POST` | `/api/v1/content` | Legacy content extraction |
-| `POST` | `/api/v1/screenshot` | Legacy screenshot |
-| `GET` | `/api/v1/config` | Legacy config read |
-| `PATCH` | `/api/v1/config` | Legacy config update |
-| `GET` | `/api/v1/logs` | Legacy request logs |
-| `GET` | `/api/v1/api-keys` | Legacy API key list |
-| `POST` | `/api/v1/api-keys` | Legacy API key create |
-
-### `/api/v2`
-
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `POST` | `/api/v2/html` | V2 HTML scrape |
-| `POST` | `/api/v2/html-js` | V2 JS HTML scrape |
-| `POST` | `/api/v2/content` | V2 content extraction |
-| `POST` | `/api/v2/screenshot` | V2 screenshot |
-| `GET` | `/api/v2/config` | V2 config read |
-| `PATCH` | `/api/v2/config` | V2 config update |
-
 ## Operational Notes
 
 - The API and worker are separate processes. Queue-backed endpoints may return `503` when Redis is unavailable.
 - Configuration changes invalidate cached settings and restart the browser service.
 - Website Crawl is not an inline scrape. It is a queued workflow.
 - The web dashboard talks to this API using the internal dashboard key on server-side requests.
+- The MCP endpoint uses normal API keys created from the dashboard and does not accept `DASHBOARD_INTERNAL_API_KEY`.

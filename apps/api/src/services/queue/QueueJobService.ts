@@ -163,26 +163,47 @@ class QueueJobService {
         return this.serializeJob(job);
     }
 
-    public async listJobs(filters: ListQueueJobsInput) {
-        const jobs = await prisma.queueJob.findMany({
-            where: {
-                type: filters.type ? PRISMA_TYPE_MAP[filters.type] : undefined,
-                status: filters.status ? PRISMA_STATUS_MAP[filters.status] : undefined,
-            },
-            orderBy: { created_at: 'desc' },
-            take: filters.limit,
-        });
+    public async listJobs(filters: ListQueueJobsInput, apiKeyId?: string | null) {
+        const page = await this.listJobsPage(filters, apiKeyId);
+        return page.jobs;
+    }
 
-        return jobs.map((job) => this.serializeJob(job));
+    public async listJobsPage(filters: ListQueueJobsInput, apiKeyId?: string | null) {
+        const where = {
+            type: filters.type ? PRISMA_TYPE_MAP[filters.type] : undefined,
+            status: filters.status ? PRISMA_STATUS_MAP[filters.status] : undefined,
+            api_key_id: apiKeyId === undefined ? undefined : (apiKeyId || null),
+        };
+
+        const [jobs, totalCount] = await prisma.$transaction([
+            prisma.queueJob.findMany({
+                where,
+                orderBy: { created_at: 'desc' },
+                take: filters.limit,
+                skip: filters.offset,
+            }),
+            prisma.queueJob.count({ where }),
+        ]);
+
+        return {
+            totalCount,
+            count: jobs.length,
+            offset: filters.offset,
+            limit: filters.limit,
+            hasMore: filters.offset + jobs.length < totalCount,
+            nextOffset: filters.offset + jobs.length < totalCount ? filters.offset + jobs.length : null,
+            jobs: jobs.map((job) => this.serializeJob(job)),
+        };
     }
 
     public async getJobById(id: string) {
         return prisma.queueJob.findUnique({ where: { id } });
     }
 
-    public async getFirstActiveJob() {
+    public async getFirstActiveJob(apiKeyId?: string | null) {
         return prisma.queueJob.findFirst({
             where: {
+                api_key_id: apiKeyId === undefined ? undefined : (apiKeyId || null),
                 status: {
                     in: [QueueJobStatus.QUEUED, QueueJobStatus.ACTIVE],
                 },

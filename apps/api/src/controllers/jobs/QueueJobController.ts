@@ -95,8 +95,8 @@ export class QueueJobController {
     static async listJobs(req: Request, res: Response) {
         try {
             const filters = ListQueueJobsSchema.parse(req.query);
-            const jobs = await queueJobService.listJobs(filters);
-            res.json({ success: true, jobs });
+            const page = await queueJobService.listJobsPage(filters, req.apiKeyId || null);
+            res.json({ success: true, ...page });
         } catch (error) {
             res.status(400).json({
                 success: false,

@@ -34,7 +34,7 @@ export class StreamingScrapeController {
                 waitForSelector: options?.waitForSelector,
                 timeout: options?.timeout,
                 fullPage
-            });
+            }, req.apiKeyId || null);
             jobManager.updateStatus(job.id, 'running');
 
             // Set SSE headers
@@ -215,7 +215,8 @@ export class StreamingScrapeController {
      * GET /api/jobs/active
      */
     static async getActiveJob(req: Request, res: Response) {
-        const streamJob = jobManager.getActiveJob();
+        const apiKeyId = req.apiKeyId || null;
+        const streamJob = jobManager.getActiveJob(apiKeyId);
         if (streamJob) {
             return res.json({
                 active: true,
@@ -231,7 +232,7 @@ export class StreamingScrapeController {
             });
         }
 
-        const queueJob = await queueJobService.getFirstActiveJob();
+        const queueJob = await queueJobService.getFirstActiveJob(apiKeyId);
         if (!queueJob) {
             return res.json({ active: false, job: null });
         }
@@ -245,9 +246,14 @@ export class StreamingScrapeController {
      */
     static async getJob(req: Request, res: Response) {
         const id = req.params.id as string;
+        const apiKeyId = req.apiKeyId || null;
         const streamJob = jobManager.getJob(id);
 
         if (streamJob) {
+            if (streamJob.apiKeyId !== apiKeyId) {
+                return res.status(404).json({ error: 'Job not found' });
+            }
+
             let formattedResult: any = null;
             if ((streamJob.status === 'completed' || streamJob.status === 'cancelled') && streamJob.result) {
                 formattedResult = StreamingScrapeController.formatResult(streamJob.type, streamJob.result);
@@ -267,7 +273,7 @@ export class StreamingScrapeController {
         }
 
         const queueJob = await queueJobService.getJobById(id);
-        if (!queueJob) {
+        if (!queueJob || (queueJob.api_key_id || null) !== apiKeyId) {
             return res.status(404).json({ error: 'Job not found' });
         }
 
@@ -280,15 +286,20 @@ export class StreamingScrapeController {
      */
     static async reconnectToJob(req: Request, res: Response) {
         const id = req.params.id as string;
+        const apiKeyId = req.apiKeyId || null;
         const job = jobManager.getJob(id);
 
         if (!job) {
             const queuedJob = await queueJobService.getJobById(id);
-            if (!queuedJob) {
+            if (!queuedJob || (queuedJob.api_key_id || null) !== apiKeyId) {
                 return res.status(404).json({ error: 'Job not found' });
             }
 
             return StreamingScrapeController.streamQueueJob(req, res, id);
+        }
+
+        if (job.apiKeyId !== apiKeyId) {
+            return res.status(404).json({ error: 'Job not found' });
         }
 
         // Set SSE headers
@@ -351,15 +362,25 @@ export class StreamingScrapeController {
      */
     static async cancelJob(req: Request, res: Response) {
         const id = req.params.id as string;
+        const apiKeyId = req.apiKeyId || null;
         const job = jobManager.getJob(id);
 
         if (job) {
+            if (job.apiKeyId !== apiKeyId) {
+                return res.status(404).json({ error: 'Job not found' });
+            }
+
             if (job.status === 'completed' || job.status === 'error' || job.status === 'cancelled') {
                 return res.status(400).json({ error: 'Job is already finished' });
             }
 
             jobManager.cancelJob(id);
             return res.json({ success: true, message: 'Job cancelled' });
+        }
+
+        const queueJob = await queueJobService.getJobById(id);
+        if (!queueJob || (queueJob.api_key_id || null) !== apiKeyId) {
+            return res.status(404).json({ error: 'Job not found' });
         }
 
         const cancelled = await queueJobService.cancelJob(id);

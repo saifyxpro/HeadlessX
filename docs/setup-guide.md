@@ -70,6 +70,45 @@ Use:
 
 This avoids local Redis installation while still keeping the app runtime fast and simple.
 
+## MCP Access
+
+HeadlessX now exposes a remote MCP endpoint from the backend:
+
+```text
+http://localhost:8000/mcp
+```
+
+Use a normal API key created from the dashboard `API Keys` page.
+
+Do not use `DASHBOARD_INTERNAL_API_KEY` for MCP clients.
+
+Example JSON client config:
+
+```json
+{
+  "mcpServers": {
+    "headlessx": {
+      "transport": "http",
+      "url": "http://localhost:8000/mcp",
+      "headers": {
+        "x-api-key": "hx_your_dashboard_created_key"
+      }
+    }
+  }
+}
+```
+
+Example TOML client config:
+
+```toml
+[mcp_servers.headlessx]
+transport = "http"
+url = "http://localhost:8000/mcp"
+
+[mcp_servers.headlessx.headers]
+x-api-key = "hx_your_dashboard_created_key"
+```
+
 ## What Redis Is Used For
 
 Redis is required for async queue jobs through BullMQ.

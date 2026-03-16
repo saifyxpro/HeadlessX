@@ -4,6 +4,7 @@ import type { Page } from 'playwright-core';
 
 export interface Job {
     id: string;
+    apiKeyId: string | null;
     url: string;
     type: 'html' | 'html-js' | 'content' | 'screenshot' | 'crawl' | 'map' | 'extract' | 'index';
     options: {
@@ -48,9 +49,10 @@ class JobManager {
     public createJob(
         url: string,
         type: Job['type'],
-        options: Job['options']
+        options: Job['options'],
+        apiKeyId: string | null = null
     ): Job {
-        return this.registerJob(randomUUID(), url, type, options);
+        return this.registerJob(randomUUID(), url, type, options, apiKeyId);
     }
 
     /**
@@ -61,7 +63,8 @@ class JobManager {
         id: string,
         url: string,
         type: Job['type'],
-        options: Job['options']
+        options: Job['options'],
+        apiKeyId: string | null = null
     ): Job {
         const existing = this.jobs.get(id);
         if (existing) {
@@ -70,6 +73,7 @@ class JobManager {
 
         const job: Job = {
             id,
+            apiKeyId,
             url,
             type,
             options,
@@ -98,13 +102,29 @@ class JobManager {
     /**
      * Get the currently active (running) job
      */
-    public getActiveJob(): Job | null {
-        if (!this.activeJobId) return null;
-        const job = this.jobs.get(this.activeJobId);
-        if (!job || job.status === 'completed' || job.status === 'error' || job.status === 'cancelled') {
+    public getActiveJob(apiKeyId?: string | null): Job | null {
+        const isActiveJob = (job: Job | undefined): job is Job => {
+            return !!job && job.status !== 'completed' && job.status !== 'error' && job.status !== 'cancelled';
+        };
+
+        if (this.activeJobId) {
+            const activeJob = this.jobs.get(this.activeJobId);
+            if (isActiveJob(activeJob) && (apiKeyId === undefined || activeJob.apiKeyId === apiKeyId)) {
+                return activeJob;
+            }
+        }
+
+        if (apiKeyId === undefined) {
             return null;
         }
-        return job;
+
+        for (const job of this.jobs.values()) {
+            if (isActiveJob(job) && job.apiKeyId === apiKeyId) {
+                return job;
+            }
+        }
+
+        return null;
     }
 
     /**
