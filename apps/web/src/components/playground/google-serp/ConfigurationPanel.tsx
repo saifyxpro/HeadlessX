@@ -118,7 +118,7 @@ export function ConfigurationPanel({
                             <button
                                 type="submit"
                                 disabled={!query.trim() || isLoading}
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 {isLoading ? (
                                     <>

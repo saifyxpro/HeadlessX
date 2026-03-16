@@ -290,7 +290,7 @@ All three commands now resolve to the same root dev target.
 
 ### 🐳 Docker Deployment
 
-HeadlessX can be easily deployed using Docker Compose. See the [Docker Setup Guide](docs/docker_setup.md) for detailed instructions.
+HeadlessX can be easily deployed using Docker Compose. See the [Setup Guide](docs/setup-guide.md) for detailed instructions.
 
 ```bash
 # Start the application in detached mode
@@ -360,6 +360,8 @@ WEB_PORT=3000 pnpm --filter headlessx-web dev
 ---
 
 ## 🌐 API Endpoints
+
+For the full backend route inventory, see [docs/api-endpoints.md](docs/api-endpoints.md).
 
 ### Website Scraping APIs
 

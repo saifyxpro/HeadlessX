@@ -14,7 +14,7 @@ export function ActionButtons({ disabled = false, isPending, onRun, onStop }: Ac
                 type="button"
                 onClick={onRun}
                 disabled={disabled || isPending}
-                className="inline-flex h-12 items-center justify-center rounded-2xl bg-slate-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+                className="inline-flex h-12 items-center justify-center rounded-2xl bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
             >
                 Extract
             </button>
