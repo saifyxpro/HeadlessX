@@ -26,6 +26,10 @@ type YoutubeStorageState = {
 
 const STORAGE_KEY = 'headlessx.playground.youtube';
 
+function sanitizePlayerClientProfile(value?: string): YoutubePlayerClientProfile {
+    return value === 'default' ? 'default' : 'mobile';
+}
+
 export function YoutubeWorkbench({ available }: YoutubeWorkbenchProps) {
     const [url, setUrl] = useState('');
     const [includeFormats, setIncludeFormats] = useState(true);
@@ -60,7 +64,9 @@ export function YoutubeWorkbench({ available }: YoutubeWorkbenchProps) {
             if (typeof parsed.includeSubtitles === 'boolean') setIncludeSubtitles(parsed.includeSubtitles);
             if (typeof parsed.flatPlaylist === 'boolean') setFlatPlaylist(parsed.flatPlaylist);
             if (typeof parsed.playlistPreviewLimit === 'number') setPlaylistPreviewLimit(parsed.playlistPreviewLimit);
-            if (parsed.playerClientProfile) setPlayerClientProfile(parsed.playerClientProfile);
+            if (parsed.playerClientProfile) {
+                setPlayerClientProfile(sanitizePlayerClientProfile(parsed.playerClientProfile));
+            }
             if (parsed.metadataLanguage !== undefined) setMetadataLanguage(parsed.metadataLanguage);
             if (typeof parsed.socketTimeout === 'number') setSocketTimeout(parsed.socketTimeout);
             if (typeof parsed.showAdvanced === 'boolean') setShowAdvanced(parsed.showAdvanced);

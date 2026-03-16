@@ -11,7 +11,7 @@ class ExtractionRequest(BaseModel):
     include_formats: bool = True
     include_subtitles: bool = True
     playlist_preview_limit: int = Field(default=10, ge=1, le=50)
-    player_client_profile: Literal["mobile", "default", "web", "tv"] = "mobile"
+    player_client_profile: Literal["mobile", "default"] = "mobile"
     metadata_language: str | None = Field(default=None, min_length=2, max_length=16)
     socket_timeout: int = Field(default=30, ge=10, le=180)
 
@@ -20,7 +20,7 @@ class SaveRequest(BaseModel):
     url: HttpUrl | str
     quality_preset: Literal["best", "1080p", "720p", "480p"] = "best"
     format_id: str | None = Field(default=None, min_length=1, max_length=64)
-    player_client_profile: Literal["mobile", "default", "web", "tv"] = "mobile"
+    player_client_profile: Literal["mobile", "default"] = "mobile"
     metadata_language: str | None = Field(default=None, min_length=2, max_length=16)
     socket_timeout: int = Field(default=30, ge=10, le=180)
     cleanup_job_id: str | None = Field(default=None, min_length=1, max_length=128)
@@ -105,7 +105,7 @@ class SubtitleInventory(BaseModel):
 
 class EngineMetadata(BaseModel):
     service: str = "yt-dude-v1"
-    player_client_profile: Literal["mobile", "default", "web", "tv"]
+    player_client_profile: Literal["mobile", "default"]
     metadata_language: str | None = None
     socket_timeout: int
 

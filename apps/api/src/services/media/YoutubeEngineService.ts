@@ -4,7 +4,7 @@ type YoutubeInfoInput = {
     includeFormats?: boolean;
     includeSubtitles?: boolean;
     playlistPreviewLimit?: number;
-    playerClientProfile?: 'mobile' | 'default' | 'web' | 'tv';
+    playerClientProfile?: 'mobile' | 'default';
     metadataLanguage?: string;
     socketTimeout?: number;
     cleanupJobId?: string;
@@ -14,7 +14,7 @@ type YoutubeSaveInput = {
     url: string;
     qualityPreset?: 'best' | '1080p' | '720p' | '480p';
     formatId?: string;
-    playerClientProfile?: 'mobile' | 'default' | 'web' | 'tv';
+    playerClientProfile?: 'mobile' | 'default';
     metadataLanguage?: string;
     socketTimeout?: number;
     cleanupJobId?: string;

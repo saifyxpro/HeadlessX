@@ -39,8 +39,6 @@ class YtEngineError(Exception):
 PLAYER_CLIENT_PROFILES: dict[str, list[str] | None] = {
     "mobile": ["ios", "android"],
     "default": None,
-    "web": ["web", "web_safari", "mweb"],
-    "tv": ["tv", "tv_downgraded"],
 }
 
 YOUTUBE_FORMAT_EXTRACTION_ARGS = ["duplicate", "dashy", "missing_pot", "incomplete"]
@@ -400,6 +398,30 @@ class YtDudeService:
 
         return options
 
+    def _extract_info_with_options(self, *, url: str, options: dict[str, Any]) -> dict[str, Any]:
+        try:
+            with YoutubeDL(options) as ydl:
+                raw_info = ydl.extract_info(url, download=False)
+                info = ydl.sanitize_info(raw_info)
+        except DownloadError as error:
+            raise YtEngineError(str(error), 400) from error
+        except Exception as error:
+            raise YtEngineError(str(error), 500) from error
+
+        if not isinstance(info, dict):
+            raise YtEngineError("Unable to extract media information", 500)
+
+        return info
+
+    def _download_with_options(self, *, url: str, options: dict[str, Any]) -> None:
+        try:
+            with YoutubeDL(options) as ydl:
+                ydl.download([url])
+        except DownloadError as error:
+            raise YtEngineError(str(error), 400) from error
+        except Exception as error:
+            raise YtEngineError(str(error), 500) from error
+
     def _extract_raw_info(
         self,
         *,
@@ -423,19 +445,7 @@ class YtDudeService:
             }
         )
 
-        try:
-            with YoutubeDL(options) as ydl:
-                raw_info = ydl.extract_info(url, download=False)
-                info = ydl.sanitize_info(raw_info)
-        except DownloadError as error:
-            raise YtEngineError(str(error), 400) from error
-        except Exception as error:
-            raise YtEngineError(str(error), 500) from error
-
-        if not isinstance(info, dict):
-            raise YtEngineError("Unable to extract media information", 500)
-
-        return info
+        return self._extract_info_with_options(url=url, options=options)
 
     def _build_preview(self, info: dict[str, Any]) -> PreviewSource | None:
         direct_mp4_candidates: list[dict[str, Any]] = []
@@ -488,7 +498,11 @@ class YtDudeService:
             format_note=selected.get("format_note"),
         )
 
-    def _build_response(self, info: dict[str, Any], request: ExtractionRequest) -> EngineInfoResponse:
+    def _build_response(
+        self,
+        info: dict[str, Any],
+        request: ExtractionRequest,
+    ) -> EngineInfoResponse:
         return EngineInfoResponse(
             engine=EngineMetadata(
                 player_client_profile=request.player_client_profile,
@@ -557,13 +571,15 @@ class YtDudeService:
 
     def _build_download_options(
         self,
+        *,
+        player_client_profile: str,
         request: SaveRequest,
         selector: str,
         output_template: str,
         merge_output_format: str | None,
     ) -> dict[str, Any]:
         options = self._build_common_options(
-            player_client_profile=request.player_client_profile,
+            player_client_profile=player_client_profile,
             metadata_language=request.metadata_language,
             socket_timeout=request.socket_timeout,
         )
@@ -581,6 +597,25 @@ class YtDudeService:
         if merge_output_format:
             options["merge_output_format"] = merge_output_format
         return options
+
+    def _download_video(
+        self,
+        *,
+        url: str,
+        request: SaveRequest,
+        selector: str,
+        output_template: str,
+        merge_output_format: str | None,
+        player_client_profile: str,
+    ) -> None:
+        options = self._build_download_options(
+            player_client_profile=player_client_profile,
+            request=request,
+            selector=selector,
+            output_template=output_template,
+            merge_output_format=merge_output_format,
+        )
+        self._download_with_options(url=url, options=options)
 
     def _find_media_files(self, job_dir: Path) -> list[Path]:
         files = [
@@ -634,15 +669,18 @@ class YtDudeService:
         output_template = str(job_dir / f"{safe_stem}.%(ext)s")
 
         try:
-            with YoutubeDL(
-                self._build_download_options(request, selector, output_template, merge_output_format)
-            ) as ydl:
-                ydl.download([str(request.url)])
-        except DownloadError as error:
-            shutil.rmtree(job_dir, ignore_errors=True)
-            raise YtEngineError(str(error), 400) from error
+            self._download_video(
+                url=str(request.url),
+                request=request,
+                selector=selector,
+                output_template=output_template,
+                merge_output_format=merge_output_format,
+                player_client_profile=request.player_client_profile,
+            )
         except Exception as error:
             shutil.rmtree(job_dir, ignore_errors=True)
+            if isinstance(error, YtEngineError):
+                raise
             raise YtEngineError(str(error), 500) from error
 
         metadata_path = job_dir / "metadata.md"

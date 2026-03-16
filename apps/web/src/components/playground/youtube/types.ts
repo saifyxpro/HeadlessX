@@ -64,7 +64,7 @@ export interface YoutubeSubtitleInventory {
     automatic_captions?: Record<string, YoutubeSubtitleTrack[]>;
 }
 
-export type YoutubePlayerClientProfile = 'mobile' | 'default' | 'web' | 'tv';
+export type YoutubePlayerClientProfile = 'mobile' | 'default';
 export type YoutubeSaveQualityPreset = 'best' | '1080p' | '720p' | '480p';
 
 export interface YoutubeEngineMetadata {

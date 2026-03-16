@@ -36,8 +36,6 @@ interface ConfigurationPanelProps {
 const playerClientOptions: { value: YoutubePlayerClientProfile; label: string; suffix?: string }[] = [
     { value: 'mobile', label: 'Mobile', suffix: 'recommended' },
     { value: 'default', label: 'Default' },
-    { value: 'web', label: 'Web family' },
-    { value: 'tv', label: 'TV family' },
 ];
 
 function ToggleRow(props: {
@@ -226,7 +224,7 @@ export function ConfigurationPanel(props: ConfigurationPanelProps) {
                             yt-dude engine notes
                         </div>
                         <p className="mt-2">
-                            This phase stays metadata-first, but now lets you choose a safer client profile, metadata language, and socket timeout so the UI matches the reliability-focused yt-dude fork better.
+                            This phase stays metadata-first, with the supported yt-dude client profiles, metadata language, and socket timeout exposed here for a tighter extract flow.
                         </p>
                     </div>
                 </AdvancedSettingsDialog>
