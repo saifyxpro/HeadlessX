@@ -42,7 +42,7 @@ export function PlaygroundHeaderShell({
                             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                                 {title}
                             </h1>
-                            <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">
+                            <p title={description} className="mt-1 max-w-3xl truncate text-sm leading-6 text-slate-500">
                                 {description}
                             </p>
                             {secondary ? <div className="mt-4">{secondary}</div> : null}

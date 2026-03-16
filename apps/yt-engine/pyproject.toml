@@ -1,0 +1,22 @@
+[project]
+name = "headlessx-yt-engine"
+version = "0.1.0"
+description = "HeadlessX media extraction engine powered by yt-dude"
+requires-python = ">=3.12"
+dependencies = [
+  "brotli>=1.1.0",
+  "certifi>=2025.0.0",
+  "curl-cffi>=0.13.0",
+  "requests>=2.32.0",
+  "websockets>=15.0.0",
+  "fastapi>=0.116.0",
+  "uvicorn>=0.35.0",
+  "yt-dude",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+package = false

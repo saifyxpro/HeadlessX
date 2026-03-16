@@ -56,6 +56,10 @@ app.use('/api/tavily', tavilyRoutes);
 import exaRoutes from './routes/ai/exaRoutes';
 app.use('/api/exa', exaRoutes);
 
+// YouTube media engine: /api/youtube/*
+import youtubeRoutes from './routes/media/youtubeRoutes';
+app.use('/api/youtube', youtubeRoutes);
+
 // Configuration: /api/config
 import configRoutes from './routes/config/configRoutes';
 app.use('/api/config', configRoutes);
@@ -105,6 +109,7 @@ app.get('/api/health', (req, res) => {
             googleSerp: '/api/google-serp/* (coming soon)',
             tavily: '/api/tavily/*',
             exa: '/api/exa/*',
+            youtube: '/api/youtube/*',
             proxies: '/api/proxies/*',
             config: '/api/config',
             keys: '/api/keys',

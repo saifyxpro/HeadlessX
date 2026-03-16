@@ -29,8 +29,8 @@ export function CustomDropdown({
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "ui-field flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-primary",
-                    isOpen && "border-primary ring-2 ring-primary/20",
+                    "ui-field flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-primary transition-shadow",
+                    isOpen && "border-primary ring-2 ring-primary/20 shadow-[0_12px_30px_-18px_rgba(15,23,42,0.45)]",
                     !selectedOption && "text-muted-foreground"
                 )}
             >
@@ -53,7 +53,7 @@ export function CustomDropdown({
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-[50]" onClick={() => setIsOpen(false)} />
-                    <div className="ui-panel absolute left-0 right-0 z-[60] mt-2 max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white py-1">
+                    <div className="ui-panel absolute left-0 right-0 z-[60] mt-2 max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-[0_22px_50px_-24px_rgba(15,23,42,0.38)]">
                         {options.map((opt) => (
                             <button
                                 key={opt.value}

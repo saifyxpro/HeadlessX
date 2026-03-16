@@ -1,5 +1,6 @@
 import {
     ArrowRight01Icon,
+    Cancel01Icon,
     GlobeIcon,
     LanguageSquareIcon,
     Loading03Icon,
@@ -14,6 +15,7 @@ interface ConfigurationPanelProps {
     timeout: number;
     setTimeout: (timeout: number) => void;
     onSearch: (e?: React.FormEvent) => void;
+    onStop: () => void;
     isLoading: boolean;
 }
 
@@ -45,6 +47,7 @@ export function ConfigurationPanel({
     timeout,
     setTimeout,
     onSearch,
+    onStop,
     isLoading,
 }: ConfigurationPanelProps) {
     return (
@@ -111,23 +114,35 @@ export function ConfigurationPanel({
                             </div>
                         </div>
 
-                        <button
-                            type="submit"
-                            disabled={!query.trim() || isLoading}
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            {isLoading ? (
-                                <>
-                                    <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin text-blue-400" />
-                                    Searching
-                                </>
-                            ) : (
-                                <>
-                                    <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4" />
-                                    Run Search
-                                </>
-                            )}
-                        </button>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <button
+                                type="submit"
+                                disabled={!query.trim() || isLoading}
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin text-blue-400" />
+                                        Searching
+                                    </>
+                                ) : (
+                                    <>
+                                        <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4" />
+                                        Run Search
+                                    </>
+                                )}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={onStop}
+                                disabled={!isLoading}
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                <HugeiconsIcon icon={Cancel01Icon} className="h-4 w-4" />
+                                Stop
+                            </button>
+                        </div>
             </form>
         </ConfigPanelShell>
     );

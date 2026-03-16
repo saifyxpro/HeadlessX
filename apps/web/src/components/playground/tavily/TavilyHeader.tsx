@@ -2,10 +2,7 @@
 
 import Image from 'next/image';
 import {
-    Cancel01Icon,
-    CheckmarkCircle02Icon,
     Clock03Icon,
-    Loading03Icon,
     Search01Icon,
     SparklesIcon,
 } from '@hugeicons/core-free-icons';
@@ -86,27 +83,6 @@ export function TavilyHeader({ available, tool, onToolChange, elapsedTime, isPen
                         <div className="inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700">
                             <span className="h-2 w-2 rounded-full bg-amber-500" />
                             API key missing
-                        </div>
-                    )}
-
-                    {isPending && (
-                        <div className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
-                            <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin text-emerald-300" />
-                            Processing
-                        </div>
-                    )}
-
-                    {hasError && !isPending && (
-                        <div className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600">
-                            <HugeiconsIcon icon={Cancel01Icon} className="h-4 w-4" />
-                            Failed
-                        </div>
-                    )}
-
-                    {hasResult && !isPending && !hasError && (
-                        <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-600">
-                            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-4 w-4" />
-                            Ready
                         </div>
                     )}
                 </>

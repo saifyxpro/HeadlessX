@@ -58,6 +58,7 @@ export default function GoogleSerpPage() {
     const [steps, setSteps] = useState<ProgressStep[]>([]);
     const [startTime, setStartTime] = useState<number | null>(null);
     const [elapsedTime, setElapsedTime] = useState<number | null>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     // Timer Ref
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -82,13 +83,24 @@ export default function GoogleSerpPage() {
         }
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
+            abortControllerRef.current?.abort();
         };
     }, [isLoading, data]);
+
+    const stopSearch = () => {
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = null;
+        setIsLoading(false);
+        setIsStreaming(false);
+        setError('Search cancelled');
+    };
 
     const handleSearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (!query.trim()) return;
 
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = new AbortController();
         setIsLoading(true);
         setIsStreaming(true);
         setError(null);
@@ -105,6 +117,7 @@ export default function GoogleSerpPage() {
                 headers: {
                     'Accept': 'text/event-stream',
                 },
+                signal: abortControllerRef.current.signal,
             });
 
             if (!response.ok) {
@@ -189,12 +202,17 @@ export default function GoogleSerpPage() {
             }
             setIsLoading(false);
             setIsStreaming(false);
+            abortControllerRef.current = null;
         } catch (err: any) {
+            if (err instanceof Error && err.name === 'AbortError') {
+                return;
+            }
             console.error('Stream error:', err);
             const message = err instanceof Error ? err.message : String(err);
             setError(message || 'Connection failed');
             setIsLoading(false);
             setIsStreaming(false);
+            abortControllerRef.current = null;
         }
     };
 
@@ -215,6 +233,7 @@ export default function GoogleSerpPage() {
                         timeout={timeout}
                         setTimeout={setTimeout}
                         onSearch={handleSearch}
+                        onStop={stopSearch}
                         isLoading={isLoading}
                 />
             }

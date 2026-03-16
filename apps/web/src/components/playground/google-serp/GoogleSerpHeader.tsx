@@ -1,9 +1,6 @@
 import Image from 'next/image';
 import {
-    Cancel01Icon,
-    CheckmarkCircle02Icon,
     Clock03Icon,
-    Loading03Icon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { PlaygroundHeaderShell } from '../shared';
@@ -37,27 +34,6 @@ export function GoogleSerpHeader({ elapsedTime, isLoading, hasResult, error }: G
                         <HugeiconsIcon icon={Clock03Icon} className="h-4 w-4 text-slate-400" />
                         {elapsedTime !== null ? (elapsedTime / 1000).toFixed(1) : '0.0'}s
                     </div>
-
-                    {isLoading && (
-                        <div className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white">
-                            <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin text-blue-400" />
-                            Searching
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600">
-                            <HugeiconsIcon icon={Cancel01Icon} className="h-4 w-4" />
-                            Failed
-                        </div>
-                    )}
-
-                    {hasResult && !isLoading && !error && (
-                        <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-600">
-                            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-4 w-4" />
-                            Ready
-                        </div>
-                    )}
                 </>
             }
         />

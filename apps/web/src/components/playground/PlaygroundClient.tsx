@@ -33,11 +33,12 @@ type PlaygroundTool = {
 };
 
 interface PlaygroundClientProps {
+    youtubeAvailable: boolean;
     exaAvailable: boolean;
     tavilyAvailable: boolean;
 }
 
-export function PlaygroundClient({ exaAvailable, tavilyAvailable }: PlaygroundClientProps) {
+export function PlaygroundClient({ youtubeAvailable, exaAvailable, tavilyAvailable }: PlaygroundClientProps) {
     const router = useRouter();
     const [searchUrl, setSearchUrl] = useState('');
 
@@ -52,6 +53,10 @@ export function PlaygroundClient({ exaAvailable, tavilyAvailable }: PlaygroundCl
 
         if (tool.id === 'tavily') {
             return 'Add Tavily API key';
+        }
+
+        if (tool.id === 'youtube') {
+            return 'Add yt-engine URL';
         }
 
         return 'Add API key';
@@ -171,14 +176,15 @@ export function PlaygroundClient({ exaAvailable, tavilyAvailable }: PlaygroundCl
         {
             id: 'youtube',
             name: 'YouTube',
-            tagline: 'Video platform data',
-            description: 'Scrape video details, comments, transcripts, and channel statistics.',
+            tagline: 'yt-dude extraction',
+            description: 'Extract video metadata, formats, subtitles, and playlist previews through the dedicated yt-dude-powered engine.',
             icon: '/icons/youtube.svg',
-            available: false,
+            available: youtubeAvailable,
             href: '/playground/youtube',
-            features: ['Videos', 'Comments', 'Transcripts', 'Channels'],
+            features: ['Metadata', 'Formats', 'Subtitles', 'Playlists'],
             color: 'text-red-600',
             bg: 'bg-red-600/10',
+            inactiveLabel: 'env required',
         },
         {
             id: 'amazon',
@@ -204,6 +210,11 @@ export function PlaygroundClient({ exaAvailable, tavilyAvailable }: PlaygroundCl
             color: 'text-blue-600',
             bg: 'bg-blue-600/10',
         },
+    ];
+
+    const orderedScrapers = [
+        ...scrapers.filter((tool) => tool.available),
+        ...scrapers.filter((tool) => !tool.available),
     ];
 
     const handleSearch = (e: React.FormEvent) => {
@@ -280,7 +291,7 @@ export function PlaygroundClient({ exaAvailable, tavilyAvailable }: PlaygroundCl
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {scrapers.map((scraper) => (
+                        {orderedScrapers.map((scraper) => (
                     scraper.available ? (
                         <Link href={scraper.href} key={scraper.id} className="group block h-full">
                             <Card className="relative h-full overflow-hidden border-slate-200 bg-white">

@@ -7,16 +7,28 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const envPath = path.resolve(__dirname, '..', '..', '..', '.env');
-const hasEnvFile = fs.existsSync(envPath);
+const appEnvLocalPath = path.resolve(__dirname, '..', '.env.local');
+const rootEnvPath = path.resolve(__dirname, '..', '..', '..', '.env');
+const loadedPaths: string[] = [];
 
-if (hasEnvFile) {
+for (const envPath of [appEnvLocalPath, rootEnvPath]) {
+    if (!fs.existsSync(envPath)) {
+        continue;
+    }
+
     const result = dotenv.config({ path: envPath });
 
     if (result.error) {
         console.warn(`⚠️ Could not load .env from ${envPath}`);
-    } else {
-        console.log(`✅ Loaded environment from ${envPath}`);
+        continue;
+    }
+
+    loadedPaths.push(envPath);
+}
+
+if (loadedPaths.length > 0) {
+    for (const loadedPath of loadedPaths) {
+        console.log(`✅ Loaded environment from ${loadedPath}`);
     }
 } else {
     const hasInjectedEnv = Boolean(
@@ -26,6 +38,6 @@ if (hasEnvFile) {
     );
 
     if (!hasInjectedEnv) {
-        console.warn(`⚠️ Could not load .env from ${envPath}`);
+        console.warn(`⚠️ Could not load .env from ${appEnvLocalPath} or ${rootEnvPath}`);
     }
 }

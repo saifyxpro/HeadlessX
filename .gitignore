@@ -67,6 +67,9 @@ dist/
 build/
 out/
 .next/
+.venv/
+__pycache__/
+*.pyc
 
 # Database
 *.db

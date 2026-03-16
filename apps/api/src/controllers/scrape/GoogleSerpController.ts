@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { googleSerpService, GoogleSerpService } from '../../services/scrape/GoogleSerpService';
+import { googleSerpService } from '../../services/scrape/GoogleSerpService';
 import { z } from 'zod';
 import { prisma } from '../../database/client';
 
@@ -93,7 +93,6 @@ export class GoogleSerpController {
         sendEvent('start', { query, timestamp: Date.now() });
 
         try {
-            const googleSerpService = new GoogleSerpService();
             const result = await googleSerpService.scrapeWithProgress(
                 query,
                 timeoutMs, // Pass timeout here

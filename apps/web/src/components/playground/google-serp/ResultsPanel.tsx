@@ -16,7 +16,7 @@ import {
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { SearchResponse, ProgressStep } from './types';
-import { ResultsPanelShell } from '../shared';
+import { PlaygroundEmptyState, ResultsPanelShell } from '../shared';
 
 interface ResultsPanelProps {
     data: SearchResponse | null;
@@ -45,15 +45,11 @@ function ResultStat({
 
 function EmptyState() {
     return (
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
-            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-[2rem] border border-slate-200 bg-slate-50">
-                <HugeiconsIcon icon={Search01Icon} className="h-10 w-10 text-slate-300" />
-            </div>
-            <p className="text-lg font-bold text-slate-700">Ready to search</p>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
-                Run a Google query and the results summary, markdown report, and raw data will appear here.
-            </p>
-        </div>
+        <PlaygroundEmptyState
+            icon={Search01Icon}
+            title="Ready to search"
+            body="Run a Google query and the results summary, markdown report, and raw data will appear here."
+        />
     );
 }
 

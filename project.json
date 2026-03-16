@@ -11,7 +11,8 @@
           "pnpm --filter headlessx-api dev",
           "pnpm --filter headlessx-api worker:dev",
           "pnpm --filter headlessx-web dev",
-          "pnpm markdown:dev"
+          "pnpm markdown:dev",
+          "pnpm yt-engine:dev"
         ]
       }
     },
@@ -23,7 +24,8 @@
           "pnpm --filter headlessx-api start",
           "pnpm --filter headlessx-api worker:start",
           "pnpm --filter headlessx-web start",
-          "pnpm markdown:start"
+          "pnpm markdown:start",
+          "pnpm yt-engine:start"
         ]
       }
     }
