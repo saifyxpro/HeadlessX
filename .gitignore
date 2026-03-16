@@ -58,6 +58,10 @@ Thumbs.db
 
 # Nx workspace cache
 .nx/
+.turbo/
+.vercel/
+*.tsbuildinfo
+node_modules/.cache/
 
 # Docker
 .dockerignore
@@ -66,6 +70,7 @@ Thumbs.db
 dist/
 build/
 out/
+.next/
 .next/
 .venv/
 __pycache__/
@@ -98,3 +103,6 @@ config.local.js
 frontend/pnpm-lock.yaml
 frontend/pnpm-workspace.yaml
 backend/pnpm-lock.yaml
+package-lock.json
+bun.lockb
+bun.lock

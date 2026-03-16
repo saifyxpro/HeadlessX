@@ -57,7 +57,8 @@ const NAV_SECTIONS: Array<{
         id: 'resources',
         label: 'Resources',
         items: [
-            { href: 'https://headlessx.saify.me/docs/introduction', label: 'Docs', icon: BookOpen01Icon, external: true },
+            { href: 'https://headlessx.saify.me/docs/', label: 'Docs', icon: BookOpen01Icon, external: true },
+            { href: 'https://headlessx.saify.me/docs/changelog/', label: 'Changelog', icon: File01Icon, external: true },
         ],
     },
 ];
@@ -226,7 +227,7 @@ export function Sidebar() {
                                     </h1>
                                     <div className="mt-2">
                                         <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-600">
-                                            v2.0.4
+                                            v2.1.0
                                         </span>
                                     </div>
                                 </div>
