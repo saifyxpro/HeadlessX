@@ -114,16 +114,22 @@
 
 <div align="center">
 
-| <img src="apps/web/public/icons/google.svg" width="40"/> **Google SERP** |          🌐 **Website Scraping**           |
-| :----------------------------------------------------------------------: | :---------------------------------------: |
-|                Extract search results with zero detection                | Scrape any website with full JS rendering |
-|                                ✅ **Live**                                |                ✅ **Live**                 |
+![HeadlessX Live Scrapers](assets/live_scrapers.png)
+
+### Live Now
+
+- Google SERP
+- Website Scraping
+- Tavily
+- Exa
+- YouTube
 
 ### Coming Soon
 
-| <img src="apps/web/public/icons/amazon.svg" width="40"/> **Amazon** | <img src="apps/web/public/icons/linkedin.svg" width="40"/> **LinkedIn** | <img src="apps/web/public/icons/twitter.svg" width="40"/> **Twitter** | <img src="apps/web/public/icons/instagram.svg" width="40"/> **Instagram** |
-| :-----------------------------------------------------------------: | :---------------------------------------------------------------------: | :-------------------------------------------------------------------: | :-----------------------------------------------------------------------: |
-|                          Product & Reviews                          |                         Job Listings & Profiles                         |                            Tweets & Trends                            |                              Posts & Stories                              |
+- Amazon
+- LinkedIn
+- Twitter
+- Instagram
 
 </div>
 
