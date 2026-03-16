@@ -177,18 +177,7 @@ DASHBOARD_INTERNAL_API_KEY=replace-with-a-long-random-string
 CREDENTIAL_ENCRYPTION_KEY=replace-with-a-different-long-random-string
 
 # ------------------------------
-# 3. STORAGE
-# ------------------------------
-PROFILES_DIR=./data/profiles
-
-# ------------------------------
-# 4. LOGGING
-# ------------------------------
-LOG_LEVEL=info
-LOG_DIR=./logs
-
-# ------------------------------
-# 4A. QUEUE / REDIS
+# 3. QUEUE / REDIS
 # ------------------------------
 # BullMQ uses Redis to persist async scrape, extract, and index jobs.
 REDIS_URL=redis://localhost:6379
@@ -216,7 +205,7 @@ QUEUE_CONNECTION_RETRY_MS=10000
 # Browser and anti-detection settings are managed from the dashboard
 
 # ------------------------------
-# 5. FRONTEND (Next.js)
+# 4. FRONTEND (Next.js)
 # ------------------------------
 WEB_PORT=3000
 
@@ -227,7 +216,7 @@ INTERNAL_API_URL=http://localhost:8000
 FRONTEND_URL=http://localhost:3000
 
 # ------------------------------
-# 6. DEFAULT RUNTIME SETTINGS
+# 5. DEFAULT RUNTIME SETTINGS
 # ------------------------------
 BROWSER_TIMEOUT=60000
 MAX_CONCURRENCY=5
