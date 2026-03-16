@@ -3,7 +3,8 @@
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Plus } from 'lucide-react';
+import { Add01Icon, Key01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 
 export function ApiKeysSkeleton() {
     return (
@@ -11,9 +12,10 @@ export function ApiKeysSkeleton() {
             <PageHeader
                 title="API Keys"
                 description="Manage access tokens and authentication for your applications."
+                icon={<HugeiconsIcon icon={Key01Icon} size={22} />}
                 action={
                     <Button disabled className="h-10 px-5 opacity-60">
-                        <Plus className="mr-2 h-5 w-5" />
+                        <HugeiconsIcon icon={Add01Icon} className="mr-2 h-5 w-5" />
                         New Key
                     </Button>
                 }
@@ -26,7 +28,7 @@ export function ApiKeysSkeleton() {
                 </div>
 
                 {/* List Items Skeleton */}
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white">
                     {[1, 2, 3, 4].map((i) => (
                         <div key={i} className="flex items-center gap-4 p-4 border-b border-slate-100 last:border-b-0">
                             <Skeleton className="h-10 w-10 rounded-xl shrink-0" />

@@ -2,20 +2,15 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { GoogleSerpHeader } from '@/components/playground/google-serp/GoogleSerpHeader';
 import { ConfigurationPanel } from '@/components/playground/google-serp/ConfigurationPanel';
 import { ResultsPanel } from '@/components/playground/google-serp/ResultsPanel';
-import { SearchResponse, Profile, ProgressStep } from '@/components/playground/google-serp/types';
+import { WorkbenchLayout } from '@/components/playground/shared';
+import { SearchResponse, ProgressStep } from '@/components/playground/google-serp/types';
 
 type ParsedSerpStreamEvent = {
     event: 'start' | 'progress' | 'result' | 'error' | 'end' | 'message';
     data: any;
-};
-
-const fetchProfiles = async () => {
-    const res = await fetch('/api/profiles');
-    return res.json();
 };
 
 const INITIAL_STEPS: ProgressStep[] = [];
@@ -59,22 +54,14 @@ export default function GoogleSerpPage() {
     const [isStreaming, setIsStreaming] = useState(false);
     const [data, setData] = useState<SearchResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [selectedProfileId, setSelectedProfileId] = useState<string>('');
     const [timeout, setTimeout] = useState<number>(60);
     const [steps, setSteps] = useState<ProgressStep[]>([]);
     const [startTime, setStartTime] = useState<number | null>(null);
     const [elapsedTime, setElapsedTime] = useState<number | null>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
 
     // Timer Ref
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-    // Fetch profiles
-    const { data: profilesData } = useQuery({
-        queryKey: ['profiles'],
-        queryFn: fetchProfiles,
-        refetchInterval: 5000,
-    });
-    const profiles: Profile[] = profilesData?.profiles || [];
 
     // Timer Logic
     useEffect(() => {
@@ -96,13 +83,24 @@ export default function GoogleSerpPage() {
         }
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
+            abortControllerRef.current?.abort();
         };
     }, [isLoading, data]);
+
+    const stopSearch = () => {
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = null;
+        setIsLoading(false);
+        setIsStreaming(false);
+        setError('Search cancelled');
+    };
 
     const handleSearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (!query.trim()) return;
 
+        abortControllerRef.current?.abort();
+        abortControllerRef.current = new AbortController();
         setIsLoading(true);
         setIsStreaming(true);
         setError(null);
@@ -111,8 +109,7 @@ export default function GoogleSerpPage() {
 
         try {
             const encodedQuery = encodeURIComponent(query);
-            const encodedProfileId = selectedProfileId ? `&profileId=${encodeURIComponent(selectedProfileId)}` : '';
-            const streamUrl = `/api/google-serp/stream?query=${encodedQuery}${encodedProfileId}&timeout=${timeout}`;
+            const streamUrl = `/api/google-serp/stream?query=${encodedQuery}&timeout=${timeout}`;
 
             // Use fetch + ReadableStream instead of EventSource for better SSE handling
             const response = await fetch(streamUrl, {
@@ -120,6 +117,7 @@ export default function GoogleSerpPage() {
                 headers: {
                     'Accept': 'text/event-stream',
                 },
+                signal: abortControllerRef.current.signal,
             });
 
             if (!response.ok) {
@@ -204,39 +202,43 @@ export default function GoogleSerpPage() {
             }
             setIsLoading(false);
             setIsStreaming(false);
+            abortControllerRef.current = null;
         } catch (err: any) {
+            if (err instanceof Error && err.name === 'AbortError') {
+                return;
+            }
             console.error('Stream error:', err);
             const message = err instanceof Error ? err.message : String(err);
             setError(message || 'Connection failed');
             setIsLoading(false);
             setIsStreaming(false);
+            abortControllerRef.current = null;
         }
     };
 
     return (
-        <div className="space-y-6">
-            <div className="relative">
+        <WorkbenchLayout
+            header={
                 <GoogleSerpHeader
                     elapsedTime={elapsedTime}
                     isLoading={isLoading}
                     hasResult={!!data}
                     error={error}
                 />
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    <ConfigurationPanel
+            }
+            config={
+                <ConfigurationPanel
                         query={query}
                         setQuery={setQuery}
-                        selectedProfileId={selectedProfileId}
-                        setSelectedProfileId={setSelectedProfileId}
                         timeout={timeout}
                         setTimeout={setTimeout}
-                        profiles={profiles}
                         onSearch={handleSearch}
+                        onStop={stopSearch}
                         isLoading={isLoading}
-                    />
-
-                    <ResultsPanel
+                />
+            }
+            results={
+                <ResultsPanel
                         data={data}
                         isStreaming={isStreaming}
                         isPending={isLoading && !isStreaming}
@@ -244,9 +246,9 @@ export default function GoogleSerpPage() {
                         steps={steps}
                         elapsedTime={elapsedTime}
                         onRetry={handleSearch}
-                    />
-                </div>
-            </div>
-        </div>
+                />
+            }
+            gridClassName="grid-cols-1 lg:grid-cols-12 gap-8"
+        />
     );
 }

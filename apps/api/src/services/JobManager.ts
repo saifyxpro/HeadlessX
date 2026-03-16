@@ -1,20 +1,20 @@
-import type { StreamProgress, StreamScrapeResult } from './StreamingScraperService';
+import type { StreamProgress, StreamScrapeResult } from './scrape/StreamingScraperService';
 import { randomUUID } from 'crypto';
 import type { Page } from 'playwright-core';
 
 export interface Job {
     id: string;
+    apiKeyId: string | null;
     url: string;
-    type: 'html' | 'html-js' | 'html-css-js' | 'content' | 'screenshot';
+    type: 'html' | 'html-js' | 'content' | 'screenshot' | 'crawl' | 'map' | 'extract' | 'index';
     options: {
         waitForSelector?: string;
         timeout?: number;
-        profileId?: string;
         fullPage?: boolean;
     };
     status: 'pending' | 'running' | 'completed' | 'error' | 'cancelled';
     progress: StreamProgress[];
-    result?: StreamScrapeResult;
+    result?: any;
     error?: string;
     createdAt: number;
     updatedAt: number;
@@ -49,10 +49,31 @@ class JobManager {
     public createJob(
         url: string,
         type: Job['type'],
-        options: Job['options']
+        options: Job['options'],
+        apiKeyId: string | null = null
     ): Job {
+        return this.registerJob(randomUUID(), url, type, options, apiKeyId);
+    }
+
+    /**
+     * Register a job with a caller-supplied ID. Used by BullMQ workers so
+     * the abort controller and active page registry can follow the queue job ID.
+     */
+    public registerJob(
+        id: string,
+        url: string,
+        type: Job['type'],
+        options: Job['options'],
+        apiKeyId: string | null = null
+    ): Job {
+        const existing = this.jobs.get(id);
+        if (existing) {
+            return existing;
+        }
+
         const job: Job = {
-            id: randomUUID(),
+            id,
+            apiKeyId,
             url,
             type,
             options,
@@ -81,13 +102,29 @@ class JobManager {
     /**
      * Get the currently active (running) job
      */
-    public getActiveJob(): Job | null {
-        if (!this.activeJobId) return null;
-        const job = this.jobs.get(this.activeJobId);
-        if (!job || job.status === 'completed' || job.status === 'error' || job.status === 'cancelled') {
+    public getActiveJob(apiKeyId?: string | null): Job | null {
+        const isActiveJob = (job: Job | undefined): job is Job => {
+            return !!job && job.status !== 'completed' && job.status !== 'error' && job.status !== 'cancelled';
+        };
+
+        if (this.activeJobId) {
+            const activeJob = this.jobs.get(this.activeJobId);
+            if (isActiveJob(activeJob) && (apiKeyId === undefined || activeJob.apiKeyId === apiKeyId)) {
+                return activeJob;
+            }
+        }
+
+        if (apiKeyId === undefined) {
             return null;
         }
-        return job;
+
+        for (const job of this.jobs.values()) {
+            if (isActiveJob(job) && job.apiKeyId === apiKeyId) {
+                return job;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -222,6 +259,16 @@ class JobManager {
         const job = this.jobs.get(jobId);
         if (job) {
             job.listeners.delete(listener);
+        }
+    }
+
+    /**
+     * Remove a job from the in-memory registry immediately.
+     */
+    public removeJob(jobId: string) {
+        this.jobs.delete(jobId);
+        if (this.activeJobId === jobId) {
+            this.activeJobId = null;
         }
     }
 

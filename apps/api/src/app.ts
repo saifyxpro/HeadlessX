@@ -4,19 +4,21 @@ import cors from 'cors';
 // Note: dotenv is loaded in env.ts which is imported first in server_entry.ts
 
 const app = express();
+const frontendUrl = process.env.FRONTEND_URL?.trim();
+const webPort = process.env.WEB_PORT?.trim();
 
 // Build CORS origins from environment
-const corsOrigins: (string | RegExp)[] = [
-    'http://localhost:3000',
-    'http://127.0.0.1:3000',
-];
+const corsOrigins: (string | RegExp)[] = [];
 
-// Add FRONTEND_URL if configured (for custom deployments)
-if (process.env.FRONTEND_URL) {
-    corsOrigins.push(process.env.FRONTEND_URL);
+if (frontendUrl) {
+    corsOrigins.push(frontendUrl);
 }
 
-// Add NEXT_PUBLIC_API_URL origin if it's different from backend
+if (webPort) {
+    corsOrigins.push(`http://localhost:${webPort}`);
+    corsOrigins.push(`http://127.0.0.1:${webPort}`);
+}
+
 if (process.env.NEXT_PUBLIC_API_URL) {
     const apiUrl = new URL(process.env.NEXT_PUBLIC_API_URL);
     const frontendOrigin = `${apiUrl.protocol}//${apiUrl.hostname}${apiUrl.port ? ':' + apiUrl.port : ''}`;
@@ -39,19 +41,31 @@ app.use(express.json({ limit: process.env.BODY_LIMIT || '10mb' }));
 // =============================================
 
 // Website Scraping: /api/website/*
-import websiteRoutes from './routes/websiteRoutes';
+import websiteRoutes from './routes/scrape/websiteRoutes';
 app.use('/api/website', websiteRoutes);
 
 // Google SERP: /api/google-serp/* (Coming Soon)
-import googleSerpRoutes from './routes/googleSerpRoutes';
+import googleSerpRoutes from './routes/scrape/googleSerpRoutes';
 app.use('/api/google-serp', googleSerpRoutes);
 
+// Tavily: /api/tavily/*
+import tavilyRoutes from './routes/ai/tavilyRoutes';
+app.use('/api/tavily', tavilyRoutes);
+
+// Exa: /api/exa/*
+import exaRoutes from './routes/ai/exaRoutes';
+app.use('/api/exa', exaRoutes);
+
+// YouTube media engine: /api/youtube/*
+import youtubeRoutes from './routes/media/youtubeRoutes';
+app.use('/api/youtube', youtubeRoutes);
+
 // Configuration: /api/config
-import configRoutes from './routes/configRoutes';
+import configRoutes from './routes/config/configRoutes';
 app.use('/api/config', configRoutes);
 
 // Dashboard: /api/dashboard
-import dashboardRoutes from './routes/dashboardRoutes';
+import dashboardRoutes from './routes/dashboard/dashboardRoutes';
 app.use('/api/dashboard', dashboardRoutes);
 
 // API Keys: /api/keys
@@ -62,26 +76,17 @@ app.use('/api/keys', keysRoutes);
 import logsRoutes from './routes/logsRoutes';
 app.use('/api/logs', logsRoutes);
 
-// Profiles: /api/profiles
-import profileRoutes from './routes/profileRoutes';
-app.use('/api/profiles', profileRoutes);
-
 // Proxies: /api/proxies
-import proxyRoutes from './routes/proxyRoutes';
+import proxyRoutes from './routes/proxy/proxyRoutes';
 app.use('/api/proxies', proxyRoutes);
 
 // Jobs: /api/jobs (for persistent scrape job tracking)
-import jobRoutes from './routes/jobRoutes';
+import jobRoutes from './routes/jobs/jobRoutes';
 app.use('/api/jobs', jobRoutes);
 
-// =============================================
-// Legacy Routes (v1/v2 - keep for backwards compatibility)
-// =============================================
-import v1Router from './routes/v1';
-import v2Router from './routes/v2';
-
-app.use('/api/v1', v1Router);
-app.use('/api/v2', v2Router);
+// MCP: /mcp
+import { handleMcpRequest } from './mcp/server';
+app.all('/mcp', handleMcpRequest);
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -94,12 +99,19 @@ app.get('/api/health', (req, res) => {
         browser: 'Camoufox (Anti-detect Firefox)',
         endpoints: {
             website: '/api/website/*',
+            websiteMap: '/api/website/map',
+            websiteCrawl: '/api/website/crawl',
             googleSerp: '/api/google-serp/* (coming soon)',
-            profiles: '/api/profiles/*',
+            tavily: '/api/tavily/*',
+            exa: '/api/exa/*',
+            youtube: '/api/youtube/*',
             proxies: '/api/proxies/*',
             config: '/api/config',
             keys: '/api/keys',
-            logs: '/api/logs'
+            logs: '/api/logs',
+            jobs: '/api/jobs',
+            queueMetrics: '/api/jobs/metrics',
+            mcp: '/mcp'
         }
     });
 });
@@ -107,4 +119,3 @@ app.get('/api/health', (req, res) => {
 // Server startup is handled by server_entry.ts
 
 export default app;
-

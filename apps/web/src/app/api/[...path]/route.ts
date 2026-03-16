@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 
-const backendApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const backendApiUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
 const dashboardInternalApiKey = process.env.DASHBOARD_INTERNAL_API_KEY;
 
 export const dynamic = 'force-dynamic';
@@ -34,6 +34,13 @@ function buildResponseHeaders(upstreamHeaders: Headers): Headers {
 }
 
 async function proxyRequest(request: NextRequest, context: RouteContext): Promise<Response> {
+    if (!backendApiUrl) {
+        return Response.json(
+            { success: false, error: 'INTERNAL_API_URL or NEXT_PUBLIC_API_URL is not configured' },
+            { status: 500 }
+        );
+    }
+
     if (!dashboardInternalApiKey) {
         return Response.json(
             { success: false, error: 'DASHBOARD_INTERNAL_API_KEY is not configured' },

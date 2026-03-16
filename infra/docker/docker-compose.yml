@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15-alpine
@@ -21,6 +19,38 @@ services:
       - headlessx-network
     profiles: ["db", "all"]
 
+  redis:
+    image: redis:7-alpine
+    container_name: headlessx-redis
+    ports:
+      - "${REDIS_HOST_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - headlessx-network
+    profiles: ["api", "queue", "all"]
+
+  html-to-md:
+    build:
+      context: ../../
+      dockerfile: apps/go-html-to-md-service/Dockerfile
+    container_name: headlessx-html-to-md
+    environment:
+      - PORT=8080
+    ports:
+      - "${HTML_TO_MARKDOWN_HOST_PORT:-8081}:8080"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - headlessx-network
+    profiles: ["api", "queue", "all"]
+
   api:
     build:
       context: ../../
@@ -29,13 +59,25 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      html-to-md:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-headlessx}?schema=public
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - HTML_TO_MARKDOWN_SERVICE_URL=${HTML_TO_MARKDOWN_SERVICE_URL:-http://html-to-md:8080}
+      - HTML_TO_MARKDOWN_TIMEOUT_MS=${HTML_TO_MARKDOWN_TIMEOUT_MS:-60000}
       - PORT=${PORT:-8000}
       - NODE_ENV=production
       - FRONTEND_URL=http://localhost:${WEB_PORT:-3000}
       - DASHBOARD_INTERNAL_API_KEY=${DASHBOARD_INTERNAL_API_KEY}
       - CREDENTIAL_ENCRYPTION_KEY=${CREDENTIAL_ENCRYPTION_KEY}
+      - BULLMQ_QUEUE_NAME=${BULLMQ_QUEUE_NAME:-headlessx-jobs}
+      - QUEUE_WORKER_CONCURRENCY=${QUEUE_WORKER_CONCURRENCY:-2}
+      - QUEUE_JOB_ATTEMPTS=${QUEUE_JOB_ATTEMPTS:-3}
+      - QUEUE_JOB_BACKOFF_MS=${QUEUE_JOB_BACKOFF_MS:-5000}
+      - QUEUE_STREAM_POLL_MS=${QUEUE_STREAM_POLL_MS:-1000}
     ports:
       - "${PORT:-8000}:${PORT:-8000}"
     volumes:
@@ -43,6 +85,38 @@ services:
     networks:
       - headlessx-network
     profiles: ["api", "all"]
+
+  worker:
+    build:
+      context: ../../
+      dockerfile: infra/docker/api.Dockerfile
+    container_name: headlessx-worker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      html-to-md:
+        condition: service_healthy
+    command: ["/usr/local/bin/headlessx-worker-entrypoint"]
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-headlessx}?schema=public
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - HTML_TO_MARKDOWN_SERVICE_URL=${HTML_TO_MARKDOWN_SERVICE_URL:-http://html-to-md:8080}
+      - HTML_TO_MARKDOWN_TIMEOUT_MS=${HTML_TO_MARKDOWN_TIMEOUT_MS:-60000}
+      - NODE_ENV=production
+      - DASHBOARD_INTERNAL_API_KEY=${DASHBOARD_INTERNAL_API_KEY}
+      - CREDENTIAL_ENCRYPTION_KEY=${CREDENTIAL_ENCRYPTION_KEY}
+      - BULLMQ_QUEUE_NAME=${BULLMQ_QUEUE_NAME:-headlessx-jobs}
+      - QUEUE_WORKER_CONCURRENCY=${QUEUE_WORKER_CONCURRENCY:-2}
+      - QUEUE_JOB_ATTEMPTS=${QUEUE_JOB_ATTEMPTS:-3}
+      - QUEUE_JOB_BACKOFF_MS=${QUEUE_JOB_BACKOFF_MS:-5000}
+      - QUEUE_STREAM_POLL_MS=${QUEUE_STREAM_POLL_MS:-1000}
+    volumes:
+      - ../../apps/api/models:/app/apps/api/models
+    networks:
+      - headlessx-network
+    profiles: ["queue", "all"]
 
   web:
     build:
@@ -52,6 +126,7 @@ services:
     depends_on:
       - api
     environment:
+      - INTERNAL_API_URL=http://api:${PORT:-8000}
       - NEXT_PUBLIC_API_URL=http://localhost:${PORT:-8000}
       - NODE_ENV=production
       - DASHBOARD_INTERNAL_API_KEY=${DASHBOARD_INTERNAL_API_KEY}

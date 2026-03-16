@@ -4,17 +4,18 @@ import type { ReactNode } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
-    AlertCircle,
-    CheckCircle2,
-    Clock3,
-    ExternalLink,
-    Eye,
-    FileText,
-    Loader2,
-    RefreshCw,
-    Search,
-    XCircle,
-} from 'lucide-react';
+    AlertCircleIcon,
+    CheckmarkCircle02Icon,
+    Clock03Icon,
+    File01Icon,
+    LinkSquare01Icon,
+    Loading03Icon,
+    Refresh01Icon,
+    Search01Icon,
+    ViewIcon,
+    Cancel01Icon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -98,12 +99,39 @@ function formatRelativeTime(value: string) {
     return `${diffDays}d ago`;
 }
 
+function formatCompactUrl(value: string, maxLength = 72) {
+    try {
+        const parsed = new URL(value);
+        const compact = `${parsed.hostname}${parsed.pathname}${parsed.search}`;
+        if (compact.length <= maxLength) {
+            return compact;
+        }
+
+        return `${compact.slice(0, Math.max(0, maxLength - 3))}...`;
+    } catch {
+        if (value.length <= maxLength) {
+            return value;
+        }
+
+        return `${value.slice(0, Math.max(0, maxLength - 3))}...`;
+    }
+}
+
+function formatCompactText(value: string, maxLength = 72) {
+    const normalized = value.replace(/\s+/g, ' ').trim();
+    if (normalized.length <= maxLength) {
+        return normalized;
+    }
+
+    return `${normalized.slice(0, Math.max(0, maxLength - 3))}...`;
+}
+
 function getStatusMeta(statusCode?: number | null) {
     if (statusCode === 0 || statusCode === undefined || statusCode === null) {
         return {
             label: 'Pending',
             tone: 'pending' as const,
-            icon: Clock3,
+            icon: Clock03Icon,
             className: 'border-amber-200 bg-amber-50 text-amber-700',
         };
     }
@@ -112,7 +140,7 @@ function getStatusMeta(statusCode?: number | null) {
         return {
             label: 'Success',
             tone: 'success' as const,
-            icon: CheckCircle2,
+            icon: CheckmarkCircle02Icon,
             className: 'border-emerald-200 bg-emerald-50 text-emerald-700',
         };
     }
@@ -121,7 +149,7 @@ function getStatusMeta(statusCode?: number | null) {
         return {
             label: 'Error',
             tone: 'error' as const,
-            icon: XCircle,
+            icon: Cancel01Icon,
             className: 'border-rose-200 bg-rose-50 text-rose-700',
         };
     }
@@ -129,7 +157,7 @@ function getStatusMeta(statusCode?: number | null) {
     return {
         label: 'System',
         tone: 'system' as const,
-        icon: AlertCircle,
+        icon: AlertCircleIcon,
         className: 'border-slate-200 bg-slate-100 text-slate-700',
     };
 }
@@ -197,7 +225,7 @@ function LogDetailsDialog({ log, open, onOpenChange }: { log: LogEntry | null; o
                                 {log.method}
                             </Badge>
                             <Badge className={cn('gap-1 rounded-full border px-2.5 py-1 font-medium', status.className)}>
-                                <StatusIcon className="h-3.5 w-3.5" />
+                                <HugeiconsIcon icon={StatusIcon} size={14} />
                                 {log.status_code ?? 'N/A'} · {status.label}
                             </Badge>
                             <Badge variant="outline" className="rounded-full border-slate-200 bg-slate-50 px-3 py-1 text-slate-600">
@@ -213,7 +241,10 @@ function LogDetailsDialog({ log, open, onOpenChange }: { log: LogEntry | null; o
                     </DialogHeader>
                 </div>
 
-                <div className="max-h-[calc(85vh-108px)] space-y-6 overflow-y-auto px-6 py-6">
+                <div
+                    data-lenis-prevent="true"
+                    className="custom-scrollbar max-h-[calc(85vh-108px)] space-y-6 overflow-y-auto overscroll-contain px-6 py-6"
+                >
                     <div className="space-y-2">
                         <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Request URL</div>
                         <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm break-all text-slate-700">
@@ -226,7 +257,7 @@ function LogDetailsDialog({ log, open, onOpenChange }: { log: LogEntry | null; o
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 text-sm font-medium text-primary"
                             >
-                                Open target <ExternalLink className="h-4 w-4" />
+                                Open target <HugeiconsIcon icon={LinkSquare01Icon} size={16} />
                             </a>
                         )}
                     </div>
@@ -261,7 +292,7 @@ function LogsPageSkeleton() {
             <PageHeader
                 title="Request Logs"
                 description="Inspect request history, response health, and latency trends."
-                icon={<FileText className="h-5 w-5" />}
+                icon={<HugeiconsIcon icon={File01Icon} size={20} />}
             />
 
             <div className="space-y-7 pb-4">
@@ -285,7 +316,7 @@ function LogsPageSkeleton() {
                         <Skeleton className="h-4 w-64" />
                     </CardHeader>
                     <CardContent className="px-5 pb-5 pt-0 md:px-6">
-                        <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 md:p-5">
+                        <div className="space-y-4 rounded-[1.75rem] border border-slate-200 bg-slate-50/70 p-4 md:p-5">
                             <div className="flex flex-wrap gap-2">
                                 <Skeleton className="h-7 w-20 rounded-full" />
                                 <Skeleton className="h-7 w-20 rounded-full" />
@@ -306,7 +337,7 @@ function LogsPageSkeleton() {
                         <Skeleton className="h-4 w-56" />
                     </CardHeader>
                     <CardContent className="px-5 pb-5 pt-0 md:px-6">
-                        <div className="overflow-hidden rounded-2xl border border-slate-200">
+                        <div className="overflow-hidden rounded-[1.75rem] border border-slate-200">
                             <div className="border-b border-slate-100 bg-slate-50 px-5 py-3">
                                 <Skeleton className="h-5 w-32" />
                             </div>
@@ -413,28 +444,28 @@ export default function LogsPage() {
             value: statsData?.stats.totalRequests ?? 0,
             hint: 'Across dashboard and API traffic',
             accent: 'bg-blue-50 text-blue-700 border-blue-100',
-            icon: FileText,
+            icon: File01Icon,
         },
         {
             title: 'Success Rate',
             value: `${statsData?.stats.successRate ?? '0.0'}%`,
             hint: `${statsData?.stats.successfulRequests ?? 0} successful requests`,
             accent: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-            icon: CheckCircle2,
+            icon: CheckmarkCircle02Icon,
         },
         {
             title: 'Failed Requests',
             value: statsData?.stats.failedRequests ?? 0,
             hint: '4xx and 5xx responses',
             accent: 'bg-rose-50 text-rose-700 border-rose-100',
-            icon: XCircle,
+            icon: Cancel01Icon,
         },
         {
             title: 'Avg Latency',
             value: `${statsData?.stats.avgLatency ?? '0.00'} s`,
             hint: 'Average request duration',
             accent: 'bg-amber-50 text-amber-700 border-amber-100',
-            icon: Clock3,
+            icon: Clock03Icon,
         },
     ];
 
@@ -444,15 +475,19 @@ export default function LogsPage() {
                 <PageHeader
                     title="Request Logs"
                     description="Inspect request history, response health, and latency trends from the dashboard and API layer."
-                    icon={<FileText className="h-5 w-5" />}
+                    icon={<HugeiconsIcon icon={File01Icon} size={20} />}
                     action={
                         <div className="flex items-center gap-3">
-                            <div className="hidden md:flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500">
+                            <div className="ui-panel-soft hidden md:flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500">
                                 <span className={cn('h-2 w-2 rounded-full', isRefreshing ? 'bg-amber-500' : 'bg-emerald-500')} />
                                 {isRefreshing ? 'Refreshing' : 'Auto-refreshing'}
                             </div>
                             <Button variant="outline" onClick={handleRefresh} disabled={isRefreshing} className="h-10">
-                                {isRefreshing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+                                {isRefreshing ? (
+                                    <HugeiconsIcon icon={Loading03Icon} className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <HugeiconsIcon icon={Refresh01Icon} className="mr-2 h-4 w-4" />
+                                )}
                                 Refresh
                             </Button>
                         </div>
@@ -474,7 +509,7 @@ export default function LogsPage() {
                                                 <CardTitle className="mt-2 text-[1.65rem] font-bold tracking-tight">{card.value}</CardTitle>
                                             </div>
                                             <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl border', card.accent)}>
-                                                <Icon className="h-4 w-4" />
+                                                <HugeiconsIcon icon={Icon} size={16} />
                                             </div>
                                         </div>
                                     </CardHeader>
@@ -498,7 +533,7 @@ export default function LogsPage() {
                             </div>
                         </CardHeader>
                         <CardContent className="px-5 pb-5 pt-0 md:px-6">
-                            <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 md:p-5">
+                            <div className="ui-panel-soft space-y-4 rounded-[1.75rem] border border-slate-200 bg-slate-50/70 p-4 md:p-5">
                                 <div className="flex flex-wrap items-center gap-2">
                                     <Badge variant="outline" className="rounded-full border-slate-200 bg-white px-3 py-1 text-slate-600">
                                         {filteredLogs.length} visible
@@ -520,7 +555,7 @@ export default function LogsPage() {
                                     <div className="space-y-2">
                                         <label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Search</label>
                                         <div className="relative">
-                                            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                            <HugeiconsIcon icon={Search01Icon} className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                                             <Input
                                                 value={search}
                                                 onChange={(event) => setSearch(event.target.value)}
@@ -580,9 +615,9 @@ export default function LogsPage() {
                         </CardHeader>
                         <CardContent className="px-5 pb-5 pt-0 md:px-6">
                             {filteredLogs.length === 0 ? (
-                                <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-2xl border border-slate-200 bg-slate-50/60 px-6 py-12 text-center">
+                                <div className="ui-panel-soft flex min-h-[420px] flex-col items-center justify-center gap-4 rounded-[1.75rem] border border-slate-200 bg-slate-50/60 px-6 py-12 text-center">
                                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-400">
-                                        <Search className="h-6 w-6" />
+                                        <HugeiconsIcon icon={Search01Icon} size={24} />
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-semibold text-slate-900">No logs matched this filter set</h3>
@@ -592,18 +627,108 @@ export default function LogsPage() {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="overflow-hidden rounded-2xl border border-slate-200">
-                                    <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/80 px-5 py-4 md:flex-row md:items-center md:justify-between">
+                                <div className="overflow-hidden rounded-[1.75rem] border border-slate-200">
+                                    <div className="ui-panel-soft flex flex-col gap-3 border-b border-slate-100 bg-slate-50/80 px-5 py-4 md:flex-row md:items-center md:justify-between">
                                         <div className="text-sm text-slate-600">
                                             Showing <span className="font-medium text-slate-800">{filteredLogs.length}</span> rows on page <span className="font-medium text-slate-800">{page}</span> of <span className="font-medium text-slate-800">{totalPages}</span>
                                         </div>
                                         <div className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500">
-                                            Table stays dense. Details open in overlay.
+                                            Responsive cards on small screens. Details open in overlay.
                                         </div>
                                     </div>
 
-                                    <div className="overflow-x-auto">
-                                        <table className="min-w-full text-sm">
+                                    <div className="grid gap-3 p-4 lg:hidden">
+                                        {filteredLogs.map((log) => {
+                                            const status = getStatusMeta(log.status_code);
+                                            const StatusIcon = status.icon;
+                                            const isSelected = log.id === selectedLogId;
+
+                                            return (
+                                                <div
+                                                    key={log.id}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    aria-label={`Open log details for ${log.url}`}
+                                                    className={cn(
+                                                        'ui-row rounded-2xl border p-4 text-left',
+                                                        isSelected
+                                                            ? 'border-primary/20 bg-primary/5'
+                                                            : 'border-slate-200 bg-white'
+                                                    )}
+                                                    onClick={() => setSelectedLogId(log.id)}
+                                                    onKeyDown={(event) => {
+                                                        if (event.key === 'Enter' || event.key === ' ') {
+                                                            event.preventDefault();
+                                                            setSelectedLogId(log.id);
+                                                        }
+                                                    }}
+                                                >
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <Badge
+                                                            variant="outline"
+                                                            className="rounded-lg border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[11px] uppercase text-slate-600"
+                                                        >
+                                                            {log.method}
+                                                        </Badge>
+                                                        <Badge className={cn('gap-1 rounded-full border px-2.5 py-1 font-medium', status.className)}>
+                                                            <HugeiconsIcon icon={StatusIcon} size={14} />
+                                                            {log.status_code ?? 'N/A'} · {status.label}
+                                                        </Badge>
+                                                    </div>
+
+                                                    <div className="mt-3 break-words font-medium leading-6 text-slate-900">
+                                                        {formatCompactUrl(log.url, 68)}
+                                                    </div>
+
+                                                    <div className="mt-2 text-sm leading-6 text-slate-500">
+                                                        {log.error_message ? formatCompactText(log.error_message, 96) : 'No error recorded'}
+                                                    </div>
+
+                                                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                                                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                                                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Latency</div>
+                                                            <div className="mt-1 text-sm font-medium text-slate-700">{formatLatency(log.duration_ms)}</div>
+                                                        </div>
+                                                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                                                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">API Key</div>
+                                                            <div className="mt-1 truncate text-sm font-medium text-slate-700">{log.api_key?.name || 'Dashboard / Internal'}</div>
+                                                        </div>
+                                                        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 sm:col-span-2">
+                                                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">Time</div>
+                                                            <div className="mt-1 text-sm font-medium text-slate-700">
+                                                                {formatRelativeTime(log.created_at)} · {formatTimestamp(log.created_at)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="mt-4 flex justify-end">
+                                                        <Button
+                                                            variant="outline"
+                                                            className="h-9 rounded-lg px-3 text-xs"
+                                                            onClick={(event) => {
+                                                                event.stopPropagation();
+                                                                setSelectedLogId(log.id);
+                                                            }}
+                                                        >
+                                                            <HugeiconsIcon icon={ViewIcon} className="mr-1.5 h-3.5 w-3.5" />
+                                                            View
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <div className="hidden lg:block">
+                                        <table className="min-w-full table-fixed text-sm">
+                                            <colgroup>
+                                                <col className="w-[42%]" />
+                                                <col className="w-[15%]" />
+                                                <col className="w-[12%]" />
+                                                <col className="w-[14%]" />
+                                                <col className="w-[11%]" />
+                                                <col className="w-[6%]" />
+                                            </colgroup>
                                             <thead className="bg-white text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                                                 <tr>
                                                     <th className="px-5 py-3.5">Request</th>
@@ -627,7 +752,7 @@ export default function LogsPage() {
                                                             tabIndex={0}
                                                             aria-label={`Open log details for ${log.url}`}
                                                             className={cn(
-                                                                'border-t border-slate-100 align-top transition-colors',
+                                                                'ui-row border-t border-slate-100 align-top',
                                                                 isSelected ? 'bg-primary/5' : 'hover:bg-slate-50/70 focus-within:bg-slate-50/70'
                                                             )}
                                                             onClick={() => setSelectedLogId(log.id)}
@@ -648,22 +773,28 @@ export default function LogsPage() {
                                                                             {log.method}
                                                                         </Badge>
                                                                         <div className="min-w-0 flex-1">
-                                                                            <div className="truncate font-medium text-slate-900">{log.url}</div>
+                                                                            <div className="truncate font-medium text-slate-900" title={log.url}>
+                                                                                {formatCompactUrl(log.url, 60)}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div className="truncate text-xs leading-5 text-slate-500">
-                                                                        {log.error_message || 'No error recorded'}
+                                                                    <div className="truncate text-xs leading-5 text-slate-500" title={log.error_message || 'No error recorded'}>
+                                                                        {log.error_message ? formatCompactText(log.error_message, 72) : 'No error recorded'}
                                                                     </div>
                                                                 </div>
                                                             </td>
                                                             <td className="px-5 py-4 align-top">
                                                                 <Badge className={cn('gap-1 rounded-full border px-2.5 py-1 font-medium', status.className)}>
-                                                                    <StatusIcon className="h-3.5 w-3.5" />
+                                                                    <HugeiconsIcon icon={StatusIcon} size={14} />
                                                                     {log.status_code ?? 'N/A'} · {status.label}
                                                                 </Badge>
                                                             </td>
                                                             <td className="px-5 py-4 align-top font-medium text-slate-700">{formatLatency(log.duration_ms)}</td>
-                                                            <td className="px-5 py-4 align-top text-slate-600">{log.api_key?.name || 'Dashboard / Internal'}</td>
+                                                            <td className="px-5 py-4 align-top text-slate-600">
+                                                                <div className="truncate" title={log.api_key?.name || 'Dashboard / Internal'}>
+                                                                    {log.api_key?.name || 'Dashboard / Internal'}
+                                                                </div>
+                                                            </td>
                                                             <td className="px-5 py-4 align-top text-slate-500">{formatRelativeTime(log.created_at)}</td>
                                                             <td className="px-5 py-4 align-top text-right">
                                                                 <Button
@@ -674,7 +805,7 @@ export default function LogsPage() {
                                                                         setSelectedLogId(log.id);
                                                                     }}
                                                                 >
-                                                                    <Eye className="mr-1.5 h-3.5 w-3.5" />
+                                                                    <HugeiconsIcon icon={ViewIcon} className="mr-1.5 h-3.5 w-3.5" />
                                                                     View
                                                                 </Button>
                                                             </td>

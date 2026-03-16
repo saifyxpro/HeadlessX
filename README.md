@@ -2,508 +2,368 @@
 
 ![HeadlessX Logo](assets/logo-hr.svg)
 
-### **The World's Most Advanced Anti-Detection Scraping Full Stack Web App**
+### Self-hosted scraping and search workflows powered by Camoufox
 
-<br/>
-
-[![Version](https://img.shields.io/badge/Version-2.0.0-blueviolet?style=for-the-badge&logo=v&logoColor=white)](https://github.com/)
-[![Release](https://img.shields.io/badge/Release-January%202026-success?style=for-the-badge&logo=github&logoColor=white)](https://github.com/)
-[![Detection](https://img.shields.io/badge/Detection%20Rate-0%25-brightgreen?style=for-the-badge&logo=shield&logoColor=white)](https://github.com/)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-blue?style=for-the-badge&logo=statuspage&logoColor=white)](https://github.com/)
-
-<br/>
-
-[![Node.js](https://img.shields.io/badge/Node.js-22+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Version](https://img.shields.io/badge/Version-v2.1.0-blue?style=for-the-badge)](docs/setup-guide.md)
+[![Runtime](https://img.shields.io/badge/Node.js-22+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![Camoufox](https://img.shields.io/badge/Camoufox-Firefox-FF7139?style=for-the-badge&logo=firefox&logoColor=white)](https://github.com/AurelicButter/camoufox)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Playwright](https://img.shields.io/badge/Playwright-1.58-45BA4B?style=for-the-badge&logo=playwright&logoColor=white)](https://playwright.dev/)
+[![License](https://img.shields.io/badge/License-MIT-black?style=for-the-badge)](LICENSE)
 
-<br/>
-
-[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen?style=flat-square)](CONTRIBUTING.md)
-[![Maintenance](https://img.shields.io/badge/Maintained-Yes-green?style=flat-square)](https://github.com/)
-[![Made with Love](https://img.shields.io/badge/Made%20with-❤️-red?style=flat-square)](https://github.com/)
-
----
-
-![HeadlessX Demo](assets/demo.gif)
-
-### 🎯 **0% Detection Rate** on all major anti-bot systems
-
-*Powered by **Camoufox** — Firefox with C++ level fingerprint spoofing*
-
-[📖 Documentation](#-api-endpoints) • [🚀 Quick Start](#-quick-start) • [🐛 Report Bug](https://github.com/) • [✨ Request Feature](https://github.com/)
+[Setup Guide](https://headlessx.saify.me/docs/self-hosting/overview) • [API Reference](https://headlessx.saify.me/docs/api-reference/overview) • [MCP](https://headlessx.saify.me/docs/get-started/mcp-setup)
 
 </div>
 
 ---
 
-## 🆕 What's New in V2.0
+## Overview
+
+HeadlessX is a self-hosted scraping platform with a web dashboard, protected API, queue-backed workflows, and a remote MCP endpoint.
+
+Current live surfaces:
+
+- Website scraping: scrape, crawl, map, content extraction, screenshots
+- Google SERP
+- Tavily
+- Exa
+- YouTube
+- Queue jobs, logs, API keys, proxy management, and config management
+- Remote MCP over `/mcp`
+
+## What Changed In v2.1.0
+
+- Simplified the dashboard around one global browser/runtime model
+- Added Tavily, Exa, and YouTube workspaces
+- Added queued crawl and job flows with Redis + worker support
+- Added remote MCP secured with normal dashboard-created API keys
+- Added setup and API guides aligned with the current route tree
+
+## Scrapers
 
 <div align="center">
 
-|           🦊 **Camoufox Engine**           |              🛡️ **0% Detection**              |      ⚡ **3x Faster**      |
-| :---------------------------------------: | :------------------------------------------: | :-----------------------: |
-| Firefox with binary-level stealth patches | Passes CreepJS, Sannysoft, & all major tests | Optimized context pooling |
+![HeadlessX Live Scrapers](assets/live_scrapers.png)
 
 </div>
 
-### V2.0 Changelog
+<table>
+  <tr>
+    <td valign="top" width="50%">
 
-```diff
-+ 🦊 NEW: Camoufox browser engine (replaces Chromium + stealth plugins)
-+ 🛡️ NEW: 0% headless detection rate (was 67%+)
-+ 🔒 NEW: Built-in WebRTC leak protection
-+ 🎭 NEW: C++ level Canvas/WebGL/AudioContext fingerprint spoofing
-+ ⚡ IMPROVED: Faster browser launches with persistent contexts
-- 🧹 REMOVED: playwright-extra (no longer needed)
-- 🧹 REMOVED: puppeteer-extra-plugin-stealth (no longer needed)
-```
+### Live Now
 
----
+| Scraper | Status |
+| --- | --- |
+| Website | Live |
+| Google SERP | Live |
+| Tavily | Live |
+| Exa | Live |
+| YouTube | Live |
 
-## 📊 Detection Benchmark Comparison
-
-<table align="center">
-<tr>
-<th>Tool</th>
-<th>Headless Detection</th>
-<th>Stealth Score</th>
-<th>Engine</th>
-</tr>
-<tr>
-<td><strong>🦊 HeadlessX V2.0 (Camoufox)</strong></td>
-<td>✅ <strong>0%</strong></td>
-<td>✅ <strong>0%</strong></td>
-<td>Firefox (C++ patched)</td>
-</tr>
-<tr>
-<td>HeadlessX V1 (Playwright Extra)</td>
-<td>❌ 67%</td>
-<td>⚠️ 50%</td>
-<td>Chromium (JS patches)</td>
-</tr>
-<tr>
-<td>Puppeteer Stealth</td>
-<td>❌ 33%</td>
-<td>❌ 80%</td>
-<td>Chromium (JS patches)</td>
-</tr>
-<tr>
-<td>Vanilla Playwright</td>
-<td>❌ 100%</td>
-<td>❌ 100%</td>
-<td>Chromium</td>
-</tr>
-<tr>
-<td>Vanilla Selenium</td>
-<td>❌ 100%</td>
-<td>❌ 100%</td>
-<td>Chrome</td>
-</tr>
-</table>
-
-*Lower scores = better (0% = undetectable)*
-
-
----
-
-## 🤖 Scrapers
-
-<div align="center">
-
-| <img src="apps/web/public/icons/google.svg" width="40"/> **Google SERP** |          🌐 **Website Scraping**           |
-| :----------------------------------------------------------------------: | :---------------------------------------: |
-|                Extract search results with zero detection                | Scrape any website with full JS rendering |
-|                                ✅ **Live**                                |                ✅ **Live**                 |
+  </td>
+    <td valign="top" width="50%">
 
 ### Coming Soon
 
-| <img src="apps/web/public/icons/amazon.svg" width="40"/> **Amazon** | <img src="apps/web/public/icons/linkedin.svg" width="40"/> **LinkedIn** | <img src="apps/web/public/icons/twitter.svg" width="40"/> **Twitter** | <img src="apps/web/public/icons/instagram.svg" width="40"/> **Instagram** |
-| :-----------------------------------------------------------------: | :---------------------------------------------------------------------: | :-------------------------------------------------------------------: | :-----------------------------------------------------------------------: |
-|                          Product & Reviews                          |                         Job Listings & Profiles                         |                            Tweets & Trends                            |                              Posts & Stories                              |
+| Scraper | Status |
+| --- | --- |
+| Google Maps | Planned |
+| Twitter / X | Planned |
+| LinkedIn | Planned |
+| Instagram | Planned |
+| Amazon | Planned |
+| Facebook | Planned |
+| Reddit | Planned |
 
-</div>
+  </td>
+  </tr>
+</table>
 
----
+## UI Screenshots
 
-## 🖥️ UI Screenshots
-
-### Google SERP Scraper
+### Google SERP
 ![Google SERP UI](assets/google-serp-results.png)
 
-### Website Scraper
-![Website Scraper UI](assets/web-scrape-results.png)
+### Website
+![Website UI](assets/web-scrape-results.png)
 
----
+## Proof
 
-## 📸 Proof of Undetectability
-
-### BrowserScan (100% Passed)
+### BrowserScan
 ![BrowserScan](assets/Browserscan_Bot_Detection_Passed.png)
 
-### Cloudflare Turnstile Bypass
-![Cloudflare Challenge Passed](assets/cloudflare.png)
+### Cloudflare Challenge
+![Cloudflare Challenge](assets/cloudfare.png)
 
-<div align="center">
+<table>
+  <tr>
+    <td valign="top" width="50%">
 
-|        **Pixelscan (Human Detection)**         |       **Profile Tested with Proxy**        |
-| :--------------------------------------------: | :----------------------------------------: |
-| ![Pixelscan](assets/Pixel_Human_Detection.png) | ![Proxy Test](assets/USA_PROXY_TESTED.png) |
+### Pixelscan
+![Pixelscan](assets/Pixel_Human_Detection.png)
 
-</div>
+  </td>
+    <td valign="top" width="50%">
 
----
+### Proxy Validation
+![Proxy Validation](assets/USA_PROXY_TESTED.png)
 
-## 📋 Table of Contents
+  </td>
+  </tr>
+</table>
 
-- [🆕 What's New in V2.0](#-whats-new-in-v20)
-  - [V2.0 Changelog](#v20-changelog)
-- [📊 Detection Benchmark Comparison](#-detection-benchmark-comparison)
-- [🤖 Scrapers](#-scrapers)
-  - [Coming Soon](#coming-soon)
-- [🖥️ UI Screenshots](#️-ui-screenshots)
-  - [Google SERP Scraper](#google-serp-scraper)
-  - [Website Scraper](#website-scraper)
-- [📸 Proof of Undetectability](#-proof-of-undetectability)
-  - [BrowserScan (100% Passed)](#browserscan-100-passed)
-- [📋 Table of Contents](#-table-of-contents)
-- [⚡ Quick Start](#-quick-start)
-  - [1️⃣ Clone \& Configure Environment](#1️⃣-clone--configure-environment)
-  - [2️⃣ Install Dependencies](#2️⃣-install-dependencies)
-  - [3️⃣ Install AI Models (CAPTCHA Solving)](#3️⃣-install-ai-models-captcha-solving)
-  - [4️⃣ Setup Database](#4️⃣-setup-database)
-  - [5️⃣ Start Development Server](#5️⃣-start-development-server)
-  - [6️⃣ Access the Application](#6️⃣-access-the-application)
-  - [Custom Ports](#custom-ports)
-- [🔥 Key Features](#-key-features)
-  - [🦊 Camoufox Stealth Engine (V2.0)](#-camoufox-stealth-engine-v20)
-  - [🖥️ Modern Dashboard](#️-modern-dashboard)
-- [🌐 API Endpoints](#-api-endpoints)
-  - [Website Scraping APIs](#website-scraping-apis)
-  - [Google SERP APIs](#google-serp-apis)
-  - [Example Request](#example-request)
-  - [Example Response](#example-response)
-- [Configuration](#configuration)
-  - [Environment Variables](#environment-variables)
-  - [Dashboard Settings](#dashboard-settings)
-    - [General Configuration](#general-configuration)
-    - [Browser Engine (Camoufox)](#browser-engine-camoufox)
-    - [Proxies](#proxies)
-- [🛠️ Manual Setup](#️-manual-setup)
-  - [Backend](#backend)
-  - [Frontend](#frontend)
-- [🤝 Contributing](#-contributing)
-- [📝 License](#-license)
-- [🌟 Star History](#-star-history)
-  - [Built with ❤️ using cutting-edge technologies](#built-with-️-using-cutting-edge-technologies)
+## Quick Start
 
----
+### Requirements
 
-## ⚡ Quick Start
+- Node.js 22+
+- pnpm 9+
+- PostgreSQL
+- Redis
+- Python/uv for `yt-engine`
+- Go for the HTML-to-Markdown sidecar
 
-> **Prerequisites**: 
-> - [Node.js 22+](https://nodejs.org/)
-> - [pnpm 9+](https://pnpm.io/) (`npm install -g pnpm`)
-> - [Mise](https://mise.jdx.dev/) (Task Runner)
-> - [Docker](https://www.docker.com/) (Optional, for containerized deployment)
-> - **PostgreSQL Database** — either:
->   - [Supabase](https://supabase.com/) (recommended, free tier available)
->   - Self-hosted PostgreSQL 14+
+### Recommended Development Setup
 
-### 1️⃣ Clone & Configure Environment
+Recommended for most developers:
+
+- PostgreSQL: Supabase or Docker
+- Redis: Docker
+- App runtime: `pnpm dev` or `mise run dev`
+
+This keeps infrastructure simple while still running the app locally.
+
+### Local Development
+
+1. Clone and install:
 
 ```bash
-git clone https://github.com/your-repo/HeadlessX.git
+git clone https://github.com/saifyxpro/HeadlessX.git
 cd HeadlessX
+pnpm install
+```
 
-# Copy environment template
+2. Create root `.env` from the full example:
+
+```bash
 cp .env.example .env
 ```
 
-**Edit `.env`** with your database connection:
+Current root `.env.example`:
 
 ```env
-# REQUIRED: Your PostgreSQL connection string
-DATABASE_URL="postgresql://user:password@host:5432/database"
+# ==============================================
+# HEADLESSX V2.1.0 - LOCAL DEVELOPMENT
+# ==============================================
 
-# REQUIRED: Internal dashboard/API secret
-DASHBOARD_INTERNAL_API_KEY="replace-with-a-long-random-string"
+# ------------------------------
+# 1. DATABASE
+# ------------------------------
+DATABASE_URL="postgresql://postgres.xxxxx:YOUR_PASSWORD@aws-0-region.pooler.supabase.com:5432/postgres"
 
-# REQUIRED: Encryption key for stored proxy/profile passwords
-CREDENTIAL_ENCRYPTION_KEY="replace-with-a-different-long-random-string"
-
-# Optional: Server configuration
+# ------------------------------
+# 2. SERVER
+# ------------------------------
 PORT=8000
+HOST=0.0.0.0
 NODE_ENV=development
+
+# ------------------------------
+# 2A. SECURITY (REQUIRED)
+# ------------------------------
+# Used by the Next.js dashboard server to authenticate against the API.
+DASHBOARD_INTERNAL_API_KEY=replace-with-a-long-random-string
+
+# Used to encrypt stored credentials at rest.
+CREDENTIAL_ENCRYPTION_KEY=replace-with-a-different-long-random-string
+
+# ------------------------------
+# 3. STORAGE
+# ------------------------------
+PROFILES_DIR=./data/profiles
+
+# ------------------------------
+# 4. LOGGING
+# ------------------------------
+LOG_LEVEL=info
+LOG_DIR=./logs
+
+# ------------------------------
+# 4A. QUEUE / REDIS
+# ------------------------------
+# BullMQ uses Redis to persist async scrape, extract, and index jobs.
+REDIS_URL=redis://localhost:6379
+
+# Search providers and local engines
+TAVILY_API_KEY=
+EXA_API_KEY=
+YT_ENGINE_URL=http://localhost:8090
+YT_ENGINE_PORT=8090
+YT_ENGINE_TIMEOUT_MS=45000
+YT_ENGINE_TEMP_DIR=./tmp/yt-engine
+YT_ENGINE_JOB_TTL_HOURS=12
+HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:8081
+HTML_TO_MARKDOWN_PORT=8081
+HTML_TO_MARKDOWN_TIMEOUT_MS=60000
+
+# Optional queue tuning
+BULLMQ_QUEUE_NAME=headlessx-jobs
+QUEUE_WORKER_CONCURRENCY=2
+QUEUE_JOB_ATTEMPTS=3
+QUEUE_JOB_BACKOFF_MS=5000
+QUEUE_STREAM_POLL_MS=1000
+QUEUE_CONNECTION_RETRY_MS=10000
+
+# Browser and anti-detection settings are managed from the dashboard
+
+# ------------------------------
+# 5. FRONTEND (Next.js)
+# ------------------------------
+WEB_PORT=3000
+
+NEXT_PUBLIC_API_URL=http://localhost:8000
+INTERNAL_API_URL=http://localhost:8000
+
+# CORS: Add your frontend URL for custom deployments
+FRONTEND_URL=http://localhost:3000
+
+# ------------------------------
+# 6. DEFAULT RUNTIME SETTINGS
+# ------------------------------
+BROWSER_TIMEOUT=60000
+MAX_CONCURRENCY=5
+STEALTH_MODE=advanced
 ```
 
-Generate secure values before starting the app:
+If you are using Docker instead of local services, start from the complete Docker env too:
 
 ```bash
-openssl rand -hex 32  # DASHBOARD_INTERNAL_API_KEY
-openssl rand -hex 32  # CREDENTIAL_ENCRYPTION_KEY
+cp infra/docker/.env.example infra/docker/.env
 ```
 
-### 2️⃣ Install Dependencies & Setup
+3. Prepare services:
 
-Using Mise (Recommended):
 ```bash
-# Install dependencies, setup database, and download Camoufox
-mise run setup
+pnpm db:push
+pnpm camoufox:fetch
 ```
 
-Or manually:
-```bash
-pnpm install
-pnpm --filter api db:push
-pnpm --filter api exec camoufox-js fetch
-```
+4. Start the workspace:
 
-### 3️⃣ Start Development Server
-
-Using Mise (Recommended):
-```bash
-# Start both frontend and backend concurrently
-mise run dev
-```
-
-Or manually:
 ```bash
 pnpm dev
 ```
 
-### 🐳 Docker Deployment
+This starts:
 
-HeadlessX can be easily deployed using Docker Compose. See the [Docker Setup Guide](docs/docker_setup.md) for detailed instructions.
+- web
+- api
+- worker
+- HTML-to-Markdown service
+- yt-engine
 
-```bash
-# Start the application in detached mode
-docker compose -f infra/docker/docker-compose.yml up -d
-```
+Important:
 
-The Docker stack now requires `DASHBOARD_INTERNAL_API_KEY` and `CREDENTIAL_ENCRYPTION_KEY` in `.env`. The API will refuse to boot without them.
+- `pnpm dev` does not provision PostgreSQL or Redis
+- Website Crawl requires both Redis and the worker
 
-### 6️⃣ Access the Application
+## Docker
 
-| Service           | URL                                            | Notes       |
-| ----------------- | ---------------------------------------------- | ----------- |
-| 🖥️ **Dashboard**   | [http://localhost:3000](http://localhost:3000) | Frontend UI |
-| 🔗 **Backend API** | [http://localhost:8000](http://localhost:8000) | REST API    |
-
-### Custom Ports
-
-You can customize ports via environment variables:
+For the current Docker path:
 
 ```bash
-# Backend (from root)
-PORT=8000 pnpm --filter api dev
-
-# Frontend
-WEB_PORT=3000 pnpm --filter web dev
+cp infra/docker/.env.example infra/docker/.env
+cd infra/docker
+docker compose --profile all up --build -d
 ```
 
----
+Important notes:
 
-## 🔥 Key Features
+- use `--profile all`
+- partial profile runs are not currently reliable because of `depends_on` relationships
+- the core Docker stack does not yet define a `yt-engine` container, so YouTube may still need to run locally
 
-<table>
-<tr>
-<td width="50%">
+See [docs/setup-guide.md](docs/setup-guide.md) for the full matrix:
 
-### 🦊 Camoufox Stealth Engine (V2.0)
+- no-Docker setup
+- mixed local setup
+- full Docker setup
+- MCP client configuration
 
-| Feature                    | Description                         |
-| -------------------------- | ----------------------------------- |
-| 🔒 **Binary-Level Patches** | Firefox modified at C++ level       |
-| 🎭 **Fingerprint Spoofing** | Canvas, WebGL, AudioContext         |
-| 🌐 **WebRTC Protection**    | No IP leaks in headless mode        |
-| 🖱️ **Human Behavior**       | Natural mouse movements & scrolling |
-| 📱 **Device Emulation**     | Realistic viewport & user agents    |
-| 🚫 **Zero Detection**       | Passes all anti-bot tests           |
+## API Summary
 
-</td>
-<td width="50%">
+All non-health backend routes are protected with `x-api-key`.
 
-### 🖥️ Modern Dashboard
+Core backend surfaces:
 
-| Feature            | Description                     |
-| ------------------ | ------------------------------- |
-| ⚛️ **Next.js 16**   | React 19 with Turbopack         |
-| 🎨 **HeroUI**       | Beautiful dark/light mode UI    |
-| ⚙️ **Live Config**  | Change settings without restart |
-| 📊 **Request Logs** | Full history with screenshots   |
-| 🧪 **Playground**   | Test scraping in real-time      |
-| 🔑 **API Keys**     | Secure key management           |
+- `GET /api/health`
+- `GET/PATCH /api/config`
+- `GET /api/dashboard/stats`
+- `GET /api/logs`
+- `GET/POST/PATCH/DELETE /api/keys`
+- proxy CRUD under `/api/proxies`
+- website routes under `/api/website/*`
+- Google SERP routes under `/api/google-serp/*`
+- Tavily routes under `/api/tavily/*`
+- Exa routes under `/api/exa/*`
+- YouTube routes under `/api/youtube/*`
+- queue job routes under `/api/jobs/*`
+- remote MCP endpoint at `/mcp`
 
-</td>
-</tr>
-</table>
+See the full route reference in [docs/api-endpoints.md](docs/api-endpoints.md).
 
----
+## MCP
 
-## 🌐 API Endpoints
+HeadlessX exposes a remote MCP endpoint from the API:
 
-### Website Scraping APIs
-
-| Endpoint                  | Method | Description                  |
-| ------------------------- | ------ | ---------------------------- |
-| `/api/website/html`       | `POST` | Get raw HTML (fast)          |
-| `/api/website/html-js`    | `POST` | Get HTML with JS rendering   |
-| `/api/website/content`    | `POST` | Get Markdown content         |
-| `/api/website/screenshot` | `POST` | Capture full-page Screenshot |
-| `/api/website/stream`     | `POST` | Real-time SSE Stream         |
-
-### Google SERP APIs
-
-| Endpoint                  | Method | Description                   |
-| ------------------------- | ------ | ----------------------------- |
-| `/api/google-serp/search` | `POST` | Extract Google search results |
-| `/api/google-serp/stream` | `GET`  | Real-time SSE Stream          |
-
-### Example Request
-
-```bash
-curl -X POST http://localhost:8000/api/website/html \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: your-api-key" \
-  -d '{"url": "https://example.com", "stealth": true}'
+```text
+http://localhost:8000/mcp
 ```
 
-### Example Response
+Use a normal API key created from the dashboard API Keys page.
+
+Do not use `DASHBOARD_INTERNAL_API_KEY` for MCP clients.
+
+Example client config:
 
 ```json
 {
-  "success": true,
-  "data": {
-    "url": "https://example.com",
-    "title": "Example Domain",
-    "html": "<!DOCTYPE html>...",
-    "statusCode": 200
+  "mcpServers": {
+    "headlessx": {
+      "transport": "http",
+      "url": "http://localhost:8000/mcp",
+      "headers": {
+        "x-api-key": "hx_your_dashboard_created_key"
+      }
+    }
   }
 }
 ```
 
----
+## Monorepo Layout
 
-##  Configuration
-
-### Environment Variables
-
-> ⚠️ **Note**: Most configuration (Browsers, Stealth, Proxy, Timeouts) is managed directly via the **Dashboard Settings**.
-
-Only the following core variables are required in `.env`:
-
-| Variable                     | Default                 | Description                                               |
-| ---------------------------- | ----------------------- | --------------------------------------------------------- |
-| `PORT`                       | `8000`                  | Backend API port                                          |
-| `WEB_PORT`                   | `3000`                  | Frontend dashboard port                                   |
-| `DATABASE_URL`               | -                       | PostgreSQL connection (Supabase or self-hosted)           |
-| `NEXT_PUBLIC_API_URL`        | `http://localhost:8000` | Frontend API URL                                          |
-| `DASHBOARD_INTERNAL_API_KEY` | -                       | Required server-side secret for dashboard to API traffic  |
-| `CREDENTIAL_ENCRYPTION_KEY`  | -                       | Required key for encrypting stored proxy/profile passwords |
-
-The dashboard now proxies `/api/*` requests server-side. Do not expose `DASHBOARD_INTERNAL_API_KEY` to browser code or public env vars.
-
-### Dashboard Settings
-
-Configure these live at `/settings`:
-
-#### General Configuration
-- **Headless Mode**: Run browser without UI (faster execution)
-- **Browser Timeout**: Max execution time per job (default: 60000ms)
-- **Max Concurrent Jobs**: Concurrent scraping jobs (recommended: 3-8)
-
-#### Browser Engine (Camoufox)
-- **Block WebRTC**: Prevent IP leaks via WebRTC
-- **Camoufox GeoIP**: Spoof location based on IP
-- **Enable Cache**: Cache resources for speed
-
-#### Proxies
-- Manage proxy configurations and rotation settings
-
-
----
-
-## 🛠️ Manual Setup
-
-### Backend
-
-```bash
-cd apps/api
-
-# 1. Configure environment
-cp ../.env.example .env
-# Edit .env with your DATABASE_URL
-
-# 2. Install dependencies
-pnpm install
-
-# 3. Download Camoufox browser
-npx camoufox-js fetch
-
-# 4. Setup database
-npx prisma db push
-
-# 5. Start dev server
-pnpm dev
+```text
+apps/
+  api/                    Express API + worker + MCP
+  web/                    Next.js dashboard
+  yt-engine/              Python YouTube engine
+  go-html-to-md-service/  Go HTML-to-Markdown sidecar
+docs/
+  setup-guide.md
+  api-endpoints.md
+infra/docker/
 ```
 
-### Frontend
+## Notes
 
-```bash
-cd apps/web
-pnpm install
-pnpm dev
-```
+- The dashboard uses the internal dashboard key for server-side internal requests
+- MCP uses normal user-created API keys, not the dashboard internal key
+- Queue-backed features return degraded/unavailable behavior when Redis is missing
+- Docker support is available for the core stack, but yt-engine still needs separate Docker wiring
 
----
+## Contributing
 
-## 🤝 Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the current contribution workflow, local setup expectations, pull request guidance, and commit message conventions.
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details.
+## License
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📝 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
-
-<div align="center">
-
-## 🌟 Star History
-
-If you find HeadlessX useful, please consider giving it a star! ⭐
-
----
-
-### Built with ❤️ using cutting-edge technologies
-
-<br/>
-
-[![Node.js](https://img.shields.io/badge/-Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![Next.js](https://img.shields.io/badge/-Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![Firefox](https://img.shields.io/badge/-Camoufox-FF7139?style=flat-square&logo=firefox&logoColor=white)](https://github.com/)
-[![Playwright](https://img.shields.io/badge/-Playwright-45BA4B?style=flat-square&logo=playwright&logoColor=white)](https://playwright.dev/)
-[![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/-React-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
-[![TailwindCSS](https://img.shields.io/badge/-TailwindCSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Prisma](https://img.shields.io/badge/-Prisma-2D3748?style=flat-square&logo=prisma&logoColor=white)](https://www.prisma.io/)
-
-<br/>
-
-**🦊 HeadlessX V2.0 — Undetectable by Design**
-
-*© 2026 HeadlessX. All rights reserved.*
-
-</div>
+MIT

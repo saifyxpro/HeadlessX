@@ -1,0 +1,55 @@
+import { Request, Response } from 'express';
+import os from 'os';
+import { prisma } from '../../database/client';
+import { configService } from '../../services/config/ConfigService';
+import { browserService } from '../../services/scrape/BrowserService';
+
+export class DashboardController {
+    /**
+     * Get dashboard statistics
+     * GET /api/dashboard/stats
+     */
+    static async getStats(req: Request, res: Response) {
+        try {
+            // Run queries in parallel for performance
+            const [
+                totalJobs,
+                successfulJobs,
+                config
+            ] = await Promise.all([
+                prisma.requestLog.count(),
+                prisma.requestLog.count({ where: { status_code: 200 } }),
+                configService.getConfig()
+            ]);
+
+            const browserStatus = browserService.getStatus();
+            const runningBrowsersCount = browserStatus.default ? 1 : 0;
+            const totalMemory = os.totalmem();
+            const usedMemory = totalMemory - os.freemem();
+            const memoryLoadPercent = totalMemory > 0
+                ? Math.round((usedMemory / totalMemory) * 100)
+                : 0;
+
+            // Calculate success rate
+            const failedRateVal = totalJobs > 0
+                ? ((totalJobs - successfulJobs) / totalJobs) * 100
+                : 0;
+
+            // Format to 1 decimal place with %
+            const failedRate = `${failedRateVal.toFixed(1)}%`;
+
+            res.json({
+                totalJobs,
+                failedRate,
+                runningBrowsers: runningBrowsersCount,
+                maxConcurrency: config.maxConcurrency,
+                browserHeadless: config.browserHeadless,
+                proxyEnabled: config.proxyEnabled,
+                systemLoad: memoryLoadPercent
+            });
+        } catch (error) {
+            console.error('Dashboard Stats Error:', error);
+            res.status(500).json({ error: 'Failed to fetch dashboard stats' });
+        }
+    }
+}

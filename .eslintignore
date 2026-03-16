@@ -13,3 +13,6 @@ build/
 .idea/
 *.tmp
 *.temp
+.nx/
+*.db-shm
+*.db-wal

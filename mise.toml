@@ -2,16 +2,16 @@
 node = "22"
 
 [tasks.dev]
-description = "Run API + web in parallel"
-run = "pnpm exec nx run-many -t dev --parallel=2"
+description = "Run API, queue worker, web, markdown service, and yt-engine in parallel"
+run = "pnpm dev"
 
 [tasks.build]
 description = "Build all apps"
 run = "pnpm exec nx run-many -t build"
 
 [tasks.start]
-description = "Start all apps in production mode"
-run = "pnpm exec nx run-many -t start --parallel=2"
+description = "Start API, queue worker, web, markdown service, and yt-engine in production mode"
+run = "pnpm start"
 
 [tasks.lint]
 description = "Lint codebase with Biome"

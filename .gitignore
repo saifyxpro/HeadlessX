@@ -56,6 +56,13 @@ Thumbs.db
 *.swo
 *~
 
+# Nx workspace cache
+.nx/
+.turbo/
+.vercel/
+*.tsbuildinfo
+node_modules/.cache/
+
 # Docker
 .dockerignore
 
@@ -64,11 +71,17 @@ dist/
 build/
 out/
 .next/
+.next/
+.venv/
+__pycache__/
+*.pyc
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
+*.db-shm
+*.db-wal
 
 # Large Model Files & Binaries
 /backend/models/
@@ -90,3 +103,6 @@ config.local.js
 frontend/pnpm-lock.yaml
 frontend/pnpm-workspace.yaml
 backend/pnpm-lock.yaml
+package-lock.json
+bun.lockb
+bun.lock

@@ -57,7 +57,7 @@ const MemberItem = ({ member, actions }: { member: StackedListItem, actions?: Re
             }}
             transition={sweepSpring}
             style={{ originX: 1, originY: 1 }}
-            className="flex items-center group py-4 px-4 -mx-4 rounded-xl bg-transparent border-b border-slate-200/80"
+            className="ui-row flex items-center group py-4 px-4 -mx-4 rounded-2xl bg-transparent border border-transparent border-b-slate-200/80"
         >
             <div className="relative mr-4 shrink-0">
                 {member.avatar ? (
@@ -142,7 +142,7 @@ export default function StackedList({ items, title = "Items", onSearch, onAdd, r
     return (
         <div className="w-full bg-transparent font-sans not-prose">
             <div className={cn(
-                "relative w-full rounded-2xl border border-slate-200 bg-white flex flex-col overflow-hidden",
+                "ui-panel relative w-full rounded-[1.75rem] border border-slate-200 bg-white flex flex-col overflow-hidden",
                 isExpanded ? "min-h-[600px]" : "h-auto"
             )}>
                 <div className="flex flex-col h-full">
@@ -155,12 +155,12 @@ export default function StackedList({ items, title = "Items", onSearch, onAdd, r
                                 </span>
                             </h2>
                             <div className="flex gap-2">
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={() => setIsExpanded(!isExpanded)}
-                                    className="h-9 w-9 rounded-full border-slate-200 bg-white/50 text-slate-500 hover:bg-white hover:text-slate-900 shadow-sm"
-                                >
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => setIsExpanded(!isExpanded)}
+                                        className="h-9 w-9 rounded-full border-slate-200 bg-white text-slate-500 hover:text-slate-900"
+                                    >
                                     {isExpanded ? (
                                         <HugeiconsIcon icon={Cancel01Icon} size={18} strokeWidth={2.5} />
                                     ) : (
@@ -229,11 +229,11 @@ export default function StackedList({ items, title = "Items", onSearch, onAdd, r
                         </motion.div>
 
                         {!isExpanded && items.length > 5 && (
-                            <motion.button
+                                <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => setIsExpanded(true)}
-                                className="w-full py-3 mt-4 text-sm font-medium text-slate-500 hover:text-slate-800 bg-white/40 hover:bg-white/80 rounded-2xl transition-all border border-dashed border-slate-200 hover:border-slate-300 shadow-sm"
+                                className="ui-action w-full py-3 mt-4 text-sm font-medium text-slate-500 hover:text-slate-800 bg-white rounded-2xl border border-dashed border-slate-200 hover:border-slate-300"
                             >
                                 View all {items.length} items
                             </motion.button>

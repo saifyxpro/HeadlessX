@@ -29,8 +29,8 @@ export function CustomDropdown({
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 className={cn(
-                    "flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none transition-colors focus:ring-2 focus:ring-primary/20 focus:border-primary",
-                    isOpen && "border-primary ring-2 ring-primary/20",
+                    "ui-field flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-primary transition-shadow",
+                    isOpen && "border-primary ring-2 ring-primary/20 shadow-[0_12px_30px_-18px_rgba(15,23,42,0.45)]",
                     !selectedOption && "text-muted-foreground"
                 )}
             >
@@ -46,14 +46,14 @@ export function CustomDropdown({
                 <HugeiconsIcon
                     icon={ArrowDown01Icon}
                     size={16}
-                    className={cn("text-slate-400 transition-transform duration-200", isOpen && "rotate-180")}
+                    className={cn("text-slate-400", isOpen && "rotate-180")}
                 />
             </button>
 
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-[50]" onClick={() => setIsOpen(false)} />
-                    <div className="absolute left-0 right-0 z-[60] mt-2 max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white py-1 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="ui-panel absolute left-0 right-0 z-[60] mt-2 max-h-60 overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-[0_22px_50px_-24px_rgba(15,23,42,0.38)]">
                         {options.map((opt) => (
                             <button
                                 key={opt.value}
@@ -63,7 +63,7 @@ export function CustomDropdown({
                                     setIsOpen(false);
                                 }}
                                 className={cn(
-                                    "w-full px-3 py-2 text-left text-sm hover:bg-slate-50 transition-colors flex items-center justify-between group",
+                                    "ui-row flex w-full items-center justify-between px-3 py-2 text-left text-sm group",
                                     value === opt.value ? "bg-primary/5 text-primary font-medium" : "text-slate-700"
                                 )}
                             >

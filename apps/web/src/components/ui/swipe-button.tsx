@@ -1,6 +1,7 @@
 "use client"
 import { CSSProperties, useEffect, useRef, useState } from "react"
-import { Check, ChevronRight } from "lucide-react"
+import { ArrowRight01Icon, CheckmarkCircle02Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { cn } from "@/lib/utils"
 
 export interface SwipeButtonProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -115,9 +116,9 @@ export function SwipeButton({
                 disabled={isValidated}
             >
                 {isValidated ? (
-                    <Check className="h-4 w-4" aria-hidden="true" />
+                    <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-4 w-4" aria-hidden="true" />
                 ) : (
-                    <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                    <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4" aria-hidden="true" />
                 )}
             </button>
             <div className="flex h-full w-full items-center justify-center">

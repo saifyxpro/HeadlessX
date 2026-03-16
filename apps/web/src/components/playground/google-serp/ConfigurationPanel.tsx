@@ -1,157 +1,149 @@
-
-import { Search, Globe, Languages, ArrowRight, Loader2 } from 'lucide-react';
-import { UserIcon } from '@hugeicons/core-free-icons';
-import { CustomDropdown } from '@/components/ui/CustomDropdown';
-import { Profile } from './types';
+import {
+    ArrowRight01Icon,
+    Cancel01Icon,
+    GlobeIcon,
+    LanguageSquareIcon,
+    Loading03Icon,
+    Search01Icon,
+} from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { ConfigPanelShell } from '../shared';
 
 interface ConfigurationPanelProps {
     query: string;
     setQuery: (query: string) => void;
-    selectedProfileId: string;
-    setSelectedProfileId: (id: string) => void;
     timeout: number;
     setTimeout: (timeout: number) => void;
-    profiles: Profile[];
     onSearch: (e?: React.FormEvent) => void;
+    onStop: () => void;
     isLoading: boolean;
+}
+
+function DisabledOption({
+    label,
+    value,
+    icon,
+}: {
+    label: string;
+    value: string;
+    icon: typeof GlobeIcon;
+}) {
+    return (
+        <div className="space-y-3 opacity-50" title="Coming soon">
+            <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                {label}
+            </label>
+            <div className="flex w-full items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-500">
+                <HugeiconsIcon icon={icon} className="h-4 w-4" />
+                <span>{value}</span>
+            </div>
+        </div>
+    );
 }
 
 export function ConfigurationPanel({
     query,
     setQuery,
-    selectedProfileId,
-    setSelectedProfileId,
     timeout,
     setTimeout,
-    profiles,
     onSearch,
-    isLoading
+    onStop,
+    isLoading,
 }: ConfigurationPanelProps) {
     return (
-        <div className="lg:col-span-4 space-y-6">
-            {/* Main Configuration Card */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 md:p-7">
-                <div className="flex items-center gap-3 mb-8">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                        <Search className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-800">Search Config</h2>
-                        <p className="text-xs font-medium text-slate-400">Configure your Google search</p>
-                    </div>
+        <ConfigPanelShell
+            disabled={isLoading}
+            iconSlot={
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-900">
+                    <HugeiconsIcon icon={Search01Icon} className="h-5 w-5" />
                 </div>
-
-                <form onSubmit={onSearch} className="space-y-6">
-                    {/* Search Query */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Search Query</label>
-                        <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <Search className="h-5 w-5 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-                            </div>
-                            <input
-                                type="text"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                placeholder="e.g., 'best headphones 2026' or 'site:twitter.com ai'"
-                                className="w-full pl-11 pr-4 py-4 bg-white/50 border border-white/60 rounded-2xl text-slate-700 font-medium placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all shadow-sm"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Profile Selection */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Browser Profile</label>
-                        <CustomDropdown
-                            value={selectedProfileId}
-                            onChange={setSelectedProfileId}
-                            placeholder="Fresh Session (No Profile)"
-                            icon={UserIcon}
-                            options={[
-                                { value: '', label: 'Fresh Session (No Profile)' },
-                                ...profiles
-                                    .filter(p => p.name !== 'Default Profile') // Filter out the internal system default
-                                    .map((profile) => ({
-                                        value: profile.id,
-                                        label: `${profile.name} (${profile.screen_width}x${profile.screen_height})`,
-                                        suffix: profile.is_running ? '●' : undefined
-                                    }))
-                            ]}
-                        />
-                        <p className="text-[10px] text-slate-400 px-1 leading-relaxed">
-                            Select "Fresh Session" for a clean, incognito-like environment, or choose a saved profile to use persistent cookies and history.
-                        </p>
-                    </div>
-
-                    {/* Region & Language (Visual placeholders for now as per minimal implementation) */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2 opacity-50 cursor-not-allowed" title="Coming soon">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Region</label>
-                            <div className="w-full flex items-center gap-2 px-4 py-3 bg-white/30 border border-white/50 rounded-xl text-slate-400 text-sm font-medium">
-                                <Globe className="w-4 h-4" />
-                                <span>Global (US)</span>
+            }
+            title="Search Config"
+            description="Run a Google search and turn the result page into a clean report."
+        >
+            <form onSubmit={onSearch} className="space-y-6">
+                        <div className="space-y-3">
+                            <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                                Search Query
+                            </label>
+                            <div className="relative">
+                                <HugeiconsIcon
+                                    icon={Search01Icon}
+                                    className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                                />
+                                <input
+                                    type="text"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    placeholder="best headphones 2026 or site:twitter.com ai"
+                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-4 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 hover:bg-white focus:border-slate-400"
+                                />
                             </div>
                         </div>
-                        <div className="space-y-2 opacity-50 cursor-not-allowed" title="Coming soon">
-                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Language</label>
-                            <div className="w-full flex items-center gap-2 px-4 py-3 bg-white/30 border border-white/50 rounded-xl text-slate-400 text-sm font-medium">
-                                <Languages className="w-4 h-4" />
-                                <span>English (en)</span>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <DisabledOption label="Region" value="Global (US)" icon={GlobeIcon} />
+                            <DisabledOption label="Language" value="English (en)" icon={LanguageSquareIcon} />
+                        </div>
+
+                        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div className="flex items-center justify-between">
+                                <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                                    Browser Timeout
+                                </label>
+                                <span className="rounded-full border border-slate-200 bg-white px-2 py-1 text-[11px] font-semibold text-slate-500">
+                                    {timeout}s
+                                </span>
+                            </div>
+                            <div className="mt-4">
+                                <input
+                                    type="range"
+                                    min="30"
+                                    max="120"
+                                    step="10"
+                                    value={timeout}
+                                    onChange={(e) => setTimeout(Number(e.target.value))}
+                                    className="w-full accent-slate-900"
+                                />
+                                <div className="mt-2 flex justify-between px-1 text-[10px] font-medium text-slate-400">
+                                    <span>30s</span>
+                                    <span>60s</span>
+                                    <span>90s</span>
+                                    <span>120s</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Timeout Configuration */}
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Browser Timeout (Seconds)</label>
-                            <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{timeout}s</span>
-                        </div>
-                        <div className="relative group">
-                            <input
-                                type="range"
-                                min="30"
-                                max="120"
-                                step="10"
-                                value={timeout}
-                                onChange={(e) => setTimeout(Number(e.target.value))}
-                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                            />
-                            <div className="flex justify-between text-[10px] text-slate-400 px-1 mt-1 font-medium">
-                                <span>30s</span>
-                                <span>60s</span>
-                                <span>90s</span>
-                                <span>120s</span>
-                            </div>
-                        </div>
-                    </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                            <button
+                                type="submit"
+                                disabled={!query.trim() || isLoading}
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin text-blue-400" />
+                                        Searching
+                                    </>
+                                ) : (
+                                    <>
+                                        <HugeiconsIcon icon={ArrowRight01Icon} className="h-4 w-4" />
+                                        Run Search
+                                    </>
+                                )}
+                            </button>
 
-                    {/* Action Button */}
-                    <button
-                        type="submit"
-                        disabled={!query.trim() || isLoading}
-                        className="w-full mt-4 group relative px-6 py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden active:scale-[0.98]"
-                    >
-                        <div className="relative z-10 flex items-center justify-center gap-2">
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
-                                    <span>Searching...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span className="group-hover:mr-1 transition-all">Run Search</span>
-                                    <ArrowRight className="w-5 h-5 text-blue-400 group-hover:translate-x-1 transition-transform" />
-                                </>
-                            )}
+                            <button
+                                type="button"
+                                onClick={onStop}
+                                disabled={!isLoading}
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                <HugeiconsIcon icon={Cancel01Icon} className="h-4 w-4" />
+                                Stop
+                            </button>
                         </div>
-                        {/* Shimmer effect */}
-                        {!isLoading && (
-                            <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent z-0" />
-                        )}
-                    </button>
-                </form>
-            </div>
-        </div>
+            </form>
+        </ConfigPanelShell>
     );
 }

@@ -1,6 +1,6 @@
 {
     "name": "headlessx-pro",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "private": true,
     "packageManager": "pnpm@9.15.0",
     "engines": {
@@ -9,9 +9,13 @@
     },
     "scripts": {
         "preinstall": "npx only-allow pnpm",
-        "dev": "nx run-many -t dev --parallel=2",
+        "dev": "pnpm exec nx run headlessx-pro:dev",
+        "markdown:dev": "cd apps/go-html-to-md-service && PORT=${HTML_TO_MARKDOWN_PORT:-8081} go run .",
+        "markdown:start": "cd apps/go-html-to-md-service && PORT=${HTML_TO_MARKDOWN_PORT:-8081} go run .",
+        "yt-engine:dev": "cd apps/yt-engine && uv run python -m uvicorn app.main:app --reload --host 0.0.0.0 --port ${YT_ENGINE_PORT:-8090}",
+        "yt-engine:start": "cd apps/yt-engine && uv run python -m uvicorn app.main:app --host 0.0.0.0 --port ${YT_ENGINE_PORT:-8090}",
         "build": "nx run-many -t build",
-        "start": "nx run-many -t start --parallel=2",
+        "start": "pnpm exec nx run headlessx-pro:start",
         "lint": "biome check .",
         "lint:fix": "biome check --write .",
         "format": "biome format --write .",
@@ -34,6 +38,7 @@
     "devDependencies": {
         "@biomejs/biome": "^2.4.4",
         "@nx/workspace": "^22.5.2",
+        "concurrently": "^9.2.1",
         "knip": "^5.85.0",
         "nx": "^22.5.2",
         "only-allow": "^1.2.1"
