@@ -36,11 +36,11 @@
         }
     },
     "devDependencies": {
-        "@biomejs/biome": "^2.4.4",
-        "@nx/workspace": "^22.5.2",
+        "@biomejs/biome": "^2.4.7",
+        "@nx/workspace": "^22.5.4",
         "concurrently": "^9.2.1",
-        "knip": "^5.85.0",
-        "nx": "^22.5.2",
+        "knip": "^5.87.0",
+        "nx": "^22.5.4",
         "only-allow": "^1.2.1"
     }
 }
