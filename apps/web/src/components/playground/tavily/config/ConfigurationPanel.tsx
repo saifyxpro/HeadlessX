@@ -4,6 +4,7 @@ import { LinkSquare01Icon, Search01Icon, SparklesIcon } from '@hugeicons/core-fr
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Input } from '@/components/ui/input';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
+import { AdvancedSettingsDialog } from '../../shared/AdvancedSettingsDialog';
 import type {
     TavilyCitationFormat,
     TavilyRawContentMode,
@@ -114,6 +115,13 @@ export function ConfigurationPanel(props: ConfigurationPanelProps) {
     } = props;
 
     const activeQuery = tool === 'search' ? searchQuery : researchQuery;
+    const advancedSummary = tool === 'search'
+        ? [
+            includeRawContent === false ? 'Raw off' : `Raw ${includeRawContent}`,
+            includeDomains.trim() ? 'Include filters' : 'No include filters',
+            excludeDomains.trim() ? 'Exclude filters' : 'No exclude filters',
+        ].join(' • ')
+        : [`${researchTimeout}s timeout`, `Model ${model}`, `Citations ${citationFormat}`].join(' • ');
 
     return (
         <div className="space-y-6 lg:col-span-4">
@@ -285,69 +293,68 @@ export function ConfigurationPanel(props: ConfigurationPanelProps) {
                                 </>
                             )}
 
-                            <button
-                                type="button"
-                                onClick={() => onShowAdvancedChange(!showAdvanced)}
-                                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 transition-colors hover:border-slate-300"
+                            <AdvancedSettingsDialog
+                                open={showAdvanced}
+                                onOpenChange={onShowAdvancedChange}
+                                disabled={isPending}
+                                title={tool === 'search' ? 'Search source controls' : 'Research runtime controls'}
+                                description={tool === 'search'
+                                    ? 'Tune raw-content output and domain filters without expanding the main Tavily search panel.'
+                                    : 'Keep research-specific runtime options in a focused overlay while the main panel stays short.'}
+                                summary={advancedSummary}
                             >
-                                Advanced
-                            </button>
-
-                            {showAdvanced && (
-                                <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                                    {tool === 'search' && (
-                                        <>
-                                            <div className="space-y-3">
-                                                <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                                                    Raw Content
-                                                </label>
-                                                <CustomDropdown
-                                                    value={String(includeRawContent)}
-                                                    onChange={(value) => onIncludeRawContentChange(value === 'false' ? false : value as TavilyRawContentMode)}
-                                                    options={[
-                                                        { value: 'false', label: 'Disabled' },
-                                                        { value: 'markdown', label: 'Markdown' },
-                                                        { value: 'text', label: 'Text' },
-                                                    ]}
-                                                    icon={Search01Icon}
-                                                />
-                                            </div>
-
-                                            <div className="space-y-3">
-                                                <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                                                    Include Domains
-                                                </label>
-                                                <textarea
-                                                    value={includeDomains}
-                                                    onChange={(event) => onIncludeDomainsChange(event.target.value)}
-                                                    rows={3}
-                                                    placeholder={"docs.tavily.com\nopenai.com"}
-                                                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-slate-300"
-                                                />
-                                            </div>
-
-                                            <div className="space-y-3">
-                                                <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
-                                                    Exclude Domains
-                                                </label>
-                                                <textarea
-                                                    value={excludeDomains}
-                                                    onChange={(event) => onExcludeDomainsChange(event.target.value)}
-                                                    rows={3}
-                                                    placeholder={"example.com\nads.example"}
-                                                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-slate-300"
-                                                />
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {tool === 'research' && (
-                                        <div className="rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-4 text-sm leading-6 text-slate-500">
-                                            Research stays focused in v1: query, model, citation format, and timeout. Structured schema controls can be added later without changing the workbench shell.
+                                {tool === 'search' && (
+                                    <>
+                                        <div className="space-y-3">
+                                            <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                                                Raw Content
+                                            </label>
+                                            <CustomDropdown
+                                                value={String(includeRawContent)}
+                                                onChange={(value) => onIncludeRawContentChange(value === 'false' ? false : value as TavilyRawContentMode)}
+                                                options={[
+                                                    { value: 'false', label: 'Disabled' },
+                                                    { value: 'markdown', label: 'Markdown' },
+                                                    { value: 'text', label: 'Text' },
+                                                ]}
+                                                icon={Search01Icon}
+                                            />
                                         </div>
-                                    )}
-                                </div>
-                            )}
+
+                                        <div className="space-y-3">
+                                            <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                                                Include Domains
+                                            </label>
+                                            <textarea
+                                                value={includeDomains}
+                                                onChange={(event) => onIncludeDomainsChange(event.target.value)}
+                                                rows={4}
+                                                placeholder={"docs.tavily.com\nopenai.com"}
+                                                className="custom-scrollbar w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-slate-300"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <label className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">
+                                                Exclude Domains
+                                            </label>
+                                            <textarea
+                                                value={excludeDomains}
+                                                onChange={(event) => onExcludeDomainsChange(event.target.value)}
+                                                rows={4}
+                                                placeholder={"example.com\nads.example"}
+                                                className="custom-scrollbar w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-slate-300"
+                                            />
+                                        </div>
+                                    </>
+                                )}
+
+                                {tool === 'research' && (
+                                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-500">
+                                        Research stays focused in v1: query, model, citation format, and timeout. Structured schema controls can be added later without changing the workbench shell.
+                                    </div>
+                                )}
+                            </AdvancedSettingsDialog>
 
                             <ActionButtons
                                 tool={tool}

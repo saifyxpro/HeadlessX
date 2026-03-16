@@ -44,7 +44,7 @@ export function TavilyWorkbench({ available }: TavilyWorkbenchProps) {
     const [tool, setTool] = useState<TavilyTool>('search');
     const [searchQuery, setSearchQuery] = useState('What changed in Next.js this month?');
     const [researchQuery, setResearchQuery] = useState('Research the latest browser automation trends and summarize the most important changes.');
-    const [searchDepth, setSearchDepth] = useState<TavilySearchDepth>('advanced');
+    const [searchDepth, setSearchDepth] = useState<TavilySearchDepth>('basic');
     const [topic, setTopic] = useState<TavilyTopic>('general');
     const [maxResults, setMaxResults] = useState(5);
     const [includeAnswer, setIncludeAnswer] = useState(true);

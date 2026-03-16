@@ -25,7 +25,7 @@ export function GoogleSerpHeader({ elapsedTime, isLoading, hasResult, error }: G
                         <div className="min-w-0">
                             <div className="flex items-center gap-3">
                                 <div className="relative h-12 w-12 shrink-0">
-                                    <div className="absolute inset-0 flex items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-2 transition-opacity duration-200 group-hover:opacity-0">
+                                    <div className="absolute inset-0 flex items-center justify-center rounded-2xl border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(66,133,244,0.18),_transparent_48%),radial-gradient(circle_at_top_right,_rgba(234,67,53,0.16),_transparent_52%),radial-gradient(circle_at_bottom_left,_rgba(251,188,5,0.18),_transparent_50%),radial-gradient(circle_at_bottom_right,_rgba(52,168,83,0.18),_transparent_50%),linear-gradient(135deg,rgba(255,255,255,1),rgba(248,250,252,1))] px-2 transition-opacity duration-200 group-hover:opacity-0">
                                         <Image src="/icons/google.svg" alt="Google" width={28} height={28} />
                                     </div>
                                     <Link

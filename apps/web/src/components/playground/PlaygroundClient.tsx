@@ -192,20 +192,23 @@ export function PlaygroundClient({ tavilyAvailable }: PlaygroundClientProps) {
             />
 
             <div className="group ui-panel relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-8 text-center transition-all duration-500 ease-out hover:border-blue-200 md:p-10">
-                <div className="absolute top-0 right-0 flex items-center justify-center p-12 text-primary opacity-10 transition-all duration-700 group-hover:scale-110 group-hover:text-blue-500 group-hover:opacity-20 pointer-events-none select-none">
-                    <HugeiconsIcon icon={SparklesIcon} size={200} className="rotate-12" />
+                {/* Premium Animated Gradients */}
+                <div className="pointer-events-none absolute -top-40 -right-40 h-[40rem] w-[40rem] rounded-full bg-gradient-to-bl from-blue-400/20 via-primary/5 to-transparent blur-3xl transition-all duration-1000 ease-out group-hover:scale-110 group-hover:from-blue-500/30 group-hover:via-blue-600/10" />
+                <div className="pointer-events-none absolute -bottom-40 -left-40 h-[40rem] w-[40rem] rounded-full bg-gradient-to-tr from-emerald-500/15 via-teal-500/5 to-transparent blur-3xl transition-all duration-1000 ease-out group-hover:scale-110 group-hover:from-emerald-500/25 group-hover:via-teal-500/10" />
+                
+                {/* Floating Modern Icons */}
+                <div className="absolute top-8 right-12 flex items-center justify-center text-blue-500/10 transition-all duration-1000 ease-out group-hover:-translate-y-4 group-hover:rotate-12 group-hover:scale-110 group-hover:text-blue-600/20 pointer-events-none select-none">
+                    <HugeiconsIcon icon={SparklesIcon} size={180} />
                 </div>
-                <div className="absolute -bottom-10 -left-10 flex items-center justify-center text-slate-900 opacity-[0.03] transition-all duration-1000 group-hover:rotate-12 group-hover:scale-105 group-hover:text-indigo-600 group-hover:opacity-10 pointer-events-none select-none">
-                    <HugeiconsIcon icon={Globe02Icon} size={300} className="-rotate-12" />
+                <div className="absolute -bottom-8 -left-8 flex items-center justify-center text-emerald-500/5 transition-all duration-1000 ease-out group-hover:translate-y-2 group-hover:-rotate-12 group-hover:scale-105 group-hover:text-emerald-600/15 pointer-events-none select-none">
+                    <HugeiconsIcon icon={Globe02Icon} size={280} />
                 </div>
-                <div className="absolute top-10 left-10 flex items-center justify-center text-blue-600 opacity-[0.04] transition-all duration-700 group-hover:-translate-y-2 group-hover:text-violet-500 group-hover:opacity-[0.08] pointer-events-none select-none">
-                    <HugeiconsIcon icon={CommandLineIcon} size={80} className="rotate-12" />
+                <div className="absolute top-1/4 left-12 flex items-center justify-center text-teal-500/5 transition-all duration-1000 ease-out group-hover:-translate-y-3 group-hover:rotate-6 group-hover:scale-110 group-hover:text-teal-500/15 pointer-events-none select-none">
+                    <HugeiconsIcon icon={CommandLineIcon} size={100} />
                 </div>
-                <div className="absolute right-1/4 bottom-10 flex items-center justify-center text-emerald-500 opacity-[0.05] transition-all duration-700 group-hover:-translate-y-4 group-hover:text-amber-500 group-hover:opacity-10 pointer-events-none select-none">
-                    <HugeiconsIcon icon={Search01Icon} size={100} className="-rotate-12" />
+                <div className="absolute bottom-1/4 right-1/4 flex items-center justify-center text-blue-400/10 transition-all duration-1000 ease-out group-hover:-translate-y-5 group-hover:-rotate-6 group-hover:scale-110 group-hover:text-blue-500/20 pointer-events-none select-none">
+                    <HugeiconsIcon icon={Search01Icon} size={120} />
                 </div>
-                <div className="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-primary/5 blur-3xl transition-all duration-700 group-hover:scale-110 group-hover:bg-blue-500/15" />
-                <div className="pointer-events-none absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-blue-500/5 blur-3xl transition-all duration-700 group-hover:scale-110 group-hover:bg-indigo-500/15" />
 
                 <div className="relative z-10 mx-auto max-w-3xl">
                     <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-1.5 text-sm font-semibold text-slate-600">
@@ -214,7 +217,7 @@ export function PlaygroundClient({ tavilyAvailable }: PlaygroundClientProps) {
                     </div>
 
                     <h2 className="mb-6 text-4xl leading-tight font-bold tracking-tight text-slate-900 md:text-5xl">
-                        What would you like to <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">scrape today?</span>
+                        What would you like to <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">scrape today?</span>
                     </h2>
 
                     <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-slate-500">
@@ -222,7 +225,7 @@ export function PlaygroundClient({ tavilyAvailable }: PlaygroundClientProps) {
                     </p>
 
                     <form onSubmit={handleSearch} className="group relative mx-auto max-w-2xl">
-                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 to-violet-500/20 opacity-0 blur-xl transition-opacity duration-700 group-hover:opacity-100" />
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/20 to-emerald-500/20 opacity-0 blur-xl transition-opacity duration-700 group-hover:opacity-100" />
                         <div className="ui-panel-soft relative flex items-center rounded-2xl border border-slate-200 bg-slate-50 p-2 focus-within:border-primary/40">
                             <div className="pl-4 text-slate-400">
                                 <HugeiconsIcon icon={Search01Icon} size={22} />
@@ -286,7 +289,7 @@ export function PlaygroundClient({ tavilyAvailable }: PlaygroundClientProps) {
                                         </div>
 
                                         <div className="flex items-center text-sm font-bold text-slate-900 transition-all group-hover:text-primary">
-                                            <span>Launch Scraper</span>
+                                            <span>Launch</span>
                                             <HugeiconsIcon icon={ArrowRight01Icon} className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                                         </div>
                                     </div>

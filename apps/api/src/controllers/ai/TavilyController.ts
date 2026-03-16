@@ -10,7 +10,7 @@ const TavilySearchSchema = z.object({
     searchDepth: z.enum(['basic', 'advanced']).default('basic'),
     topic: z.enum(['general', 'news', 'finance']).default('general'),
     maxResults: z.number().int().min(1).max(20).default(5),
-    includeAnswer: z.boolean().default(false),
+    includeAnswer: z.boolean().default(true),
     includeImages: z.boolean().default(false),
     includeRawContent: z.union([z.literal(false), z.enum(['markdown', 'text'])]).default(false),
     includeDomains: DomainListSchema,

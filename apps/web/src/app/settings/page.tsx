@@ -71,6 +71,13 @@ function SettingsSummaryCard({
     value: string;
     detail: string;
 }) {
+    const iconTreatment =
+        label === 'Browser Mode'
+            ? 'bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.18),_transparent_55%),radial-gradient(circle_at_bottom_right,_rgba(14,165,233,0.14),_transparent_58%),linear-gradient(135deg,rgba(255,255,255,1),rgba(239,246,255,1))] border-sky-100 text-sky-700'
+            : label === 'Concurrency'
+                ? 'bg-[radial-gradient(circle_at_top_left,_rgba(99,102,241,0.18),_transparent_55%),radial-gradient(circle_at_bottom_right,_rgba(168,85,247,0.14),_transparent_58%),linear-gradient(135deg,rgba(255,255,255,1),rgba(245,243,255,1))] border-violet-100 text-violet-700'
+                : 'bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.18),_transparent_55%),radial-gradient(circle_at_bottom_right,_rgba(45,212,191,0.14),_transparent_58%),linear-gradient(135deg,rgba(255,255,255,1),rgba(236,253,245,1))] border-emerald-100 text-emerald-700';
+
     return (
         <div className="rounded-[1.75rem] border border-slate-200 bg-white p-5">
             <div className="flex items-start justify-between gap-3">
@@ -79,7 +86,7 @@ function SettingsSummaryCard({
                     <div className="mt-2 text-xl font-bold tracking-tight text-slate-900">{value}</div>
                     <div className="mt-2 text-sm leading-6 text-slate-500">{detail}</div>
                 </div>
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-700">
+                <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border", iconTreatment)}>
                     <HugeiconsIcon icon={icon} size={20} />
                 </div>
             </div>

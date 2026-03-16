@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import {
     ArrowLeft01Icon,
     Cancel01Icon,
@@ -40,7 +41,6 @@ const TOOL_META: Record<TavilyTool, { label: string; title: string; description:
 
 export function TavilyHeader({ available, tool, onToolChange, elapsedTime, isPending, hasResult, hasError }: TavilyHeaderProps) {
     const currentMeta = TOOL_META[tool];
-    const CurrentIcon = currentMeta.icon;
 
     return (
         <div className="group mb-6 rounded-[1.75rem] border border-slate-200 bg-white px-5 py-5">
@@ -50,8 +50,8 @@ export function TavilyHeader({ available, tool, onToolChange, elapsedTime, isPen
                         <div className="min-w-0">
                             <div className="flex items-center gap-3">
                                 <div className="relative h-12 w-12 shrink-0">
-                                    <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.16),_transparent_60%),linear-gradient(135deg,rgba(255,255,255,1),rgba(241,245,249,1))] text-emerald-600 ring-1 ring-slate-200 transition-opacity duration-200 group-hover:opacity-0">
-                                        <HugeiconsIcon icon={CurrentIcon} className="h-5 w-5" />
+                                    <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.22),_transparent_58%),radial-gradient(circle_at_bottom_right,_rgba(45,212,191,0.18),_transparent_54%),linear-gradient(135deg,rgba(255,255,255,1),rgba(240,253,250,1))] ring-1 ring-emerald-100 transition-opacity duration-200 group-hover:opacity-0">
+                                        <Image src="/icons/tavily.svg" alt="Tavily" width={24} height={24} className="h-6 w-6" />
                                     </div>
                                     <Link
                                         href="/playground"
