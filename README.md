@@ -15,6 +15,12 @@
 
 ---
 
+<div align="center">
+
+![HeadlessX Demo](assets/demo.gif)
+
+</div>
+
 ## Overview
 
 HeadlessX is a self-hosted scraping platform with a web dashboard, protected API, queue-backed workflows, and a remote MCP endpoint.
@@ -45,10 +51,6 @@ Current live surfaces:
 
 </div>
 
-<table>
-  <tr>
-    <td valign="top" width="50%">
-
 ### Live Now
 
 | Scraper | Status |
@@ -59,24 +61,38 @@ Current live surfaces:
 | Exa | Live |
 | YouTube | Live |
 
-  </td>
-    <td valign="top" width="50%">
-
 ### Coming Soon
 
-| Scraper | Status |
-| --- | --- |
-| Google Maps | Planned |
-| Twitter / X | Planned |
-| LinkedIn | Planned |
-| Instagram | Planned |
-| Amazon | Planned |
-| Facebook | Planned |
-| Reddit | Planned |
+| Scraper | Description | Status |
+| --- | --- | --- |
+| Google Maps | Extract business listings, reviews, categories, ratings, contact details, opening hours, and location metadata from Google Maps search results. | Planned |
+| Twitter / X | Capture profiles, posts, engagement metrics, media, hashtags, and conversation threads from public X pages. | Planned |
+| LinkedIn | Extract public company and profile data, role details, locations, website links, and business metadata from LinkedIn surfaces. | Planned |
+| Instagram | Collect public profile data, captions, post metadata, media links, reels references, and engagement signals. | Planned |
+| Amazon | Extract product listings, seller data, pricing, ratings, reviews, availability, and catalog metadata from Amazon pages. | Planned |
+| Facebook | Capture public page data, posts, about fields, links, follower counts, and engagement metadata from Facebook pages. | Planned |
+| Reddit | Extract subreddit, post, comment, author, score, flair, and discussion metadata from Reddit threads and listings. | Planned |
+| ThomasNet Suppliers Real-Time Scraper | Extract 70+ ThomasNet supplier fields including emails, phone numbers, company data, products, locations, certifications, and more. | Planned |
+| TLS Appointment Booker | Automate TLS appointment availability checks and booking workflows with support for high-frequency monitoring and retry-safe session handling. | Planned |
+| GlobalSpec Suppliers Scraper | Extract 200,000+ industrial supplier profiles from GlobalSpec Engineering360 with contact data, business type, product catalogs, specs, and datasheets. | Planned |
+| ImportYeti Scraper | Extract supplier profiles, shipment records, and trade data from ImportYeti with 60+ fields including HS codes, shipping lanes, carriers, bills of lading, trading partners, and contact info. | Planned |
+| MakersRow Scraper | Extract 11,600+ US manufacturer profiles from MakersRow with email, phone, address, website, GPS coordinates, capabilities, ratings, gallery images, and business hours. | Planned |
 
-  </td>
-  </tr>
-</table>
+## Packages Coming Soon
+
+| Package | Description | Status |
+| --- | --- | --- |
+| yt-dude | Dedicated YouTube extraction package for metadata, subtitles, formats, transcripts, and workflow-oriented media tooling. | Planned |
+| headfox | HeadlessX-maintained Firefox-based anti-detect browser engine that will power the platform's next-generation browser runtime. | Planned |
+| headfox-js | TypeScript package for launching, managing, and integrating Headfox in Node.js automation and scraping flows. | Planned |
+| hx-cli | OpenClaw-friendly command-line interface for running HeadlessX scrapers, jobs, workflows, and future automation tooling from the terminal. | Planned |
+
+## Agent Surfaces Coming Soon
+
+| Surface | Description | Status |
+| --- | --- | --- |
+| Skills.md (Agent Skills) | Versioned agent skill packs and workflow instructions that teach automation agents how to use HeadlessX scrapers, jobs, tools, and MCP capabilities. | Planned |
+| Web AI Agent (`/web`) | Interactive AI agent workspace inside the dashboard that can use all HeadlessX playground tools and scrapers, including Website, Google SERP, Tavily, Exa, YouTube, and related workflow actions. | Planned |
 
 ## UI Screenshots
 
