@@ -102,6 +102,7 @@ docs/plans/
 # Local package development
 packages/headfox/
 packages/headfox-js/
+packages/yt-dude/
 
 # Backup files
 *.backup

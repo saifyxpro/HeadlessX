@@ -334,7 +334,6 @@ infra/docker/
 | Package | Description | Status |
 | --- | --- | --- |
 | @headlessx-cli/core | Published CLI package for HeadlessX operators, jobs, and search workflows. Command: `headlessx` | Available |
-| yt-dude | Dedicated YouTube extraction package for metadata, subtitles, formats, transcripts, and workflow-oriented media tooling. | In Repo |
 | HeadlessX Agent Skills | Installable agent skill pack from this repository for Cursor, Claude Code, Warp, Windsurf, OpenCode, OpenClaw, Antigravity, and similar tools. | Available |
 
 ### Coming Soon
