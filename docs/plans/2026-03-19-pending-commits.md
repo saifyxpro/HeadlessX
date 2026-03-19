@@ -468,7 +468,7 @@ Make `/playground/operators/website/scrape` the canonical frontend route, redire
 
 ## 16. `refactor(settings): simplify proxy UI and use in-app result dialogs`
 
-Simplify the proxy settings experience so the Proxy tab is a direct inline configuration form instead of a popup editor, and keep test/save feedback inside the app with a proper dialog.
+Simplify the proxy settings experience so the Proxy tab becomes one clean inline card, keeps test/save feedback inside the app, and removes fake success states when no proxy was actually tested.
 
 ### Included files
 - `apps/web/src/app/settings/page.tsx`
@@ -482,9 +482,19 @@ Simplify the proxy settings experience so the Proxy tab is a direct inline confi
   - enable or disable
   - protocol
   - proxy endpoint
+- collapse the Proxy tab into one container with:
+  - short title
+  - short description
+  - divider
 - keep `Test Proxy` and `Save Proxy` actions directly in the Proxy tab
-- preserve the existing inline proxy status card for latest test results
+- preserve the inline latest-result status card for real proxy tests only
+- stop showing a fake `Proxy test passed in 0 ms` direct-connection result when routing is disabled
 - replace native browser `window.alert` feedback with an in-app dialog for proxy success and failure messages
+- remove extra copy noise like:
+  - `Network`
+  - `Camoufox Proxy Routing`
+  - `Saved Browser Proxy`
+- align the other settings sections to the same short title + short description + divider pattern
 - delete the now-unused `ProxySettingsDialog` component file
 
 ### Suggested commit message
@@ -493,9 +503,25 @@ Simplify the proxy settings experience so the Proxy tab is a direct inline confi
 ### Suggested detailed commit body
 Simplify the proxy settings UX by replacing the popup editor with a direct inline configuration form in the Proxy tab and removing non-essential layers like Launch Preview and Traffic Pattern.
 
-Keep proxy validation feedback inside the application by replacing native browser alert popups with an in-app dialog, while preserving quick test and save actions plus the inline latest-result status block.
+Keep proxy validation feedback inside the application by replacing native browser alert popups with an in-app dialog, preserve quick test and save actions, and remove the misleading direct-mode fake success result so only real proxy tests appear as passed.
 
-## 17. `fix(playground): keep stop actions clickable while runs are active`
+## 17. `docs(readme): refresh Google screenshot label`
+
+Update the Google screenshot caption in the root README so it reflects the latest tested language and region scenario shown in the UI asset.
+
+### Included files
+- `README.md`
+
+### What this commit does
+- rename the Google screenshot heading to mention the recent Arabic language and region test context
+
+### Suggested commit message
+`docs(readme): update Google screenshot caption`
+
+### Suggested detailed commit body
+Refresh the Google AI Search screenshot heading in the root README so it communicates that the current UI example was recently tested with Arabic language and region settings.
+
+## 18. `fix(playground): keep stop actions clickable while runs are active`
 
 Fix the shared operator config shell so starting a run does not block pointer events for the whole configuration area and make Stop usable again across the playground.
 

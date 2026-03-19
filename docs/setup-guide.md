@@ -50,6 +50,43 @@ Important:
 - package name is `@headlessx-cli/core`
 - the CLI talks to the same backend API used by the web app
 
+## AI Models Setup
+
+The API CAPTCHA solver needs local model files under [apps/api/models](/home/saifyxpro/CODE/Crawl/HeadlessX/apps/api/models).
+
+If you see errors like:
+
+- `recaptcha_classification_57k.onnx` missing
+- `yolo26x.onnx` or `yolo26x.pt` missing
+
+download the models before starting the API.
+
+With pnpm:
+
+```bash
+pnpm run models:download
+```
+
+With mise:
+
+```bash
+mise run models
+```
+
+Direct script:
+
+```bash
+python3 scripts/download_models.py
+```
+
+This downloads the required CAPTCHA models into:
+
+```text
+apps/api/models
+```
+
+Run this once after cloning, or again if the models directory is empty.
+
 ## No Docker Setup
 
 You can run HeadlessX without Docker.

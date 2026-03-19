@@ -13,7 +13,7 @@ import {
     CpuIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -106,6 +106,10 @@ type ProxyFeedbackDialogState = {
     success: boolean;
 };
 
+type SaveProxyOutcome =
+    | { kind: 'validated'; result: ProxyTestResult | null }
+    | { kind: 'saved-direct' };
+
 const PROXY_PROTOCOLS = ['http', 'https', 'socks4', 'socks5'] as const;
 
 function SettingsSummaryCard({
@@ -184,26 +188,26 @@ function SettingsTabButton({
 }
 
 function SettingsSection({
-    eyebrow,
     title,
     description,
     children,
 }: {
-    eyebrow: string;
     title: string;
     description: string;
     children: ReactNode;
 }) {
     return (
-        <Card className="rounded-[1.75rem]">
-            <CardHeader className="border-b border-slate-200 pb-5">
-                <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{eyebrow}</div>
-                <CardTitle className="mt-2 text-xl text-slate-900">{title}</CardTitle>
-                <CardDescription className="mt-1 max-w-2xl leading-6">{description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5 pt-6">
+        <Card className="rounded-[1.75rem] p-6">
+            <div className="space-y-5">
+                <div className="space-y-2">
+                    <div className="text-lg font-semibold tracking-tight text-slate-900">{title}</div>
+                    <div className="text-sm leading-6 text-slate-500">{description}</div>
+                </div>
+                <div className="h-px w-full bg-slate-200" />
+                <div className="space-y-5">
                 {children}
-            </CardContent>
+                </div>
+            </div>
         </Card>
     );
 }
@@ -421,7 +425,7 @@ export default function SettingsPage() {
         }
     };
 
-    const handleSaveProxy = async () => {
+    const handleSaveProxy = async (): Promise<SaveProxyOutcome | null> => {
         const nextFormData = buildConfigWithProxyDraft();
 
         try {
@@ -430,27 +434,22 @@ export default function SettingsPage() {
             setFormData(nextFormData);
 
             if (proxyDraft.proxyEnabled && String(proxyDraft.proxyUrl || '').trim()) {
-                await runProxyTest(proxyDraft, { notify: true, mode: 'save' });
+                const result = await runProxyTest(proxyDraft, { notify: true, mode: 'save' });
+                return { kind: 'validated', result };
             } else {
-                const result = {
-                    success: true,
-                    latency: 0,
-                    country: 'Direct',
-                    isp: 'Direct connection',
-                    ip: 'No proxy',
-                    city: 'Local',
-                };
-                setProxyTestResult(result);
+                setProxyTestResult(null);
                 setProxyFeedbackDialog({
                     open: true,
                     title: 'Proxy settings saved',
-                    description: 'Routing disabled.',
+                    description: 'Direct connection is saved for new Camoufox sessions.',
                     success: true,
                 });
+                return { kind: 'saved-direct' };
             }
         } catch (err) {
             setError((err as Error).message);
             setTimeout(() => setError(null), 5000);
+            return null;
         }
     };
 
@@ -534,9 +533,8 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                     <div className="rounded-[1.75rem] border border-slate-200 bg-white p-3">
                         <div className="px-3 pb-3 pt-2">
-                            <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Control Groups</div>
-                            <div className="mt-2 text-sm leading-6 text-slate-500">
-                                Organize runtime defaults, browser engine behavior, and global network routing.
+                            <div className="text-sm leading-6 text-slate-500">
+                                Choose a settings area.
                             </div>
                         </div>
 
@@ -565,9 +563,8 @@ export default function SettingsPage() {
 
                     {activeTab === 'general' && (
                         <SettingsSection
-                            eyebrow="Runtime"
                             title="Execution Defaults"
-                            description="Control how HeadlessX launches browsers and how much concurrent work it allows."
+                            description="Control browser mode, timeout, and concurrency."
                         >
                             <ToggleSetting
                                 title="Headless Mode"
@@ -616,34 +613,33 @@ export default function SettingsPage() {
                     )}
 
                     {activeTab === 'proxy' && (
-                        <SettingsSection
-                            eyebrow="Network"
-                            title="Camoufox Proxy Routing"
-                            description="Configure the saved proxy that HeadlessX injects into every new Camoufox browser launch."
-                        >
-                            <div className="space-y-5 rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-[0_18px_40px_-30px_rgba(15,23,42,0.18)]">
-                                <div className="max-w-2xl">
-                                    <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                                        Saved Browser Proxy
-                                    </div>
-                                    <div className="mt-2 text-xl font-bold tracking-tight text-slate-900">
-                                        {proxyDraft.proxyEnabled ? 'New Camoufox sessions will use your saved proxy.' : 'New Camoufox sessions will connect directly.'}
-                                    </div>
-                                    <div className="mt-3 text-sm leading-6 text-slate-500">
-                                        Save one proxy endpoint for future browser launches. Test it here before live jobs use it.
+                        <div className="rounded-[1.75rem] border border-slate-200 bg-white p-6">
+                            <div className="space-y-5">
+                                <div className="space-y-2">
+                                    <div className="text-lg font-semibold tracking-tight text-slate-900">Proxy Settings</div>
+                                    <div className="text-sm leading-6 text-slate-500">
+                                        Save one proxy endpoint for future Camoufox browser sessions.
                                     </div>
                                 </div>
 
-                                <ToggleSetting
-                                    title="Enable Proxy Routing"
-                                    description="Turn proxy routing on for new Camoufox launches, or keep direct traffic when disabled."
-                                    checked={proxyDraft.proxyEnabled}
-                                    onCheckedChange={(checked) => setProxyDraft((prev) => ({ ...prev, proxyEnabled: checked }))}
-                                />
+                                <div className="h-px w-full bg-slate-200" />
+
+                                <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
+                                    <div className="space-y-1 pr-4">
+                                        <div className="font-semibold text-slate-900">Enable Proxy Routing</div>
+                                        <div className="text-sm leading-6 text-slate-500">
+                                            Save one proxy endpoint for new Camoufox sessions, or keep traffic direct when disabled.
+                                        </div>
+                                    </div>
+                                    <Switch
+                                        checked={proxyDraft.proxyEnabled}
+                                        onCheckedChange={(checked) => setProxyDraft((prev) => ({ ...prev, proxyEnabled: checked }))}
+                                    />
+                                </div>
 
                                 <FieldCard
                                     label="Protocol"
-                                    hint="Choose the protocol HeadlessX should use if your proxy endpoint does not already include its own scheme."
+                                    hint="Choose the protocol used with the saved endpoint."
                                 >
                                     <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                                         {PROXY_PROTOCOLS.map((protocol) => (
@@ -662,7 +658,7 @@ export default function SettingsPage() {
 
                                 <FieldCard
                                     label="Proxy Endpoint"
-                                    hint="Paste `host:port` or `username:password@host:port`. This value is saved and reused for new Camoufox sessions."
+                                    hint="Paste `host:port` or `username:password@host:port`."
                                 >
                                     <Input
                                         value={proxyDraft.proxyUrl}
@@ -719,7 +715,9 @@ export default function SettingsPage() {
                                     </Button>
 
                                     <Button
-                                        onClick={handleSaveProxy}
+                                        onClick={() => {
+                                            void handleSaveProxy();
+                                        }}
                                         disabled={mutation.isPending || proxyTestMutation.isPending}
                                         className="h-11 rounded-2xl px-5"
                                     >
@@ -732,14 +730,13 @@ export default function SettingsPage() {
                                     </Button>
                                 </div>
                             </div>
-                        </SettingsSection>
+                        </div>
                     )}
 
                     {activeTab === 'camoufox' && (
                         <SettingsSection
-                            eyebrow="Stealth"
                             title="Camoufox Engine Controls"
-                            description="Fine-tune the anti-detect browser defaults used when HeadlessX launches new Camoufox sessions."
+                            description="Adjust the default anti-detect browser behavior."
                         >
                             <ToggleSetting
                                 title="Block WebRTC"

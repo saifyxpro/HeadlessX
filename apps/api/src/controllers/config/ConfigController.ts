@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { prisma } from '../../database/client';
 import { configService } from '../../services/config/ConfigService';
 import { browserService } from '../../services/scrape/BrowserService';
 import { proxyService } from '../../services/proxy/ProxyService';
@@ -17,6 +16,7 @@ export class ConfigController {
 
     static async updateConfig(req: Request, res: Response) {
         try {
+            const currentConfig = await configService.getConfig();
             const {
                 browserHeadless,
                 browserTimeout,
@@ -38,51 +38,30 @@ export class ConfigController {
                 : 'http';
             const shouldEnableProxy = Boolean(proxyEnabled && normalizedProxyUrl);
 
-            // Use upsert to create if not exists
-            const updated = await prisma.systemSettings.upsert({
-                where: { id: 1 },
-                update: {
-                    browser_headless: browserHeadless,
-                    browser_timeout: browserTimeout,
-                    max_concurrency: maxConcurrency,
-                    proxy_enabled: shouldEnableProxy,
-                    proxy_url: normalizedProxyUrl || null,
-                    proxy_protocol: normalizedProxyProtocol,
-                    profile_rotation_interval: profileRotationInterval,
-                    camoufox_geoip: camoufoxGeoip,
-                    camoufox_block_webrtc: camoufoxBlockWebrtc,
-                    camoufox_block_images: camoufoxBlockImages,
-                    camoufox_enable_cache: camoufoxEnableCache,
-                    camoufox_humanize: camoufoxHumanize
-                },
-                create: {
-                    id: 1,
-                    browser_headless: browserHeadless ?? true,
-                    browser_timeout: browserTimeout ?? 60000,
-                    max_concurrency: maxConcurrency ?? 5,
-                    proxy_enabled: shouldEnableProxy,
-                    proxy_url: normalizedProxyUrl || null,
-                    proxy_protocol: normalizedProxyProtocol,
-                    profile_rotation: false,
-                    profile_rotation_interval: profileRotationInterval ?? 3600000,
-                    camoufox_geoip: camoufoxGeoip ?? true,
-                    camoufox_block_webrtc: camoufoxBlockWebrtc ?? true,
-                    camoufox_block_images: camoufoxBlockImages ?? false,
-                    camoufox_enable_cache: camoufoxEnableCache ?? true,
-                    camoufox_humanize: camoufoxHumanize ?? 2.5
-                }
+            const { config: updated } = await configService.saveConfig({
+                ...currentConfig,
+                browserHeadless: browserHeadless ?? currentConfig.browserHeadless,
+                browserTimeout: browserTimeout ?? currentConfig.browserTimeout,
+                maxConcurrency: maxConcurrency ?? currentConfig.maxConcurrency,
+                proxyEnabled: shouldEnableProxy,
+                proxyUrl: normalizedProxyUrl || undefined,
+                proxyProtocol: normalizedProxyProtocol,
+                profileRotationInterval: profileRotationInterval ?? currentConfig.profileRotationInterval,
+                camoufoxGeoip: camoufoxGeoip ?? currentConfig.camoufoxGeoip,
+                camoufoxBlockWebrtc: camoufoxBlockWebrtc ?? currentConfig.camoufoxBlockWebrtc,
+                camoufoxBlockImages: camoufoxBlockImages ?? currentConfig.camoufoxBlockImages,
+                camoufoxEnableCache: camoufoxEnableCache ?? currentConfig.camoufoxEnableCache,
+                camoufoxHumanize: camoufoxHumanize ?? currentConfig.camoufoxHumanize,
             });
 
-            // Force refresh cache
-            configService.invalidateCache();
-
-            // Restart browser if headless setting changed
             await browserService.restartBrowser();
 
             res.json({ success: true, config: updated });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ success: false, error: (error as Error).message });
+            const message = (error as Error).message;
+            const status = message.includes('EAI_AGAIN') || message.includes('P1001') ? 503 : 500;
+            res.status(status).json({ success: false, error: message });
         }
     }
 
