@@ -44,7 +44,7 @@ app.use(express.json({ limit: process.env.BODY_LIMIT || '10mb' }));
 import websiteRoutes from './routes/scrape/websiteRoutes';
 app.use('/api/website', websiteRoutes);
 
-// Google SERP: /api/google-serp/* (Coming Soon)
+// Google SERP: /api/google-serp/*
 import googleSerpRoutes from './routes/scrape/googleSerpRoutes';
 app.use('/api/google-serp', googleSerpRoutes);
 
@@ -67,6 +67,10 @@ app.use('/api/config', configRoutes);
 // Dashboard: /api/dashboard
 import dashboardRoutes from './routes/dashboard/dashboardRoutes';
 app.use('/api/dashboard', dashboardRoutes);
+
+// Playground: /api/playground
+import playgroundRoutes from './routes/playground/playgroundRoutes';
+app.use('/api/playground', playgroundRoutes);
 
 // API Keys: /api/keys
 import keysRoutes from './routes/keysRoutes';
@@ -101,10 +105,11 @@ app.get('/api/health', (req, res) => {
             website: '/api/website/*',
             websiteMap: '/api/website/map',
             websiteCrawl: '/api/website/crawl',
-            googleSerp: '/api/google-serp/* (coming soon)',
+            googleSerp: '/api/google-serp/*',
             tavily: '/api/tavily/*',
             exa: '/api/exa/*',
             youtube: '/api/youtube/*',
+            playgroundOperators: '/api/playground/operators',
             proxies: '/api/proxies/*',
             config: '/api/config',
             keys: '/api/keys',

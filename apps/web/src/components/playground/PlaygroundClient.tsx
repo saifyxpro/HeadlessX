@@ -17,205 +17,104 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { cn } from "@/lib/utils";
+import type { PlaygroundOperator } from '@/lib/playgroundAvailability';
 
-type PlaygroundTool = {
-    id: string;
-    name: string;
-    tagline: string;
-    description: string;
+type PlaygroundOperatorVisual = {
     icon: typeof Globe02Icon | string;
-    available: boolean;
-    href: string;
-    features: string[];
     color: string;
     bg: string;
-    inactiveLabel?: string;
 };
 
 interface PlaygroundClientProps {
-    youtubeAvailable: boolean;
-    exaAvailable: boolean;
-    tavilyAvailable: boolean;
+    operators: PlaygroundOperator[];
 }
 
-export function PlaygroundClient({ youtubeAvailable, exaAvailable, tavilyAvailable }: PlaygroundClientProps) {
+const OPERATOR_VISUALS: Record<string, PlaygroundOperatorVisual> = {
+    website: {
+        icon: Globe02Icon,
+        color: 'text-blue-600',
+        bg: 'bg-blue-600/10',
+    },
+    'google-serp': {
+        icon: '/icons/google.svg',
+        color: 'text-red-500',
+        bg: 'bg-red-500/10',
+    },
+    tavily: {
+        icon: '/icons/tavily.svg',
+        color: 'text-emerald-600',
+        bg: 'bg-emerald-600/10',
+    },
+    exa: {
+        icon: '/icons/exa.svg',
+        color: 'text-slate-900',
+        bg: 'bg-slate-900/10',
+    },
+    twitter: {
+        icon: '/icons/twitter.svg',
+        color: 'text-sky-500',
+        bg: 'bg-sky-500/10',
+    },
+    linkedin: {
+        icon: '/icons/linkedin.svg',
+        color: 'text-blue-700',
+        bg: 'bg-blue-700/10',
+    },
+    instagram: {
+        icon: '/icons/instagram.svg',
+        color: 'text-pink-600',
+        bg: 'bg-pink-600/10',
+    },
+    tiktok: {
+        icon: '/icons/tiktok.svg',
+        color: 'text-slate-900',
+        bg: 'bg-slate-900/10',
+    },
+    reddit: {
+        icon: '/icons/reddit.svg',
+        color: 'text-orange-600',
+        bg: 'bg-orange-600/10',
+    },
+    youtube: {
+        icon: '/icons/youtube.svg',
+        color: 'text-red-600',
+        bg: 'bg-red-600/10',
+    },
+    amazon: {
+        icon: '/icons/amazon.svg',
+        color: 'text-amber-600',
+        bg: 'bg-amber-600/10',
+    },
+    facebook: {
+        icon: '/icons/facebook.svg',
+        color: 'text-blue-600',
+        bg: 'bg-blue-600/10',
+    },
+};
+
+function getOperatorVisual(id: string): PlaygroundOperatorVisual {
+    return OPERATOR_VISUALS[id] || {
+        icon: Globe02Icon,
+        color: 'text-slate-600',
+        bg: 'bg-slate-600/10',
+    };
+}
+
+export function PlaygroundClient({ operators }: PlaygroundClientProps) {
     const router = useRouter();
     const [searchUrl, setSearchUrl] = useState('');
 
-    const getInactiveMessage = (tool: PlaygroundTool) => {
-        if (tool.inactiveLabel !== 'env required') {
-            return 'Not Available';
+    const getInactiveMessage = (operator: PlaygroundOperator) => {
+        if (operator.reason) {
+            return operator.reason;
         }
 
-        if (tool.id === 'exa') {
-            return 'Add Exa API key';
+        if (operator.comingSoon) {
+            return 'Coming soon';
         }
 
-        if (tool.id === 'tavily') {
-            return 'Add Tavily API key';
-        }
-
-        if (tool.id === 'youtube') {
-            return 'Add yt-engine URL';
-        }
-
-        return 'Add API key';
+        return 'Not Available';
     };
-
-    const scrapers: PlaygroundTool[] = [
-        {
-            id: 'website',
-            name: 'Website',
-            tagline: 'Universal web extraction',
-            description: 'Extract HTML, render JavaScript, capture screenshots, crawl pages, and map links with enterprise-grade stealth technology.',
-            icon: Globe02Icon,
-            available: true,
-            href: '/playground/website/scrape',
-            features: ['Extract', 'Crawl', 'Map'],
-            color: 'text-blue-600',
-            bg: 'bg-blue-600/10',
-        },
-        {
-            id: 'google-serp',
-            name: 'Google Search',
-            tagline: 'SERP & Intelligence',
-            description: 'Extract organic results, featured snippets, People Also Ask, and more from Google search pages.',
-            icon: '/icons/google.svg',
-            available: true,
-            href: '/playground/google-serp',
-            features: ['Organic Results', 'Featured Snippets', 'PAA', 'Maps'],
-            color: 'text-red-500',
-            bg: 'bg-red-500/10',
-        },
-        {
-            id: 'tavily',
-            name: 'Tavily',
-            tagline: 'Search API workspace',
-            description: 'Prepare Tavily-powered web search and extraction flows with a dedicated workbench shell inside the playground.',
-            icon: '/icons/tavily.svg',
-            available: tavilyAvailable,
-            href: '/playground/tavily',
-            features: ['Search', 'Extract', 'Research'],
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-600/10',
-            inactiveLabel: 'env required',
-        },
-        {
-            id: 'exa',
-            name: 'Exa',
-            tagline: 'LLM-first web search',
-            description: 'Search the web with Exa using highlights, text extraction, category filters, and optional deep search synthesis.',
-            icon: '/icons/exa.svg',
-            available: exaAvailable,
-            href: '/playground/exa',
-            features: ['Search', 'Highlights', 'Deep Search'],
-            color: 'text-slate-900',
-            bg: 'bg-slate-900/10',
-            inactiveLabel: 'env required',
-        },
-        {
-            id: 'twitter',
-            name: 'Twitter / X',
-            tagline: 'Social data extraction',
-            description: 'Scrape profiles, tweets, replies, and trends from Twitter/X with automatic authentication handling.',
-            icon: '/icons/twitter.svg',
-            available: false,
-            href: '/playground/twitter',
-            features: ['Profile Data', 'Tweets', 'Replies', 'Trends'],
-            color: 'text-sky-500',
-            bg: 'bg-sky-500/10',
-        },
-        {
-            id: 'linkedin',
-            name: 'LinkedIn',
-            tagline: 'Professional network data',
-            description: 'Extract public profile data, job postings, and company information from LinkedIn.',
-            icon: '/icons/linkedin.svg',
-            available: false,
-            href: '/playground/linkedin',
-            features: ['Profiles', 'Jobs', 'Company Data', 'Posts'],
-            color: 'text-blue-700',
-            bg: 'bg-blue-700/10',
-        },
-        {
-            id: 'instagram',
-            name: 'Instagram',
-            tagline: 'Visual content scraper',
-            description: 'Download posts, reels, stories, and extract profile analytics from Instagram.',
-            icon: '/icons/instagram.svg',
-            available: false,
-            href: '/playground/instagram',
-            features: ['Posts', 'Reels', 'Stories', 'Analytics'],
-            color: 'text-pink-600',
-            bg: 'bg-pink-600/10',
-        },
-        {
-            id: 'tiktok',
-            name: 'TikTok',
-            tagline: 'Short-form video data',
-            description: 'Scrape trending videos, hashtags, music usage, and user profiles from TikTok.',
-            icon: '/icons/tiktok.svg',
-            available: false,
-            href: '/playground/tiktok',
-            features: ['Videos', 'Hashtags', 'Profiles', 'Music'],
-            color: 'text-slate-900',
-            bg: 'bg-slate-900/10',
-        },
-        {
-            id: 'reddit',
-            name: 'Reddit',
-            tagline: 'Community discussions',
-            description: 'Extract posts, comments, and sentiment from subreddits and user histories.',
-            icon: '/icons/reddit.svg',
-            available: false,
-            href: '/playground/reddit',
-            features: ['Subreddits', 'Comments', 'Users', 'Sentiment'],
-            color: 'text-orange-600',
-            bg: 'bg-orange-600/10',
-        },
-        {
-            id: 'youtube',
-            name: 'YouTube',
-            tagline: 'yt-dude extraction',
-            description: 'Extract video metadata, formats, subtitles, and playlist previews through the dedicated yt-dude-powered engine.',
-            icon: '/icons/youtube.svg',
-            available: youtubeAvailable,
-            href: '/playground/youtube',
-            features: ['Metadata', 'Formats', 'Subtitles', 'Playlists'],
-            color: 'text-red-600',
-            bg: 'bg-red-600/10',
-            inactiveLabel: 'env required',
-        },
-        {
-            id: 'amazon',
-            name: 'Amazon',
-            tagline: 'E-commerce intelligence',
-            description: 'Extract product details, pricing, reviews, and best-seller rankings.',
-            icon: '/icons/amazon.svg',
-            available: false,
-            href: '/playground/amazon',
-            features: ['Products', 'Reviews', 'Pricing', 'Bestsellers'],
-            color: 'text-amber-600',
-            bg: 'bg-amber-600/10',
-        },
-        {
-            id: 'facebook',
-            name: 'Facebook',
-            tagline: 'Social graph data',
-            description: 'Extract public pages, posts, and group information with stealth.',
-            icon: '/icons/facebook.svg',
-            available: false,
-            href: '/playground/facebook',
-            features: ['Pages', 'Posts', 'Groups', 'About'],
-            color: 'text-blue-600',
-            bg: 'bg-blue-600/10',
-        },
-    ];
-
-    const orderedScrapers = [
-        ...scrapers.filter((tool) => tool.available),
-        ...scrapers.filter((tool) => !tool.available),
-    ];
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -258,11 +157,11 @@ export function PlaygroundClient({ youtubeAvailable, exaAvailable, tavilyAvailab
                     </div>
 
                     <h2 className="mb-6 text-4xl leading-tight font-bold tracking-tight text-slate-900 md:text-5xl">
-                        What would you like to <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">scrape today?</span>
+                        Which <span className="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">operator</span> do you want to run?
                     </h2>
 
                     <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-slate-500">
-                        Enter a URL to instantly extract website data, or select a specialized engine below.
+                        Enter a URL to instantly extract website data, or select a specialized operator below.
                     </p>
 
                     <form onSubmit={handleSearch} className="group relative mx-auto max-w-2xl">
@@ -291,9 +190,10 @@ export function PlaygroundClient({ youtubeAvailable, exaAvailable, tavilyAvailab
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {orderedScrapers.map((scraper) => (
-                    scraper.available ? (
-                        <Link href={scraper.href} key={scraper.id} className="group block h-full">
+                        {operators.map((operator) => {
+                    const visual = getOperatorVisual(operator.id);
+                    return operator.available ? (
+                        <Link href={operator.playgroundHref} key={operator.id} className="group block h-full">
                             <Card className="relative h-full overflow-hidden border-slate-200 bg-white">
                                 <div className="absolute inset-0 z-0 bg-gradient-to-br from-white/80 to-slate-50/50" />
                                 <div className="absolute inset-0 z-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
@@ -302,12 +202,12 @@ export function PlaygroundClient({ youtubeAvailable, exaAvailable, tavilyAvailab
                                     <div className="mb-6 flex items-start justify-between">
                                         <div className={cn(
                                             "flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-inner transition-transform duration-500 group-hover:scale-110",
-                                            scraper.color
+                                            visual.color
                                         )}>
-                                            {typeof scraper.icon === 'string' ? (
-                                                <img src={scraper.icon} alt={scraper.name} className="h-8 w-8 object-contain" />
+                                            {typeof visual.icon === 'string' ? (
+                                                <img src={visual.icon} alt={operator.name} className="h-8 w-8 object-contain" />
                                             ) : (
-                                                <HugeiconsIcon icon={scraper.icon} size={32} />
+                                                <HugeiconsIcon icon={visual.icon} size={32} />
                                             )}
                                         </div>
                                         <div className="flex items-center gap-1.5 rounded-full border border-emerald-100/50 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 shadow-sm">
@@ -316,13 +216,13 @@ export function PlaygroundClient({ youtubeAvailable, exaAvailable, tavilyAvailab
                                         </div>
                                     </div>
 
-                                    <h3 className="mb-2 text-xl font-bold text-slate-900 transition-colors group-hover:text-primary">{scraper.name}</h3>
-                                    <p className="mb-4 text-sm font-medium text-slate-500">{scraper.tagline}</p>
-                                    <p className="mb-8 line-clamp-3 text-sm leading-relaxed text-slate-500">{scraper.description}</p>
+                                    <h3 className="mb-2 text-xl font-bold text-slate-900 transition-colors group-hover:text-primary">{operator.name}</h3>
+                                    <p className="mb-4 text-sm font-medium text-slate-500">{operator.tagline}</p>
+                                    <p className="mb-8 line-clamp-3 text-sm leading-relaxed text-slate-500">{operator.description}</p>
 
                                     <div className="mt-auto">
                                         <div className="mb-6 flex flex-wrap gap-2">
-                                            {scraper.features.map((feature) => (
+                                            {operator.features.map((feature) => (
                                                 <span key={feature} className="rounded-md border border-slate-200/60 bg-white shadow-sm px-2.5 py-1 text-[11px] font-semibold text-slate-600">
                                                     {feature}
                                                 </span>
@@ -338,30 +238,30 @@ export function PlaygroundClient({ youtubeAvailable, exaAvailable, tavilyAvailab
                             </Card>
                         </Link>
                     ) : (
-                        <div key={scraper.id} className="block h-full select-none">
+                        <div key={operator.id} className="block h-full select-none">
                             <Card className="relative h-full overflow-hidden border-slate-200 bg-slate-50 opacity-80 hover:opacity-100">
                                 <CardContent className="relative z-10 flex h-full flex-col p-8">
                                     <div className="mb-6 flex items-start justify-between">
                                         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-300 shadow-sm grayscale">
-                                            {typeof scraper.icon === 'string' ? (
-                                                <img src={scraper.icon} alt={scraper.name} className="h-8 w-8 object-contain opacity-40" />
+                                            {typeof visual.icon === 'string' ? (
+                                                <img src={visual.icon} alt={operator.name} className="h-8 w-8 object-contain opacity-40" />
                                             ) : (
-                                                <HugeiconsIcon icon={scraper.icon} size={32} />
+                                                <HugeiconsIcon icon={visual.icon} size={32} />
                                             )}
                                         </div>
                                         <div className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">
                                             <HugeiconsIcon icon={LockKeyIcon} size={12} />
-                                            {scraper.inactiveLabel ?? 'soon'}
+                                            {operator.comingSoon ? 'soon' : 'setup required'}
                                         </div>
                                     </div>
 
-                                    <h3 className="mb-2 text-xl font-bold text-slate-400">{scraper.name}</h3>
-                                    <p className="mb-4 text-sm font-medium text-slate-400">{scraper.tagline}</p>
-                                    <p className="mb-8 line-clamp-3 text-sm leading-relaxed text-slate-400/80">{scraper.description}</p>
+                                    <h3 className="mb-2 text-xl font-bold text-slate-400">{operator.name}</h3>
+                                    <p className="mb-4 text-sm font-medium text-slate-400">{operator.tagline}</p>
+                                    <p className="mb-8 line-clamp-3 text-sm leading-relaxed text-slate-400/80">{operator.description}</p>
 
                                     <div className="mt-auto">
                                         <div className="mb-6 flex flex-wrap gap-2 opacity-60">
-                                            {scraper.features.map((feature) => (
+                                            {operator.features.map((feature) => (
                                                 <span key={feature} className="rounded-md border border-slate-200/50 bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-400">
                                                     {feature}
                                                 </span>
@@ -369,14 +269,14 @@ export function PlaygroundClient({ youtubeAvailable, exaAvailable, tavilyAvailab
                                         </div>
 
                                         <div className="flex items-center text-sm font-bold text-slate-400">
-                                            <span>{getInactiveMessage(scraper)}</span>
+                                            <span>{getInactiveMessage(operator)}</span>
                                         </div>
                                     </div>
                                 </CardContent>
                             </Card>
                         </div>
-                    )
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

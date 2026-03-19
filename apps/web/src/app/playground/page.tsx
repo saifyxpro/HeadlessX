@@ -1,14 +1,10 @@
-import { getPlaygroundAvailability } from '@/lib/playgroundAvailability';
+import { getPlaygroundOperators } from '@/lib/playgroundAvailability';
 import { PlaygroundClient } from '@/components/playground/PlaygroundClient';
 
 export default async function PlaygroundPage() {
-    const { youtubeAvailable, exaAvailable, tavilyAvailable } = await getPlaygroundAvailability();
+    const operators = await getPlaygroundOperators();
 
     return (
-        <PlaygroundClient
-            youtubeAvailable={youtubeAvailable}
-            exaAvailable={exaAvailable}
-            tavilyAvailable={tavilyAvailable}
-        />
+        <PlaygroundClient operators={operators} />
     );
 }
