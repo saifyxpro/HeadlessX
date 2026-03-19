@@ -175,9 +175,8 @@ class StreamingScraperService {
                 jobManager.attachPage(options.jobId, page);
             }
 
-            // Set standard viewport for consistent screenshot quality
             if (type === 'screenshot') {
-                await page.setViewportSize({ width: 1920, height: 1080 });
+                await browserService.applyViewport(page);
             }
 
             onProgress({ step: currentStep, total: totalSteps, message: 'Browser launched', status: 'completed' });
@@ -433,7 +432,7 @@ class StreamingScraperService {
             if (options.jobId && page) {
                 jobManager.detachPage(options.jobId, page);
             }
-            await browserService.release(context);
+            await browserService.release(context, page);
         }
     }
 }

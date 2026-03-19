@@ -40,25 +40,25 @@ app.use(express.json({ limit: process.env.BODY_LIMIT || '10mb' }));
 // API Routes - Feature-based structure
 // =============================================
 
-// Website Scraping: /api/website/*
+// Website operator: /api/operators/website/*
 import websiteRoutes from './routes/scrape/websiteRoutes';
-app.use('/api/website', websiteRoutes);
+app.use('/api/operators/website', websiteRoutes);
 
-// Google SERP: /api/google-serp/* (Coming Soon)
+// Google AI Search operator: /api/operators/google/ai-search/*
 import googleSerpRoutes from './routes/scrape/googleSerpRoutes';
-app.use('/api/google-serp', googleSerpRoutes);
+app.use('/api/operators/google/ai-search', googleSerpRoutes);
 
-// Tavily: /api/tavily/*
+// Tavily operator: /api/operators/tavily/*
 import tavilyRoutes from './routes/ai/tavilyRoutes';
-app.use('/api/tavily', tavilyRoutes);
+app.use('/api/operators/tavily', tavilyRoutes);
 
-// Exa: /api/exa/*
+// Exa operator: /api/operators/exa/*
 import exaRoutes from './routes/ai/exaRoutes';
-app.use('/api/exa', exaRoutes);
+app.use('/api/operators/exa', exaRoutes);
 
-// YouTube media engine: /api/youtube/*
+// YouTube operator: /api/operators/youtube/*
 import youtubeRoutes from './routes/media/youtubeRoutes';
-app.use('/api/youtube', youtubeRoutes);
+app.use('/api/operators/youtube', youtubeRoutes);
 
 // Configuration: /api/config
 import configRoutes from './routes/config/configRoutes';
@@ -67,6 +67,10 @@ app.use('/api/config', configRoutes);
 // Dashboard: /api/dashboard
 import dashboardRoutes from './routes/dashboard/dashboardRoutes';
 app.use('/api/dashboard', dashboardRoutes);
+
+// Operators status: /api/operators/status
+import playgroundRoutes from './routes/playground/playgroundRoutes';
+app.use('/api/operators', playgroundRoutes);
 
 // API Keys: /api/keys
 import keysRoutes from './routes/keysRoutes';
@@ -98,13 +102,14 @@ app.get('/api/health', (req, res) => {
         service: 'HeadlessX V2 Pro Backend (Camoufox)',
         browser: 'Camoufox (Anti-detect Firefox)',
         endpoints: {
-            website: '/api/website/*',
-            websiteMap: '/api/website/map',
-            websiteCrawl: '/api/website/crawl',
-            googleSerp: '/api/google-serp/* (coming soon)',
-            tavily: '/api/tavily/*',
-            exa: '/api/exa/*',
-            youtube: '/api/youtube/*',
+            operators: '/api/operators/status',
+            website: '/api/operators/website/*',
+            websiteMap: '/api/operators/website/map',
+            websiteCrawl: '/api/operators/website/crawl',
+            googleAiSearch: '/api/operators/google/ai-search/*',
+            tavily: '/api/operators/tavily/*',
+            exa: '/api/operators/exa/*',
+            youtube: '/api/operators/youtube/*',
             proxies: '/api/proxies/*',
             config: '/api/config',
             keys: '/api/keys',

@@ -46,7 +46,7 @@ Important:
 
 - `pnpm dev` starts the app processes, not PostgreSQL or Redis
 - queue-backed features require Redis and the worker
-- YouTube features require the local `yt-engine` runtime unless you have wired your own container setup
+- YouTube features now work in the full Docker stack through the bundled `yt-engine` service, or locally through `pnpm yt-engine:dev`
 
 ## Project Areas
 

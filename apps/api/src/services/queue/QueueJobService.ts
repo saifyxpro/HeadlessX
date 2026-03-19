@@ -52,12 +52,37 @@ function isQueueStateRemovable(state: string) {
 class QueueJobService {
     private static instance: QueueJobService;
     private queue: Queue<QueueJobEnvelope, unknown, QueueJobTypeName> | null = null;
+    private pendingCancellationIds = new Map<string, number>();
+    private readonly pendingCancellationTtlMs = 5 * 60 * 1000;
 
     public static getInstance() {
         if (!QueueJobService.instance) {
             QueueJobService.instance = new QueueJobService();
         }
         return QueueJobService.instance;
+    }
+
+    private cleanupPendingCancellations() {
+        const expiresBefore = Date.now() - this.pendingCancellationTtlMs;
+        for (const [jobId, createdAt] of this.pendingCancellationIds.entries()) {
+            if (createdAt < expiresBefore) {
+                this.pendingCancellationIds.delete(jobId);
+            }
+        }
+    }
+
+    private rememberPendingCancellation(jobId: string) {
+        this.cleanupPendingCancellations();
+        this.pendingCancellationIds.set(jobId, Date.now());
+    }
+
+    private consumePendingCancellation(jobId: string) {
+        this.cleanupPendingCancellations();
+        const pending = this.pendingCancellationIds.has(jobId);
+        if (pending) {
+            this.pendingCancellationIds.delete(jobId);
+        }
+        return pending;
     }
 
     private async getQueue() {
@@ -101,8 +126,11 @@ class QueueJobService {
     }
 
     public async createJob(input: CreateQueueJobInput, apiKeyId: string | null) {
-        const queue = await this.getQueue();
-        const id = randomUUID();
+        const payloadJobId = typeof (input.payload as { jobId?: unknown }).jobId === 'string'
+            ? (input.payload as { jobId?: string }).jobId?.trim()
+            : undefined;
+        const id = payloadJobId || randomUUID();
+        const pendingCancellation = this.consumePendingCancellation(id);
         const attempts = input.options?.attempts ?? queueConfig.defaultJobAttempts;
         const queueType = PRISMA_TYPE_MAP[input.type];
         const target = 'url' in input.payload ? input.payload.url : null;
@@ -112,13 +140,31 @@ class QueueJobService {
                 id,
                 api_key_id: apiKeyId || undefined,
                 type: queueType,
-                status: QueueJobStatus.QUEUED,
+                status: pendingCancellation ? QueueJobStatus.CANCELLED : QueueJobStatus.QUEUED,
                 queue_name: queueConfig.queueName,
                 target,
                 request_payload: input.payload as any,
                 max_attempts: attempts,
+                cancel_requested: pendingCancellation,
+                error_message: pendingCancellation ? 'Job cancelled before enqueue' : null,
+                completed_at: pendingCancellation ? new Date() : null,
+                progress_payload: pendingCancellation
+                    ? ({
+                        step: 0,
+                        total: 0,
+                        message: 'Job cancelled before enqueue',
+                        status: 'error',
+                    } as any)
+                    : undefined,
             },
         });
+
+        if (pendingCancellation) {
+            const cancelledJob = await prisma.queueJob.findUniqueOrThrow({ where: { id } });
+            return this.serializeJob(cancelledJob);
+        }
+
+        const queue = await this.getQueue();
 
         try {
             await queue.add(
@@ -256,7 +302,12 @@ class QueueJobService {
         const record = await prisma.queueJob.findUnique({ where: { id } });
 
         if (!record) {
-            return { found: false as const };
+            this.rememberPendingCancellation(id);
+            return {
+                found: true as const,
+                cancelled: true as const,
+                mode: 'pending',
+            };
         }
 
         if (
@@ -290,14 +341,11 @@ class QueueJobService {
             await prisma.queueJob.update({
                 where: { id },
                 data: {
-                    status: QueueJobStatus.CANCELLED,
-                    error_message: 'Job cancelled while queue backend was unavailable',
-                    completed_at: new Date(),
                     progress_payload: {
                         step: 0,
                         total: 0,
-                        message: 'Job cancelled while queue backend was unavailable',
-                        status: 'error',
+                        message: 'Cancellation requested; waiting for queue backend',
+                        status: 'active',
                     } as any,
                 },
             });
@@ -305,7 +353,7 @@ class QueueJobService {
             return {
                 found: true as const,
                 cancelled: true as const,
-                mode: 'db-only',
+                mode: 'deferred',
             };
         }
 
@@ -314,16 +362,19 @@ class QueueJobService {
             await prisma.queueJob.update({
                 where: { id },
                 data: {
-                    status: QueueJobStatus.CANCELLED,
-                    error_message: 'Job cancelled before worker pickup',
-                    completed_at: new Date(),
+                    progress_payload: {
+                        step: 0,
+                        total: 0,
+                        message: 'Cancellation requested; job lookup is pending',
+                        status: 'active',
+                    } as any,
                 },
             });
 
             return {
                 found: true as const,
                 cancelled: true as const,
-                mode: 'db-only',
+                mode: 'deferred',
             };
         }
 

@@ -141,6 +141,7 @@ export function ExaWorkbench({ available }: ExaWorkbenchProps) {
 
     const stopCurrentRun = () => {
         abortControllerRef.current?.abort();
+        setError('Search cancelled');
         resetRunState();
     };
 
@@ -159,7 +160,7 @@ export function ExaWorkbench({ available }: ExaWorkbenchProps) {
         setSearchResult(null);
 
         try {
-            const response = await fetch('/api/exa/search/stream', {
+            const response = await fetch('/api/operators/exa/search/stream', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

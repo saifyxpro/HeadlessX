@@ -19,18 +19,79 @@ export interface SearchResponse {
     markdown: string;
 }
 
+export interface GoogleSearchOptions {
+    gl?: string;
+    hl?: string;
+    tbs?: 'qdr:h' | 'qdr:d' | 'qdr:w';
+    stealth?: boolean;
+}
+
 export class GoogleSerpService {
+    private normalizeOptions(options?: GoogleSearchOptions): GoogleSearchOptions {
+        return {
+            gl: options?.gl?.trim().toLowerCase() || undefined,
+            hl: options?.hl?.trim().toLowerCase() || undefined,
+            tbs: options?.tbs || undefined,
+            stealth: options?.stealth,
+        };
+    }
+
+    private getTypingDelay(stealth?: boolean, minimum = 30, variance = 50): number {
+        if (stealth === false) {
+            return 0;
+        }
+
+        return Math.random() * variance + minimum;
+    }
+
+    private buildGoogleHomeUrl(options?: GoogleSearchOptions): string {
+        const url = new URL('https://www.google.com/');
+        if (options?.gl) {
+            url.searchParams.set('gl', options.gl);
+        }
+        if (options?.hl) {
+            url.searchParams.set('hl', options.hl);
+        }
+        return url.toString();
+    }
+
+    private buildGoogleSearchUrl(query: string, options?: GoogleSearchOptions): string {
+        const url = new URL('https://www.google.com/search');
+        url.searchParams.set('q', query);
+        if (options?.gl) {
+            url.searchParams.set('gl', options.gl);
+        }
+        if (options?.hl) {
+            url.searchParams.set('hl', options.hl);
+        }
+        if (options?.tbs) {
+            url.searchParams.set('tbs', options.tbs);
+        }
+        return url.toString();
+    }
+
+    private buildGoogleStartUrl(query: string, options?: GoogleSearchOptions): string {
+        if (options?.gl || options?.hl || options?.tbs) {
+            return this.buildGoogleSearchUrl(query, options);
+        }
+
+        return this.buildGoogleHomeUrl();
+    }
+
     /**
-     * Scrape Google SERP with real-time progress updates
+     * Scrape Google AI Search with real-time progress updates
      */
     async scrapeWithProgress(
         query: string,
         timeout: number,
+        options: GoogleSearchOptions,
         onProgress: (progress: { step: number; total: number; message: string; status: 'active' | 'completed' | 'pending' }) => void
     ): Promise<SearchResponse> {
+        const searchOptions = this.normalizeOptions(options);
+        const homeUrl = this.buildGoogleHomeUrl(searchOptions);
+        const startUrl = this.buildGoogleStartUrl(query, searchOptions);
         const TOTAL_STEPS = 6;
         const operationTimeout = Math.max(timeout, 5000);
-        const interactionTimeout = Math.min(operationTimeout, 15000);
         let browserContext: BrowserContext | null = null;
         let page: Page | null = null;
 
@@ -44,8 +105,8 @@ export class GoogleSerpService {
 
             // STEP 2: Navigating to Google (Includes Consent & AI Mode setup)
             onProgress({ step: 2, total: TOTAL_STEPS, message: 'Navigating to Google', status: 'active' });
-            await page.setViewportSize({ width: 1920, height: 1080 }); // Match Python logic
-            await page.goto('https://www.google.com', {
+            await browserService.applyViewport(page);
+            await page.goto(startUrl, {
                 waitUntil: 'domcontentloaded',
                 timeout: operationTimeout,
             });
@@ -64,14 +125,19 @@ export class GoogleSerpService {
 
                     if (isSorry || hasCaptcha || hasRecaptchaDiv) {
                         console.log(`   ⚠️ CAPTCHA detected at ${location}! Solving...`);
-                        onProgress({ step: 4, total: TOTAL_STEPS, message: `CAPTCHA detected at ${location}! Solving...`, status: 'active' });
+                        onProgress({
+                            step: 4,
+                            total: TOTAL_STEPS,
+                            message: `CAPTCHA detected at ${location}. Solving...`,
+                            status: 'active'
+                        });
                         await captchaSolverService.solve(page);
                         await page.waitForTimeout(3000);
 
                         // If still on sorry page, navigate back to Google
                         if (page.url().includes('/sorry/')) {
                             console.log('   🔄 Navigating back to Google after CAPTCHA...');
-                            await page.goto('https://www.google.com', {
+                            await page.goto(homeUrl, {
                                 waitUntil: 'domcontentloaded',
                                 timeout: operationTimeout,
                             });
@@ -105,10 +171,11 @@ export class GoogleSerpService {
                 } catch { }
             }
 
-            // AI Mode (Part of Navigation/Setup)
             let aiModeClicked = false;
+            onProgress({ step: 2, total: TOTAL_STEPS, message: 'Navigating to Google', status: 'completed' });
+
+            // AI Mode (always prefer it)
             try {
-                // XPath from Python script: //button[contains(@class, 'plR5qb')]
                 const aiBtn = page.locator("//button[contains(@class, 'plR5qb')]").first();
                 if (await aiBtn.isVisible({ timeout: 5000 })) {
                     await aiBtn.click();
@@ -119,7 +186,6 @@ export class GoogleSerpService {
             } catch {
                 console.log("   ⚠️ AI Mode button not found, using regular search");
             }
-            onProgress({ step: 2, total: TOTAL_STEPS, message: 'Navigating to Google', status: 'completed' });
 
             // CAPTCHA CHECK #2: After AI Mode click (before trying to type)
             await checkAndSolveCaptcha('after AI mode click');
@@ -127,42 +193,47 @@ export class GoogleSerpService {
             // STEP 3: Inputting search details (Includes finding input, typing, submitting)
             onProgress({ step: 3, total: TOTAL_STEPS, message: 'Inputting search details', status: 'active' });
 
-            // Find Search Input & Type
-            let searchInput: any = null;
             let typed = false;
 
-            // Strategy 1: AI Mode Input (if activated)
             if (aiModeClicked) {
                 try {
                     const el = page.locator("//textarea[contains(@class, 'ITIRGe')]").first();
                     if (await el.isVisible({ timeout: 2000 })) {
-                        console.log("   found AI input, attempting to type...");
-                        await el.click({ force: true, timeout: 3000 }); // Force click to avoid overlay issues
-                        await page.waitForTimeout(500);
-                        for (const char of query) {
-                            await el.type(char, { delay: Math.random() * 50 + 30 });
+                        const existingValue = (await el.inputValue().catch(() => '')).trim();
+                        if (existingValue.toLowerCase() === query.trim().toLowerCase()) {
+                            typed = true;
+                        } else {
+                            await el.click({ force: true, timeout: 3000 });
+                            await page.waitForTimeout(500);
+                            await el.fill('');
+                            for (const char of query) {
+                                await el.type(char, { delay: this.getTypingDelay(searchOptions.stealth) });
+                            }
+                            typed = true;
                         }
-                        typed = true;
-                        searchInput = el; // Mark as found/used
                     }
                 } catch (e) {
                     console.log("   ⚠️ AI Input failed (click/type), falling back to standard...", e);
-                    await page.waitForTimeout(1000); // Allow UI to settle (e.g. AI overlay closing)
+                    await page.waitForTimeout(1000);
                 }
             }
 
-            // Strategy 2: Standard Input (Fallback or Default)
             if (!typed) {
                 const searchXpaths = ["//textarea[@name='q']", "//input[@name='q']"];
                 for (const xpath of searchXpaths) {
                     try {
                         const el = page.locator(xpath).first();
-                        if (await el.isVisible({ timeout: 3000 })) { // Increased wait for visibility
-                            await el.click({ force: true, timeout: 3000 }); // Increased click timeout
+                        if (await el.isVisible({ timeout: 3000 })) {
+                            const existingValue = (await el.inputValue().catch(() => '')).trim();
+                            if (existingValue.toLowerCase() === query.trim().toLowerCase()) {
+                                typed = true;
+                                break;
+                            }
+
+                            await el.click({ force: true, timeout: 3000 });
                             await page.waitForTimeout(500);
-                            await el.fill(query); // Use fill for reliability on standard input if type fails
+                            await el.fill(query);
                             typed = true;
-                            searchInput = el;
                             break;
                         }
                     } catch { }
@@ -172,16 +243,14 @@ export class GoogleSerpService {
             if (!typed) throw new Error("Could not find or type in any search input");
             onProgress({ step: 3, total: TOTAL_STEPS, message: 'Inputting search details', status: 'completed' });
 
-            // Submit
             await page.keyboard.press('Enter');
-            // Try explicit send button if available (robust)
             try {
                 const sendBtn = page.locator("//button[@aria-label='Send']").first();
                 if (await sendBtn.isVisible({ timeout: 1000 })) await sendBtn.click();
             } catch { }
 
             // STEP 4: Solving potential CAPTCHAs (Includes Waiting & Checking)
-            onProgress({ step: 4, total: TOTAL_STEPS, message: 'Solving potential CAPTCHAs', status: 'active' });
+            onProgress({ step: 4, total: TOTAL_STEPS, message: 'Waiting for search results', status: 'active' });
 
             // Initial mandatory wait from Python script
             await page.waitForTimeout(5000);
@@ -202,6 +271,12 @@ export class GoogleSerpService {
                 const hasCaptcha = page.frames().some(f => f.url().includes('recaptcha'));
                 if (isSorry || hasCaptcha) {
                     console.log("   ⚠️ CAPTCHA detected during wait...");
+                    onProgress({
+                        step: 4,
+                        total: TOTAL_STEPS,
+                        message: 'CAPTCHA detected while waiting. Solving...',
+                        status: 'active'
+                    });
                     await captchaSolverService.solve(page);
                     await page.waitForTimeout(3000);
                 }
@@ -209,7 +284,12 @@ export class GoogleSerpService {
                 await page.waitForTimeout(1000);
                 waited += 1000;
             }
-            onProgress({ step: 4, total: TOTAL_STEPS, message: 'Solving potential CAPTCHAs', status: 'completed' });
+            onProgress({
+                step: 4,
+                total: TOTAL_STEPS,
+                message: resultFound ? 'Results are ready for extraction' : 'Finished waiting for results',
+                status: 'completed'
+            });
 
             // STEP 5: Extracting SERP data (Includes Expansion)
             onProgress({ step: 5, total: TOTAL_STEPS, message: 'Extracting SERP data', status: 'active' });
@@ -243,14 +323,11 @@ export class GoogleSerpService {
             return response;
 
         } catch (error) {
-            console.error('Google SERP Scrape Error:', error);
+            console.error('Google AI Search Error:', error);
             throw error;
         } finally {
-            if (page) {
-                try { await page.close(); } catch { }
-            }
             if (browserContext) {
-                await browserService.release(browserContext);
+                await browserService.release(browserContext, page ?? undefined);
             }
         }
     }
@@ -330,7 +407,7 @@ export class GoogleSerpService {
 
     private generateMarkdown(query: string, results: SerpResult): string {
         const timestamp = new Date().toLocaleString();
-        let md = `# Google SERP Results\n\n`;
+        let md = `# Google AI Search Results\n\n`;
         md += `**Query:** ${query}\n`;
         md += `**Timestamp:** ${timestamp}\n\n`;
         md += `---\n\n`;
@@ -351,14 +428,17 @@ export class GoogleSerpService {
         return md;
     }
 
-    public async search(query: string): Promise<SearchResponse> {
-        console.log(`Starting Google SERP search for: ${query}`);
+    public async search(query: string, options?: GoogleSearchOptions): Promise<SearchResponse> {
+        const searchOptions = this.normalizeOptions(options);
+        const homeUrl = this.buildGoogleHomeUrl(searchOptions);
+        const startUrl = this.buildGoogleStartUrl(query, searchOptions);
+        console.log(`Starting Google AI Search for: ${query}`);
         const { page, context } = await browserService.getPage();
 
         try {
             // Step 1: Navigate
-            await page.setViewportSize({ width: 1920, height: 1080 });
-            await page.goto('https://www.google.com/');
+            await browserService.applyViewport(page);
+            await page.goto(startUrl);
             await page.waitForTimeout(2000);
 
             // Step 1.5: Early reCAPTCHA / Block Check
@@ -380,7 +460,7 @@ export class GoogleSerpService {
                         await page.waitForTimeout(3000);
                         if (page.url().includes('/sorry/')) {
                             // Retry navigation if still stuck
-                            await page.goto('https://www.google.com/');
+                            await page.goto(homeUrl);
                         }
                     } else {
                         console.log("   ❌ Failed to solve early reCAPTCHA.");
@@ -427,10 +507,8 @@ export class GoogleSerpService {
                 // Proceed anyway, maybe it wasn't blocking
             }
 
-            // Step 3: AI Mode
             let aiModeClicked = false;
             try {
-                // XPath: //button[contains(@class, 'plR5qb')]
                 const aiBtn = page.locator("//button[contains(@class, 'plR5qb')]").first();
                 if (await aiBtn.isVisible({ timeout: 5000 })) {
                     await aiBtn.click();
@@ -442,7 +520,6 @@ export class GoogleSerpService {
                 console.log("   ⚠️ AI Mode button not found, using regular search");
             }
 
-            // Step 3.5: Check for Post-AI Click CAPTCHA
             if (aiModeClicked) {
                 try {
                     const captchaFrame = page.frames().find(f => f.url().includes('recaptcha/api2/anchor'));
@@ -509,7 +586,7 @@ export class GoogleSerpService {
 
                             // Retry finding search input
                             const searchXpaths = [
-                                "//textarea[contains(@class, 'ITIRGe')]", // AI mode input
+                                "//textarea[contains(@class, 'ITIRGe')]",
                                 "//textarea[@name='q']",
                                 "//input[@name='q']"
                             ];
@@ -541,8 +618,12 @@ export class GoogleSerpService {
             await searchInput.click({ timeout: 15000 });
             await page.waitForTimeout(500);
 
-            for (const char of query) {
-                await searchInput.type(char, { delay: Math.random() * 100 + 50 });
+            const existingValue = (await searchInput.inputValue().catch(() => '')).trim();
+            if (existingValue.toLowerCase() !== query.trim().toLowerCase()) {
+                await searchInput.fill('');
+                for (const char of query) {
+                await searchInput.type(char, { delay: this.getTypingDelay(searchOptions.stealth, 50, 100) });
+                }
             }
             console.log(`   ✅ Typed query: ${query}`);
             await page.waitForTimeout(1000);
@@ -651,8 +732,7 @@ export class GoogleSerpService {
             };
 
         } finally {
-            await page.close();
-            await browserService.release(context);
+            await browserService.release(context, page);
         }
     }
 }

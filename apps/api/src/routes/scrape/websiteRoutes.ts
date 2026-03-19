@@ -12,35 +12,32 @@ router.use(RequestLogger);
 router.use(ApiKeyGuard);
 
 /**
- * Website Scraping Endpoints
- * Base: /api/website
+ * Website operator endpoints
+ * Base: /api/operators/website
  */
 
-// POST /api/website/scrape - SSE streaming scrape with real-time progress
-router.post('/scrape', StreamingScrapeController.streamScrape);
+// POST /api/operators/website/scrape/stream - SSE streaming scrape with real-time progress
+router.post('/scrape/stream', StreamingScrapeController.streamScrape);
 
-// POST /api/website/stream - Legacy SSE streaming scrape alias
-router.post('/stream', StreamingScrapeController.streamScrape);
-
-// POST /api/website/map - Fast website link discovery
+// POST /api/operators/website/map - Fast website link discovery
 router.post('/map', WebsiteWorkflowController.map);
 
-// POST /api/website/map/stream - SSE website link discovery
+// POST /api/operators/website/map/stream - SSE website link discovery
 router.post('/map/stream', WebsiteWorkflowController.streamMap);
 
-// POST /api/website/crawl - Queue-backed website crawl
+// POST /api/operators/website/crawl - Queue-backed website crawl
 router.post('/crawl', WebsiteWorkflowController.crawl);
 
-// POST /api/website/html - Basic HTML scrape (fast, no JS)
-router.post('/html', ScrapeControllerV2.getHtml);
+// POST /api/operators/website/scrape/html - Basic HTML scrape (fast, no JS)
+router.post('/scrape/html', ScrapeControllerV2.getHtml);
 
-// POST /api/website/html-js - HTML with JavaScript rendering
-router.post('/html-js', ScrapeControllerV2.getHtmlJs);
+// POST /api/operators/website/scrape/html-js - HTML with JavaScript rendering
+router.post('/scrape/html-js', ScrapeControllerV2.getHtmlJs);
 
-// POST /api/website/content - Markdown content extraction
-router.post('/content', ScrapeControllerV2.getContent);
+// POST /api/operators/website/scrape/content - Markdown content extraction
+router.post('/scrape/content', ScrapeControllerV2.getContent);
 
-// POST /api/website/screenshot - Full page screenshot (JPEG)
-router.post('/screenshot', ScrapeControllerV2.getScreenshot);
+// POST /api/operators/website/scrape/screenshot - Full page screenshot (JPEG)
+router.post('/scrape/screenshot', ScrapeControllerV2.getScreenshot);
 
 export default router;

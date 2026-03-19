@@ -28,7 +28,7 @@ HeadlessX is a self-hosted scraping platform with a web dashboard, protected API
 Current live surfaces:
 
 - Website scraping: scrape, crawl, map, content extraction, screenshots
-- Google SERP
+- Google AI Search
 - Tavily
 - Exa
 - YouTube
@@ -51,16 +51,6 @@ Current live surfaces:
 
 </div>
 
-### Live Now
-
-| Scraper | Status |
-| --- | --- |
-| Website | Live |
-| Google SERP | Live |
-| Tavily | Live |
-| Exa | Live |
-| YouTube | Live |
-
 ### Coming Soon
 
 | Scraper | Description | Status |
@@ -78,26 +68,26 @@ Current live surfaces:
 | ImportYeti Scraper | Extract supplier profiles, shipment records, and trade data from ImportYeti with 60+ fields including HS codes, shipping lanes, carriers, bills of lading, trading partners, and contact info. | Planned |
 | MakersRow Scraper | Extract 11,600+ US manufacturer profiles from MakersRow with email, phone, address, website, GPS coordinates, capabilities, ratings, gallery images, and business hours. | Planned |
 
-## Packages Coming Soon
-
-| Package | Description | Status |
-| --- | --- | --- |
-| yt-dude | Dedicated YouTube extraction package for metadata, subtitles, formats, transcripts, and workflow-oriented media tooling. | Planned |
-| headfox | HeadlessX-maintained Firefox-based anti-detect browser engine that will power the platform's next-generation browser runtime. | Planned |
-| headfox-js | TypeScript package for launching, managing, and integrating Headfox in Node.js automation and scraping flows. | Planned |
-| hx-cli | OpenClaw-friendly command-line interface for running HeadlessX scrapers, jobs, workflows, and future automation tooling from the terminal. | Planned |
-
 ## Agent Surfaces Coming Soon
 
 | Surface | Description | Status |
 | --- | --- | --- |
-| Skills.md (Agent Skills) | Versioned agent skill packs and workflow instructions that teach automation agents how to use HeadlessX scrapers, jobs, tools, and MCP capabilities. | Planned |
-| Web AI Agent (`/web`) | Interactive AI agent workspace inside the dashboard that can use all HeadlessX playground tools and scrapers, including Website, Google SERP, Tavily, Exa, YouTube, and related workflow actions. | Planned |
+| Web AI Agent (`/web`) | Interactive AI agent workspace inside the dashboard that can use all HeadlessX playground tools and scrapers, including Website, Google AI Search, Tavily, Exa, YouTube, and related workflow actions. | Planned |
+
+## Agent Skills
+
+You can add the HeadlessX CLI skill to AI coding agents such as Cursor, Claude Code, Warp, Windsurf, OpenCode, OpenClaw, Antigravity, and similar tools that support the `skills` installer flow.
+
+```bash
+npx skills add https://github.com/saifyxpro/HeadlessX --skill cli
+```
+
+This installs the HeadlessX CLI skill from this repository so the agent can use the published `headlessx` command and follow the packaged usage guidance.
 
 ## UI Screenshots
 
-### Google SERP
-![Google SERP UI](assets/google-serp-results.png)
+### Google AI Search (Recently Tested with Arabic Lang & Region)
+![Google AI Search UI](assets/google-serp-results.png)
 
 ### Website
 ![Website UI](assets/web-scrape-results.png)
@@ -107,8 +97,12 @@ Current live surfaces:
 ### BrowserScan
 ![BrowserScan](assets/Browserscan_Bot_Detection_Passed.png)
 
-### Cloudflare Challenge
+<details>
+<summary>Cloudflare Challenge</summary>
+
 ![Cloudflare Challenge](assets/cloudfare.png)
+
+</details>
 
 <table>
   <tr>
@@ -167,76 +161,53 @@ cp .env.example .env
 Current root `.env.example`:
 
 ```env
-# ==============================================
-# HEADLESSX V2.1.0 - LOCAL DEVELOPMENT
-# ==============================================
+# HeadlessX v2.1.0
+# Local development environment
 
-# ------------------------------
-# 1. DATABASE
-# ------------------------------
+# Database
 DATABASE_URL="postgresql://postgres.xxxxx:YOUR_PASSWORD@aws-0-region.pooler.supabase.com:5432/postgres"
 
-# ------------------------------
-# 2. SERVER
-# ------------------------------
+# API server
 PORT=8000
 HOST=0.0.0.0
 NODE_ENV=development
 
-# ------------------------------
-# 2A. SECURITY (REQUIRED)
-# ------------------------------
+# Required security
 # Used by the Next.js dashboard server to authenticate against the API.
 DASHBOARD_INTERNAL_API_KEY=replace-with-a-long-random-string
 
 # Used to encrypt stored credentials at rest.
 CREDENTIAL_ENCRYPTION_KEY=replace-with-a-different-long-random-string
 
-# ------------------------------
-# 3. QUEUE / REDIS
-# ------------------------------
-# BullMQ uses Redis to persist async scrape, extract, and index jobs.
+# Queue and Redis
 REDIS_URL=redis://localhost:6379
 
-# Search providers and local engines
+# Search providers
 TAVILY_API_KEY=
 EXA_API_KEY=
+
+# Local engines
 YT_ENGINE_URL=http://localhost:8090
 YT_ENGINE_PORT=8090
 YT_ENGINE_TIMEOUT_MS=45000
 YT_ENGINE_TEMP_DIR=./tmp/yt-engine
 YT_ENGINE_JOB_TTL_HOURS=12
+
 HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:8081
 HTML_TO_MARKDOWN_PORT=8081
 HTML_TO_MARKDOWN_TIMEOUT_MS=60000
 
-# Optional queue tuning
-BULLMQ_QUEUE_NAME=headlessx-jobs
-QUEUE_WORKER_CONCURRENCY=2
-QUEUE_JOB_ATTEMPTS=3
-QUEUE_JOB_BACKOFF_MS=5000
-QUEUE_STREAM_POLL_MS=1000
-QUEUE_CONNECTION_RETRY_MS=10000
+# Browser and stealth defaults are managed in the dashboard settings UI.
 
-# Browser and anti-detection settings are managed from the dashboard
-
-# ------------------------------
-# 4. FRONTEND (Next.js)
-# ------------------------------
+# Web dashboard
 WEB_PORT=3000
-
 NEXT_PUBLIC_API_URL=http://localhost:8000
-INTERNAL_API_URL=http://localhost:8000
 
-# CORS: Add your frontend URL for custom deployments
-FRONTEND_URL=http://localhost:3000
+# Set this for Docker or custom internal networking.
+# INTERNAL_API_URL=http://localhost:8000
 
-# ------------------------------
-# 5. DEFAULT RUNTIME SETTINGS
-# ------------------------------
-BROWSER_TIMEOUT=60000
-MAX_CONCURRENCY=5
-STEALTH_MODE=advanced
+# Set this only when the dashboard is hosted on a custom origin.
+# FRONTEND_URL=https://dashboard.example.com
 ```
 
 If you are using Docker instead of local services, start from the complete Docker env too:
@@ -285,7 +256,7 @@ Important notes:
 
 - use `--profile all`
 - partial profile runs are not currently reliable because of `depends_on` relationships
-- the core Docker stack does not yet define a `yt-engine` container, so YouTube may still need to run locally
+- full Docker now includes `yt-engine`, so YouTube works inside the same compose stack
 
 See [docs/setup-guide.md](docs/setup-guide.md) for the full matrix:
 
@@ -306,11 +277,11 @@ Core backend surfaces:
 - `GET /api/logs`
 - `GET/POST/PATCH/DELETE /api/keys`
 - proxy CRUD under `/api/proxies`
-- website routes under `/api/website/*`
-- Google SERP routes under `/api/google-serp/*`
-- Tavily routes under `/api/tavily/*`
-- Exa routes under `/api/exa/*`
-- YouTube routes under `/api/youtube/*`
+- website operator routes under `/api/operators/website/*`
+- Google AI Search routes under `/api/operators/google/ai-search/*`
+- Tavily routes under `/api/operators/tavily/*`
+- Exa routes under `/api/operators/exa/*`
+- YouTube routes under `/api/operators/youtube/*`
 - queue job routes under `/api/jobs/*`
 - remote MCP endpoint at `/mcp`
 
@@ -358,12 +329,26 @@ docs/
 infra/docker/
 ```
 
+## Packages
+
+| Package | Description | Status |
+| --- | --- | --- |
+| @headlessx-cli/core | Published CLI package for HeadlessX operators, jobs, and search workflows. Command: `headlessx` | Available |
+| HeadlessX Agent Skills | Installable agent skill pack from this repository for Cursor, Claude Code, Warp, Windsurf, OpenCode, OpenClaw, Antigravity, and similar tools. | Available |
+
+### Coming Soon
+
+| Package | Description | Status |
+| --- | --- | --- |
+| headfox | HeadlessX-maintained Firefox-based anti-detect browser engine that will power the platform's next-generation browser runtime. | Planned |
+| headfox-js | TypeScript package for launching, managing, and integrating Headfox in Node.js automation and scraping flows. | Planned |
+
 ## Notes
 
 - The dashboard uses the internal dashboard key for server-side internal requests
 - MCP uses normal user-created API keys, not the dashboard internal key
 - Queue-backed features return degraded/unavailable behavior when Redis is missing
-- Docker support is available for the core stack, but yt-engine still needs separate Docker wiring
+- Docker support now covers the full runtime stack, including yt-engine
 
 ## Contributing
 

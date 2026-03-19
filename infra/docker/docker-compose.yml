@@ -51,6 +51,28 @@ services:
       - headlessx-network
     profiles: ["api", "queue", "all"]
 
+  yt-engine:
+    build:
+      context: ../../
+      dockerfile: infra/docker/yt-engine.Dockerfile
+    container_name: headlessx-yt-engine
+    environment:
+      - YT_ENGINE_PORT=${YT_ENGINE_PORT:-8090}
+      - YT_ENGINE_TEMP_DIR=${YT_ENGINE_TEMP_DIR:-/app/tmp/yt-engine}
+      - YT_ENGINE_JOB_TTL_HOURS=${YT_ENGINE_JOB_TTL_HOURS:-12}
+    ports:
+      - "${YT_ENGINE_PORT:-8090}:8090"
+    volumes:
+      - yt_engine_tmp:/app/tmp/yt-engine
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8090/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - headlessx-network
+    profiles: ["api", "all"]
+
   api:
     build:
       context: ../../
@@ -63,16 +85,26 @@ services:
         condition: service_healthy
       html-to-md:
         condition: service_healthy
+      yt-engine:
+        condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-headlessx}?schema=public
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - HTML_TO_MARKDOWN_SERVICE_URL=${HTML_TO_MARKDOWN_SERVICE_URL:-http://html-to-md:8080}
       - HTML_TO_MARKDOWN_TIMEOUT_MS=${HTML_TO_MARKDOWN_TIMEOUT_MS:-60000}
       - PORT=${PORT:-8000}
+      - HOST=${HOST:-0.0.0.0}
       - NODE_ENV=production
-      - FRONTEND_URL=http://localhost:${WEB_PORT:-3000}
+      - WEB_PORT=${WEB_PORT:-3000}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
       - DASHBOARD_INTERNAL_API_KEY=${DASHBOARD_INTERNAL_API_KEY}
       - CREDENTIAL_ENCRYPTION_KEY=${CREDENTIAL_ENCRYPTION_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY:-}
+      - EXA_API_KEY=${EXA_API_KEY:-}
+      - YT_ENGINE_URL=${YT_ENGINE_URL:-http://yt-engine:8090}
+      - YT_ENGINE_TIMEOUT_MS=${YT_ENGINE_TIMEOUT_MS:-45000}
+      - BROWSER_WINDOW_WIDTH=${BROWSER_WINDOW_WIDTH:-}
+      - BROWSER_WINDOW_HEIGHT=${BROWSER_WINDOW_HEIGHT:-}
       - BULLMQ_QUEUE_NAME=${BULLMQ_QUEUE_NAME:-headlessx-jobs}
       - QUEUE_WORKER_CONCURRENCY=${QUEUE_WORKER_CONCURRENCY:-2}
       - QUEUE_JOB_ATTEMPTS=${QUEUE_JOB_ATTEMPTS:-3}
@@ -82,6 +114,7 @@ services:
       - "${PORT:-8000}:${PORT:-8000}"
     volumes:
       - ../../apps/api/models:/app/apps/api/models
+      - browser_profile:/app/apps/api/data/browser-profile
     networks:
       - headlessx-network
     profiles: ["api", "all"]
@@ -104,9 +137,16 @@ services:
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       - HTML_TO_MARKDOWN_SERVICE_URL=${HTML_TO_MARKDOWN_SERVICE_URL:-http://html-to-md:8080}
       - HTML_TO_MARKDOWN_TIMEOUT_MS=${HTML_TO_MARKDOWN_TIMEOUT_MS:-60000}
+      - HOST=${HOST:-0.0.0.0}
       - NODE_ENV=production
       - DASHBOARD_INTERNAL_API_KEY=${DASHBOARD_INTERNAL_API_KEY}
       - CREDENTIAL_ENCRYPTION_KEY=${CREDENTIAL_ENCRYPTION_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY:-}
+      - EXA_API_KEY=${EXA_API_KEY:-}
+      - YT_ENGINE_URL=${YT_ENGINE_URL:-http://yt-engine:8090}
+      - YT_ENGINE_TIMEOUT_MS=${YT_ENGINE_TIMEOUT_MS:-45000}
+      - BROWSER_WINDOW_WIDTH=${BROWSER_WINDOW_WIDTH:-}
+      - BROWSER_WINDOW_HEIGHT=${BROWSER_WINDOW_HEIGHT:-}
       - BULLMQ_QUEUE_NAME=${BULLMQ_QUEUE_NAME:-headlessx-jobs}
       - QUEUE_WORKER_CONCURRENCY=${QUEUE_WORKER_CONCURRENCY:-2}
       - QUEUE_JOB_ATTEMPTS=${QUEUE_JOB_ATTEMPTS:-3}
@@ -126,8 +166,8 @@ services:
     depends_on:
       - api
     environment:
-      - INTERNAL_API_URL=http://api:${PORT:-8000}
-      - NEXT_PUBLIC_API_URL=http://localhost:${PORT:-8000}
+      - INTERNAL_API_URL=${INTERNAL_API_URL:-http://api:8000}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
       - NODE_ENV=production
       - DASHBOARD_INTERNAL_API_KEY=${DASHBOARD_INTERNAL_API_KEY}
     ports:
@@ -138,6 +178,8 @@ services:
 
 volumes:
   pgdata:
+  browser_profile:
+  yt_engine_tmp:
 
 networks:
   headlessx-network:

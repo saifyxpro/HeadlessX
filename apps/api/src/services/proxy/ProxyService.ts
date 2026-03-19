@@ -1,7 +1,7 @@
 import { prisma } from '../../database/client';
 import axios from 'axios';
 import { decryptSecret, normalizeSecretForCreate, normalizeSecretForUpdate } from '../../utils/security';
-import { createProxyAgentBundle } from './ProxyConnection';
+import { createProxyAgentBundle, normalizeConfiguredProxyUrl } from './ProxyConnection';
 
 export interface ProxyTestResult {
     success: boolean;
@@ -44,6 +44,53 @@ export interface Proxy {
 
 class ProxyService {
     private static instance: ProxyService;
+
+    private async runConnectionCheck(proxyUrl: string): Promise<ProxyTestResult> {
+        const startTime = Date.now();
+
+        try {
+            const agents = createProxyAgentBundle(proxyUrl);
+
+            const response = await axios.get('http://ip-api.com/json/', {
+                httpAgent: agents.httpAgent,
+                httpsAgent: agents.httpsAgent,
+                timeout: 15000,
+                validateStatus: (status) => status === 200
+            });
+
+            const latency = Date.now() - startTime;
+            const ipData = response.data;
+
+            if (!ipData || (!ipData.query && !ipData.ip)) {
+                throw new Error('Invalid response from IP check service');
+            }
+
+            return {
+                success: true,
+                latency,
+                ip: ipData.query || ipData.ip || 'Unknown',
+                country: ipData.country || ipData.countryCode || 'Unknown',
+                city: ipData.city || 'Unknown',
+                isp: ipData.isp || ipData.org || 'Unknown',
+            };
+        } catch (error: any) {
+            console.error('Proxy Test Error:', error.message);
+
+            let errorMessage = error.message || 'Connection failed';
+
+            if (error.code === 'ENOTFOUND') errorMessage = 'DNS Error: Proxy host could not be resolved';
+            if (error.code === 'ECONNREFUSED') errorMessage = 'Connection Refused (Port closed or blocked)';
+            if (error.code === 'ETIMEDOUT') errorMessage = 'Connection Timed Out';
+            if (error.response?.status === 407) errorMessage = 'Authentication Failed (Check username/password)';
+            if (error.response?.status === 403) errorMessage = 'Proxy Forbidden (Check IP whitelist)';
+
+            return {
+                success: false,
+                error: errorMessage,
+                latency: Date.now() - startTime
+            };
+        }
+    }
 
     private mapProxy(proxy: any): Proxy {
         return {
@@ -166,85 +213,43 @@ class ProxyService {
             return { success: false, error: 'Proxy not found' };
         }
 
-        const startTime = Date.now();
+        const result = await this.runConnectionCheck(this.getProxyUrl(proxy));
 
-        try {
-            const auth = proxy.username ? `${encodeURIComponent(proxy.username)}:${encodeURIComponent(proxy.password || '')}@` : '';
-            const host = proxy.host;
-            const port = proxy.port;
-            const protocol = proxy.protocol.toLowerCase();
-            const proxyUrl = protocol.startsWith('socks')
-                ? `socks5://${auth}${host}:${port}`
-                : `http://${auth}${host}:${port}`;
-            const agents = createProxyAgentBundle(proxyUrl);
-
-            // Test with robust IP service (ip-api.com is fast and reliable for proxies)
-            // We use HTTP endpoint to avoid SSL handshake issues with some cheaper proxies, 
-            // but the agent handles the tunnel.
-            const response = await axios.get('http://ip-api.com/json/', {
-                httpAgent: agents.httpAgent,
-                httpsAgent: agents.httpsAgent,
-                timeout: 15000, // 15s timeout
-                validateStatus: (status) => status === 200
-            });
-
-            const latency = Date.now() - startTime;
-            const ipData = response.data;
-
-            if (!ipData || (!ipData.query && !ipData.ip)) {
-                throw new Error('Invalid response from IP check service');
-            }
-
-            const result: ProxyTestResult = {
-                success: true,
-                latency,
-                ip: ipData.query || ipData.ip || 'Unknown',
-                country: ipData.country || ipData.countryCode || 'Unknown',
-                city: ipData.city || 'Unknown',
-                isp: ipData.isp || ipData.org || 'Unknown',
-            };
-
+        if (result.success) {
             await prisma.proxy.update({
                 where: { id },
                 data: {
                     is_working: true,
-                    is_active: true, // Auto-activate on success
-                    avg_latency: latency,
+                    is_active: true,
+                    avg_latency: result.latency,
                     last_checked: new Date(),
                     country: result.country !== 'Unknown' ? result.country : proxy.country,
                 },
             });
 
             return result;
-
-        } catch (error: any) {
-            console.error('Proxy Test Error:', error.message);
-
-            // Extract meaningful error message
-            let errorMessage = error.message || 'Connection failed';
-
-            // Map common Node.js network errors to user-friendly messages
-            if (error.code === 'ENOTFOUND') errorMessage = 'DNS Error: Proxy host could not be resolved';
-            if (error.code === 'ECONNREFUSED') errorMessage = 'Connection Refused (Port closed or blocked)';
-            if (error.code === 'ETIMEDOUT') errorMessage = 'Connection Timed Out';
-            if (error.response?.status === 407) errorMessage = 'Authentication Failed (Check username/password)';
-            if (error.response?.status === 403) errorMessage = 'Proxy Forbidden (Check IP whitelist)';
-
-            await prisma.proxy.update({
-                where: { id },
-                data: {
-                    is_working: false,
-                    is_active: false, // Auto-deactivate on failure
-                    last_checked: new Date(),
-                },
-            });
-
-            return {
-                success: false,
-                error: errorMessage,
-                latency: Date.now() - startTime
-            };
         }
+
+        await prisma.proxy.update({
+            where: { id },
+            data: {
+                is_working: false,
+                is_active: false,
+                last_checked: new Date(),
+            },
+        });
+
+        return result;
+    }
+
+    public async testConfiguredConnection(proxyUrl?: string | null, protocol = 'http'): Promise<ProxyTestResult> {
+        const normalizedProxyUrl = normalizeConfiguredProxyUrl(proxyUrl, protocol);
+
+        if (!normalizedProxyUrl) {
+            return { success: false, error: 'Proxy URL is required' };
+        }
+
+        return this.runConnectionCheck(normalizedProxyUrl);
     }
 
     /**

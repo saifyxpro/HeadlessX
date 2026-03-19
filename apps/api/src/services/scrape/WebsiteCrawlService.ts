@@ -214,7 +214,7 @@ class WebsiteCrawlService {
 
             if (current.depth < maxDepth) {
                 for (const link of discoveredLinks) {
-                    if (visited.has(link.url) || visited.size >= limit) {
+                    if (visited.has(link.url) || pages.length + queued.length >= limit) {
                         continue;
                     }
 

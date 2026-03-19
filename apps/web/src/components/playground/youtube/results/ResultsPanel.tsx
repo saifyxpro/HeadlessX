@@ -125,7 +125,7 @@ export function ResultsPanel({
         setSaveSteps([]);
 
         try {
-            const response = await fetch('/api/youtube/save/stream', {
+            const response = await fetch('/api/operators/youtube/save/stream', {
                 method: 'POST',
                 headers: {
                     Accept: 'text/event-stream',
@@ -211,7 +211,7 @@ export function ResultsPanel({
 
             if (!saveStreamState.streamFailed && savedDownload && saveStreamState.streamDone) {
                 await triggerBrowserDownload(
-                    `/api/youtube/download/${savedDownload.job_id}`,
+                    `/api/operators/youtube/download/${savedDownload.job_id}`,
                     savedDownload.download_name
                 );
                 setSaveDialogOpen(false);
