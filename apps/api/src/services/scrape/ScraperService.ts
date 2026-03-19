@@ -229,7 +229,7 @@ class ScraperService {
         } finally {
             const duration = Date.now() - startTime;
 
-            await browserService.release(context);
+            await browserService.release(context, page);
 
             // Async Logging
             prisma.requestLog.create({
@@ -315,7 +315,7 @@ class ScraperService {
 
             return await page.screenshot({ fullPage: true, type: 'jpeg', quality: 90 });
         } finally {
-            await browserService.release(context);
+            await browserService.release(context, page);
         }
     }
 

@@ -123,6 +123,7 @@ export function YoutubeWorkbench({ available }: YoutubeWorkbenchProps) {
 
     const stopCurrentRun = () => {
         abortControllerRef.current?.abort();
+        setError('Extract cancelled');
         resetRunState();
     };
 
@@ -141,7 +142,7 @@ export function YoutubeWorkbench({ available }: YoutubeWorkbenchProps) {
         }
 
         try {
-            const response = await fetch('/api/youtube/info/stream', {
+            const response = await fetch('/api/operators/youtube/info/stream', {
                 method: 'POST',
                 headers: {
                     Accept: 'text/event-stream',

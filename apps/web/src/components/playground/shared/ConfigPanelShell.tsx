@@ -29,7 +29,7 @@ export function ConfigPanelShell({
                         </div>
                     </div>
 
-                    <div className={cn(disabled ? 'pointer-events-none opacity-70' : '')}>
+                    <div className={cn(disabled ? 'opacity-70' : '')}>
                         {children}
                     </div>
                 </div>

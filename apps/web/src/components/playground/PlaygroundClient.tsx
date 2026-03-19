@@ -35,7 +35,7 @@ const OPERATOR_VISUALS: Record<string, PlaygroundOperatorVisual> = {
         color: 'text-blue-600',
         bg: 'bg-blue-600/10',
     },
-    'google-serp': {
+    google: {
         icon: '/icons/google.svg',
         color: 'text-red-500',
         bg: 'bg-red-500/10',
@@ -119,7 +119,7 @@ export function PlaygroundClient({ operators }: PlaygroundClientProps) {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (searchUrl.trim()) {
-            router.push(`/playground/website/scrape?url=${encodeURIComponent(searchUrl.trim())}`);
+            router.push(`/playground/operators/website/scrape?url=${encodeURIComponent(searchUrl.trim())}`);
         }
     };
 

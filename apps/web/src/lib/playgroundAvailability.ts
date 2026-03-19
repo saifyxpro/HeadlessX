@@ -37,7 +37,7 @@ async function fetchOperators(): Promise<PlaygroundOperator[]> {
     }
 
     try {
-        const response = await fetch(new URL('/api/playground/operators', backendApiUrl), {
+        const response = await fetch(new URL('/api/operators/status', backendApiUrl), {
             method: 'GET',
             headers: { 'x-api-key': dashboardInternalApiKey },
             cache: 'no-store',

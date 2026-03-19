@@ -218,10 +218,17 @@ export function useWebsiteStorage({
 
     useEffect(() => {
         const nextUrl = searchParams.get('url');
+        const nextFormat = searchParams.get('format');
         if (nextUrl) {
             setUrl(nextUrl);
         }
-    }, [searchParams, setUrl]);
+        if (
+            tool === 'scrape'
+            && (nextFormat === 'html' || nextFormat === 'html-js' || nextFormat === 'markdown' || nextFormat === 'screenshot')
+        ) {
+            setOutputType(nextFormat);
+        }
+    }, [searchParams, setOutputType, setUrl, tool]);
 
     return {
         lastUsedUrl,

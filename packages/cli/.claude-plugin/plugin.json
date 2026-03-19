@@ -1,0 +1,9 @@
+{
+    "name": "hx-cli",
+    "description": "Run HeadlessX website, search, YouTube, and jobs workflows from the terminal.",
+    "version": "0.1.0",
+    "author": {
+        "name": "saifyxpro"
+    },
+    "skills": []
+}

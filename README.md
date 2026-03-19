@@ -28,7 +28,7 @@ HeadlessX is a self-hosted scraping platform with a web dashboard, protected API
 Current live surfaces:
 
 - Website scraping: scrape, crawl, map, content extraction, screenshots
-- Google SERP
+- Google AI Search
 - Tavily
 - Exa
 - YouTube
@@ -50,16 +50,6 @@ Current live surfaces:
 ![HeadlessX Live Scrapers](assets/live_scrapers.png)
 
 </div>
-
-### Live Now
-
-| Scraper | Status |
-| --- | --- |
-| Website | Live |
-| Google SERP | Live |
-| Tavily | Live |
-| Exa | Live |
-| YouTube | Live |
 
 ### Coming Soon
 
@@ -92,12 +82,12 @@ Current live surfaces:
 | Surface | Description | Status |
 | --- | --- | --- |
 | Skills.md (Agent Skills) | Versioned agent skill packs and workflow instructions that teach automation agents how to use HeadlessX scrapers, jobs, tools, and MCP capabilities. | Planned |
-| Web AI Agent (`/web`) | Interactive AI agent workspace inside the dashboard that can use all HeadlessX playground tools and scrapers, including Website, Google SERP, Tavily, Exa, YouTube, and related workflow actions. | Planned |
+| Web AI Agent (`/web`) | Interactive AI agent workspace inside the dashboard that can use all HeadlessX playground tools and scrapers, including Website, Google AI Search, Tavily, Exa, YouTube, and related workflow actions. | Planned |
 
 ## UI Screenshots
 
-### Google SERP
-![Google SERP UI](assets/google-serp-results.png)
+### Google AI Search
+![Google AI Search UI](assets/google-serp-results.png)
 
 ### Website
 ![Website UI](assets/web-scrape-results.png)
@@ -107,8 +97,12 @@ Current live surfaces:
 ### BrowserScan
 ![BrowserScan](assets/Browserscan_Bot_Detection_Passed.png)
 
-### Cloudflare Challenge
+<details>
+<summary>Cloudflare Challenge</summary>
+
 ![Cloudflare Challenge](assets/cloudfare.png)
+
+</details>
 
 <table>
   <tr>
@@ -285,7 +279,7 @@ Important notes:
 
 - use `--profile all`
 - partial profile runs are not currently reliable because of `depends_on` relationships
-- the core Docker stack does not yet define a `yt-engine` container, so YouTube may still need to run locally
+- full Docker now includes `yt-engine`, so YouTube works inside the same compose stack
 
 See [docs/setup-guide.md](docs/setup-guide.md) for the full matrix:
 
@@ -306,11 +300,11 @@ Core backend surfaces:
 - `GET /api/logs`
 - `GET/POST/PATCH/DELETE /api/keys`
 - proxy CRUD under `/api/proxies`
-- website routes under `/api/website/*`
-- Google SERP routes under `/api/google-serp/*`
-- Tavily routes under `/api/tavily/*`
-- Exa routes under `/api/exa/*`
-- YouTube routes under `/api/youtube/*`
+- website operator routes under `/api/operators/website/*`
+- Google AI Search routes under `/api/operators/google/ai-search/*`
+- Tavily routes under `/api/operators/tavily/*`
+- Exa routes under `/api/operators/exa/*`
+- YouTube routes under `/api/operators/youtube/*`
 - queue job routes under `/api/jobs/*`
 - remote MCP endpoint at `/mcp`
 
@@ -363,7 +357,7 @@ infra/docker/
 - The dashboard uses the internal dashboard key for server-side internal requests
 - MCP uses normal user-created API keys, not the dashboard internal key
 - Queue-backed features return degraded/unavailable behavior when Redis is missing
-- Docker support is available for the core stack, but yt-engine still needs separate Docker wiring
+- Docker support now covers the full runtime stack, including yt-engine
 
 ## Contributing
 

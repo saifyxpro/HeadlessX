@@ -26,6 +26,7 @@ export const ExtractJobPayloadSchema = z.object({
 
 export const CrawlJobPayloadSchema = z.object({
     url: z.string().url(),
+    jobId: z.string().uuid().optional(),
     limit: z.number().int().min(1).max(100).optional(),
     maxDepth: z.number().int().min(0).max(4).optional(),
     includeSubdomains: z.boolean().optional(),

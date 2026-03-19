@@ -247,7 +247,7 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
     const runScrapeWithUrl = async (targetUrl: string) => {
         beginRun();
 
-        const response = await fetch('/api/website/scrape', {
+        const response = await fetch('/api/operators/website/scrape/stream', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -276,6 +276,8 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
 
     const runCrawlWithUrl = async (targetUrl: string) => {
         beginRun();
+        const clientJobId = crypto.randomUUID();
+        setActiveJobId(clientJobId);
         pushProgress({
             step: 1,
             total: Math.max(crawlLimit, 2),
@@ -283,13 +285,14 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
             status: 'active',
         });
 
-        const response = await fetch('/api/website/crawl', {
+        const response = await fetch('/api/operators/website/crawl', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 url: targetUrl,
+                jobId: clientJobId,
                 limit: crawlLimit,
                 maxDepth: crawlDepth,
                 includeSubdomains,
@@ -299,6 +302,7 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
                 crawlEntireDomain,
                 ignoreQueryParameters,
                 waitForSelector: selector || undefined,
+                timeout,
                 stealth,
             }),
             signal: abortControllerRef.current?.signal,
@@ -323,7 +327,7 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
 
     const runMapWithUrl = async (targetUrl: string) => {
         beginRun();
-        const response = await fetch('/api/website/map/stream', {
+        const response = await fetch('/api/operators/website/map/stream', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

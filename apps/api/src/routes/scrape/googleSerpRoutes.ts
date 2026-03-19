@@ -10,10 +10,9 @@ router.use(RequestLogger);
 router.use(ApiKeyGuard);
 
 /**
- * Google SERP Scraping Endpoints
- * Base: /api/google-serp
+ * Google AI Search operator endpoints
+ * Base: /api/operators/google/ai-search
  */
-
 
 router.post('/search', GoogleSerpController.search);
 router.get('/stream', GoogleSerpController.searchStream);

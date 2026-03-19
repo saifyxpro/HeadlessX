@@ -9,6 +9,7 @@ pids/
 *.pid
 *.seed
 *.pid.lock
+apps/api/data/
 
 # Logs
 logs/
@@ -94,6 +95,14 @@ __pycache__/
 # Local configuration overrides
 local.json
 config.local.js
+
+# Local planning docs
+docs/plans/
+
+# Local package development
+packages/headfox/
+packages/headfox-js/
+packages/yt-dude/
 
 # Backup files
 *.backup

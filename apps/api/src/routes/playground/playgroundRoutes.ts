@@ -8,6 +8,6 @@ const router = Router();
 router.use(RequestLogger);
 router.use(ApiKeyGuard);
 
-router.get('/operators', OperatorsController.list);
+router.get('/status', OperatorsController.list);
 
 export default router;

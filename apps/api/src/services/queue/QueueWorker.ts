@@ -139,6 +139,22 @@ class QueueWorkerService {
         }, job.data.apiKeyId || null);
         jobManager.updateStatus(queueJobId, 'running');
 
+        const queueRecord = await prisma.queueJob.findUnique({
+            where: { id: queueJobId },
+            select: { cancel_requested: true },
+        });
+
+        if (queueRecord?.cancel_requested) {
+            jobManager.cancelJob(queueJobId);
+            const cancelledPayload = {
+                success: false,
+                cancelled: true,
+                error: 'Job cancelled',
+            };
+            await this.markCancelled(queueJobId, cancelledPayload);
+            return cancelledPayload;
+        }
+
         await prisma.queueJob.update({
             where: { id: queueJobId },
             data: {
@@ -154,15 +170,6 @@ class QueueWorkerService {
                 } as any,
             },
         });
-
-        const queueRecord = await prisma.queueJob.findUnique({
-            where: { id: queueJobId },
-            select: { cancel_requested: true },
-        });
-
-        if (queueRecord?.cancel_requested) {
-            jobManager.cancelJob(queueJobId);
-        }
 
         try {
             let resultPayload: any;

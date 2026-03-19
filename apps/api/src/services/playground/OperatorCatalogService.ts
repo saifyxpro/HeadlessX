@@ -45,20 +45,20 @@ const OPERATOR_SEEDS: OperatorSeed[] = [
             'Extract HTML, render JavaScript, capture screenshots, crawl pages, and map links with enterprise-grade stealth technology.',
         category: 'website',
         features: ['Extract', 'Crawl', 'Map'],
-        playgroundHref: '/playground/website/scrape',
-        apiBasePath: '/api/website',
+        playgroundHref: '/playground/operators/website/scrape',
+        apiBasePath: '/api/operators/website',
         order: 10,
     },
     {
-        id: 'google-serp',
+        id: 'google',
         name: 'Google Search',
         tagline: 'SERP & Intelligence',
         description:
             'Extract organic results, featured snippets, People Also Ask, and more from Google search pages.',
         category: 'search',
         features: ['Organic Results', 'Featured Snippets', 'PAA', 'Maps'],
-        playgroundHref: '/playground/google-serp',
-        apiBasePath: '/api/google-serp',
+        playgroundHref: '/playground/operators/google/ai-search',
+        apiBasePath: '/api/operators/google/ai-search',
         order: 20,
     },
     {
@@ -69,8 +69,8 @@ const OPERATOR_SEEDS: OperatorSeed[] = [
             'Prepare Tavily-powered web search and extraction flows with a dedicated workbench shell inside the playground.',
         category: 'search',
         features: ['Search', 'Extract', 'Research'],
-        playgroundHref: '/playground/tavily',
-        apiBasePath: '/api/tavily',
+        playgroundHref: '/playground/operators/tavily',
+        apiBasePath: '/api/operators/tavily',
         order: 30,
     },
     {
@@ -81,8 +81,8 @@ const OPERATOR_SEEDS: OperatorSeed[] = [
             'Search the web with Exa using highlights, text extraction, category filters, and optional deep search synthesis.',
         category: 'search',
         features: ['Search', 'Highlights', 'Deep Search'],
-        playgroundHref: '/playground/exa',
-        apiBasePath: '/api/exa',
+        playgroundHref: '/playground/operators/exa',
+        apiBasePath: '/api/operators/exa',
         order: 40,
     },
     {
@@ -148,8 +148,8 @@ const OPERATOR_SEEDS: OperatorSeed[] = [
             'Extract video metadata, formats, subtitles, and playlist previews through the dedicated yt-dude-powered engine.',
         category: 'media',
         features: ['Metadata', 'Formats', 'Subtitles', 'Playlists'],
-        playgroundHref: '/playground/youtube',
-        apiBasePath: '/api/youtube',
+        playgroundHref: '/playground/operators/youtube',
+        apiBasePath: '/api/operators/youtube',
         order: 100,
     },
     {
@@ -207,22 +207,12 @@ class OperatorCatalogService {
         };
     }
 
-    private buildOffline(seed: OperatorSeed, reason: string): OperatorRecord {
-        return {
-            ...seed,
-            available: false,
-            comingSoon: false,
-            state: 'offline',
-            reason,
-        };
-    }
-
     public async listOperators(): Promise<OperatorRecord[]> {
         const byId = new Map(OPERATOR_SEEDS.map((seed) => [seed.id, seed]));
         const operators: OperatorRecord[] = [];
 
         const website = byId.get('website');
-        const google = byId.get('google-serp');
+        const google = byId.get('google');
         const tavily = byId.get('tavily');
         const exa = byId.get('exa');
         const youtube = byId.get('youtube');
@@ -252,21 +242,11 @@ class OperatorCatalogService {
         }
 
         if (youtube) {
-            if (!youtubeEngineService.isConfigured()) {
-                operators.push(this.buildConfigRequired(youtube, 'Add YT_ENGINE_URL'));
-            } else {
-                try {
-                    await youtubeEngineService.getStatus();
-                    operators.push(this.buildActive(youtube));
-                } catch (error) {
-                    operators.push(
-                        this.buildOffline(
-                            youtube,
-                            error instanceof Error ? error.message : 'YouTube engine unavailable'
-                        )
-                    );
-                }
-            }
+            operators.push(
+                youtubeEngineService.isConfigured()
+                    ? this.buildActive(youtube)
+                    : this.buildConfigRequired(youtube, 'Add YT_ENGINE_URL')
+            );
         }
 
         for (const seed of OPERATOR_SEEDS) {

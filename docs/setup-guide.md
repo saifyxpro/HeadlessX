@@ -7,7 +7,7 @@ This document explains how to run HeadlessX with Docker, without Docker, or with
 Recommended order:
 
 1. Docker for infrastructure plus local app runtime for development
-2. Full Docker for the core stack when you want repeatable services
+2. Full Docker for the full runtime stack when you want repeatable services
 3. Fully local only if you already manage PostgreSQL and Redis yourself
 
 For most developers, the best path is:
@@ -15,6 +15,40 @@ For most developers, the best path is:
 - PostgreSQL: Supabase or Docker
 - Redis: Docker
 - App runtime: `pnpm dev` or `mise run dev`
+
+## CLI Setup
+
+Install the published HeadlessX CLI if you want terminal access to the same API surface:
+
+With npm:
+
+```bash
+npm install -g @headlessx-cli/core
+```
+
+With pnpm:
+
+```bash
+pnpm add -g @headlessx-cli/core
+```
+
+Then log in:
+
+```bash
+headlessx login
+```
+
+Or set credentials directly:
+
+```bash
+headlessx login --api-url http://localhost:8000 --api-key hx_your_dashboard_created_key
+```
+
+Important:
+
+- command name is `headlessx`
+- package name is `@headlessx-cli/core`
+- the CLI talks to the same backend API used by the web app
 
 ## No Docker Setup
 
@@ -119,7 +153,7 @@ Website Crawl also needs the queue worker, not just the API.
 
 If Redis is down or `REDIS_URL` is missing:
 
-- `/api/website/crawl` will not work
+- `/api/operators/website/crawl` will not work
 - queue-backed jobs will fail
 
 ## Runtime Modes
@@ -244,6 +278,7 @@ Current compose file covers:
 - postgres
 - redis
 - html-to-md
+- yt-engine
 - api
 - worker
 - web
@@ -271,34 +306,7 @@ Important note:
 - use `--profile all`
 - the current compose file is profile-gated in a way that makes partial profile runs like `--profile api` or `--profile queue` invalid because of `depends_on` relationships
 
-## Current Docker Caveat
-
-The Docker env example includes:
-
-```env
-YT_ENGINE_URL=http://yt-engine:8090
-```
-
-But the current `infra/docker/docker-compose.yml` does not define a `yt-engine` service yet.
-
-So today:
-
-- the core Docker stack is available
-- YouTube engine containerization is not fully wired into compose yet
-
-If you need YouTube features right now while using Docker for the rest of the stack, run yt-engine locally:
-
-```bash
-pnpm yt-engine:dev
-```
-
-And point the API to it:
-
-```env
-YT_ENGINE_URL=http://host.docker.internal:8090
-```
-
-Use that value in Docker contexts where the API container must reach a host-local yt-engine.
+The Docker stack now includes `yt-engine`, so `docker compose --profile all up --build -d` starts the full app runtime, including YouTube support.
 
 ## Ports
 
@@ -357,4 +365,4 @@ Use this if you want the quick answer:
 - Supabase + local app: run Redis in Docker
 - Docker Postgres + Docker Redis + local app: valid and clean
 - Full local with no Docker: install PostgreSQL and Redis locally on your OS first
-- Full Docker: recommended direction for consistency, but yt-engine still needs separate Docker wiring today
+- Full Docker: fully supported for the app runtime, including yt-engine

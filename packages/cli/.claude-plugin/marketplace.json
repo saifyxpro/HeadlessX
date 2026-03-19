@@ -1,0 +1,14 @@
+{
+  "name": "hx-cli",
+  "owner": {
+    "name": "saifyxpro"
+  },
+  "plugins": [
+    {
+      "name": "hx-cli",
+      "source": "./",
+      "description": "Run HeadlessX website, search, YouTube, and jobs workflows from the terminal.",
+      "skills": []
+    }
+  ]
+}

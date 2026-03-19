@@ -1,11 +1,19 @@
 import createMDX from '@next/mdx';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { NextConfig } from "next";
+
+const webRoot = path.dirname(fileURLToPath(import.meta.url));
+const workspaceRoot = path.resolve(webRoot, '../..');
 
 // API URL from environment (defaults to localhost:8000 for local dev)
 const nextConfig: NextConfig = {
   /* config options here */
 
   reactCompiler: true,
+  turbopack: {
+    root: workspaceRoot,
+  },
   pageExtensions: ['js', 'jsx', 'md', 'mdx', 'ts', 'tsx'],
   serverExternalPackages: [],
   // Disable response buffering for SSE

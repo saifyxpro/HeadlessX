@@ -18,21 +18,21 @@ const TOOL_META: Record<WebsiteTool, {
     icon: typeof GlobeIcon;
 }> = {
     scrape: {
-        href: '/playground/website/scrape',
+        href: '/playground/operators/website/scrape',
         label: 'Scrape',
         title: 'Website',
         description: 'Single-page extraction with HTML, rendered DOM, markdown, or screenshot output.',
         icon: CodeSquareIcon,
     },
     crawl: {
-        href: '/playground/website/crawl',
+        href: '/playground/operators/website/crawl',
         label: 'Crawl',
         title: 'Website Crawl',
         description: 'Queued multi-page markdown crawling for site sections, docs, and content hubs.',
         icon: SourceCodeSquareIcon,
     },
     map: {
-        href: '/playground/website/map',
+        href: '/playground/operators/website/map',
         label: 'Map',
         title: 'Website Map',
         description: 'Fast link discovery with page and sitemap signals merged into one clean view.',

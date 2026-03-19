@@ -2,7 +2,7 @@
 
 This document describes the backend HTTP surface for `apps/api` in HeadlessX.
 
-It is based on the current route tree mounted in `apps/api/src/app.ts`.
+It is based on the operator-first route tree mounted in `apps/api/src/app.ts`.
 
 ## Backend System Summary
 
@@ -28,19 +28,21 @@ Common SSE event names in this backend:
 - `error`
 - `done`
 
-Google SERP currently ends its stream with `end` instead of `done`.
+Google AI Search currently ends its stream with `end` instead of `done`.
 
 ## Dependency Notes
 
 | Area | Requirement |
 | --- | --- |
 | `/api/jobs/*` | Redis plus the queue worker |
-| `/api/website/crawl` | Redis plus the queue worker |
-| `/api/website/content` | Uses `HTML_TO_MARKDOWN_SERVICE_URL` when available, then falls back locally |
-| `/api/tavily/*` | `TAVILY_API_KEY` |
-| `/api/exa/*` | `EXA_API_KEY` |
-| `/api/youtube/*` | `YT_ENGINE_URL` |
+| `/api/operators/website/crawl` | Redis plus the queue worker |
+| `/api/operators/website/scrape/content` | Uses `HTML_TO_MARKDOWN_SERVICE_URL` when available, then falls back locally |
+| `/api/operators/tavily/*` | `TAVILY_API_KEY` |
+| `/api/operators/exa/*` | `EXA_API_KEY` |
+| `/api/operators/youtube/*` | `YT_ENGINE_URL` |
 | most protected routes | PostgreSQL for API keys, logs, settings, proxies, and persisted data |
+
+Only the queue-backed website crawl flow requires Redis. The other website operator endpoints such as `/api/operators/website/scrape/html`, `/api/operators/website/scrape/html-js`, `/api/operators/website/scrape/content`, `/api/operators/website/scrape/screenshot`, and `/api/operators/website/map` do not depend on Redis.
 
 ## Core Endpoints
 
@@ -58,6 +60,12 @@ Google SERP currently ends its stream with `end` instead of `done`.
 | `PATCH` | `/api/keys/:id/revoke` | Revoke API key |
 | `DELETE` | `/api/keys/:id` | Delete API key |
 
+## Operator Catalog Endpoints
+
+| Method | Path | Purpose | Notes |
+| --- | --- | --- | --- |
+| `GET` | `/api/operators/status` | List all playground operators with current availability | Returns active, config-required, offline, and coming-soon operators |
+
 ## Proxy Endpoints
 
 | Method | Path | Purpose |
@@ -71,58 +79,67 @@ Google SERP currently ends its stream with `end` instead of `done`.
 | `POST` | `/api/proxies/:id/toggle` | Toggle active state |
 | `POST` | `/api/proxies/:id/test` | Test proxy connectivity |
 
-## Website Scraper Endpoints
+## Website Operator Endpoints
 
 | Method | Path | Purpose | Notes |
 | --- | --- | --- | --- |
-| `POST` | `/api/website/scrape` | SSE website scrape | Primary streaming scrape route |
-| `POST` | `/api/website/stream` | SSE website scrape | Legacy alias of `/scrape` |
-| `POST` | `/api/website/map` | Discover links quickly | Non-streaming |
-| `POST` | `/api/website/map/stream` | Stream site discovery progress | SSE |
-| `POST` | `/api/website/crawl` | Queue-backed crawl job | Requires Redis and worker |
-| `POST` | `/api/website/html` | Fast HTML scrape | No JS rendering |
-| `POST` | `/api/website/html-js` | JS-rendered HTML scrape | Browser-rendered |
-| `POST` | `/api/website/content` | Markdown content extraction | Uses markdown service when configured |
-| `POST` | `/api/website/screenshot` | Full-page screenshot | Binary image result |
+| `POST` | `/api/operators/website/scrape/stream` | SSE website scrape | Primary streaming scrape route |
+| `POST` | `/api/operators/website/map` | Discover links quickly | Non-streaming |
+| `POST` | `/api/operators/website/map/stream` | Stream site discovery progress | SSE |
+| `POST` | `/api/operators/website/crawl` | Queue-backed crawl job | Requires Redis and worker |
+| `POST` | `/api/operators/website/scrape/html` | Fast HTML scrape | No JS rendering |
+| `POST` | `/api/operators/website/scrape/html-js` | JS-rendered HTML scrape | Browser-rendered |
+| `POST` | `/api/operators/website/scrape/content` | Markdown content extraction | Uses markdown service when configured |
+| `POST` | `/api/operators/website/scrape/screenshot` | Full-page screenshot | Binary image result |
 
-## Google SERP Endpoints
+## Google AI Search Endpoints
 
 | Method | Path | Purpose | Notes |
 | --- | --- | --- | --- |
-| `POST` | `/api/google-serp/search` | Standard Google result scrape | JSON response |
-| `GET` | `/api/google-serp/stream` | Stream Google search progress | SSE, expects query params like `query` and optional `timeout` |
-| `GET` | `/api/google-serp/status` | Service status | Lightweight availability check |
+| `POST` | `/api/operators/google/ai-search/search` | Standard Google AI Search scrape | JSON response, accepts `query` plus optional `gl`, `hl`, `tbs`, and `stealth` |
+| `GET` | `/api/operators/google/ai-search/stream` | Stream Google AI Search progress | SSE, expects `query` and optional `timeout`, `gl`, `hl`, `tbs`, and `stealth` |
+| `GET` | `/api/operators/google/ai-search/status` | Service status | Lightweight availability check |
+
+Google AI Search request fields:
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `query` | `string` | Search query text |
+| `gl` | `string` | Two-letter Google region code such as `pk`, `us`, or `in` |
+| `hl` | `string` | Two-letter Google language code such as `en` or `ur` |
+| `tbs` | `qdr:h \\| qdr:d \\| qdr:w` | Optional time filter for past hour, day, or week |
+| `stealth` | `boolean` | Optional stealth toggle, where `false` uses a faster less-humanized input path |
 
 ## Tavily Endpoints
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `POST` | `/api/tavily/search` | Tavily search |
-| `POST` | `/api/tavily/research` | Start Tavily research workflow |
-| `GET` | `/api/tavily/research/:requestId` | Poll Tavily research result |
-| `GET` | `/api/tavily/status` | Tavily configuration and status |
+| `POST` | `/api/operators/tavily/search` | Tavily search |
+| `POST` | `/api/operators/tavily/research` | Start Tavily research workflow |
+| `GET` | `/api/operators/tavily/research/:requestId` | Poll Tavily research result |
+| `GET` | `/api/operators/tavily/status` | Tavily configuration and status |
 
 ## Exa Endpoints
 
 | Method | Path | Purpose | Notes |
 | --- | --- | --- | --- |
-| `POST` | `/api/exa/search` | Standard Exa search | JSON response |
-| `POST` | `/api/exa/search/stream` | Stream Exa search progress | SSE |
-| `GET` | `/api/exa/status` | Exa configuration and status | Lightweight availability check |
+| `POST` | `/api/operators/exa/search` | Standard Exa search | JSON response |
+| `POST` | `/api/operators/exa/search/stream` | Stream Exa search progress | SSE |
+| `GET` | `/api/operators/exa/status` | Exa configuration and status | Lightweight availability check |
 
 ## YouTube Endpoints
 
 | Method | Path | Purpose | Notes |
 | --- | --- | --- | --- |
-| `POST` | `/api/youtube/info/stream` | Stream YouTube extract flow | SSE |
-| `POST` | `/api/youtube/info` | Extract YouTube metadata | JSON response |
-| `POST` | `/api/youtube/formats` | Extract available format inventory | JSON response |
-| `POST` | `/api/youtube/subtitles` | Extract subtitles and captions | JSON response |
-| `POST` | `/api/youtube/save/stream` | Stream temporary download packaging | SSE |
-| `POST` | `/api/youtube/save` | Create temporary downloadable archive | JSON response |
-| `GET` | `/api/youtube/download/:jobId` | Download generated zip | Proxies yt-engine artifact |
-| `DELETE` | `/api/youtube/download/:jobId` | Delete temporary saved artifact | Cleanup endpoint |
-| `GET` | `/api/youtube/status` | yt-engine status | Fails if `YT_ENGINE_URL` is missing or unavailable |
+| `POST` | `/api/operators/youtube/info/stream` | Stream YouTube extract flow | SSE |
+| `POST` | `/api/operators/youtube/info` | Extract YouTube metadata | JSON response |
+| `POST` | `/api/operators/youtube/formats` | Extract available format inventory | JSON response |
+| `POST` | `/api/operators/youtube/subtitles` | Extract subtitles and captions | JSON response |
+| `POST` | `/api/operators/youtube/save/stream` | Stream temporary download packaging | SSE |
+| `POST` | `/api/operators/youtube/save` | Create temporary downloadable archive | JSON response |
+| `GET` | `/api/operators/youtube/download/:jobId` | Download generated zip | Proxies yt-engine artifact |
+| `DELETE` | `/api/operators/youtube/download/:jobId` | Delete temporary saved artifact | Cleanup endpoint |
+| `GET` | `/api/operators/youtube/status` | yt-engine status | Fails if `YT_ENGINE_URL` is missing or unavailable |
 
 ## Queue Job Endpoints
 
@@ -144,6 +161,6 @@ Google SERP currently ends its stream with `end` instead of `done`.
 
 - The API and worker are separate processes. Queue-backed endpoints may return `503` when Redis is unavailable.
 - Configuration changes invalidate cached settings and restart the browser service.
-- Website Crawl is not an inline scrape. It is a queued workflow.
+- Website Crawl is not an inline scrape. It is the only website operator workflow here that is queue-backed.
 - The web dashboard talks to this API using the internal dashboard key on server-side requests.
 - The MCP endpoint uses normal API keys created from the dashboard and does not accept `DASHBOARD_INTERNAL_API_KEY`.

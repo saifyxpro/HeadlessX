@@ -1,0 +1,228 @@
+# @headlessx-cli/core
+
+`@headlessx-cli/core` provides the `headlessx` command-line client for HeadlessX.
+
+It wraps the current HeadlessX backend routes for:
+
+- website scraping
+- site mapping
+- queue-backed crawling
+- Google AI Search
+- Tavily
+- Exa
+- YouTube
+- job inspection
+
+This package is intentionally API-first. It does not implement browser login, MCP setup, editor skill installation, or Firecrawl cloud-browser flows.
+
+## Version
+
+Current package version:
+
+- `0.1.0`
+
+## Workspace Fit
+
+`@headlessx-cli/core` is designed to live inside the HeadlessX pnpm workspace.
+
+- package manager: `pnpm`
+- binary name: `headlessx`
+- package name: `@headlessx-cli/core`
+
+## Install
+
+Inside the monorepo:
+
+```bash
+pnpm --dir /home/saifyxpro/CODE/Crawl/HeadlessX --filter @headlessx-cli/core build
+node /home/saifyxpro/CODE/Crawl/HeadlessX/packages/cli/dist/index.js --help
+```
+
+## Authentication
+
+The `headlessx` command uses HeadlessX API keys only.
+
+Supported config sources:
+
+1. command flags
+2. environment variables
+3. stored local credentials
+4. default API URL
+
+Environment variables:
+
+```bash
+export HX_API_KEY=your-headlessx-key
+export HX_API_URL=http://localhost:8000
+```
+
+Alternative variable names also work:
+
+```bash
+export HEADLESSX_API_KEY=your-headlessx-key
+export HEADLESSX_API_URL=http://localhost:8000
+```
+
+Or store them locally:
+
+```bash
+headlessx login --api-key your-headlessx-key --api-url http://localhost:8000
+```
+
+If you already have the key and only need to set the local development URL:
+
+```bash
+headlessx login --api-key your-headlessx-key
+```
+
+If you already know the API URL and want the CLI to prompt only for the key:
+
+```bash
+headlessx login --api-url http://localhost:8000
+```
+
+Or let the CLI prompt for both values:
+
+```bash
+headlessx login
+```
+
+View current config:
+
+```bash
+headlessx config
+headlessx config view
+```
+
+Clear local credentials:
+
+```bash
+headlessx logout
+```
+
+## Commands
+
+### Core
+
+```bash
+headlessx status
+headlessx --version
+headlessx config
+headlessx login
+headlessx logout
+```
+
+### Website
+
+```bash
+headlessx scrape https://example.com
+headlessx scrape https://example.com --type html
+headlessx scrape https://example.com --type html-js
+headlessx scrape https://example.com --type screenshot --output screenshot.jpg
+
+headlessx map https://example.com --limit 100 --pretty
+headlessx crawl https://example.com --limit 50
+headlessx crawl https://example.com --wait --poll-interval 5
+```
+
+### Google AI Search
+
+```bash
+headlessx google "headless browser anti detect"
+headlessx google "latest ai news" --gl pk --hl ur
+headlessx google "ai funding" --gl us --hl en --tbs qdr:d
+headlessx google "ai funding" --gl us --hl en --tbs qdr:d --stealth off
+```
+
+### Tavily
+
+```bash
+headlessx tavily search "headless browser research" --max-results 10
+headlessx tavily research "compare exa and tavily" --model pro
+headlessx tavily result req_123
+headlessx tavily status
+```
+
+### Exa
+
+```bash
+headlessx exa search "firefox anti detect browser" --type deep --num-results 10
+headlessx exa status
+```
+
+### YouTube
+
+```bash
+headlessx youtube info https://www.youtube.com/watch?v=VIDEO_ID
+headlessx youtube formats https://www.youtube.com/watch?v=VIDEO_ID
+headlessx youtube subtitles https://www.youtube.com/watch?v=VIDEO_ID
+headlessx youtube save https://www.youtube.com/watch?v=VIDEO_ID --quality-preset 720p
+headlessx youtube status
+```
+
+### Jobs
+
+```bash
+headlessx jobs list --type crawl --status active
+headlessx jobs get JOB_ID
+headlessx jobs active
+headlessx jobs metrics
+headlessx jobs cancel JOB_ID
+headlessx jobs watch JOB_ID --interval 5
+```
+
+### Operators
+
+```bash
+headlessx operators list --pretty
+headlessx operators check
+headlessx operators check --json --pretty
+```
+
+## Output
+
+The CLI is LLM-friendly by default.
+
+- default output is compact markdown/text instead of JSON
+- `--json` forces JSON output
+- `--pretty` pretty-prints JSON when `--json` is used
+- `-o, --output <path>` writes output to a file
+- `-o result.json` writes JSON automatically based on the file extension
+- `scrape --type screenshot` requires `--output`
+
+Examples:
+
+```bash
+headlessx exa search "playwright firefox patches"
+headlessx exa search "playwright firefox patches" --json --pretty
+headlessx tavily search "distributed crawlers" -o tavily.json --pretty
+headlessx scrape https://example.com --type content -o content.md
+```
+
+## Backend Routes Covered
+
+This package currently targets:
+
+- `/api/health`
+- `/api/operators/status`
+- `/api/operators/website/*`
+- `/api/operators/google/ai-search/*`
+- `/api/operators/tavily/*`
+- `/api/operators/exa/*`
+- `/api/operators/youtube/*`
+- `/api/jobs/*`
+
+Google fields supported by `headlessx google`:
+
+- `query`
+- `gl`
+- `hl`
+- `tbs`
+- `stealth`
+
+## Notes
+
+- non-health routes require `x-api-key`
+- queue-backed routes depend on Redis and the worker
+- screenshot responses are binary image output
+- this package intentionally excludes MCP-specific commands in `0.1.0`

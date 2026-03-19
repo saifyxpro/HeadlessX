@@ -75,7 +75,7 @@ export class ScrapeController {
                 res.setHeader('Content-Type', 'image/jpeg');
                 res.send(buffer);
             } finally {
-                await browserService.release(context);
+                await browserService.release(context, page);
             }
         } catch (error) {
             res.locals.errorMessage = (error as Error).message;

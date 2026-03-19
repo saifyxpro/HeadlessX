@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../../database/client';
 import { configService } from '../../services/config/ConfigService';
 import { browserService } from '../../services/scrape/BrowserService';
+import { proxyService } from '../../services/proxy/ProxyService';
 
 export class ConfigController {
 
@@ -79,6 +80,37 @@ export class ConfigController {
             await browserService.restartBrowser();
 
             res.json({ success: true, config: updated });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ success: false, error: (error as Error).message });
+        }
+    }
+
+    static async testProxy(req: Request, res: Response) {
+        try {
+            const { proxyUrl, proxyProtocol } = req.body;
+
+            const normalizedProxyUrl = typeof proxyUrl === 'string' ? proxyUrl.trim() : '';
+            const normalizedProxyProtocol = typeof proxyProtocol === 'string' && proxyProtocol.trim()
+                ? proxyProtocol.trim()
+                : 'http';
+
+            if (!normalizedProxyUrl) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Enter a proxy URL before running a test.'
+                });
+            }
+
+            const result = await proxyService.testConfiguredConnection(
+                normalizedProxyUrl,
+                normalizedProxyProtocol
+            );
+
+            res.status(result.success ? 200 : 422).json({
+                success: result.success,
+                result,
+            });
         } catch (error) {
             console.error(error);
             res.status(500).json({ success: false, error: (error as Error).message });

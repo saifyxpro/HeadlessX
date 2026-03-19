@@ -172,6 +172,7 @@ export function TavilyWorkbench({ available }: TavilyWorkbenchProps) {
 
     const stopCurrentRun = () => {
         abortControllerRef.current?.abort();
+        setError(tool === 'search' ? 'Search cancelled' : 'Research cancelled');
         resetRunState();
     };
 
@@ -219,7 +220,7 @@ export function TavilyWorkbench({ available }: TavilyWorkbenchProps) {
         setResearchStatus(null);
 
         try {
-            const data = await postJson('/api/tavily/search', {
+            const data = await postJson('/api/operators/tavily/search', {
                 query: searchQuery,
                 searchDepth,
                 topic,
@@ -245,7 +246,7 @@ export function TavilyWorkbench({ available }: TavilyWorkbenchProps) {
 
     const pollResearch = async (requestId: string, signal: AbortSignal) => {
         while (!signal.aborted) {
-            const data = await getJson(`/api/tavily/research/${encodeURIComponent(requestId)}`, signal);
+            const data = await getJson(`/api/operators/tavily/research/${encodeURIComponent(requestId)}`, signal);
             const status = normalizeResearchStatus(data.status);
             setResearchResult(data);
             setResearchStatus(status);
@@ -272,7 +273,7 @@ export function TavilyWorkbench({ available }: TavilyWorkbenchProps) {
         setResearchStatus('pending');
 
         try {
-            const start = await postJson('/api/tavily/research', {
+            const start = await postJson('/api/operators/tavily/research', {
                 query: researchQuery,
                 model,
                 citationFormat,
