@@ -2,7 +2,7 @@
 
 ![HeadlessX Logo](assets/logo-hr.svg)
 
-### Self-hosted scraping and search workflows powered by Camoufox
+### Self-hosted operators for website extraction, search, and agent workflows powered by Camoufox
 
 [![Version](https://img.shields.io/badge/Version-v2.1.0-blue?style=for-the-badge)](docs/setup-guide.md)
 [![Runtime](https://img.shields.io/badge/Node.js-22+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
@@ -25,9 +25,9 @@
 
 HeadlessX is a self-hosted scraping platform with a web dashboard, protected API, queue-backed workflows, and a remote MCP endpoint.
 
-Current live surfaces:
+Current live operator surfaces:
 
-- Website scraping: scrape, crawl, map, content extraction, screenshots
+- Website operator: scrape, crawl, map, content extraction, screenshots
 - Google AI Search
 - Tavily
 - Exa
@@ -38,22 +38,44 @@ Current live surfaces:
 ## What Changed In v2.1.0
 
 - Simplified the dashboard around one global browser/runtime model
-- Added Tavily, Exa, and YouTube workspaces
+- Added Tavily, Exa, and YouTube operators
 - Added queued crawl and job flows with Redis + worker support
 - Added remote MCP secured with normal dashboard-created API keys
 - Added setup and API guides aligned with the current route tree
 
-## Scrapers
+## Sponsors
+
+<details open>
+<summary>View</summary>
+
+<table>
+  <tr>
+    <td width="220" align="center" valign="middle">
+      <a href="https://birdproxies.com/t/headlessx">
+        <img src="assets/bird-proxy.png" alt="BirdProxies banner" width="200" />
+      </a>
+    </td>
+    <td valign="top">
+      Hey, we built <a href="https://birdproxies.com/t/headlessx">BirdProxies</a> because proxies shouldn't be complicated or overpriced. Fast residential and ISP proxies in 195+ locations, fair pricing, and real support. Try our FlappyBird game on the landing page for free data!
+      <br />
+      <a href="https://birdproxies.com/t/headlessx"><strong>Try BirdProxies now</strong></a> &nbsp;|&nbsp; <a href="https://discord.com/invite/birdproxies"><strong>Join the Discord</strong></a>
+    </td>
+  </tr>
+</table>
+
+</details>
+
+## Operators
 
 <div align="center">
 
-![HeadlessX Live Scrapers](assets/live_scrapers.png)
+![HeadlessX Live Operators](assets/live_scrapers.png)
 
 </div>
 
 ### Coming Soon
 
-| Scraper | Description | Status |
+| Operator | Description | Status |
 | --- | --- | --- |
 | Google Maps | Extract business listings, reviews, categories, ratings, contact details, opening hours, and location metadata from Google Maps search results. | Planned |
 | Twitter / X | Capture profiles, posts, engagement metrics, media, hashtags, and conversation threads from public X pages. | Planned |
@@ -72,7 +94,7 @@ Current live surfaces:
 
 | Surface | Description | Status |
 | --- | --- | --- |
-| Web AI Agent (`/web`) | Interactive AI agent workspace inside the dashboard that can use all HeadlessX playground tools and scrapers, including Website, Google AI Search, Tavily, Exa, YouTube, and related workflow actions. | Planned |
+| Web AI Agent (`/web`) | Interactive AI agent workspace inside the dashboard that can use all HeadlessX operators and related workflow actions, including Website, Google AI Search, Tavily, Exa, and YouTube. | Planned |
 
 ## Agent Skills
 
@@ -223,7 +245,7 @@ pnpm db:push
 pnpm camoufox:fetch
 ```
 
-4. Start the workspace:
+4. Start the local stack:
 
 ```bash
 pnpm dev
