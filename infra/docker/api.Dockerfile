@@ -7,6 +7,7 @@ RUN corepack enable
 
 # Install required dependencies for Camoufox/Playwright
 RUN apt-get update && apt-get install -y \
+    build-essential \
     libnss3 \
     libnspr4 \
     libatk1.0-0 \
@@ -41,6 +42,7 @@ COPY infra/docker/worker-entrypoint.sh /usr/local/bin/headlessx-worker-entrypoin
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
+RUN pnpm rebuild better-sqlite3
 
 # Generate Prisma Client and fetch Camoufox
 WORKDIR /app/apps/api
