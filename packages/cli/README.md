@@ -24,7 +24,7 @@ This package does not implement MCP setup, editor skill installation, or Firecra
 
 Current package version:
 
-- `0.1.2`
+- `0.1.21`
 
 ## Workspace Fit
 
@@ -78,10 +78,13 @@ Useful examples:
 ```bash
 headlessx init --mode self-host
 headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx init update
+headlessx init update --branch develop
 headlessx init --branch develop
 headlessx start
 headlessx status
 headlessx stop
+headlessx restart
 headlessx doctor
 ```
 
@@ -99,6 +102,16 @@ After `headlessx init` or `headlessx start`, verify the install with:
 headlessx status
 headlessx doctor
 ```
+
+Update an existing CLI-managed workspace with:
+
+```bash
+headlessx init update
+headlessx restart
+```
+
+`headlessx init update` reuses the saved mode, keeps the current env/config files, and pulls `main` by default unless `--branch` is provided.
+For `self-host` and `production`, `headlessx restart` rebuilds Docker images before starting the stack again.
 
 ## Authentication
 
@@ -295,4 +308,4 @@ Google fields supported by `headlessx google`:
 - queue-backed routes depend on Redis and the worker
 - screenshot responses are binary image output
 - lifecycle commands are additive and do not replace operator/API commands
-- this package intentionally excludes MCP-specific commands in `0.1.2`
+- this package intentionally excludes MCP-specific commands in `0.1.21`

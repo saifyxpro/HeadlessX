@@ -8,10 +8,13 @@ Bootstrap:
 headlessx init
 headlessx init --mode self-host
 headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx init update
+headlessx init update --branch develop
 headlessx init --branch develop
 ```
 
 Interactive `headlessx init` now uses guided modern prompts for mode selection, required values, and confirmations.
+`headlessx init update` reuses the saved mode and existing env/config files while updating the repo.
 
 Runtime:
 
@@ -22,6 +25,8 @@ headlessx restart
 headlessx status
 headlessx doctor
 ```
+
+For `self-host` and `production`, `headlessx restart` rebuilds Docker images before bringing the stack back up.
 
 ## Website
 

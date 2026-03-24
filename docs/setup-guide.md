@@ -93,9 +93,12 @@ Useful variants:
 ```bash
 headlessx init --mode self-host
 headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx init update
+headlessx init update --branch develop
 headlessx start
 headlessx status
 headlessx stop
+headlessx restart
 headlessx doctor
 ```
 
@@ -107,6 +110,18 @@ The CLI uses `~/.headlessx` as the default workspace root.
 - production Caddy config: `~/.headlessx/repo/infra/domain-setup/Caddyfile`
 - after `headlessx init` or `headlessx start`, run `headlessx status` and `headlessx doctor`
 - use `headlessx stop` to tear down the Docker stack started by the CLI
+
+To update an existing CLI-managed install:
+
+```bash
+headlessx init update
+headlessx restart
+headlessx status
+headlessx doctor
+```
+
+`headlessx init update` keeps the saved mode and env files, updates `~/.headlessx/repo`, and pulls `main` by default unless you pass `--branch`.
+For `self-host` and `production`, `headlessx restart` rebuilds Docker images before starting the stack again.
 
 ## AI Models Setup
 

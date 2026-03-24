@@ -1,201 +1,49 @@
-## 📋 Pull Request Description
+## Summary
 
-### Summary
-<!-- Provide a brief description of what this PR does -->
+Describe the change in 2-5 lines.
 
-### Affected Apps/Packages
-<!-- Check all that apply in the monorepo -->
-- [ ] `apps/web` (Frontend)
-- [ ] `apps/api` (Backend)
-- [ ] `scripts`
-- [ ] Infrastructure / Tooling (Nx, Biome, Knip, Docker)
+## Scope
 
-### Type of Change
-<!-- Check all that apply -->
-- [ ] 🐛 Bug fix (non-breaking change that fixes an issue)
-- [ ] ✨ New feature (non-breaking change that adds functionality)
-- [ ] 💥 Breaking change (fix or feature that causes existing functionality to change)
-- [ ] 📚 Documentation update
-- [ ] 🎨 Code style/formatting changes
-- [ ] ⚡ Performance improvement
-- [ ] 🔒 Security fix
-- [ ] 🔧 Configuration/build changes
-- [ ] 🧪 Test additions or updates
+- [ ] `apps/web`
+- [ ] `apps/api`
+- [ ] `apps/yt-engine`
+- [ ] `packages/cli`
+- [ ] `infra/docker`
+- [ ] `infra/domain-setup`
+- [ ] `docs`
+- [ ] other
 
-### Related Issues
-<!-- Link to related issues using "Fixes #123" or "Closes #123" -->
-- Fixes #
-- Related to #
+## Type
 
----
+- [ ] Bug fix
+- [ ] Feature
+- [ ] Docs
+- [ ] Refactor
+- [ ] Performance
+- [ ] Security
+- [ ] Build or config
 
-## 🧪 Testing & Quality Checks
+## Validation
 
-### Quality Checks Performed
-<!-- Describe the testing and quality checks you've performed -->
-- [ ] I have run `mise run lint` (Biome) and fixed all issues
-- [ ] I have run `mise run knip` and removed any dead code
-- [ ] I have run `mise run build` (Nx) successfully
-- [ ] Unit tests added/updated
-- [ ] Integration tests added/updated
-- [ ] Manual testing performed
-- [ ] Browser compatibility tested
-- [ ] Anti-detection features validated
-- [ ] Performance impact assessed
+List what you actually ran.
 
-### Test Results
-<!-- Include key test results, performance metrics, etc. -->
-```
-Test output or metrics here
+```bash
+# commands and key output
 ```
 
-### How to Test
-<!-- Instructions for reviewers to test your changes -->
+## How To Review
+
 1. 
 2. 
 3. 
 
----
+## Checklist
 
-## 📸 Screenshots/Demos
-<!-- If applicable, include screenshots or demo links -->
+- [ ] I tested the changed paths
+- [ ] I updated docs when behavior changed
+- [ ] I did not leave secrets in code, logs, or screenshots
+- [ ] I checked for regressions in the affected area
 
+## Notes
 
----
-
-## 🔄 Changes Made
-
-### Code Changes
-<!-- List the main code changes -->
-- 
-- 
-- 
-
-### Configuration Changes
-<!-- List any configuration file changes -->
-- [ ] Updated .env.example with new variables
-- [ ] Modified package.json dependencies
-- [ ] Updated Docker configuration
-- [ ] Changed API endpoints or parameters
-
-### Documentation Changes
-<!-- List documentation updates -->
-- [ ] Updated README.md
-- [ ] Updated API documentation
-- [ ] Added/updated inline code comments
-- [ ] Updated troubleshooting guides
-
----
-
-## 🚨 Breaking Changes
-<!-- If this introduces breaking changes, describe them -->
-
-### What breaks?
-<!-- Describe what will no longer work -->
-
-### Migration Guide
-<!-- How should users update their code/config? -->
-
----
-
-## 🔒 Security Considerations
-
-### Security Impact
-- [ ] No security impact
-- [ ] Improves security
-- [ ] Potential security risk (describe below)
-
-### Security Review
-<!-- If this touches security-sensitive areas -->
-- [ ] Authentication/authorization changes reviewed
-- [ ] Input validation implemented/verified  
-- [ ] Anti-detection implications considered
-- [ ] Privacy implications assessed
-- [ ] Logging security reviewed (no sensitive data exposed)
-
----
-
-## 📋 Checklist
-
-### Code Quality
-- [ ] Code follows project style guidelines
-- [ ] Self-review completed
-- [ ] Code is self-documenting with clear variable/function names
-- [ ] No console.log/debug statements left in production code
-- [ ] Error handling implemented appropriately
-- [ ] No hardcoded secrets or sensitive data
-
-### Testing & Validation
-- [ ] All existing tests pass
-- [ ] New tests added for new functionality
-- [ ] Manual testing completed
-- [ ] No regression in existing functionality
-- [ ] Performance impact is acceptable
-
-### Documentation
-- [ ] Code changes are documented
-- [ ] API documentation updated (if applicable)
-- [ ] README.md updated (if applicable)
-- [ ] Comments added for complex logic
-- [ ] Examples updated (if applicable)
-
-### Security & Ethics
-- [ ] Changes align with project's ethical guidelines
-- [ ] No new security vulnerabilities introduced
-- [ ] Privacy implications considered
-- [ ] Responsible use maintained
-
-### Dependencies & Compatibility
-- [ ] No unnecessary dependencies added
-- [ ] Version compatibility maintained
-- [ ] Dependencies properly licensed
-- [ ] Docker builds successfully (if applicable)
-
----
-
-## 🎯 Review Focus Areas
-<!-- Highlight areas where you'd like specific feedback -->
-
-Please pay special attention to:
-- [ ] Security implications
-- [ ] Performance impact
-- [ ] API design
-- [ ] Error handling
-- [ ] Anti-detection effectiveness
-- [ ] Code architecture
-- [ ] Documentation clarity
-
----
-
-## 📝 Additional Notes
-
-### Implementation Details
-<!-- Any technical details reviewers should know -->
-
-
-### Known Limitations
-<!-- Any known limitations or TODO items -->
-
-
-### Future Considerations
-<!-- Ideas for follow-up work or improvements -->
-
-
----
-
-## 🤝 Contribution Agreement
-
-By submitting this pull request, I confirm that:
-
-- [ ] I have read and agree to the [Code of Conduct](../docs/CODE_OF_CONDUCT.md)
-- [ ] I have read the [Contributing Guidelines](../docs/CONTRIBUTING.md)
-- [ ] I understand this project's [Ethics Policy](../docs/ETHICS.md)
-- [ ] My contribution is compatible with the MIT license
-- [ ] I have the right to contribute this code
-- [ ] I agree to the Contributor License Agreement (CLA) if required
-
----
-
-**Thank you for contributing to HeadlessX! 🚀**
-
-*Please be patient during the review process. We'll do our best to provide constructive feedback and work with you to get your contribution merged.*
+Anything reviewers should know: migrations, env changes, follow-up work, or known limitations.

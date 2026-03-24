@@ -47,6 +47,7 @@ import {
 } from '../utils/workspace';
 
 interface InitOptions {
+  action?: string;
   mode?: SetupMode;
   branch?: string;
   yes?: boolean;
@@ -58,6 +59,7 @@ interface InitOptions {
 
 interface StartOptions {
   quiet?: boolean;
+  build?: boolean;
 }
 
 interface StatusOptions {
@@ -81,6 +83,8 @@ interface RuntimeSummary {
   envFiles: Record<string, boolean>;
   local: Record<string, unknown>;
 }
+
+type InitAction = 'bootstrap' | 'update';
 
 function getRepoFile(relativePath: string): string {
   return path.join(getWorkspacePaths().repo, relativePath);
@@ -124,6 +128,18 @@ function getDockerComposeDir(): string {
 
 function getDomainComposeDir(): string {
   return getRepoFile('infra/domain-setup');
+}
+
+function parseInitAction(value?: string): InitAction {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized) {
+    return 'bootstrap';
+  }
+  if (normalized === 'update') {
+    return 'update';
+  }
+
+  throw new Error(`Unsupported init action "${value}". Use "headlessx init" or "headlessx init update".`);
 }
 
 function printChecks(title: string, checks: Array<{ name: string; ok: boolean; detail: string }>): void {
@@ -229,6 +245,14 @@ function writeRuntimeMetadata(mode: SetupMode, branch: string, extra: Partial<Ru
     startedAt: new Date().toISOString(),
     ...extra,
   });
+}
+
+function fallbackRuntimeUrls(mode: SetupMode): { apiUrl: string; webUrl: string } {
+  const urls = getRuntimeUrls(mode);
+  return {
+    apiUrl: urls.apiUrl || (mode === 'production' ? '' : 'http://localhost:38473'),
+    webUrl: urls.webUrl || (mode === 'production' ? '' : 'http://localhost:34872'),
+  };
 }
 
 async function configureSelfHost(options: InitOptions): Promise<{ apiUrl: string; webUrl: string }> {
@@ -358,8 +382,13 @@ function startDeveloper(branch: string): { pid: number; logPath: string; apiUrl:
   };
 }
 
-function startSelfHost(branch: string): { apiUrl: string; webUrl: string } {
-  runInteractiveCommand('docker', ['compose', '--profile', 'all', 'up', '-d'], getDockerComposeDir());
+function startSelfHost(branch: string, options: { build?: boolean } = {}): { apiUrl: string; webUrl: string } {
+  const args = ['compose', '--profile', 'all', 'up'];
+  if (options.build) {
+    args.push('--build');
+  }
+  args.push('-d');
+  runInteractiveCommand('docker', args, getDockerComposeDir());
   const { apiUrl, webUrl } = getRuntimeUrls('self-host');
   writeRuntimeMetadata('self-host', branch, { apiUrl, webUrl });
   return {
@@ -368,8 +397,13 @@ function startSelfHost(branch: string): { apiUrl: string; webUrl: string } {
   };
 }
 
-function startProduction(branch: string): { apiUrl: string; webUrl: string } {
-  runInteractiveCommand('docker', ['compose', '--profile', 'all', 'up', '-d'], getDockerComposeDir());
+function startProduction(branch: string, options: { build?: boolean } = {}): { apiUrl: string; webUrl: string } {
+  const coreArgs = ['compose', '--profile', 'all', 'up'];
+  if (options.build) {
+    coreArgs.push('--build');
+  }
+  coreArgs.push('-d');
+  runInteractiveCommand('docker', coreArgs, getDockerComposeDir());
   runInteractiveCommand('docker', ['compose', 'up', '-d'], getDomainComposeDir());
   const { apiUrl, webUrl } = getRuntimeUrls('production');
   writeRuntimeMetadata('production', branch, { apiUrl, webUrl });
@@ -479,15 +513,34 @@ async function buildRuntimeSummary(): Promise<RuntimeSummary> {
 }
 
 export async function handleInitCommand(options: InitOptions): Promise<void> {
-  await showIntro('Setup', 'Bootstrap HeadlessX into ~/.headlessx with a guided install flow.');
+  const action = parseInitAction(options.action);
+  await showIntro(
+    action === 'update' ? 'Update' : 'Setup',
+    action === 'update'
+      ? 'Update the existing HeadlessX workspace under ~/.headlessx and keep the saved setup mode.'
+      : 'Bootstrap HeadlessX into ~/.headlessx with a guided install flow.'
+  );
 
-  const mode = options.mode ?? (await promptMode());
+  const savedMode = readMode();
+  const mode =
+    action === 'update'
+      ? options.mode ?? savedMode ?? null
+      : options.mode ?? (await promptMode());
   const branch = options.branch?.trim() || DEFAULT_BRANCH;
+
+  if (!mode) {
+    throw new Error('HeadlessX is not initialized yet. Run "headlessx init" first.');
+  }
+
+  if (action === 'update' && !repoExists()) {
+    throw new Error('HeadlessX is not initialized yet. Run "headlessx init" first.');
+  }
 
   await showNote('Setup Plan', [
     `Workspace: ${getWorkspacePaths().root}`,
     `Mode: ${mode}`,
     `Branch: ${branch}`,
+    `Action: ${action}`,
   ]);
 
   const checks = await withSpinner(
@@ -507,6 +560,44 @@ export async function handleInitCommand(options: InitOptions): Promise<void> {
   await showInfo('Preparing ~/.headlessx workspace and syncing the repository...');
   ensureWorkspaceLayout();
   ensureRepo(branch);
+
+  if (action === 'update') {
+    if (mode === 'developer') {
+      await maybeRunDeveloperSetup(options);
+    }
+
+    const urls = fallbackRuntimeUrls(mode);
+    writeMode(mode);
+    writeBranch(branch);
+
+    const nextSteps = ['headlessx restart', 'headlessx status', 'headlessx doctor'];
+    const summary = {
+      workspaceRoot: getWorkspacePaths().root,
+      repoPath: getWorkspacePaths().repo,
+      mode,
+      branch,
+      updated: true,
+      apiUrl: urls.apiUrl,
+      webUrl: urls.webUrl,
+      nextSteps,
+    };
+
+    if (canUseModernPrompts()) {
+      await showNote('Update Ready', [
+        `Mode: ${mode}`,
+        `API: ${urls.apiUrl || 'configured in domain setup'}`,
+        `Dashboard: ${urls.webUrl || 'configured in domain setup'}`,
+        `Next steps: ${nextSteps.join('  |  ')}`,
+      ]);
+      await showOutro('HeadlessX is updated. Run headlessx restart to rebuild and load the latest version.');
+      return;
+    }
+
+    writeStructured(summary, {
+      title: 'headlessx update complete',
+    });
+    return;
+  }
 
   let urls: { apiUrl: string; webUrl: string };
   if (mode === 'developer') {
@@ -586,7 +677,7 @@ export async function handleInitCommand(options: InitOptions): Promise<void> {
   });
 }
 
-export async function handleStartCommand(_options: StartOptions = {}): Promise<void> {
+export async function handleStartCommand(options: StartOptions = {}): Promise<void> {
   const mode = readMode();
   const branch = readBranch() ?? DEFAULT_BRANCH;
   if (!mode) {
@@ -597,13 +688,14 @@ export async function handleStartCommand(_options: StartOptions = {}): Promise<v
     mode === 'developer'
       ? startDeveloper(branch)
       : mode === 'production'
-        ? startProduction(branch)
-        : startSelfHost(branch);
+        ? startProduction(branch, { build: options.build })
+        : startSelfHost(branch, { build: options.build });
 
   writeStructured(
     {
       mode,
       branch,
+      rebuilt: Boolean(options.build && mode !== 'developer'),
       ...result,
     },
     { title: 'headlessx start' }
@@ -636,7 +728,7 @@ export async function handleStopCommand(): Promise<void> {
 
 export async function handleRestartCommand(): Promise<void> {
   await handleStopCommand();
-  await handleStartCommand();
+  await handleStartCommand({ build: true });
 }
 
 export async function handleBootstrapStatusCommand(options: StatusOptions): Promise<RuntimeSummary> {

@@ -24,7 +24,7 @@ It does not handle MCP setup or editor skill installation.
 ## Current Version
 
 - package: `@headlessx-cli/core`
-- version: `0.1.2`
+- version: `0.1.21`
 - primary command: `headlessx`
 
 ## Installation
@@ -82,6 +82,8 @@ Useful examples:
 headlessx init
 headlessx init --mode self-host
 headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx init update
+headlessx init update --branch develop
 headlessx init --branch develop
 headlessx start
 headlessx status
@@ -96,7 +98,8 @@ By default, the bootstrap flow uses:
 
 - workspace root: `~/.headlessx`
 - cloned repo: `~/.headlessx/repo`
-- runtime metadata: `~/.headlessx/runtime.json`
+- runtime metadata directory: `~/.headlessx/runtime/`
+- last start state: `~/.headlessx/runtime/last-start.json`
 - self-host env: `~/.headlessx/repo/infra/docker/.env`
 - production env: `~/.headlessx/repo/infra/domain-setup/.env`
 - production Caddy config: `~/.headlessx/repo/infra/domain-setup/Caddyfile`
@@ -109,6 +112,33 @@ headlessx doctor
 ```
 
 Use `headlessx stop` to tear down the Docker stack started by the lifecycle commands.
+
+## Updating An Existing Workspace
+
+Use:
+
+```bash
+headlessx init update
+```
+
+Default behavior:
+
+- reuses the saved setup mode
+- updates the repo under `~/.headlessx/repo`
+- pulls `main` by default
+- uses `--branch <name>` only when you explicitly want another branch
+- keeps the existing env files and generated domain config in place
+
+Recommended update flow:
+
+```bash
+headlessx init update
+headlessx restart
+headlessx status
+headlessx doctor
+```
+
+For `self-host` and `production`, `headlessx restart` rebuilds Docker images before bringing the stack back up.
 
 ## Authentication
 

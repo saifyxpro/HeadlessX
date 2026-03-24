@@ -202,9 +202,15 @@ Useful examples:
 headlessx init --mode developer
 headlessx init --mode self-host
 headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx init update
+headlessx init update --branch develop
 headlessx start
+headlessx restart
 headlessx stop
 ```
+
+For existing VPS or Docker installs, use `headlessx init update` to pull the latest repo state into `~/.headlessx/repo`, then run `headlessx restart`.
+For `self-host` and `production`, `headlessx restart` rebuilds Docker images before bringing the stack back up.
 
 HeadlessX intentionally uses uncommon localhost defaults to avoid conflicts with other tools:
 `web=34872`, `api=38473`, `postgres=35432`, `redis=36379`, `html-to-md=38081`, `yt-engine=38090`.

@@ -1,182 +1,154 @@
-name: 🐛 Bug Report
-description: Report a bug to help us improve HeadlessX
-title: '[Bug]: '
-labels: ['bug', 'triage']
-assignees: ['saifyxpro']
+name: Bug Report
+description: Report a reproducible problem in HeadlessX
+title: "[Bug]: "
+labels: ["bug", "triage"]
+assignees: ["saifyxpro"]
 
 body:
   - type: markdown
     attributes:
       value: |
-        ## 🐛 Bug Report
-        
-        Thank you for taking the time to report a bug! This helps us improve HeadlessX for everyone.
-        
-        **Before submitting:** Please search existing issues to avoid duplicates.
+        Thanks for reporting a bug.
+
+        Keep this report focused on one problem. If you can reproduce it with a small command or setup, include that directly.
 
   - type: checkboxes
-    id: preliminary-checks
+    id: checks
     attributes:
-      label: Preliminary Checks
-      description: Please confirm you have completed these steps
+      label: Before You Submit
       options:
-        - label: I have searched existing issues for similar problems
+        - label: I searched existing issues first
           required: true
-        - label: I have read the troubleshooting documentation
-          required: true
-        - label: I am using a supported version of HeadlessX
+        - label: I tested on the latest HeadlessX release or current `develop`
           required: true
 
   - type: input
     id: version
     attributes:
       label: HeadlessX Version
-      description: Which version are you using?
-      placeholder: "v1.3.0"
+      placeholder: "v2.1.12 or develop"
     validations:
       required: true
 
   - type: dropdown
-    id: installation-method
+    id: install_mode
     attributes:
-      label: Installation Method
-      description: How did you install HeadlessX?
+      label: Installation Mode
       options:
-        - npm install
-        - Docker
-        - Manual installation
-        - Git clone
-        - Other (specify in description)
+        - CLI developer
+        - CLI self-host
+        - CLI production
+        - Docker compose only
+        - Repo / local development
+        - Other
     validations:
       required: true
 
   - type: dropdown
-    id: affected-app
+    id: area
     attributes:
-      label: Affected App/Package
-      description: Which part of the monorepo is affected?
+      label: Affected Area
       options:
-        - apps/web (Frontend Dashboard)
-        - apps/api (Backend API)
-        - scripts (Utility Scripts)
-        - infrastructure (Docker, CI/CD)
+        - apps/web
+        - apps/api
+        - apps/yt-engine
+        - packages/cli
+        - infra/docker
+        - infra/domain-setup
+        - docs
         - other
     validations:
       required: true
 
-  - type: input
+  - type: textarea
+    id: summary
+    attributes:
+      label: What Happened
+      description: Describe the problem in one short paragraph.
+      placeholder: "After running `headlessx init --mode self-host`, the API container exited with..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Include the smallest reliable reproduction.
+      placeholder: |
+        1. Run:
+           headlessx init --mode self-host --branch develop
+        2. Open:
+           http://localhost:34872
+        3. Run:
+           headlessx status
+        4. Observe:
+           API health fails
+      render: bash
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Result
+      placeholder: "The stack should start and `headlessx doctor` should report the API as reachable."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs Or Error Output
+      description: Paste only the relevant part.
+      render: shell
+      placeholder: |
+        docker compose logs api --tail=200
+        headlessx doctor
+
+        <paste output here>
+
+  - type: textarea
     id: environment
     attributes:
       label: Environment
-      description: What environment are you running on? (OS, Node version, pnpm version, Mise version)
-      placeholder: "Ubuntu 22.04, Node.js 22.0.0, pnpm 9.15.0, Mise 2024.x"
+      description: OS, Node, pnpm, Docker, and anything else relevant.
+      placeholder: "Ubuntu 24.04, Node 22.x, pnpm 10.32.1, Docker 28.x"
     validations:
       required: true
 
   - type: textarea
-    id: bug-description
+    id: config
     attributes:
-      label: Bug Description
-      description: A clear and concise description of the bug
-      placeholder: Describe what happened...
-    validations:
-      required: true
-
-  - type: textarea
-    id: expected-behavior
-    attributes:
-      label: Expected Behavior
-      description: What did you expect to happen?
-      placeholder: Describe what should have happened...
-    validations:
-      required: true
-
-  - type: textarea
-    id: actual-behavior
-    attributes:
-      label: Actual Behavior
-      description: What actually happened?
-      placeholder: Describe what actually happened...
-    validations:
-      required: true
-
-  - type: textarea
-    id: steps-to-reproduce
-    attributes:
-      label: Steps to Reproduce
-      description: Provide step-by-step instructions to reproduce the issue
-      placeholder: |
-        1. Start HeadlessX with...
-        2. Make a request to...
-        3. Observe error...
-    validations:
-      required: true
-
-  - type: textarea
-    id: error-logs
-    attributes:
-      label: Error Logs
-      description: Include relevant error messages and logs
-      placeholder: |
-        Paste error logs here. For PM2 logs, use: pm2 logs headlessx --lines 20
-        For Docker logs, use: docker logs container-name
+      label: Relevant Config
+      description: Sanitize secrets before pasting.
       render: shell
-
-  - type: textarea
-    id: configuration
-    attributes:
-      label: Configuration
-      description: Relevant configuration (sanitize sensitive data like tokens)
       placeholder: |
-        Include relevant parts of your .env file (remove sensitive information):
-        NODE_ENV=production
-        PORT=3000
-        STEALTH_MODE=advanced
-      render: shell
+        API_HOST_PORT=38473
+        WEB_HOST_PORT=34872
+        REDIS_HOST_PORT=36379
 
   - type: dropdown
     id: severity
     attributes:
       label: Severity
-      description: How severe is this bug?
       options:
-        - Critical (application crashes, security vulnerability)
-        - High (major functionality broken)
-        - Medium (some functionality impaired)
-        - Low (minor issue, workaround available)
+        - Critical
+        - High
+        - Medium
+        - Low
     validations:
       required: true
 
-  - type: dropdown
-    id: browser-context
-    attributes:
-      label: Browser Context
-      description: Is this related to browser automation?
-      options:
-        - Not browser related
-        - Browser launch issues
-        - Page rendering problems
-        - Anti-detection issues
-        - Authentication/authorization
-        - Performance issues
-
   - type: textarea
-    id: additional-context
+    id: notes
     attributes:
-      label: Additional Context
-      description: Any other information that might be helpful
-      placeholder: |
-        - Screenshots
-        - Network requests/responses
-        - System resource usage
-        - Workarounds you've tried
+      label: Extra Context
+      placeholder: "Screenshots, workarounds, related issues, or anything else useful."
 
   - type: checkboxes
     id: contribution
     attributes:
       label: Contribution
-      description: Are you willing to help?
       options:
-        - label: I am willing to help fix this bug
-        - label: I can provide additional testing
-        - label: I can help with documentation updates
+        - label: I can help test a fix
+        - label: I can open a PR

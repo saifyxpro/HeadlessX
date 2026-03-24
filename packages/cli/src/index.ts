@@ -90,8 +90,8 @@ program.hook('preAction', (thisCommand) => {
 });
 
 program
-  .command('init')
-  .description('Clone and configure HeadlessX under ~/.headlessx.')
+  .command('init [action]')
+  .description('Clone, update, and configure HeadlessX under ~/.headlessx.')
   .option('--mode <mode>', 'developer, self-host, or production')
   .option('--branch <name>', 'Git branch to clone or update')
   .option('--yes', 'Accept recommended defaults and skip confirmation prompts')
@@ -99,7 +99,7 @@ program
   .option('--api-domain <domain>', 'Production API domain')
   .option('--web-domain <domain>', 'Production dashboard domain')
   .option('--caddy-email <email>', 'Production Caddy email')
-  .action(handleInitCommand);
+  .action((action, options) => handleInitCommand({ ...options, action }));
 
 program
   .command('start')
