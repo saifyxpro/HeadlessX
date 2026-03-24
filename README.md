@@ -179,141 +179,37 @@ corepack use pnpm@10.32.1
 - 8 GB RAM is the better baseline for the web, API, worker, Redis, and browser runtime together
 - 16 GB RAM is safer for heavier crawl jobs, YouTube flows, or multiple concurrent browser tasks
 
-### Recommended Development Setup
+### CLI Bootstrap
 
-Recommended for most developers:
-
-- PostgreSQL: Supabase or Docker
-- Redis: Docker
-- App runtime: `pnpm dev` or `mise run dev`
-
-This keeps infrastructure simple while still running the app locally.
-
-### Local Development
-
-1. Clone and install:
+HeadlessX is now CLI-first for installation and local lifecycle management.
 
 ```bash
-git clone https://github.com/saifyxpro/HeadlessX.git
-cd HeadlessX
-pnpm install
+npm install -g @headlessx-cli/core
+headlessx init
+headlessx status
+headlessx doctor
 ```
 
-2. Create root `.env` from the full example:
+The CLI bootstraps HeadlessX into `~/.headlessx` by default and supports three setup modes:
+
+- `developer`: clone the repo, keep app services local, and use Docker only where needed for infrastructure
+- `self-host`: run the full HeadlessX stack on rare localhost ports with Docker
+- `production`: run the Docker app stack plus the Caddy/domain layer for `dashboard.yourdomain.com` and `api.yourdomain.com`
+
+Useful examples:
 
 ```bash
-cp .env.example .env
+headlessx init --mode developer
+headlessx init --mode self-host
+headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx start
+headlessx stop
 ```
 
 HeadlessX intentionally uses uncommon localhost defaults to avoid conflicts with other tools:
 `web=34872`, `api=38473`, `postgres=35432`, `redis=36379`, `html-to-md=38081`, `yt-engine=38090`.
 
-Current root `.env.example`:
-
-```env
-# HeadlessX v2.1.1
-# Local development environment
-
-# Database
-DATABASE_URL="postgresql://postgres.xxxxx:YOUR_PASSWORD@aws-0-region.pooler.supabase.com:5432/postgres"
-
-# API server
-PORT=38473
-HOST=0.0.0.0
-NODE_ENV=development
-
-# Required security
-# Used by the Next.js dashboard server to authenticate against the API.
-DASHBOARD_INTERNAL_API_KEY=replace-with-a-long-random-string
-
-# Used to encrypt stored credentials at rest.
-CREDENTIAL_ENCRYPTION_KEY=replace-with-a-different-long-random-string
-
-# Queue and Redis
-REDIS_URL=redis://localhost:36379
-
-# Search providers
-TAVILY_API_KEY=
-EXA_API_KEY=
-
-# Local engines
-YT_ENGINE_URL=http://localhost:38090
-YT_ENGINE_PORT=38090
-YT_ENGINE_TIMEOUT_MS=45000
-YT_ENGINE_TEMP_DIR=./tmp/yt-engine
-YT_ENGINE_JOB_TTL_HOURS=12
-
-HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:38081
-HTML_TO_MARKDOWN_PORT=38081
-HTML_TO_MARKDOWN_TIMEOUT_MS=60000
-
-# Browser and stealth defaults are managed in the dashboard settings UI.
-
-# Web dashboard
-WEB_PORT=34872
-NEXT_PUBLIC_API_URL=http://localhost:38473
-
-# Set this for Docker or custom internal networking.
-# INTERNAL_API_URL=http://localhost:38473
-
-# Set this only when the dashboard is hosted on a custom origin.
-# FRONTEND_URL=https://dashboard.example.com
-```
-
-If you are using Docker instead of local services, start from the complete Docker env too:
-
-```bash
-cp infra/docker/.env.example infra/docker/.env
-```
-
-3. Prepare services:
-
-```bash
-pnpm db:push
-pnpm camoufox:fetch
-```
-
-4. Start the local stack:
-
-```bash
-pnpm dev
-```
-
-This starts:
-
-- web
-- api
-- worker
-- HTML-to-Markdown service
-- yt-engine
-
-Important:
-
-- `pnpm dev` does not provision PostgreSQL or Redis
-- Website Crawl requires both Redis and the worker
-
-## Docker
-
-For the current Docker path:
-
-```bash
-cp infra/docker/.env.example infra/docker/.env
-cd infra/docker
-docker compose --profile all up --build -d
-```
-
-Important notes:
-
-- use `--profile all`
-- partial profile runs are not currently reliable because of `depends_on` relationships
-- full Docker now includes `yt-engine`, so YouTube works inside the same compose stack
-
-See [docs/setup-guide.md](docs/setup-guide.md) for the full matrix:
-
-- no-Docker setup
-- mixed local setup
-- full Docker setup
-- MCP client configuration
+For deeper setup details, direct repo development, env files, Docker internals, and MCP/client notes, see [docs/setup-guide.md](docs/setup-guide.md).
 
 ## API Summary
 

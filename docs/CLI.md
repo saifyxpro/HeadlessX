@@ -84,10 +84,31 @@ headlessx init --mode self-host
 headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
 headlessx init --branch develop
 headlessx start
+headlessx status
 headlessx stop
 headlessx restart
 headlessx doctor
 ```
+
+## Workspace Layout
+
+By default, the bootstrap flow uses:
+
+- workspace root: `~/.headlessx`
+- cloned repo: `~/.headlessx/repo`
+- runtime metadata: `~/.headlessx/runtime.json`
+- self-host env: `~/.headlessx/repo/infra/docker/.env`
+- production env: `~/.headlessx/repo/infra/domain-setup/.env`
+- production Caddy config: `~/.headlessx/repo/infra/domain-setup/Caddyfile`
+
+Recommended verification after `headlessx init` or `headlessx start`:
+
+```bash
+headlessx status
+headlessx doctor
+```
+
+Use `headlessx stop` to tear down the Docker stack started by the lifecycle commands.
 
 ## Authentication
 

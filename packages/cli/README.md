@@ -65,6 +65,41 @@ pnpm --dir /home/saifyxpro/CODE/Crawl/HeadlessX --filter @headlessx-cli/core bui
 node /home/saifyxpro/CODE/Crawl/HeadlessX/packages/cli/dist/index.js --help
 ```
 
+## Lifecycle Bootstrap
+
+The default install flow is:
+
+```bash
+headlessx init
+```
+
+Useful examples:
+
+```bash
+headlessx init --mode self-host
+headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx init --branch develop
+headlessx start
+headlessx status
+headlessx stop
+headlessx doctor
+```
+
+Default workspace layout:
+
+- workspace root: `~/.headlessx`
+- cloned repo: `~/.headlessx/repo`
+- self-host env: `~/.headlessx/repo/infra/docker/.env`
+- production env: `~/.headlessx/repo/infra/domain-setup/.env`
+- production Caddy config: `~/.headlessx/repo/infra/domain-setup/Caddyfile`
+
+After `headlessx init` or `headlessx start`, verify the install with:
+
+```bash
+headlessx status
+headlessx doctor
+```
+
 ## Authentication
 
 The `headlessx` command uses HeadlessX API keys only.
@@ -128,33 +163,6 @@ Clear local credentials:
 ```bash
 headlessx logout
 ```
-
-## Lifecycle Commands
-
-Primary bootstrap flow:
-
-```bash
-headlessx init
-```
-
-Common lifecycle commands:
-
-```bash
-headlessx init --mode self-host
-headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
-headlessx start
-headlessx stop
-headlessx restart
-headlessx status
-headlessx doctor
-```
-
-Notes:
-
-- default install root is `~/.headlessx`
-- default branch is `main`
-- use `--branch develop` only when you explicitly want a non-default branch
-- `status` includes local runtime/bootstrap information when available
 
 ## Operator Commands
 

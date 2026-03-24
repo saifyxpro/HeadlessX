@@ -1,20 +1,14 @@
 # Setup Guide
 
-This document explains how to run HeadlessX with Docker, without Docker, or with a mixed setup.
+This document explains the three supported HeadlessX setup modes: `developer`, `self-host`, and `production`.
 
-## Recommendation
+## Mode Summary
 
-Recommended order:
+Use the CLI for all three modes:
 
-1. Docker for infrastructure plus local app runtime for development
-2. Full Docker for the full runtime stack when you want repeatable services
-3. Fully local only if you already manage PostgreSQL and Redis yourself
-
-For most developers, the best path is:
-
-- PostgreSQL: Supabase or Docker
-- Redis: Docker
-- App runtime: `pnpm dev` or `mise run dev`
+1. `developer` for contributors who want the repo locally and only need Docker for infrastructure where it helps
+2. `self-host` for a full local or VPS Docker stack on HeadlessX's rare default ports
+3. `production` for the Docker app stack plus the Caddy/domain layer
 
 HeadlessX intentionally defaults to uncommon localhost ports to avoid collisions with typical `3000` and `8000` stacks.
 
@@ -100,9 +94,19 @@ Useful variants:
 headlessx init --mode self-host
 headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
 headlessx start
+headlessx status
 headlessx stop
 headlessx doctor
 ```
+
+The CLI uses `~/.headlessx` as the default workspace root.
+
+- cloned repo: `~/.headlessx/repo`
+- self-host env: `~/.headlessx/repo/infra/docker/.env`
+- production env: `~/.headlessx/repo/infra/domain-setup/.env`
+- production Caddy config: `~/.headlessx/repo/infra/domain-setup/Caddyfile`
+- after `headlessx init` or `headlessx start`, run `headlessx status` and `headlessx doctor`
+- use `headlessx stop` to tear down the Docker stack started by the CLI
 
 ## AI Models Setup
 
