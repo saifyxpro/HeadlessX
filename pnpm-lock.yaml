@@ -4696,7 +4696,7 @@ packages:
     engines: {node: '>=16.0.0'}
 
   headfox-js@0.1.12:
-    resolution: {integrity: sha512-n9R2eJZdwLK16IYFN7AlME398N/R95hfeLq+NbevE7+Omd7A8lY1gwl6uc6cOh3/QTbmyXxPiYI8WdFPTaooAA==}
+    resolution: {integrity: sha512-8tdvzDzVCsAVO84axJ+dHCgnJx7efisFaltgqR2eD8lea4alkH2dglThr2CFYUUrpl7CnHKGuogxr665NpZkmw==}
     engines: {node: '>=20'}
     hasBin: true
     peerDependencies:
