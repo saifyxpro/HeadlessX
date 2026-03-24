@@ -18,6 +18,40 @@ For most developers, the best path is:
 
 HeadlessX intentionally defaults to uncommon localhost ports to avoid collisions with typical `3000` and `8000` stacks.
 
+## System Requirements
+
+### General host requirements
+
+| Item | Minimum | Recommended |
+| --- | --- | --- |
+| OS | macOS, Linux, or Windows 11 with WSL2 | Ubuntu 22.04+/24.04, Debian 12, or Windows 11 with WSL2 |
+| CPU | 2 cores | 4+ cores |
+| RAM | 4 GB | 8-16 GB |
+| Disk | 10 GB free | 20+ GB SSD |
+| Network | outbound internet for installs and downloads | stable broadband |
+
+### Tooling requirements by mode
+
+| Mode | Required tools |
+| --- | --- |
+| Developer | Git, Docker, Node.js 22+, pnpm 10.32.1+, Python/uv, Go |
+| Self-host | Git, Docker, Docker Compose v2 |
+| Production | Linux server recommended, Git, Docker, Docker Compose v2, DNS control for your domains |
+
+### Practical sizing guidance
+
+- Developer mode is comfortable at 8 GB RAM
+- Self-host Docker on a local machine or VPS is better at 8 GB minimum
+- Production is safer at 8 GB minimum and 16 GB recommended if you expect crawl-heavy or browser-heavy workloads
+- Open ports `80` and `443` for production domain setup with Caddy
+
+If you need to align your local pnpm version with the repo:
+
+```bash
+corepack enable
+corepack use pnpm@10.32.1
+```
+
 ## CLI Setup
 
 Install the published HeadlessX CLI if you want terminal access to the same API surface:
@@ -39,6 +73,8 @@ Then log in:
 ```bash
 headlessx login
 ```
+
+The published CLI now uses guided modern prompts for `headlessx init` and `headlessx login` when your terminal is interactive.
 
 Or set credentials directly:
 

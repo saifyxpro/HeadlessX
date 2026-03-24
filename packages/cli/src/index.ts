@@ -129,7 +129,7 @@ program
   .description('Store HeadlessX API credentials locally.')
   .option('-k, --api-key <key>', 'HeadlessX API key')
   .option('--api-url <url>', 'HeadlessX API URL')
-  .action(handleLoginCommand);
+  .action((options, command) => handleLoginCommand(command.optsWithGlobals?.() ?? options));
 
 program
   .command('logout')
@@ -143,7 +143,7 @@ config
   .description('Update stored API URL and/or API key.')
   .option('-k, --api-key <key>', 'HeadlessX API key')
   .option('--api-url <url>', 'HeadlessX API URL')
-  .action(handleSetConfigCommand);
+  .action((options, command) => handleSetConfigCommand(command.optsWithGlobals?.() ?? options));
 config.action(handleViewConfigCommand);
 
 program

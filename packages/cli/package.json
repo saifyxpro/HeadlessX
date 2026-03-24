@@ -1,6 +1,6 @@
 {
   "name": "@headlessx-cli/core",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Bootstrap and operator CLI for HeadlessX local installs, website extraction, search, YouTube, and jobs workflows.",
   "main": "dist/index.js",
   "bin": {
@@ -60,7 +60,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "pnpm@10.32.1",
   "devDependencies": {
     "@types/node": "^20.0.0",
     "husky": "^9.0.0",
@@ -70,6 +70,8 @@
     "vitest": "^4.0.0"
   },
   "dependencies": {
-    "commander": "^14.0.2"
+    "@clack/prompts": "^1.1.0",
+    "commander": "^14.0.2",
+    "picocolors": "^1.1.1"
   }
 }

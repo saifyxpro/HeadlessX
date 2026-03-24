@@ -11,6 +11,8 @@ headlessx init --mode production --api-domain api.example.com --web-domain dashb
 headlessx init --branch develop
 ```
 
+Interactive `headlessx init` now uses guided modern prompts for mode selection, required values, and confirmations.
+
 Runtime:
 
 ```bash

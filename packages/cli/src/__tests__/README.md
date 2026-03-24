@@ -7,7 +7,7 @@ Current package direction:
 - HeadlessX-first command tree
 - API-key auth only
 - pnpm workspace compatibility
-- no MCP commands in `0.1.0`
+- no MCP commands in `0.1.2`
 
 The next useful test pass should focus on:
 

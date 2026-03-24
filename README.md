@@ -4,7 +4,7 @@
 
 ### Self-hosted operators for website extraction, search, and agent workflows powered by Camoufox
 
-[![Version](https://img.shields.io/badge/Version-v2.1.0-blue?style=for-the-badge)](docs/setup-guide.md)
+[![Version](https://img.shields.io/badge/Version-v2.1.1-blue?style=for-the-badge)](docs/setup-guide.md)
 [![Runtime](https://img.shields.io/badge/Node.js-22+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![License](https://img.shields.io/badge/License-MIT-black?style=for-the-badge)](LICENSE)
@@ -35,13 +35,13 @@ Current live operator surfaces:
 - Queue jobs, logs, API keys, proxy management, and config management
 - Remote MCP over `/mcp`
 
-## What Changed In v2.1.0
+## What Changed In v2.1.1
 
-- Simplified the dashboard around one global browser/runtime model
-- Added Tavily, Exa, and YouTube operators
-- Added queued crawl and job flows with Redis + worker support
-- Added remote MCP secured with normal dashboard-created API keys
-- Added setup and API guides aligned with the current route tree
+- Added the published HeadlessX CLI bootstrap flow with `headlessx init`, `start`, `stop`, `restart`, and `doctor`
+- Upgraded the CLI prompt UX with guided modern setup and login prompts
+- Added Docker plus Caddy production domain scaffolding under `infra/domain-setup`
+- Moved local and Docker host defaults to rarer ports to avoid conflicts with common `3000` and `8000` stacks
+- Refreshed setup, CLI, and self-hosting docs around the current operator-first platform layout
 
 ## Sponsors
 
@@ -145,14 +145,39 @@ This installs the HeadlessX CLI skill from this repository so the agent can use 
 
 ## Quick Start
 
-### Requirements
+### System Requirements
+
+| Item | Minimum | Recommended |
+| --- | --- | --- |
+| OS | macOS, Linux, or Windows 11 with WSL2 | Ubuntu 22.04+/24.04, Debian 12, or Windows 11 with WSL2 |
+| CPU | 2 cores | 4+ cores |
+| RAM | 4 GB | 8-16 GB |
+| Disk | 10 GB free | 20+ GB SSD |
+| Network | outbound internet for installs, browser downloads, and APIs | stable broadband |
+
+### Runtime Dependencies
 
 - Node.js 22+
-- pnpm 9+
+- pnpm 10.32.1+
+- Git
+- Docker + Compose v2 for self-host or production mode
 - PostgreSQL
 - Redis
 - Python/uv for `yt-engine`
 - Go for the HTML-to-Markdown sidecar
+
+If your machine does not already use the pinned pnpm release, align it with:
+
+```bash
+corepack enable
+corepack use pnpm@10.32.1
+```
+
+### Practical Sizing Notes
+
+- 4 GB RAM is enough for light local testing
+- 8 GB RAM is the better baseline for the web, API, worker, Redis, and browser runtime together
+- 16 GB RAM is safer for heavier crawl jobs, YouTube flows, or multiple concurrent browser tasks
 
 ### Recommended Development Setup
 
@@ -186,7 +211,7 @@ HeadlessX intentionally uses uncommon localhost defaults to avoid conflicts with
 Current root `.env.example`:
 
 ```env
-# HeadlessX v2.1.0
+# HeadlessX v2.1.1
 # Local development environment
 
 # Database

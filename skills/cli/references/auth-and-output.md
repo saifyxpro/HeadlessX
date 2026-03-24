@@ -52,6 +52,8 @@ Interactive:
 headlessx login
 ```
 
+Interactive `headlessx login` now uses a guided modern prompt with masked API key entry.
+
 Prompt only for the missing field:
 
 ```bash

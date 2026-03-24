@@ -9,6 +9,24 @@ It is designed for:
 - a dedicated API domain
 - automatic HTTPS through Caddy
 
+## Production Host Requirements
+
+| Item | Minimum | Recommended |
+| --- | --- | --- |
+| OS | Linux server | Ubuntu 22.04+/24.04 or Debian 12 |
+| CPU | 2 vCPU | 4+ vCPU |
+| RAM | 8 GB | 16+ GB |
+| Disk | 20 GB SSD | 40+ GB SSD |
+| Network | public server IP and outbound internet | stable bandwidth with low packet loss |
+
+Required on the host:
+
+- Docker Engine
+- Docker Compose v2
+- DNS access for your dashboard and API domains
+- ports `80` and `443` open to the internet
+- an email address for Caddy certificate management
+
 This setup is additive. It does not replace the current `headlessx` API/operator commands. The lifecycle side is intended to work alongside commands like:
 
 - `headlessx scrape`

@@ -23,6 +23,14 @@ import {
   killDetachedProcess,
 } from '../utils/lifecycle';
 import {
+  canUseModernPrompts,
+  showInfo,
+  showIntro,
+  showNote,
+  showOutro,
+  withSpinner,
+} from '../utils/ui';
+import {
   clearLastStart,
   DEFAULT_BRANCH,
   ensureWorkspaceLayout,
@@ -124,6 +132,21 @@ function printChecks(title: string, checks: Array<{ name: string; ok: boolean; d
     lines.push(`- ${check.ok ? 'OK' : 'FAIL'} ${check.name}: ${check.detail}`);
   }
   writeText(lines.join('\n'));
+}
+
+async function reportChecks(
+  title: string,
+  checks: Array<{ name: string; ok: boolean; detail: string }>
+): Promise<void> {
+  if (!canUseModernPrompts()) {
+    printChecks(title, checks);
+    return;
+  }
+
+  await showNote(
+    title,
+    checks.map((check) => `${check.ok ? 'OK' : 'FAIL'} ${check.name}: ${check.detail}`)
+  );
 }
 
 function requireChecks(checks: Array<{ name: string; ok: boolean; detail: string }>): void {
@@ -286,7 +309,8 @@ async function configureProduction(options: InitOptions): Promise<{ apiUrl: stri
   };
 }
 
-function maybeRunDeveloperSetup(options: InitOptions): void {
+async function maybeRunDeveloperSetup(options: InitOptions): Promise<void> {
+  await showInfo('Installing HeadlessX workspace dependencies with pnpm...');
   runInteractiveCommand('pnpm', ['install'], getWorkspacePaths().repo);
 
   if (options.yes || !process.stdin.isTTY || !process.stdout.isTTY) {
@@ -455,20 +479,39 @@ async function buildRuntimeSummary(): Promise<RuntimeSummary> {
 }
 
 export async function handleInitCommand(options: InitOptions): Promise<void> {
+  await showIntro('Setup', 'Bootstrap HeadlessX into ~/.headlessx with a guided install flow.');
+
   const mode = options.mode ?? (await promptMode());
   const branch = options.branch?.trim() || DEFAULT_BRANCH;
 
-  const checks = detectPrerequisites(mode);
-  printChecks('Checking Git, Docker, and required runtime tools...', checks);
-  requireChecks(checks);
+  await showNote('Setup Plan', [
+    `Workspace: ${getWorkspacePaths().root}`,
+    `Mode: ${mode}`,
+    `Branch: ${branch}`,
+  ]);
 
+  const checks = await withSpinner(
+    'Checking Git, Docker, and required runtime tools...',
+    () => {
+      const detected = detectPrerequisites(mode);
+      requireChecks(detected);
+      return detected;
+    },
+    {
+      successMessage: 'Runtime prerequisites look good.',
+      errorMessage: 'Runtime prerequisites check failed.',
+    }
+  );
+  await reportChecks('Runtime Checks', checks);
+
+  await showInfo('Preparing ~/.headlessx workspace and syncing the repository...');
   ensureWorkspaceLayout();
   ensureRepo(branch);
 
   let urls: { apiUrl: string; webUrl: string };
   if (mode === 'developer') {
     urls = await configureDeveloper(options);
-    maybeRunDeveloperSetup(options);
+    await maybeRunDeveloperSetup(options);
     if (!options.yes) {
       await maybeRunDeveloperOptionalTasks();
     }
@@ -508,6 +551,9 @@ export async function handleInitCommand(options: InitOptions): Promise<void> {
     }
   }
 
+  const nextSteps = started
+    ? ['headlessx status', 'headlessx doctor']
+    : ['headlessx start', 'headlessx status', 'headlessx doctor'];
   const summary = {
     workspaceRoot: getWorkspacePaths().root,
     repoPath: getWorkspacePaths().repo,
@@ -516,10 +562,24 @@ export async function handleInitCommand(options: InitOptions): Promise<void> {
     started,
     apiUrl: urls.apiUrl,
     webUrl: urls.webUrl,
-    nextSteps: started
-      ? ['headlessx status', 'headlessx doctor']
-      : ['headlessx start', 'headlessx status', 'headlessx doctor'],
+    nextSteps,
   };
+
+  if (canUseModernPrompts()) {
+    await showNote('Ready', [
+      `Mode: ${mode}`,
+      `API: ${urls.apiUrl}`,
+      `Dashboard: ${urls.webUrl}`,
+      `Started: ${started ? 'yes' : 'no'}`,
+      `Next steps: ${nextSteps.join('  |  ')}`,
+    ]);
+    await showOutro(
+      started
+        ? 'HeadlessX is running. Use headlessx status to confirm services.'
+        : 'HeadlessX is configured. Use headlessx start when you are ready.'
+    );
+    return;
+  }
 
   writeStructured(summary, {
     title: `headlessx init complete`,

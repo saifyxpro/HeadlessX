@@ -3,8 +3,7 @@ import { spawn, spawnSync, type SpawnSyncOptions, type SpawnSyncReturns } from '
 import * as fs from 'node:fs';
 import * as net from 'node:net';
 import * as path from 'node:path';
-import { createInterface } from 'node:readline/promises';
-import { stdin as input, stdout as output } from 'node:process';
+import { promptConfirm, promptSelect, promptText } from './ui';
 import type { SetupMode } from './workspace';
 
 export type EnvMap = Record<string, string>;
@@ -241,38 +240,35 @@ export async function nextFreePort(startingPort: number): Promise<number> {
   return port;
 }
 
-async function ask(question: string): Promise<string> {
-  const rl = createInterface({ input, output });
-  try {
-    return (await rl.question(question)).trim();
-  } finally {
-    rl.close();
-  }
-}
-
 export async function confirm(question: string, defaultValue = true): Promise<boolean> {
-  if (!input.isTTY || !output.isTTY) {
-    return defaultValue;
-  }
-
-  const suffix = defaultValue ? ' [Y/n] ' : ' [y/N] ';
-  const answer = (await ask(`${question}${suffix}`)).toLowerCase();
-  if (!answer) {
-    return defaultValue;
-  }
-  return answer === 'y' || answer === 'yes';
+  return promptConfirm({
+    message: question,
+    defaultValue,
+  });
 }
 
 export async function promptMode(): Promise<SetupMode> {
-  const response = (await ask('Which mode do you want to set up? developer / self-host / production\n> '))
-    .toLowerCase()
-    .trim();
-
-  if (response === 'developer' || response === 'self-host' || response === 'production') {
-    return response;
-  }
-
-  throw new Error('Mode must be developer, self-host, or production.');
+  return promptSelect<SetupMode>({
+    message: 'Which mode do you want to set up?',
+    initialValue: 'self-host',
+    values: [
+      {
+        value: 'self-host',
+        label: 'Self-Host',
+        hint: 'Docker stack on local rare ports',
+      },
+      {
+        value: 'developer',
+        label: 'Developer',
+        hint: 'Clone main and run the local workspace',
+      },
+      {
+        value: 'production',
+        label: 'Production',
+        hint: 'Docker plus Caddy with API and dashboard domains',
+      },
+    ],
+  });
 }
 
 export async function promptRequired(question: string, value?: string): Promise<string> {
@@ -280,11 +276,15 @@ export async function promptRequired(question: string, value?: string): Promise<
   if (trimmed) {
     return trimmed;
   }
-  const answer = await ask(`${question}\n> `);
-  if (!answer) {
-    throw new Error('A value is required.');
-  }
-  return answer;
+  return promptText({
+    message: question,
+    validate(inputValue) {
+      if (!inputValue?.trim()) {
+        return 'A value is required.';
+      }
+      return undefined;
+    },
+  });
 }
 
 export async function resolveHostPorts(

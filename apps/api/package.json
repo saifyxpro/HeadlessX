@@ -4,7 +4,7 @@
   "description": "HeadlessX - Anti-detect browser scraping API with Camoufox",
   "main": "dist/server_entry.js",
   "type": "module",
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "pnpm@10.32.1",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=9.0.0"

@@ -24,7 +24,7 @@ It does not handle MCP setup or editor skill installation.
 ## Current Version
 
 - package: `@headlessx-cli/core`
-- version: `0.1.0`
+- version: `0.1.2`
 - primary command: `headlessx`
 
 ## Installation
@@ -45,6 +45,21 @@ pnpm add -g @headlessx-cli/core
 headlessx --help
 ```
 
+### CLI Requirements
+
+- macOS, Linux, or Windows 11 with WSL2
+- Node.js 18+ for the published CLI itself
+- Git for `headlessx init`
+- Docker for `self-host` and `production` modes
+- Node.js 22+ and pnpm 10.32.1+ if you use `developer` mode, because the cloned HeadlessX repo uses those versions
+
+If you need the repo-pinned pnpm release:
+
+```bash
+corepack enable
+corepack use pnpm@10.32.1
+```
+
 ## Lifecycle Bootstrap
 
 The primary onboarding flow is:
@@ -59,6 +74,7 @@ Default behavior:
 - prefers branch `main`
 - uses `.env` files only
 - keeps the existing operator/API commands intact
+- uses guided modern prompts for setup and login when the terminal is interactive
 
 Useful examples:
 
@@ -116,6 +132,8 @@ Interactive login:
 ```bash
 headlessx login
 ```
+
+`headlessx login` now uses a guided prompt flow with masked API key entry.
 
 Show current config:
 

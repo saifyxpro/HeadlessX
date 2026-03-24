@@ -1,6 +1,6 @@
 ---
 name: cli
-description: Use when an agent needs to operate HeadlessX through the published `headlessx` CLI instead of calling files or APIs directly. Covers installing the CLI package, bootstrapping local HeadlessX with `headlessx init`, logging in with API URL and API key, using markdown-first terminal output, and running commands for website scraping, map, crawl, Google AI Search, Tavily, Exa, YouTube, jobs, and operators. Trigger for requests like "use the CLI", "test the CLI", "show the command", "log in with the CLI", "run HeadlessX from terminal", "bootstrap HeadlessX", or "smoke test the CLI".
+description: Use when an agent needs to operate HeadlessX through the published `headlessx` CLI instead of calling files or APIs directly. Covers installing the CLI package, bootstrapping local HeadlessX with `headlessx init`, using the guided modern setup/login prompts, logging in with API URL and API key, using markdown-first terminal output, and running commands for website scraping, map, crawl, Google AI Search, Tavily, Exa, YouTube, jobs, and operators. Trigger for requests like "use the CLI", "test the CLI", "show the command", "log in with the CLI", "run HeadlessX from terminal", "bootstrap HeadlessX", or "smoke test the CLI".
 ---
 
 # HeadlessX CLI
@@ -39,6 +39,8 @@ Use HeadlessX API credentials only. Prefer:
 ```bash
 headlessx login
 ```
+
+The CLI now uses guided modern prompts for `headlessx init` and `headlessx login` when interactive input is available.
 
 Use flags when the user already has both values:
 

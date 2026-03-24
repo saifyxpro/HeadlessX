@@ -2,7 +2,7 @@
   "name": "headlessx-web",
   "version": "2.1.1",
   "private": true,
-  "packageManager": "pnpm@9.15.0",
+  "packageManager": "pnpm@10.32.1",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=9.0.0"

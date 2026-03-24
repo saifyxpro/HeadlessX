@@ -24,7 +24,7 @@ This package does not implement MCP setup, editor skill installation, or Firecra
 
 Current package version:
 
-- `0.1.0`
+- `0.1.2`
 
 ## Workspace Fit
 
@@ -41,6 +41,21 @@ Published package:
 ```bash
 npm install -g @headlessx-cli/core
 headlessx --help
+```
+
+Requirements:
+
+- macOS, Linux, or Windows 11 with WSL2
+- Node.js 18+ for the published CLI
+- Git for `headlessx init`
+- Docker for `self-host` and `production`
+- Node.js 22+ and pnpm 10.32.1+ if you plan to use `developer` mode
+
+To align your machine with the repo-pinned pnpm release:
+
+```bash
+corepack enable
+corepack use pnpm@10.32.1
 ```
 
 Inside the monorepo:
@@ -98,6 +113,8 @@ Or let the CLI prompt for both values:
 ```bash
 headlessx login
 ```
+
+The published CLI now uses guided modern prompts for `headlessx init` and `headlessx login` when the terminal is interactive.
 
 View current config:
 
@@ -270,4 +287,4 @@ Google fields supported by `headlessx google`:
 - queue-backed routes depend on Redis and the worker
 - screenshot responses are binary image output
 - lifecycle commands are additive and do not replace operator/API commands
-- this package intentionally excludes MCP-specific commands in `0.1.0`
+- this package intentionally excludes MCP-specific commands in `0.1.2`
