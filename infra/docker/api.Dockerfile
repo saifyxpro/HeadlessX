@@ -44,10 +44,10 @@ COPY infra/docker/worker-entrypoint.sh /usr/local/bin/headlessx-worker-entrypoin
 RUN pnpm install --frozen-lockfile
 RUN pnpm rebuild better-sqlite3
 
-# Generate Prisma Client and fetch Camoufox
+# Generate Prisma Client and fetch the managed browser bundle
 WORKDIR /app/apps/api
 RUN pnpm exec prisma generate
-RUN pnpm exec camoufox-js fetch
+RUN pnpm exec headfox-js fetch
 
 # Build the API
 WORKDIR /app

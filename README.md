@@ -288,12 +288,17 @@ infra/docker/
 | @headlessx-cli/core | Published CLI package for HeadlessX operators, jobs, and search workflows. Command: `headlessx` | Available |
 | HeadlessX Agent Skills | Installable agent skill pack from this repository for Cursor, Claude Code, Warp, Windsurf, OpenCode, OpenClaw, Antigravity, and similar tools. | Available |
 
+### Available
+
+| Package | Description | Status |
+| --- | --- | --- |
+| headfox-js | Published TypeScript launcher and Playwright helper for Headfox, currently powered by Camoufox-compatible browser bundles. | Available |
+
 ### Coming Soon
 
 | Package | Description | Status |
 | --- | --- | --- |
 | headfox | HeadlessX-maintained Firefox-based anti-detect browser engine that will power the platform's next-generation browser runtime. | Planned |
-| headfox-js | TypeScript package for launching, managing, and integrating Headfox in Node.js automation and scraping flows. | Planned |
 
 ## Notes
 

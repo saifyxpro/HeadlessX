@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { Camoufox } from 'camoufox-js';
+import { Headfox } from 'headfox-js';
 import { BrowserContext, Page } from 'playwright-core';
 import { configService } from '../config/ConfigService';
 import { normalizeConfiguredProxyUrl } from '../proxy/ProxyConnection';
@@ -189,8 +189,8 @@ class BrowserService {
             },
         };
 
-        console.log(`🦊 Launching persistent Camoufox profile at ${this.profileDir} (${viewport.width}x${viewport.height})`);
-        const context = await Camoufox(camoufoxOptions) as BrowserContext;
+        console.log(`🦊 Launching persistent Headfox JS profile at ${this.profileDir} (${viewport.width}x${viewport.height})`);
+        const context = await Headfox(camoufoxOptions) as BrowserContext;
 
         context.browser()?.once('disconnected', () => {
             if (this.persistentContext === context) {
@@ -199,7 +199,7 @@ class BrowserService {
             }
         });
 
-        console.log('✅ Persistent Camoufox profile ready');
+        console.log('✅ Persistent Headfox JS profile ready');
         return context;
     }
 
