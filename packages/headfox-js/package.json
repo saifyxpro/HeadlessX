@@ -1,6 +1,6 @@
 {
 	"name": "headfox-js",
-	"version": "0.1.1",
+	"version": "0.1.12",
 	"description": "TypeScript launcher and Playwright tooling for Headfox, currently powered by Camoufox-compatible browser bundles.",
 	"license": "MPL-2.0",
 	"type": "module",

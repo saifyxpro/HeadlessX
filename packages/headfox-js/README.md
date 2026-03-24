@@ -79,26 +79,47 @@ const browser = await firefox.connect(server.wsEndpoint());
 
 ## Browser source
 
-By default, `headfox-js` downloads the currently maintained Camoufox-compatible browser bundles.
+By default, `headfox-js` downloads the official Camoufox browser bundles from `daijro/camoufox`.
 
 You can override the release source when you need to test a different fork or future Headfox-native releases:
 
 ```bash
 HEADFOX_JS_RELEASE_REPO=owner/repo
-HEADFOX_JS_ASSET_PREFIXES=headfox,camoufox
+HEADFOX_JS_RELEASE_TAG=v135.0.1-beta.24
 ```
 
 Useful env vars:
 
 - `HEADFOX_JS_RELEASE_REPO`
+- `HEADFOX_JS_RELEASE_TAG`
+- `HEADFOX_JS_ASSET_NAME`
 - `HEADFOX_JS_ASSET_PREFIXES`
 - `HEADFOX_JS_CACHE_DIR`
 
 Legacy compatibility env vars are still accepted:
 
 - `CAMOUFOX_JS_RELEASE_REPO`
+- `CAMOUFOX_JS_RELEASE_TAG`
+- `CAMOUFOX_JS_ASSET_NAME`
 - `CAMOUFOX_JS_ASSET_PREFIXES`
 - `CAMOUFOX_JS_CACHE_DIR`
+
+For deterministic installs in Docker or CI, pin a known tag and let `headfox-js` pick the matching platform asset:
+
+```bash
+HEADFOX_JS_RELEASE_REPO=daijro/camoufox
+HEADFOX_JS_RELEASE_TAG=v135.0.1-beta.24
+npx headfox-js fetch
+```
+
+If you need a custom fork with irregular asset names, set both the tag and exact asset name:
+
+```bash
+HEADFOX_JS_RELEASE_REPO=CloverLabsAI/camoufox
+HEADFOX_JS_RELEASE_TAG=webrtc-ip-by-context
+HEADFOX_JS_ASSET_NAME=roverfox-webrtc-fix.zip
+npx headfox-js fetch
+```
 
 ## Optional WebGL data support
 

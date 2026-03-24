@@ -37,26 +37,51 @@ if (!(process.platform in OS_MAP)) {
 }
 
 export const OS_NAME: "mac" | "win" | "lin" = OS_MAP[process.platform];
-const RELEASE_REPO =
-	process.env.HEADFOX_JS_RELEASE_REPO ??
-	process.env.CAMOUFOX_JS_RELEASE_REPO ??
-	"CloverLabsAI/camoufox";
+export const DEFAULT_RELEASE_REPO = "daijro/camoufox";
+
+function readEnvValue(...names: string[]): string | undefined {
+	for (const name of names) {
+		const value = process.env[name]?.trim();
+		if (value) {
+			return value;
+		}
+	}
+	return undefined;
+}
+
+export function resolveReleaseRepo(): string {
+	return (
+		readEnvValue("HEADFOX_JS_RELEASE_REPO", "CAMOUFOX_JS_RELEASE_REPO") ??
+		DEFAULT_RELEASE_REPO
+	);
+}
+
+export function resolveReleaseTag(): string | undefined {
+	return readEnvValue("HEADFOX_JS_RELEASE_TAG", "CAMOUFOX_JS_RELEASE_TAG");
+}
+
+export function resolveAssetName(): string | undefined {
+	return readEnvValue("HEADFOX_JS_ASSET_NAME", "CAMOUFOX_JS_ASSET_NAME");
+}
+
+export function resolveAssetPrefixes(): string[] {
+	return Array.from(
+		new Set(
+			(
+				readEnvValue(
+					"HEADFOX_JS_ASSET_PREFIXES",
+					"CAMOUFOX_JS_ASSET_PREFIXES",
+				) ?? "camoufox,headfox"
+			)
+				.split(",")
+				.map((value) => value.trim())
+				.filter(Boolean),
+		),
+	);
+}
+
 const CACHE_DIR_NAME =
-	process.env.HEADFOX_JS_CACHE_DIR ??
-	process.env.CAMOUFOX_JS_CACHE_DIR ??
-	"headfox";
-const ASSET_PREFIXES = Array.from(
-	new Set(
-		(
-			process.env.HEADFOX_JS_ASSET_PREFIXES ??
-			process.env.CAMOUFOX_JS_ASSET_PREFIXES ??
-			"camoufox,headfox"
-		)
-			.split(",")
-			.map((value) => value.trim())
-			.filter(Boolean),
-	),
-);
+	readEnvValue("HEADFOX_JS_CACHE_DIR", "CAMOUFOX_JS_CACHE_DIR") ?? "headfox";
 const APP_BUNDLE_CANDIDATES = ["Headfox.app", "Camoufox.app"] as const;
 
 const currentDir =
@@ -79,6 +104,42 @@ const LAUNCH_FILE_CANDIDATES: Record<"mac" | "win" | "lin", string[]> = {
 	mac: ["../MacOS/headfox", "../MacOS/camoufox"],
 	lin: ["headfox-bin", "camoufox-bin"],
 };
+
+function escapeRegex(value: string): string {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function buildAssetPattern(
+	prefixes: string[],
+	osName: "mac" | "win" | "lin",
+	arch: string,
+): RegExp {
+	return new RegExp(
+		`(?:${prefixes.map(escapeRegex).join("|")})-(.+)-(.+)-${escapeRegex(
+			osName,
+		)}\\.${escapeRegex(arch)}\\.zip$`,
+		"i",
+	);
+}
+
+export function parseVersionParts(
+	...sources: Array<string | undefined | null>
+): { version: string; release: string } | null {
+	const pattern = /(\d+(?:\.\d+){0,2})-((?:alpha|beta|rc)\.\d+)/i;
+	for (const source of sources) {
+		if (!source) {
+			continue;
+		}
+		const match = source.match(pattern);
+		if (match) {
+			return {
+				version: match[1],
+				release: match[2].toLowerCase(),
+			};
+		}
+	}
+	return null;
+}
 
 function installMissingMessage(product = "Headfox"): string {
 	return `${product} is not installed at ${INSTALL_DIR}. Please run \`headfox-js fetch\` to install.`;
@@ -194,16 +255,33 @@ class Version {
 
 const [VERSION_MIN, VERSION_MAX] = Version.buildMinMax();
 
+type GitHubAsset = {
+	name: string;
+	browser_download_url: string;
+};
+
+type GitHubRelease = {
+	name?: string;
+	tag_name?: string;
+	assets: GitHubAsset[];
+};
+
 export class GitHubDownloader {
 	githubRepo: string;
 	apiUrl: string;
+	releaseTag?: string;
 
-	constructor(githubRepo: string) {
+	constructor(githubRepo: string, releaseTag?: string) {
 		this.githubRepo = githubRepo;
-		this.apiUrl = `https://api.github.com/repos/${githubRepo}/releases`;
+		this.releaseTag = releaseTag;
+		this.apiUrl = releaseTag
+			? `https://api.github.com/repos/${githubRepo}/releases/tags/${encodeURIComponent(
+					releaseTag,
+				)}`
+			: `https://api.github.com/repos/${githubRepo}/releases`;
 	}
 
-	checkAsset(asset: any): any {
+	checkAsset(asset: GitHubAsset, _release: GitHubRelease): any {
 		return asset.browser_download_url;
 	}
 
@@ -235,11 +313,14 @@ export class GitHubDownloader {
 			);
 		}
 
-		const releases = await response.json();
+		const releaseData = await response.json();
+		const releases = Array.isArray(releaseData)
+			? releaseData
+			: [releaseData];
 
 		for (const release of releases) {
 			for (const asset of release.assets) {
-				const data = this.checkAsset(asset);
+				const data = this.checkAsset(asset, release);
 				if (data) {
 					return data;
 				}
@@ -255,32 +336,66 @@ export class HeadfoxFetcher extends GitHubDownloader {
 	_version_obj?: Version;
 	pattern: RegExp;
 	_url?: string;
+	assetNameOverride?: string;
 
 	constructor() {
-		super(RELEASE_REPO);
+		super(resolveReleaseRepo(), resolveReleaseTag());
 		this.arch = HeadfoxFetcher.getPlatformArch();
-		this.pattern = new RegExp(
-			`(?:${ASSET_PREFIXES.join("|")})-(.+)-(.+)-${OS_NAME}\\.${this.arch}\\.zip`,
-		);
+		this.assetNameOverride = resolveAssetName();
+		this.pattern = buildAssetPattern(resolveAssetPrefixes(), OS_NAME, this.arch);
 	}
 
 	async init() {
 		await this.fetchLatest();
 	}
 
-	checkAsset(asset: any): [Version, string] | null {
-		const match = asset.name.match(this.pattern);
-		if (!match) return null;
+	checkAsset(asset: GitHubAsset, release: GitHubRelease): [Version, string] | null {
+		if (this.assetNameOverride && asset.name !== this.assetNameOverride) {
+			return null;
+		}
 
-		const version = new Version(match[2], match[1]);
-		if (!version.isSupported()) return null;
+		if (!this.assetNameOverride && !asset.name.match(this.pattern)) {
+			return null;
+		}
+
+		const versionData = parseVersionParts(
+			asset.name,
+			release.name,
+			release.tag_name,
+		);
+		if (!versionData) {
+			if (this.assetNameOverride) {
+				throw new MissingRelease(
+					`Configured asset "${asset.name}" was found in ${this.githubRepo}, but headfox-js could not infer its browser version from the asset or release metadata.`,
+				);
+			}
+			return null;
+		}
+
+		const version = new Version(versionData.release, versionData.version);
+		if (!version.isSupported()) {
+			if (this.assetNameOverride) {
+				throw new UnsupportedVersion(
+					`Configured asset "${asset.name}" resolved to unsupported browser release v${version.fullString}. Supported range: (${CONSTRAINTS.asRange()}).`,
+				);
+			}
+			return null;
+		}
 
 		return [version, asset.browser_download_url];
 	}
 
 	missingAssetError(): void {
+		const location = this.releaseTag
+			? `${this.githubRepo} release tag "${this.releaseTag}"`
+			: this.githubRepo;
+		if (this.assetNameOverride) {
+			throw new MissingRelease(
+				`Could not find configured asset "${this.assetNameOverride}" in ${location}.`,
+			);
+		}
 		throw new MissingRelease(
-			`No matching release found for ${OS_NAME} ${this.arch} in the supported range: (${CONSTRAINTS.asRange()}). Please update the library.`,
+			`No matching release asset found in ${location} for ${OS_NAME} ${this.arch} in the supported range: (${CONSTRAINTS.asRange()}). Set HEADFOX_JS_RELEASE_TAG to pin a known working release when using custom forks.`,
 		);
 	}
 

@@ -3,6 +3,8 @@ FROM node:22-slim AS base
 # Install pnpm
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV HEADFOX_JS_RELEASE_REPO="daijro/camoufox"
+ENV HEADFOX_JS_RELEASE_TAG="v135.0.1-beta.24"
 RUN corepack enable
 
 # Install required dependencies for Camoufox/Playwright

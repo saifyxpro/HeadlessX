@@ -71,8 +71,8 @@ importers:
         specifier: ^5.2.1
         version: 5.2.1
       headfox-js:
-        specifier: 0.1.1
-        version: 0.1.1(playwright-core@1.58.2)
+        specifier: 0.1.12
+        version: 0.1.12(playwright-core@1.58.2)
       https-proxy-agent:
         specifier: ^7.0.6
         version: 7.0.6
@@ -4695,7 +4695,7 @@ packages:
     resolution: {integrity: sha512-YvHx8teq4QmV5mz7wdPMsj9n1OZBPnZxA4QE+EOrtx7xbmGvd1gBvDNKCb5XqS4GR/TL75MU5hqMqqqANdILRg==}
     engines: {node: '>=16.0.0'}
 
-  headfox-js@0.1.1:
+  headfox-js@0.1.12:
     resolution: {integrity: sha512-n9R2eJZdwLK16IYFN7AlME398N/R95hfeLq+NbevE7+Omd7A8lY1gwl6uc6cOh3/QTbmyXxPiYI8WdFPTaooAA==}
     engines: {node: '>=20'}
     hasBin: true
@@ -12439,7 +12439,7 @@ snapshots:
       ow: 0.28.2
       tslib: 2.8.1
 
-  headfox-js@0.1.1(playwright-core@1.58.2):
+  headfox-js@0.1.12(playwright-core@1.58.2):
     dependencies:
       adm-zip: 0.5.16
       cli-progress: 3.12.0
