@@ -24,7 +24,7 @@ It does not handle MCP setup or editor skill installation.
 ## Current Version
 
 - package: `@headlessx-cli/core`
-- version: `0.1.23`
+- version: `0.1.24`
 - primary command: `headlessx`
 
 ## Installation
@@ -126,6 +126,7 @@ Default behavior:
 
 - reuses the saved setup mode
 - updates the repo under `~/.headlessx/repo`
+- reconciles missing env keys for the saved mode
 - pulls `main` by default
 - uses `--branch <name>` only when you explicitly want another branch
 - keeps the existing env files and generated domain config in place

@@ -1,6 +1,6 @@
 {
   "name": "@headlessx-cli/core",
-  "version": "0.1.23",
+  "version": "0.1.24",
   "description": "Bootstrap and operator CLI for HeadlessX local installs, website extraction, search, YouTube, and jobs workflows.",
   "main": "dist/index.js",
   "bin": {

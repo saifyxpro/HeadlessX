@@ -210,7 +210,7 @@ headlessx restart
 headlessx stop
 ```
 
-For existing VPS or Docker installs, use `headlessx init update` to pull the latest repo state into `~/.headlessx/repo`, then run `headlessx restart`.
+For existing VPS or Docker installs, use `headlessx init update` to pull the latest repo state into `~/.headlessx/repo`, reconcile missing env keys for the saved mode, then run `headlessx restart`.
 For `self-host` and `production`, `headlessx restart` rebuilds Docker images before bringing the stack back up.
 
 HeadlessX intentionally uses uncommon localhost defaults to avoid conflicts with other tools:

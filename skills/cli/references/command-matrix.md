@@ -14,7 +14,7 @@ headlessx init --branch develop
 ```
 
 Interactive `headlessx init` now uses guided modern prompts for mode selection, required values, and confirmations.
-`headlessx init update` reuses the saved mode and existing env/config files while updating the repo.
+`headlessx init update` reuses the saved mode, fills any missing env keys needed by that mode, and updates the repo.
 
 Runtime:
 

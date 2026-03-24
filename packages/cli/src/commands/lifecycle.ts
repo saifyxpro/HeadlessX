@@ -314,6 +314,49 @@ function fallbackRuntimeUrls(mode: SetupMode): { apiUrl: string; webUrl: string 
   };
 }
 
+function parseEnvPort(value: string | undefined, fallback: number): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function syncSelfHostEnvFromCurrent(): { apiUrl: string; webUrl: string } {
+  const envPath = getDockerEnvPath();
+  ensureFileFromExample(getDockerEnvExamplePath(), envPath);
+
+  const current = readEnvFile(envPath);
+  const defaults = hostPortDefaults();
+  const ports = {
+    postgres: parseEnvPort(current.POSTGRES_HOST_PORT, defaults.postgres),
+    redis: parseEnvPort(current.REDIS_HOST_PORT, defaults.redis),
+    htmlToMarkdown: parseEnvPort(current.HTML_TO_MARKDOWN_HOST_PORT, defaults.htmlToMarkdown),
+    ytEngine: parseEnvPort(current.YT_ENGINE_HOST_PORT, defaults.ytEngine),
+    web: parseEnvPort(current.WEB_HOST_PORT, defaults.web),
+    api: parseEnvPort(current.API_HOST_PORT, defaults.api),
+  };
+
+  const apiUrl = current.NEXT_PUBLIC_API_URL?.trim() || `http://localhost:${ports.api}`;
+  const webUrl = current.FRONTEND_URL?.trim() || `http://localhost:${ports.web}`;
+
+  upsertEnvValues(envPath, {
+    POSTGRES_HOST_PORT: String(ports.postgres),
+    REDIS_HOST_PORT: String(ports.redis),
+    HTML_TO_MARKDOWN_HOST_PORT: String(ports.htmlToMarkdown),
+    YT_ENGINE_HOST_PORT: String(ports.ytEngine),
+    WEB_HOST_PORT: String(ports.web),
+    API_HOST_PORT: String(ports.api),
+    NEXT_PUBLIC_API_URL: apiUrl,
+    INTERNAL_API_URL: current.INTERNAL_API_URL?.trim() || 'http://api:8000',
+    FRONTEND_URL: webUrl,
+    DASHBOARD_INTERNAL_API_KEY: resolveSecret(current.DASHBOARD_INTERNAL_API_KEY),
+    CREDENTIAL_ENCRYPTION_KEY: resolveSecret(current.CREDENTIAL_ENCRYPTION_KEY),
+  });
+
+  return {
+    apiUrl: `http://localhost:${ports.api}`,
+    webUrl: `http://localhost:${ports.web}`,
+  };
+}
+
 async function configureSelfHost(options: InitOptions): Promise<{ apiUrl: string; webUrl: string }> {
   const envPath = getDockerEnvPath();
   ensureFileFromExample(getDockerEnvExamplePath(), envPath);
@@ -330,6 +373,39 @@ async function configureSelfHost(options: InitOptions): Promise<{ apiUrl: string
     API_HOST_PORT: String(ports.api),
     NEXT_PUBLIC_API_URL: `http://localhost:${ports.api}`,
     FRONTEND_URL: `http://localhost:${ports.web}`,
+    DASHBOARD_INTERNAL_API_KEY: resolveSecret(current.DASHBOARD_INTERNAL_API_KEY),
+    CREDENTIAL_ENCRYPTION_KEY: resolveSecret(current.CREDENTIAL_ENCRYPTION_KEY),
+  });
+
+  return {
+    apiUrl: `http://localhost:${ports.api}`,
+    webUrl: `http://localhost:${ports.web}`,
+  };
+}
+
+function syncDeveloperEnvFromCurrent(): { apiUrl: string; webUrl: string } {
+  const envPath = getRootEnvPath();
+  ensureFileFromExample(getRootEnvExamplePath(), envPath);
+
+  const current = readEnvFile(envPath);
+  const defaults = developerPortDefaults();
+  const ports = {
+    api: parseEnvPort(current.PORT, defaults.api),
+    web: parseEnvPort(current.WEB_PORT, defaults.web),
+    htmlToMarkdown: parseEnvPort(current.HTML_TO_MARKDOWN_PORT, defaults.htmlToMarkdown),
+    ytEngine: parseEnvPort(current.YT_ENGINE_PORT, defaults.ytEngine),
+  };
+
+  upsertEnvValues(envPath, {
+    PORT: String(ports.api),
+    WEB_PORT: String(ports.web),
+    HTML_TO_MARKDOWN_PORT: String(ports.htmlToMarkdown),
+    YT_ENGINE_PORT: String(ports.ytEngine),
+    YT_ENGINE_URL: current.YT_ENGINE_URL?.trim() || `http://localhost:${ports.ytEngine}`,
+    HTML_TO_MARKDOWN_SERVICE_URL:
+      current.HTML_TO_MARKDOWN_SERVICE_URL?.trim() || `http://localhost:${ports.htmlToMarkdown}`,
+    NEXT_PUBLIC_API_URL: current.NEXT_PUBLIC_API_URL?.trim() || `http://localhost:${ports.api}`,
+    INTERNAL_API_URL: current.INTERNAL_API_URL?.trim() || `http://localhost:${ports.api}`,
     DASHBOARD_INTERNAL_API_KEY: resolveSecret(current.DASHBOARD_INTERNAL_API_KEY),
     CREDENTIAL_ENCRYPTION_KEY: resolveSecret(current.CREDENTIAL_ENCRYPTION_KEY),
   });
@@ -362,6 +438,34 @@ async function configureDeveloper(options: InitOptions): Promise<{ apiUrl: strin
   return {
     apiUrl: `http://localhost:${ports.api}`,
     webUrl: `http://localhost:${ports.web}`,
+  };
+}
+
+function syncProductionEnvFromCurrent(options: InitOptions): { apiUrl: string; webUrl: string } {
+  syncSelfHostEnvFromCurrent();
+
+  const envPath = getDomainEnvPath();
+  const caddyfilePath = getDomainCaddyfilePath();
+  ensureFileFromExample(getDomainEnvExamplePath(), envPath);
+  ensureFileFromExample(getDomainCaddyTemplatePath(), caddyfilePath);
+
+  const current = readEnvFile(envPath);
+  const webDomain = current.HEADLESSX_WEB_DOMAIN?.trim() || options.webDomain?.trim();
+  const apiDomain = current.HEADLESSX_API_DOMAIN?.trim() || options.apiDomain?.trim();
+  const caddyEmail = current.CADDY_EMAIL?.trim() || options.caddyEmail?.trim();
+
+  upsertEnvValues(envPath, {
+    HEADLESSX_WEB_DOMAIN: webDomain || 'dashboard.example.com',
+    HEADLESSX_API_DOMAIN: apiDomain || 'api.example.com',
+    CADDY_EMAIL: caddyEmail || 'ops@example.com',
+    HEADLESSX_WEB_UPSTREAM: current.HEADLESSX_WEB_UPSTREAM?.trim() || 'web:3000',
+    HEADLESSX_API_UPSTREAM: current.HEADLESSX_API_UPSTREAM?.trim() || 'api:8000',
+    HEADLESSX_DOCKER_NETWORK: current.HEADLESSX_DOCKER_NETWORK?.trim() || 'docker_headlessx-network',
+  });
+
+  return {
+    apiUrl: apiDomain ? `https://${apiDomain}` : '',
+    webUrl: webDomain ? `https://${webDomain}` : '',
   };
 }
 
@@ -624,11 +728,16 @@ export async function handleInitCommand(options: InitOptions): Promise<void> {
   ensureRepo(branch);
 
   if (action === 'update') {
+    let urls: { apiUrl: string; webUrl: string };
     if (mode === 'developer') {
+      urls = syncDeveloperEnvFromCurrent();
       await maybeRunDeveloperSetup(options);
+    } else if (mode === 'production') {
+      urls = syncProductionEnvFromCurrent(options);
+    } else {
+      urls = syncSelfHostEnvFromCurrent();
     }
 
-    const urls = fallbackRuntimeUrls(mode);
     writeMode(mode);
     writeBranch(branch);
 

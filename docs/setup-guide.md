@@ -123,7 +123,7 @@ headlessx status
 headlessx doctor
 ```
 
-`headlessx init update` keeps the saved mode and env files, updates `~/.headlessx/repo`, and pulls `main` by default unless you pass `--branch`.
+`headlessx init update` keeps the saved mode, reconciles missing env keys for that mode, updates `~/.headlessx/repo`, and pulls `main` by default unless you pass `--branch`.
 For `self-host` and `production`, `headlessx restart` rebuilds Docker images before starting the stack again.
 
 ## AI Models Setup
