@@ -55,27 +55,27 @@ Environment variables:
 
 ```bash
 export HX_API_KEY=your_headlessx_api_key
-export HX_API_URL=http://localhost:8000
+export HX_API_URL=http://localhost:38473
 ```
 
 Alternative variable names also work:
 
 ```bash
 export HEADLESSX_API_KEY=your_headlessx_api_key
-export HEADLESSX_API_URL=http://localhost:8000
+export HEADLESSX_API_URL=http://localhost:38473
 ```
 
 Store credentials locally:
 
 ```bash
-headlessx login --api-key your_headlessx_api_key --api-url http://localhost:8000
+headlessx login --api-key your_headlessx_api_key --api-url http://localhost:38473
 ```
 
 Prompt only for the missing field:
 
 ```bash
 headlessx login --api-key your_headlessx_api_key
-headlessx login --api-url http://localhost:8000
+headlessx login --api-url http://localhost:38473
 ```
 
 Interactive login:
@@ -94,7 +94,7 @@ headlessx config view
 Update stored config:
 
 ```bash
-headlessx config set --api-url http://localhost:8000
+headlessx config set --api-url http://localhost:38473
 headlessx config set --api-key your_headlessx_api_key
 ```
 
@@ -118,8 +118,8 @@ headlessx logout
 For local development, `--api-url` overrides the stored or environment URL:
 
 ```bash
-headlessx --api-url http://localhost:8000 status
-headlessx --api-url http://127.0.0.1:8000 google "latest ai news"
+headlessx --api-url http://localhost:38473 status
+headlessx --api-url http://127.0.0.1:38473 google "latest ai news"
 ```
 
 ### Status
@@ -135,7 +135,7 @@ headlessx -o status.json --json --pretty status
 ```bash
 headlessx config
 headlessx config view
-headlessx config set --api-url http://localhost:8000
+headlessx config set --api-url http://localhost:38473
 headlessx config set --api-key your_headlessx_api_key
 ```
 

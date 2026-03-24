@@ -6,7 +6,7 @@ import { browserService } from './services/scrape/BrowserService';
 // Now import app after env is loaded
 import app from './app';
 
-const PORT = parseInt(process.env.PORT || '8000', 10);
+const PORT = parseInt(process.env.PORT || '38473', 10);
 const HOST = process.env.HOST || '0.0.0.0';
 
 async function startServer() {

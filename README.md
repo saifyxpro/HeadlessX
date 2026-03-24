@@ -180,6 +180,9 @@ pnpm install
 cp .env.example .env
 ```
 
+HeadlessX intentionally uses uncommon localhost defaults to avoid conflicts with other tools:
+`web=34872`, `api=38473`, `postgres=35432`, `redis=36379`, `html-to-md=38081`, `yt-engine=38090`.
+
 Current root `.env.example`:
 
 ```env
@@ -190,7 +193,7 @@ Current root `.env.example`:
 DATABASE_URL="postgresql://postgres.xxxxx:YOUR_PASSWORD@aws-0-region.pooler.supabase.com:5432/postgres"
 
 # API server
-PORT=8000
+PORT=38473
 HOST=0.0.0.0
 NODE_ENV=development
 
@@ -202,31 +205,31 @@ DASHBOARD_INTERNAL_API_KEY=replace-with-a-long-random-string
 CREDENTIAL_ENCRYPTION_KEY=replace-with-a-different-long-random-string
 
 # Queue and Redis
-REDIS_URL=redis://localhost:6379
+REDIS_URL=redis://localhost:36379
 
 # Search providers
 TAVILY_API_KEY=
 EXA_API_KEY=
 
 # Local engines
-YT_ENGINE_URL=http://localhost:8090
-YT_ENGINE_PORT=8090
+YT_ENGINE_URL=http://localhost:38090
+YT_ENGINE_PORT=38090
 YT_ENGINE_TIMEOUT_MS=45000
 YT_ENGINE_TEMP_DIR=./tmp/yt-engine
 YT_ENGINE_JOB_TTL_HOURS=12
 
-HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:8081
-HTML_TO_MARKDOWN_PORT=8081
+HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:38081
+HTML_TO_MARKDOWN_PORT=38081
 HTML_TO_MARKDOWN_TIMEOUT_MS=60000
 
 # Browser and stealth defaults are managed in the dashboard settings UI.
 
 # Web dashboard
-WEB_PORT=3000
-NEXT_PUBLIC_API_URL=http://localhost:8000
+WEB_PORT=34872
+NEXT_PUBLIC_API_URL=http://localhost:38473
 
 # Set this for Docker or custom internal networking.
-# INTERNAL_API_URL=http://localhost:8000
+# INTERNAL_API_URL=http://localhost:38473
 
 # Set this only when the dashboard is hosted on a custom origin.
 # FRONTEND_URL=https://dashboard.example.com
@@ -314,7 +317,7 @@ See the full route reference in [docs/api-endpoints.md](docs/api-endpoints.md).
 HeadlessX exposes a remote MCP endpoint from the API:
 
 ```text
-http://localhost:8000/mcp
+http://localhost:38473/mcp
 ```
 
 Use a normal API key created from the dashboard API Keys page.
@@ -328,7 +331,7 @@ Example client config:
   "mcpServers": {
     "headlessx": {
       "transport": "http",
-      "url": "http://localhost:8000/mcp",
+      "url": "http://localhost:38473/mcp",
       "headers": {
         "x-api-key": "hx_your_dashboard_created_key"
       }

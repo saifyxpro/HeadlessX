@@ -53,20 +53,20 @@ Environment variables:
 
 ```bash
 export HX_API_KEY=your-headlessx-key
-export HX_API_URL=http://localhost:8000
+export HX_API_URL=http://localhost:38473
 ```
 
 Alternative variable names also work:
 
 ```bash
 export HEADLESSX_API_KEY=your-headlessx-key
-export HEADLESSX_API_URL=http://localhost:8000
+export HEADLESSX_API_URL=http://localhost:38473
 ```
 
 Or store them locally:
 
 ```bash
-headlessx login --api-key your-headlessx-key --api-url http://localhost:8000
+headlessx login --api-key your-headlessx-key --api-url http://localhost:38473
 ```
 
 If you already have the key and only need to set the local development URL:
@@ -78,7 +78,7 @@ headlessx login --api-key your-headlessx-key
 If you already know the API URL and want the CLI to prompt only for the key:
 
 ```bash
-headlessx login --api-url http://localhost:8000
+headlessx login --api-url http://localhost:38473
 ```
 
 Or let the CLI prompt for both values:

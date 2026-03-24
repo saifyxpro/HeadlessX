@@ -37,7 +37,7 @@ headlessx login
 Use flags when the user already has both values:
 
 ```bash
-headlessx login --api-key your_headlessx_api_key --api-url http://localhost:8000
+headlessx login --api-key your_headlessx_api_key --api-url http://localhost:38473
 ```
 
 Use environment variables when the session should stay non-interactive. See `references/auth-and-output.md`.

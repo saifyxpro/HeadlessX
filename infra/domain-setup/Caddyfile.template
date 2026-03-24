@@ -1,0 +1,13 @@
+{
+	email {$CADDY_EMAIL}
+}
+
+{$HEADLESSX_WEB_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy {$HEADLESSX_WEB_UPSTREAM}
+}
+
+{$HEADLESSX_API_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy {$HEADLESSX_API_UPSTREAM}
+}

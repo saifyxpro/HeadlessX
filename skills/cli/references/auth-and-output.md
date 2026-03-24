@@ -34,14 +34,14 @@ Primary names:
 
 ```bash
 export HX_API_KEY=your_headlessx_api_key
-export HX_API_URL=http://localhost:8000
+export HX_API_URL=http://localhost:38473
 ```
 
 Alternative names:
 
 ```bash
 export HEADLESSX_API_KEY=your_headlessx_api_key
-export HEADLESSX_API_URL=http://localhost:8000
+export HEADLESSX_API_URL=http://localhost:38473
 ```
 
 ## Login Patterns
@@ -56,13 +56,13 @@ Prompt only for the missing field:
 
 ```bash
 headlessx login --api-key your_headlessx_api_key
-headlessx login --api-url http://localhost:8000
+headlessx login --api-url http://localhost:38473
 ```
 
 Direct login:
 
 ```bash
-headlessx login --api-key your_headlessx_api_key --api-url http://localhost:8000
+headlessx login --api-key your_headlessx_api_key --api-url http://localhost:38473
 ```
 
 Inspect config:

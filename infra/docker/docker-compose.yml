@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-headlessx}
     ports:
-      - "${POSTGRES_HOST_PORT:-5432}:5432"
+      - "${POSTGRES_HOST_PORT:-35432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -23,7 +23,7 @@ services:
     image: redis:7-alpine
     container_name: headlessx-redis
     ports:
-      - "${REDIS_HOST_PORT:-6379}:6379"
+      - "${REDIS_HOST_PORT:-36379}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -41,7 +41,7 @@ services:
     environment:
       - PORT=8080
     ports:
-      - "${HTML_TO_MARKDOWN_HOST_PORT:-8081}:8080"
+      - "${HTML_TO_MARKDOWN_HOST_PORT:-38081}:8080"
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
       interval: 10s
@@ -61,7 +61,7 @@ services:
       - YT_ENGINE_TEMP_DIR=${YT_ENGINE_TEMP_DIR:-/app/tmp/yt-engine}
       - YT_ENGINE_JOB_TTL_HOURS=${YT_ENGINE_JOB_TTL_HOURS:-12}
     ports:
-      - "${YT_ENGINE_PORT:-8090}:8090"
+      - "${YT_ENGINE_HOST_PORT:-38090}:8090"
     volumes:
       - yt_engine_tmp:/app/tmp/yt-engine
     healthcheck:
@@ -96,7 +96,7 @@ services:
       - HOST=${HOST:-0.0.0.0}
       - NODE_ENV=production
       - WEB_PORT=${WEB_PORT:-3000}
-      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:34872}
       - DASHBOARD_INTERNAL_API_KEY=${DASHBOARD_INTERNAL_API_KEY}
       - CREDENTIAL_ENCRYPTION_KEY=${CREDENTIAL_ENCRYPTION_KEY}
       - TAVILY_API_KEY=${TAVILY_API_KEY:-}
@@ -111,7 +111,7 @@ services:
       - QUEUE_JOB_BACKOFF_MS=${QUEUE_JOB_BACKOFF_MS:-5000}
       - QUEUE_STREAM_POLL_MS=${QUEUE_STREAM_POLL_MS:-1000}
     ports:
-      - "${PORT:-8000}:${PORT:-8000}"
+      - "${API_HOST_PORT:-38473}:${PORT:-8000}"
     volumes:
       - ../../apps/api/models:/app/apps/api/models
       - browser_profile:/app/apps/api/data/browser-profile
@@ -166,12 +166,13 @@ services:
     depends_on:
       - api
     environment:
+      - WEB_PORT=${WEB_PORT:-3000}
       - INTERNAL_API_URL=${INTERNAL_API_URL:-http://api:8000}
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:38473}
       - NODE_ENV=production
       - DASHBOARD_INTERNAL_API_KEY=${DASHBOARD_INTERNAL_API_KEY}
     ports:
-      - "${WEB_PORT:-3000}:3000"
+      - "${WEB_HOST_PORT:-34872}:3000"
     networks:
       - headlessx-network
     profiles: ["web", "all"]

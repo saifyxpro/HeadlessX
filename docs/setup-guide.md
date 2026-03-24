@@ -16,6 +16,8 @@ For most developers, the best path is:
 - Redis: Docker
 - App runtime: `pnpm dev` or `mise run dev`
 
+HeadlessX intentionally defaults to uncommon localhost ports to avoid collisions with typical `3000` and `8000` stacks.
+
 ## CLI Setup
 
 Install the published HeadlessX CLI if you want terminal access to the same API surface:
@@ -41,7 +43,7 @@ headlessx login
 Or set credentials directly:
 
 ```bash
-headlessx login --api-url http://localhost:8000 --api-key hx_your_dashboard_created_key
+headlessx login --api-url http://localhost:38473 --api-key hx_your_dashboard_created_key
 ```
 
 Important:
@@ -104,10 +106,10 @@ Install them first:
 Then configure your root `.env`:
 
 ```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/headlessx?schema=public
-REDIS_URL=redis://localhost:6379
-HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:8081
-YT_ENGINE_URL=http://localhost:8090
+DATABASE_URL=postgresql://postgres:postgres@localhost:35432/headlessx?schema=public
+REDIS_URL=redis://localhost:36379
+HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:38081
+YT_ENGINE_URL=http://localhost:38090
 ```
 
 Then start the workspace:
@@ -146,7 +148,7 @@ This avoids local Redis installation while still keeping the app runtime fast an
 HeadlessX now exposes a remote MCP endpoint from the backend:
 
 ```text
-http://localhost:8000/mcp
+http://localhost:38473/mcp
 ```
 
 Use a normal API key created from the dashboard `API Keys` page.
@@ -160,7 +162,7 @@ Example JSON client config:
   "mcpServers": {
     "headlessx": {
       "transport": "http",
-      "url": "http://localhost:8000/mcp",
+      "url": "http://localhost:38473/mcp",
       "headers": {
         "x-api-key": "hx_your_dashboard_created_key"
       }
@@ -174,7 +176,7 @@ Example TOML client config:
 ```toml
 [mcp_servers.headlessx]
 transport = "http"
-url = "http://localhost:8000/mcp"
+url = "http://localhost:38473/mcp"
 
 [mcp_servers.headlessx.headers]
 x-api-key = "hx_your_dashboard_created_key"
@@ -208,14 +210,14 @@ Use this when:
 Required:
 
 - root `.env` configured with your Supabase `DATABASE_URL`
-- `REDIS_URL=redis://localhost:6379`
+- `REDIS_URL=redis://localhost:36379`
 
 Start Redis with Docker:
 
 ```bash
 docker run -d \
   --name headlessx-redis \
-  -p 6379:6379 \
+  -p 36379:6379 \
   redis:7-alpine
 ```
 
@@ -257,7 +259,7 @@ docker run -d \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=headlessx \
-  -p 5432:5432 \
+  -p 35432:5432 \
   postgres:15-alpine
 ```
 
@@ -266,17 +268,17 @@ Start Redis:
 ```bash
 docker run -d \
   --name headlessx-redis \
-  -p 6379:6379 \
+  -p 36379:6379 \
   redis:7-alpine
 ```
 
 Then set your root `.env`:
 
 ```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/headlessx?schema=public
-REDIS_URL=redis://localhost:6379
-HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:8081
-YT_ENGINE_URL=http://localhost:8090
+DATABASE_URL=postgresql://postgres:postgres@localhost:35432/headlessx?schema=public
+REDIS_URL=redis://localhost:36379
+HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:38081
+YT_ENGINE_URL=http://localhost:38090
 ```
 
 Run the workspace:
@@ -351,13 +353,13 @@ Default ports in this repo:
 
 | Service | Default |
 | --- | --- |
-| Web | `3000` |
-| API | `8000` |
-| PostgreSQL | `5432` |
-| Redis | `6379` |
-| HTML-to-Markdown host port | `8081` |
+| Web | `34872` |
+| API | `38473` |
+| PostgreSQL | `35432` |
+| Redis | `36379` |
+| HTML-to-Markdown host port | `38081` |
 | HTML-to-Markdown container port | `8080` |
-| yt-engine | `8090` |
+| yt-engine | `38090` |
 
 ## Environment Files
 
