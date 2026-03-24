@@ -12,6 +12,33 @@ interface JsonRequestOptions extends RequestContext {
   requireAuth?: boolean;
 }
 
+function buildLoopbackCandidates(url: string): string[] {
+  const parsed = new URL(url);
+  const candidates = [parsed.toString()];
+
+  if (parsed.hostname === 'localhost' || parsed.hostname === '0.0.0.0') {
+    parsed.hostname = '127.0.0.1';
+    candidates.push(parsed.toString());
+  }
+
+  return Array.from(new Set(candidates));
+}
+
+async function fetchWithLoopbackFallback(url: string, init: RequestInit): Promise<Response> {
+  const candidates = buildLoopbackCandidates(url);
+  let lastError: unknown;
+
+  for (const candidate of candidates) {
+    try {
+      return await fetch(candidate, init);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(`Request failed for ${url}`);
+}
+
 function buildUrl(apiUrl: string, path: string, query?: URLSearchParams): string {
   const base = apiUrl.replace(/\/$/, '');
   const suffix = path.startsWith('/') ? path : `/${path}`;
@@ -65,7 +92,7 @@ export async function requestJson<T = unknown>(
   options: JsonRequestOptions
 ): Promise<T> {
   const { apiKey, apiUrl } = resolveContext(options, options.requireAuth !== false);
-  const response = await fetch(buildUrl(apiUrl, options.path), {
+  const response = await fetchWithLoopbackFallback(buildUrl(apiUrl, options.path), {
     method: options.method ?? 'GET',
     headers: buildHeaders(apiKey, options.body !== undefined),
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
@@ -87,7 +114,7 @@ export async function requestBuffer(
   options: JsonRequestOptions
 ): Promise<Buffer> {
   const { apiKey, apiUrl } = resolveContext(options, options.requireAuth !== false);
-  const response = await fetch(buildUrl(apiUrl, options.path), {
+  const response = await fetchWithLoopbackFallback(buildUrl(apiUrl, options.path), {
     method: options.method ?? 'GET',
     headers: buildHeaders(apiKey, options.body !== undefined),
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
@@ -120,7 +147,7 @@ export async function requestJsonWithQuery<T = unknown>(options: {
     }
   }
 
-  const response = await fetch(buildUrl(apiUrl, options.path, params), {
+  const response = await fetchWithLoopbackFallback(buildUrl(apiUrl, options.path, params), {
     method: 'GET',
     headers: buildHeaders(apiKey, false),
   });

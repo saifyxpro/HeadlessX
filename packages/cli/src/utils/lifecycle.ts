@@ -14,6 +14,13 @@ export interface CommandCheck {
   detail: string;
 }
 
+export interface HealthCheckResult {
+  ok: boolean;
+  detail: string;
+  url: string;
+  tried: string[];
+}
+
 export interface HostPortConfig {
   api: number;
   web: number;
@@ -378,17 +385,49 @@ export function checkCommand(name: string, args = ['--version']): CommandCheck {
   };
 }
 
-export async function checkHttpHealth(url: string): Promise<{ ok: boolean; detail: string }> {
-  try {
-    const response = await fetch(url);
-    return {
-      ok: response.ok,
-      detail: `${response.status} ${response.statusText}`,
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      detail: error instanceof Error ? error.message : 'request failed',
-    };
+export function buildHealthProbeCandidates(url: string): string[] {
+  const parsed = new URL(url);
+  const candidates = [parsed.toString()];
+
+  if (parsed.hostname === 'localhost') {
+    parsed.hostname = '127.0.0.1';
+    candidates.push(parsed.toString());
+  } else if (parsed.hostname === '0.0.0.0') {
+    parsed.hostname = '127.0.0.1';
+    candidates.push(parsed.toString());
   }
+
+  return Array.from(new Set(candidates));
+}
+
+export async function checkHttpHealth(url: string): Promise<HealthCheckResult> {
+  const candidates = buildHealthProbeCandidates(url);
+  let lastFailure = 'request failed';
+
+  for (const candidate of candidates) {
+    try {
+      const response = await fetch(candidate, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (response.ok) {
+        return {
+          ok: true,
+          detail: `${response.status} ${response.statusText}`,
+          url: candidate,
+          tried: candidates,
+        };
+      }
+
+      lastFailure = `${response.status} ${response.statusText}`;
+    } catch (error) {
+      lastFailure = error instanceof Error ? error.message : 'request failed';
+    }
+  }
+
+  return {
+    ok: false,
+    detail: lastFailure,
+    url: candidates[0] ?? url,
+    tried: candidates,
+  };
 }

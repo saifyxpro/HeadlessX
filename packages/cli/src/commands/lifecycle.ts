@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import packageJson from '../../package.json';
+import { getApiKey } from '../utils/config';
 import { writeStructured, writeText } from '../utils/output';
 import {
   checkCommand,
@@ -72,6 +73,12 @@ interface DoctorOptions {
   json?: boolean;
   pretty?: boolean;
   output?: string;
+}
+
+interface LogsOptions {
+  service?: string;
+  tail?: string;
+  follow?: boolean;
 }
 
 interface RuntimeSummary {
@@ -234,6 +241,58 @@ function getRuntimeUrls(mode: SetupMode): { apiUrl?: string; webUrl?: string } {
     apiUrl: apiHostPort ? `http://localhost:${apiHostPort}` : undefined,
     webUrl: webHostPort ? `http://localhost:${webHostPort}` : undefined,
   };
+}
+
+function resolveRuntimeTargets(runtime: RuntimeSummary, fallbackApiUrl?: string): {
+  apiUrl?: string;
+  webUrl?: string;
+} {
+  const local = runtime.local as Record<string, unknown>;
+  const apiUrl = typeof local.apiUrl === 'string' ? local.apiUrl : fallbackApiUrl;
+  const webUrl = typeof local.webUrl === 'string' ? local.webUrl : undefined;
+  return {
+    apiUrl,
+    webUrl,
+  };
+}
+
+function buildCommandChecks(mode?: SetupMode): Array<{ name: string; ok: boolean; detail: string }> {
+  const checks = [
+    checkCommand('git'),
+    checkCommand('docker'),
+    checkCommand('node', ['--version']),
+  ];
+
+  const pnpmCheck = checkCommand('pnpm', ['--version']);
+  if (mode === 'developer') {
+    checks.push(pnpmCheck);
+  } else {
+    checks.push(
+      pnpmCheck.ok
+        ? pnpmCheck
+        : {
+            name: 'pnpm',
+            ok: true,
+            detail: 'not available (optional outside developer mode)',
+          }
+    );
+  }
+
+  return checks;
+}
+
+function readTailLines(filePath: string, maxLines: number): string {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const lines = content.split(/\r?\n/);
+  return lines.slice(Math.max(0, lines.length - maxLines)).join('\n').trimEnd();
+}
+
+function parseTailValue(value?: string): number {
+  const parsed = Number(value ?? '200');
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    throw new Error('Tail must be a positive number.');
+  }
+  return Math.floor(parsed);
 }
 
 function writeRuntimeMetadata(mode: SetupMode, branch: string, extra: Partial<RuntimeState> = {}): void {
@@ -492,8 +551,11 @@ async function buildRuntimeSummary(): Promise<RuntimeSummary> {
 
   if (mode === 'production') {
     const domains = readEnvFile(getDomainEnvPath());
+    const urls = getRuntimeUrls(mode);
     const proxy = readDockerServices(getDomainComposeDir(), ['ps', '--services', '--status', 'running']);
     summary.local = {
+      apiUrl: urls.apiUrl ?? null,
+      webUrl: urls.webUrl ?? null,
       apiDomain: domains.HEADLESSX_API_DOMAIN || null,
       webDomain: domains.HEADLESSX_WEB_DOMAIN || null,
       coreServices: running,
@@ -746,16 +808,60 @@ export async function collectBootstrapStatus(): Promise<RuntimeSummary> {
   return buildRuntimeSummary();
 }
 
+export async function handleLogsCommand(options: LogsOptions): Promise<void> {
+  const mode = readMode();
+  if (!mode) {
+    throw new Error('HeadlessX is not initialized yet. Run "headlessx init" first.');
+  }
+
+  const tail = parseTailValue(options.tail);
+  const follow = options.follow ?? true;
+  const service = options.service?.trim();
+
+  if (mode === 'developer') {
+    const lastStart = readLastStart();
+    const logPath = lastStart?.logPath ?? path.join(getWorkspacePaths().logs, 'developer.log');
+    if (!fs.existsSync(logPath)) {
+      throw new Error(`Developer log file not found at ${logPath}.`);
+    }
+
+    if (follow && process.platform !== 'win32') {
+      runInteractiveCommand('tail', ['-n', String(tail), '-f', logPath]);
+      return;
+    }
+
+    writeText(readTailLines(logPath, tail));
+    return;
+  }
+
+  if (mode === 'production' && service === 'caddy') {
+    const caddyArgs = ['compose', 'logs', '--tail', String(tail)];
+    if (!follow) {
+      caddyArgs.push('--no-follow');
+    }
+    caddyArgs.push('caddy');
+    runInteractiveCommand('docker', caddyArgs, getDomainComposeDir());
+    return;
+  }
+
+  const args = ['compose', '--profile', 'all', 'logs', '--tail', String(tail)];
+  if (!follow) {
+    args.push('--no-follow');
+  }
+  if (service) {
+    args.push(service);
+  }
+
+  runInteractiveCommand('docker', args, getDockerComposeDir());
+}
+
 export async function handleDoctorCommand(options: DoctorOptions): Promise<void> {
   const mode = readMode();
   const repoPath = getWorkspacePaths().repo;
   const runtime = await buildRuntimeSummary();
-  const checks = [
-    checkCommand('git'),
-    checkCommand('docker'),
-    checkCommand('node', ['--version']),
-    checkCommand('pnpm', ['--version']),
-  ];
+  const checks = buildCommandChecks(mode ?? undefined);
+  const runtimeTargets = resolveRuntimeTargets(runtime);
+  const apiKey = getApiKey();
 
   const modelsDir = path.join(repoPath, 'apps/api/models');
   const modelChecks = {
@@ -765,17 +871,26 @@ export async function handleDoctorCommand(options: DoctorOptions): Promise<void>
       fs.existsSync(path.join(modelsDir, 'yolo26x.pt')),
   };
 
-  const runtimeUrls = mode ? getRuntimeUrls(mode) : {};
-  const apiHealth = runtimeUrls.apiUrl
-    ? await checkHttpHealth(`${runtimeUrls.apiUrl.replace(/\/$/, '')}/api/health`)
-    : { ok: false, detail: 'not configured' };
-  const webHealth = runtimeUrls.webUrl
-    ? await checkHttpHealth(runtimeUrls.webUrl)
-    : { ok: false, detail: 'not configured' };
+  const apiHealth = runtimeTargets.apiUrl
+    ? await checkHttpHealth(`${runtimeTargets.apiUrl.replace(/\/$/, '')}/api/health`)
+    : { ok: false, detail: 'not configured', url: '', tried: [] };
+  const webHealth = runtimeTargets.webUrl
+    ? await checkHttpHealth(runtimeTargets.webUrl)
+    : { ok: false, detail: 'not configured', url: '', tried: [] };
 
   const payload = {
     name: 'headlessx',
     version: packageJson.version,
+    auth: {
+      configured: Boolean(apiKey),
+      detail:
+        mode === 'developer'
+          ? 'Authentication is optional for local lifecycle management.'
+          : apiKey
+            ? 'API key available for authenticated operator routes.'
+            : 'Not logged in. Operator-specific checks will be limited until you run `headlessx login`.',
+    },
+    targets: runtimeTargets,
     runtime,
     commands: checks,
     envFiles: runtime.envFiles,

@@ -1,6 +1,6 @@
 ---
 name: cli
-description: Use when an agent needs to operate HeadlessX through the published `headlessx` CLI instead of calling files or APIs directly. Covers installing the CLI package, bootstrapping local HeadlessX with `headlessx init`, updating an existing workspace with `headlessx init update`, using the guided modern setup/login prompts, logging in with API URL and API key, using markdown-first terminal output, and running commands for website scraping, map, crawl, Google AI Search, Tavily, Exa, YouTube, jobs, and operators. Trigger for requests like "use the CLI", "test the CLI", "show the command", "log in with the CLI", "run HeadlessX from terminal", "bootstrap HeadlessX", "update HeadlessX", or "smoke test the CLI".
+description: Use when an agent needs to operate HeadlessX through the published `headlessx` CLI instead of calling files or APIs directly. Covers installing the CLI package, bootstrapping local HeadlessX with `headlessx init`, updating an existing workspace with `headlessx init update`, using the guided modern setup/login prompts, logging in with API URL and API key, reading runtime logs with `headlessx logs`, using markdown-first terminal output, and running commands for website scraping, map, crawl, Google AI Search, Tavily, Exa, YouTube, jobs, and operators. Trigger for requests like "use the CLI", "test the CLI", "show the command", "log in with the CLI", "run HeadlessX from terminal", "bootstrap HeadlessX", "update HeadlessX", "show logs", or "smoke test the CLI".
 ---
 
 # HeadlessX CLI
@@ -37,6 +37,7 @@ Update an existing workspace:
 ```bash
 headlessx init update
 headlessx restart
+headlessx logs --tail 200 --no-follow
 ```
 
 ## Authentication Workflow
@@ -108,6 +109,7 @@ When a user asks to "test the CLI", prefer:
 3. `headlessx login --help`
 4. `headlessx status`
 5. `headlessx doctor`
-6. operator-specific help or smoke commands
+6. `headlessx logs --no-follow`
+7. operator-specific help or smoke commands
 
 Use `scripts/smoke_cli.py` when you need a fast deterministic baseline.

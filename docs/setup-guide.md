@@ -96,6 +96,7 @@ headlessx init --mode production --api-domain api.example.com --web-domain dashb
 headlessx init update
 headlessx init update --branch develop
 headlessx start
+headlessx logs
 headlessx status
 headlessx stop
 headlessx restart
@@ -116,6 +117,8 @@ To update an existing CLI-managed install:
 ```bash
 headlessx init update
 headlessx restart
+headlessx logs --tail 200 --no-follow
+headlessx logs caddy --tail 100 --no-follow
 headlessx status
 headlessx doctor
 ```

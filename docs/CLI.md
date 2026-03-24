@@ -24,7 +24,7 @@ It does not handle MCP setup or editor skill installation.
 ## Current Version
 
 - package: `@headlessx-cli/core`
-- version: `0.1.21`
+- version: `0.1.22`
 - primary command: `headlessx`
 
 ## Installation
@@ -86,6 +86,7 @@ headlessx init update
 headlessx init update --branch develop
 headlessx init --branch develop
 headlessx start
+headlessx logs
 headlessx status
 headlessx stop
 headlessx restart
@@ -134,6 +135,7 @@ Recommended update flow:
 ```bash
 headlessx init update
 headlessx restart
+headlessx logs --tail 200 --no-follow
 headlessx status
 headlessx doctor
 ```
@@ -235,8 +237,8 @@ headlessx -o status.json --json --pretty status
 `status` now includes:
 
 - CLI package version
-- configured API URL
-- backend health and operator integrations
+- auth state and runtime targets
+- backend health, reachability, and operator integrations
 - local `~/.headlessx` runtime state when the bootstrap workspace exists
 
 ### Doctor
@@ -249,10 +251,25 @@ headlessx doctor -o doctor.json --json --pretty
 
 `doctor` checks:
 
-- Git, Docker, Node.js, and pnpm
+- Git, Docker, Node.js, and pnpm, with pnpm treated as optional outside `developer` mode
 - bootstrap env files
 - model file presence
-- local API and web reachability
+- local API and web reachability with loopback fallback for `localhost`
+
+### Logs
+
+```bash
+headlessx logs
+headlessx logs api
+headlessx logs web --tail 100 --no-follow
+headlessx logs caddy --tail 100 --no-follow
+```
+
+`logs` tails the saved runtime:
+
+- `developer`: the detached `pnpm dev` log file under `~/.headlessx/logs`
+- `self-host`: Docker Compose logs from `~/.headlessx/repo/infra/docker`
+- `production`: the active Docker Compose logs from the initialized workspace, including `headlessx logs caddy` for the domain proxy
 
 ### Config
 

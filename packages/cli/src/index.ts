@@ -9,6 +9,7 @@ import { handleGoogleCommand } from './commands/google';
 import {
   handleDoctorCommand,
   handleInitCommand,
+  handleLogsCommand,
   handleRestartCommand,
   handleStartCommand,
   handleStopCommand,
@@ -115,6 +116,13 @@ program
   .command('restart')
   .description('Restart the initialized HeadlessX runtime.')
   .action(handleRestartCommand);
+
+program
+  .command('logs [service]')
+  .description('Show runtime logs for the initialized HeadlessX workspace.')
+  .option('--tail <lines>', 'Number of lines to show', '200')
+  .option('--no-follow', 'Print logs and exit without streaming')
+  .action((service, options) => handleLogsCommand({ ...options, service }));
 
 program
   .command('doctor')

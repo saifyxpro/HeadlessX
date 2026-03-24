@@ -6,6 +6,7 @@ It covers two layers:
 
 - lifecycle bootstrap for local HeadlessX installs
 - direct operator/API commands against a running HeadlessX backend
+- runtime log inspection for initialized HeadlessX workspaces
 
 The operator layer wraps the current HeadlessX backend routes for:
 
@@ -24,7 +25,7 @@ This package does not implement MCP setup, editor skill installation, or Firecra
 
 Current package version:
 
-- `0.1.21`
+- `0.1.22`
 
 ## Workspace Fit
 
@@ -82,6 +83,7 @@ headlessx init update
 headlessx init update --branch develop
 headlessx init --branch develop
 headlessx start
+headlessx logs
 headlessx status
 headlessx stop
 headlessx restart
@@ -108,6 +110,8 @@ Update an existing CLI-managed workspace with:
 ```bash
 headlessx init update
 headlessx restart
+headlessx logs --tail 200 --no-follow
+headlessx logs caddy --tail 100 --no-follow
 ```
 
 `headlessx init update` reuses the saved mode, keeps the current env/config files, and pulls `main` by default unless `--branch` is provided.
@@ -188,6 +192,7 @@ headlessx --version
 headlessx config
 headlessx init
 headlessx start
+headlessx logs
 headlessx stop
 headlessx restart
 headlessx login
@@ -308,4 +313,4 @@ Google fields supported by `headlessx google`:
 - queue-backed routes depend on Redis and the worker
 - screenshot responses are binary image output
 - lifecycle commands are additive and do not replace operator/API commands
-- this package intentionally excludes MCP-specific commands in `0.1.21`
+- this package intentionally excludes MCP-specific commands in `0.1.22`

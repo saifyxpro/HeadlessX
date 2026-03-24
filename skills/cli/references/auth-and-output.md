@@ -111,3 +111,6 @@ Python helper:
 ```bash
 python3 scripts/smoke_cli.py
 ```
+
+Status and doctor do not require an API key for local reachability checks.
+When the CLI is not logged in, auth-dependent operator checks are reported as skipped instead of failed.

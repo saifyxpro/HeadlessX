@@ -20,6 +20,10 @@ Runtime:
 
 ```bash
 headlessx start
+headlessx logs
+headlessx logs api
+headlessx logs web --tail 100 --no-follow
+headlessx logs caddy --tail 100 --no-follow
 headlessx stop
 headlessx restart
 headlessx status

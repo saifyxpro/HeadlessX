@@ -37,7 +37,7 @@ Current live operator surfaces:
 
 ## What Changed In v2.1.1
 
-- Added the published HeadlessX CLI bootstrap flow with `headlessx init`, `start`, `stop`, `restart`, and `doctor`
+- Added the published HeadlessX CLI bootstrap flow with `headlessx init`, `start`, `logs`, `stop`, `restart`, `status`, and `doctor`
 - Upgraded the CLI prompt UX with guided modern setup and login prompts
 - Added Docker plus Caddy production domain scaffolding under `infra/domain-setup`
 - Moved local and Docker host defaults to rarer ports to avoid conflicts with common `3000` and `8000` stacks
@@ -205,6 +205,7 @@ headlessx init --mode production --api-domain api.example.com --web-domain dashb
 headlessx init update
 headlessx init update --branch develop
 headlessx start
+headlessx logs
 headlessx restart
 headlessx stop
 ```
