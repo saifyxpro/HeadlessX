@@ -424,6 +424,38 @@ export async function checkHttpHealth(url: string): Promise<HealthCheckResult> {
     }
   }
 
+  const nullDevice = process.platform === 'win32' ? 'NUL' : '/dev/null';
+  for (const candidate of candidates) {
+    const curlResult = runCommand('curl', [
+      '--silent',
+      '--show-error',
+      '--location',
+      '--max-time',
+      '5',
+      '--output',
+      nullDevice,
+      '--write-out',
+      '%{http_code}',
+      candidate,
+    ]);
+
+    const curlCode = Number(curlResult.stdout.trim());
+    if (Number.isFinite(curlCode) && curlCode >= 200 && curlCode < 400) {
+      return {
+        ok: true,
+        detail: `${curlCode} via curl`,
+        url: candidate,
+        tried: candidates,
+      };
+    }
+
+    if (curlResult.stderr.trim()) {
+      lastFailure = curlResult.stderr.trim().split('\n')[0] || lastFailure;
+    } else if (Number.isFinite(curlCode) && curlCode > 0) {
+      lastFailure = `${curlCode} via curl`;
+    }
+  }
+
   return {
     ok: false,
     detail: lastFailure,

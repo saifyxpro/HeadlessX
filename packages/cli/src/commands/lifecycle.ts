@@ -836,8 +836,8 @@ export async function handleLogsCommand(options: LogsOptions): Promise<void> {
 
   if (mode === 'production' && service === 'caddy') {
     const caddyArgs = ['compose', 'logs', '--tail', String(tail)];
-    if (!follow) {
-      caddyArgs.push('--no-follow');
+    if (follow) {
+      caddyArgs.push('--follow');
     }
     caddyArgs.push('caddy');
     runInteractiveCommand('docker', caddyArgs, getDomainComposeDir());
@@ -845,8 +845,8 @@ export async function handleLogsCommand(options: LogsOptions): Promise<void> {
   }
 
   const args = ['compose', '--profile', 'all', 'logs', '--tail', String(tail)];
-  if (!follow) {
-    args.push('--no-follow');
+  if (follow) {
+    args.push('--follow');
   }
   if (service) {
     args.push(service);

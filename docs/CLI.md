@@ -24,7 +24,7 @@ It does not handle MCP setup or editor skill installation.
 ## Current Version
 
 - package: `@headlessx-cli/core`
-- version: `0.1.22`
+- version: `0.1.23`
 - primary command: `headlessx`
 
 ## Installation

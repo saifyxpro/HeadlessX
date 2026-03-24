@@ -1,3 +1,5 @@
+import { request as httpRequest } from 'node:http';
+import { request as httpsRequest } from 'node:https';
 import { getApiUrl, getConfig, validateConfig } from './config';
 
 export interface RequestContext {
@@ -24,6 +26,87 @@ function buildLoopbackCandidates(url: string): string[] {
   return Array.from(new Set(candidates));
 }
 
+function normalizeHeaders(headers: HeadersInit | undefined): Record<string, string> {
+  if (!headers) {
+    return {};
+  }
+
+  if (headers instanceof Headers) {
+    return Object.fromEntries(headers.entries());
+  }
+
+  if (Array.isArray(headers)) {
+    return Object.fromEntries(headers);
+  }
+
+  return Object.fromEntries(
+    Object.entries(headers).map(([key, value]) => [key, String(value)])
+  );
+}
+
+async function requestWithNodeFallback(url: string, init: RequestInit): Promise<Response> {
+  const parsed = new URL(url);
+  const requestImpl = parsed.protocol === 'https:' ? httpsRequest : httpRequest;
+  const headers = normalizeHeaders(init.headers);
+
+  return new Promise<Response>((resolve, reject) => {
+    const req = requestImpl(
+      {
+        protocol: parsed.protocol,
+        hostname: parsed.hostname,
+        port: parsed.port || undefined,
+        path: `${parsed.pathname}${parsed.search}`,
+        method: init.method ?? 'GET',
+        headers,
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+
+        res.on('data', (chunk) => {
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        });
+
+        res.on('end', () => {
+          const responseHeaders = new Headers();
+          for (const [key, value] of Object.entries(res.headers)) {
+            if (Array.isArray(value)) {
+              for (const item of value) {
+                responseHeaders.append(key, item);
+              }
+            } else if (value !== undefined) {
+              responseHeaders.set(key, String(value));
+            }
+          }
+
+          resolve(
+            new Response(Buffer.concat(chunks), {
+              status: res.statusCode ?? 500,
+              statusText: res.statusMessage ?? '',
+              headers: responseHeaders,
+            })
+          );
+        });
+      }
+    );
+
+    req.setTimeout(5000, () => {
+      req.destroy(new Error(`Request timed out for ${url}`));
+    });
+
+    req.on('error', reject);
+
+    const body = init.body;
+    if (typeof body === 'string' || body instanceof Buffer || body instanceof Uint8Array) {
+      req.write(body);
+    } else if (body !== undefined && body !== null) {
+      reject(new Error(`Unsupported request body type for ${url}`));
+      return;
+    }
+
+    req.end();
+  });
+}
+
 async function fetchWithLoopbackFallback(url: string, init: RequestInit): Promise<Response> {
   const candidates = buildLoopbackCandidates(url);
   let lastError: unknown;
@@ -31,6 +114,14 @@ async function fetchWithLoopbackFallback(url: string, init: RequestInit): Promis
   for (const candidate of candidates) {
     try {
       return await fetch(candidate, init);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  for (const candidate of candidates) {
+    try {
+      return await requestWithNodeFallback(candidate, init);
     } catch (error) {
       lastError = error;
     }

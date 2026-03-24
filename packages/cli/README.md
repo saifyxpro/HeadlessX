@@ -25,7 +25,7 @@ This package does not implement MCP setup, editor skill installation, or Firecra
 
 Current package version:
 
-- `0.1.22`
+- `0.1.23`
 
 ## Workspace Fit
 
@@ -313,4 +313,4 @@ Google fields supported by `headlessx google`:
 - queue-backed routes depend on Redis and the worker
 - screenshot responses are binary image output
 - lifecycle commands are additive and do not replace operator/API commands
-- this package intentionally excludes MCP-specific commands in `0.1.22`
+- this package intentionally excludes MCP-specific commands in `0.1.23`
