@@ -1,4 +1,5 @@
 import packageJson from '../../package.json';
+import { collectBootstrapStatus } from './lifecycle';
 import { getApiKey, getApiUrl } from '../utils/config';
 import { requestJson } from '../utils/http';
 import { writeStructured } from '../utils/output';
@@ -12,6 +13,7 @@ interface StatusOptions {
 export async function handleStatusCommand(options: StatusOptions): Promise<void> {
   const apiKey = getApiKey();
   const apiUrl = getApiUrl();
+  const runtime = await collectBootstrapStatus();
 
   let health: unknown = null;
   let integrations: Record<string, unknown> = {};
@@ -49,6 +51,7 @@ export async function handleStatusCommand(options: StatusOptions): Promise<void>
     version: packageJson.version,
     apiUrl,
     authenticated: Boolean(apiKey),
+    runtime,
     health,
     integrations,
     queue,

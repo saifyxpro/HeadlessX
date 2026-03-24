@@ -52,6 +52,22 @@ Important:
 - package name is `@headlessx-cli/core`
 - the CLI talks to the same backend API used by the web app
 
+Bootstrap the local workspace with the CLI:
+
+```bash
+headlessx init
+```
+
+Useful variants:
+
+```bash
+headlessx init --mode self-host
+headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx start
+headlessx stop
+headlessx doctor
+```
+
 ## AI Models Setup
 
 The API CAPTCHA solver needs local model files under [apps/api/models](/home/saifyxpro/CODE/Crawl/HeadlessX/apps/api/models).

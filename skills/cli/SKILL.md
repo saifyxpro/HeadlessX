@@ -1,6 +1,6 @@
 ---
 name: cli
-description: Use when an agent needs to operate HeadlessX through the published `headlessx` CLI instead of calling files or APIs directly. Covers installing the CLI package, logging in with API URL and API key, using markdown-first terminal output, and running commands for website scraping, map, crawl, Google AI Search, Tavily, Exa, YouTube, jobs, and operators. Trigger for requests like "use the CLI", "test the CLI", "show the command", "log in with the CLI", "run HeadlessX from terminal", or "smoke test the CLI".
+description: Use when an agent needs to operate HeadlessX through the published `headlessx` CLI instead of calling files or APIs directly. Covers installing the CLI package, bootstrapping local HeadlessX with `headlessx init`, logging in with API URL and API key, using markdown-first terminal output, and running commands for website scraping, map, crawl, Google AI Search, Tavily, Exa, YouTube, jobs, and operators. Trigger for requests like "use the CLI", "test the CLI", "show the command", "log in with the CLI", "run HeadlessX from terminal", "bootstrap HeadlessX", or "smoke test the CLI".
 ---
 
 # HeadlessX CLI
@@ -24,6 +24,12 @@ Install and verify:
 ```bash
 npm install -g @headlessx-cli/core
 headlessx --help
+```
+
+Bootstrap a local workspace:
+
+```bash
+headlessx init
 ```
 
 ## Authentication Workflow
@@ -52,6 +58,7 @@ Use `--json` only when structured machine-readable output is specifically needed
 
 Read `references/command-matrix.md` before composing multi-step CLI runs. It contains:
 
+- lifecycle bootstrap commands
 - website scrape, map, and crawl examples
 - Google AI Search flags
 - Tavily, Exa, YouTube, jobs, and operators examples
@@ -81,15 +88,17 @@ npm publish --access public
 
 ## Agent Notes
 
-The CLI talks to the HeadlessX API. It does not launch its own separate browser stack.
+The CLI can bootstrap and manage a local HeadlessX workspace under `~/.headlessx`, and the operator commands still talk to the HeadlessX API.
 
 If the backend uses the persistent browser profile under `apps/api/data`, CLI requests share that backend state because they go through the same API instance.
 
 When a user asks to "test the CLI", prefer:
 
 1. `headlessx --help`
-2. `headlessx login --help`
-3. `headlessx status`
-4. operator-specific help or smoke commands
+2. `headlessx init --help`
+3. `headlessx login --help`
+4. `headlessx status`
+5. `headlessx doctor`
+6. operator-specific help or smoke commands
 
 Use `scripts/smoke_cli.py` when you need a fast deterministic baseline.

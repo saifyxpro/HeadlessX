@@ -1,5 +1,26 @@
 # Command Matrix
 
+## Lifecycle
+
+Bootstrap:
+
+```bash
+headlessx init
+headlessx init --mode self-host
+headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx init --branch develop
+```
+
+Runtime:
+
+```bash
+headlessx start
+headlessx stop
+headlessx restart
+headlessx status
+headlessx doctor
+```
+
 ## Website
 
 Scrape:

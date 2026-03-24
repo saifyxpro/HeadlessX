@@ -1,7 +1,7 @@
 {
   "name": "@headlessx-cli/core",
   "version": "0.1.0",
-  "description": "Command-line interface for HeadlessX website, search, YouTube, and jobs workflows.",
+  "description": "Bootstrap and operator CLI for HeadlessX local installs, website extraction, search, YouTube, and jobs workflows.",
   "main": "dist/index.js",
   "bin": {
     "headlessx": "dist/index.js"

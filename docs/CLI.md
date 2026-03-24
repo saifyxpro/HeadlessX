@@ -2,7 +2,12 @@
 
 This document describes the `@headlessx-cli/core` package and its `headlessx` command for HeadlessX.
 
-`headlessx` is an API-first terminal client for:
+`headlessx` is both:
+
+- a lifecycle bootstrap CLI for local HeadlessX installs
+- an API/operator terminal client for a running HeadlessX backend
+
+The operator side covers:
 
 - website scraping
 - site mapping
@@ -14,7 +19,7 @@ This document describes the `@headlessx-cli/core` package and its `headlessx` co
 - job inspection
 - operator status
 
-It does not handle MCP setup, browser login, or editor skill installation.
+It does not handle MCP setup or editor skill installation.
 
 ## Current Version
 
@@ -38,6 +43,34 @@ With pnpm:
 ```bash
 pnpm add -g @headlessx-cli/core
 headlessx --help
+```
+
+## Lifecycle Bootstrap
+
+The primary onboarding flow is:
+
+```bash
+headlessx init
+```
+
+Default behavior:
+
+- installs into `~/.headlessx`
+- prefers branch `main`
+- uses `.env` files only
+- keeps the existing operator/API commands intact
+
+Useful examples:
+
+```bash
+headlessx init
+headlessx init --mode self-host
+headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx init --branch develop
+headlessx start
+headlessx stop
+headlessx restart
+headlessx doctor
 ```
 
 ## Authentication
@@ -129,6 +162,28 @@ headlessx status
 headlessx status --json --pretty
 headlessx -o status.json --json --pretty status
 ```
+
+`status` now includes:
+
+- CLI package version
+- configured API URL
+- backend health and operator integrations
+- local `~/.headlessx` runtime state when the bootstrap workspace exists
+
+### Doctor
+
+```bash
+headlessx doctor
+headlessx doctor --json --pretty
+headlessx doctor -o doctor.json --json --pretty
+```
+
+`doctor` checks:
+
+- Git, Docker, Node.js, and pnpm
+- bootstrap env files
+- model file presence
+- local API and web reachability
 
 ### Config
 

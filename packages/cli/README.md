@@ -2,7 +2,12 @@
 
 `@headlessx-cli/core` provides the `headlessx` command-line client for HeadlessX.
 
-It wraps the current HeadlessX backend routes for:
+It covers two layers:
+
+- lifecycle bootstrap for local HeadlessX installs
+- direct operator/API commands against a running HeadlessX backend
+
+The operator layer wraps the current HeadlessX backend routes for:
 
 - website scraping
 - site mapping
@@ -13,7 +18,7 @@ It wraps the current HeadlessX backend routes for:
 - YouTube
 - job inspection
 
-This package is intentionally API-first. It does not implement browser login, MCP setup, editor skill installation, or Firecrawl cloud-browser flows.
+This package does not implement MCP setup, editor skill installation, or Firecrawl cloud-browser flows.
 
 ## Version
 
@@ -30,6 +35,13 @@ Current package version:
 - package name: `@headlessx-cli/core`
 
 ## Install
+
+Published package:
+
+```bash
+npm install -g @headlessx-cli/core
+headlessx --help
+```
 
 Inside the monorepo:
 
@@ -100,14 +112,46 @@ Clear local credentials:
 headlessx logout
 ```
 
-## Commands
+## Lifecycle Commands
+
+Primary bootstrap flow:
+
+```bash
+headlessx init
+```
+
+Common lifecycle commands:
+
+```bash
+headlessx init --mode self-host
+headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx start
+headlessx stop
+headlessx restart
+headlessx status
+headlessx doctor
+```
+
+Notes:
+
+- default install root is `~/.headlessx`
+- default branch is `main`
+- use `--branch develop` only when you explicitly want a non-default branch
+- `status` includes local runtime/bootstrap information when available
+
+## Operator Commands
 
 ### Core
 
 ```bash
 headlessx status
+headlessx doctor
 headlessx --version
 headlessx config
+headlessx init
+headlessx start
+headlessx stop
+headlessx restart
 headlessx login
 headlessx logout
 ```
@@ -225,4 +269,5 @@ Google fields supported by `headlessx google`:
 - non-health routes require `x-api-key`
 - queue-backed routes depend on Redis and the worker
 - screenshot responses are binary image output
+- lifecycle commands are additive and do not replace operator/API commands
 - this package intentionally excludes MCP-specific commands in `0.1.0`
