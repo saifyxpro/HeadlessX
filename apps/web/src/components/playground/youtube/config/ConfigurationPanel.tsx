@@ -1,6 +1,6 @@
 'use client';
 
-import { LinkSquare01Icon, PlayIcon, SubtitleIcon } from '@hugeicons/core-free-icons';
+import { LinkSquare01Icon, PlayIcon } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Input } from '@/components/ui/input';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
@@ -112,7 +112,7 @@ export function ConfigurationPanel(props: ConfigurationPanelProps) {
             <div className="space-y-6">
                 {!available && (
                     <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-700">
-                        Add `YT_ENGINE_URL` to your environment to activate the YouTube engine.
+                        Set `YT_ENGINE_URL` to your yt-engine service URL to enable the YouTube workspace.
                     </div>
                 )}
 

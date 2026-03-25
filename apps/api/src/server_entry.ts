@@ -12,7 +12,6 @@ const HOST = process.env.HOST || '0.0.0.0';
 async function startServer() {
     try {
         assertSecurityConfiguration();
-        await browserService.warmup();
 
         const server = app.listen(PORT, HOST, () => {
             console.log(`🚀 HeadlessX Backend running on http://${HOST}:${PORT}`);

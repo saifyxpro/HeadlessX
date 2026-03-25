@@ -246,7 +246,8 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
                 finishRun();
                 return;
             } catch (error) {
-                if ((error as Error).name === 'AbortError' || abortControllerRef.current.signal.aborted) {
+                const abortController = abortControllerRef.current;
+                if ((error as Error).name === 'AbortError' || abortController?.signal.aborted) {
                     throw error;
                 }
 

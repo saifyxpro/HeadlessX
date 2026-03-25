@@ -245,7 +245,7 @@ class OperatorCatalogService {
             operators.push(
                 youtubeEngineService.isConfigured()
                     ? this.buildActive(youtube)
-                    : this.buildConfigRequired(youtube, 'Add YT_ENGINE_URL')
+                    : this.buildConfigRequired(youtube, 'Set YT_ENGINE_URL to your yt-engine service URL')
             );
         }
 

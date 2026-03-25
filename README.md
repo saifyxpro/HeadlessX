@@ -2,7 +2,7 @@
 
 ![HeadlessX Logo](assets/logo-hr.svg)
 
-### Self-hosted operators for website extraction, search, and agent workflows powered by Camoufox
+### Self-hosted operators for website extraction, search, and agent workflows powered by Headfox JS and Camoufox
 
 [![Version](https://img.shields.io/badge/Version-v2.1.1-blue?style=for-the-badge)](docs/setup-guide.md)
 [![Runtime](https://img.shields.io/badge/Node.js-22+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
@@ -34,6 +34,12 @@ Current live operator surfaces:
 - YouTube
 - Queue jobs, logs, API keys, proxy management, and config management
 - Remote MCP over `/mcp`
+
+Important operator setup notes:
+
+- Google AI Search requires a one-time `Build Cookies` run in the dashboard before the first search
+- the saved Google session is kept in the shared persistent browser profile and reused later
+- the YouTube workspace is active only when `YT_ENGINE_URL` points at a healthy `yt-engine` service
 
 ## What Changed In v2.1.1
 
@@ -217,6 +223,29 @@ HeadlessX intentionally uses uncommon localhost defaults to avoid conflicts with
 `web=34872`, `api=38473`, `postgres=35432`, `redis=36379`, `html-to-md=38081`, `yt-engine=38090`.
 
 For deeper setup details, direct repo development, env files, Docker internals, and MCP/client notes, see [docs/setup-guide.md](docs/setup-guide.md).
+
+### Google AI Search First Run
+
+The first Google AI Search run now uses a shared persistent browser profile instead of a seeded browser profile committed into the repo.
+
+1. Open `/playground/operators/google/ai-search`
+2. Click `Build Cookies`
+3. Let the shared browser open Google
+4. Browse normally and solve any Google or reCAPTCHA prompt once
+5. Click `Stop Browser` to save the profile
+
+After that, the saved shared profile is reused for later Google searches.
+
+- Docker and VPS installs persist it in the `browser_profile` volume
+- local repo runs persist it under `apps/api/data/browser-profile/default`
+- the old tracked `apps/api/default-data/browser-profile` bundle has been removed
+
+### YouTube Workspace
+
+The YouTube operator is live only when `YT_ENGINE_URL` is configured.
+
+- CLI `self-host` and `production` init flows write it automatically
+- custom local setups must point `YT_ENGINE_URL` at a reachable `yt-engine` instance
 
 ## API Summary
 

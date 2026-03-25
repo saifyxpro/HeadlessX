@@ -1,28 +1,69 @@
 import Image from 'next/image';
 import {
+    Cancel01Icon,
+    CheckmarkCircle02Icon,
     Clock03Icon,
     GlobeIcon,
     LinkSquare01Icon,
+    Loading03Icon,
     Search01Icon,
     SparklesIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { PlaygroundHeaderShell } from '../shared';
+import type { GoogleCookieStatus } from './types';
 
 interface GoogleSerpHeaderProps {
     elapsedTime: number | null;
     isLoading: boolean;
-    hasResult: boolean;
-    error: string | null;
+    cookieStatus: GoogleCookieStatus | null;
+    isCookieStatusPending: boolean;
+    isCookieActionPending: boolean;
+    onBuildCookies: () => void;
+    onStopCookies: () => void;
 }
 
-export function GoogleSerpHeader({ elapsedTime, isLoading, hasResult, error }: GoogleSerpHeaderProps) {
+export function GoogleSerpHeader({
+    elapsedTime,
+    isLoading,
+    cookieStatus,
+    isCookieStatusPending,
+    isCookieActionPending,
+    onBuildCookies,
+    onStopCookies,
+}: GoogleSerpHeaderProps) {
     const modes = [
         { label: 'AI Search', icon: Search01Icon, active: true },
         { label: 'Trends', icon: SparklesIcon, active: false },
         { label: 'News', icon: GlobeIcon, active: false },
         { label: 'Finance', icon: LinkSquare01Icon, active: false },
     ] as const;
+
+    const cookieTone = isCookieStatusPending
+        ? 'border-slate-200 bg-white text-slate-500'
+        : cookieStatus?.running
+            ? 'border-blue-200 bg-blue-50 text-blue-700'
+            : cookieStatus?.ready
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                : 'border-amber-200 bg-amber-50 text-amber-700';
+
+    const cookieLabel = isCookieStatusPending
+        ? 'Checking Profile'
+        : cookieStatus?.running
+            ? 'Browser Running'
+            : cookieStatus?.ready
+                ? 'Profile Ready'
+                : 'Build Cookies Required';
+
+    const buildButtonLabel = isCookieActionPending
+        ? 'Working'
+        : cookieStatus?.running
+            ? 'Stop Browser'
+            : 'Build Cookies';
+
+    const buildButtonTitle = cookieStatus?.running
+        ? 'Close the shared Google browser session and save the current profile state.'
+        : 'Open the shared browser profile and visit Google so the session looks like a normal user instead of a fresh bot.';
 
     return (
         <PlaygroundHeaderShell
@@ -62,6 +103,43 @@ export function GoogleSerpHeader({ elapsedTime, isLoading, hasResult, error }: G
             }
             controls={
                 <>
+                    <div className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium ${cookieTone}`}>
+                        {isCookieStatusPending || isCookieActionPending || cookieStatus?.running ? (
+                            <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+                        ) : cookieStatus?.ready ? (
+                            <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-4 w-4" />
+                        ) : (
+                            <HugeiconsIcon icon={Search01Icon} className="h-4 w-4" />
+                        )}
+                        <span>{cookieLabel}</span>
+                        {!isCookieStatusPending && cookieStatus?.usingVirtualDisplay && (
+                            <span className="rounded-full border border-current/15 bg-white/60 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em]">
+                                Virtual Display
+                            </span>
+                        )}
+                    </div>
+
+                    <button
+                        type="button"
+                        title={buildButtonTitle}
+                        onClick={cookieStatus?.running ? onStopCookies : onBuildCookies}
+                        disabled={isCookieStatusPending || isCookieActionPending || isLoading}
+                        className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                            cookieStatus?.running
+                                ? 'border border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+                                : 'bg-[#1a73e8] text-white hover:bg-[#1765cb]'
+                        }`}
+                    >
+                        {isCookieActionPending ? (
+                            <HugeiconsIcon icon={Loading03Icon} className="h-4 w-4 animate-spin" />
+                        ) : cookieStatus?.running ? (
+                            <HugeiconsIcon icon={Cancel01Icon} className="h-4 w-4" />
+                        ) : (
+                            <HugeiconsIcon icon={Search01Icon} className="h-4 w-4" />
+                        )}
+                        {buildButtonLabel}
+                    </button>
+
                     <div
                         className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium font-mono transition-all ${
                             elapsedTime !== null

@@ -117,6 +117,8 @@ headlessx logs caddy --tail 100 --no-follow
 `headlessx init update` reuses the saved mode, reconciles missing env keys for that mode, keeps the current config values where possible, and pulls `main` by default unless `--branch` is provided.
 For `self-host` and `production`, `headlessx restart` rebuilds Docker images before starting the stack again.
 
+That env reconciliation now covers missing values such as `YT_ENGINE_URL`, `INTERNAL_API_URL`, and `DASHBOARD_INTERNAL_API_KEY`.
+
 ## Authentication
 
 The `headlessx` command uses HeadlessX API keys only.
@@ -221,6 +223,12 @@ headlessx google "ai funding" --gl us --hl en --tbs qdr:d
 headlessx google "ai funding" --gl us --hl en --tbs qdr:d --stealth off
 ```
 
+Important:
+
+- before the first Google search, open the dashboard Google operator and click `Build Cookies` once
+- that starts the shared browser profile used by the API
+- after you solve any Google or reCAPTCHA prompt, click `Stop Browser` so the shared profile is saved for future CLI and dashboard searches
+
 ### Tavily
 
 ```bash
@@ -246,6 +254,11 @@ headlessx youtube subtitles https://www.youtube.com/watch?v=VIDEO_ID
 headlessx youtube save https://www.youtube.com/watch?v=VIDEO_ID --quality-preset 720p
 headlessx youtube status
 ```
+
+Important:
+
+- `YT_ENGINE_URL` must point at a live `yt-engine` service or the YouTube workspace stays disabled
+- CLI `self-host` and `production` setup writes this automatically
 
 ### Jobs
 

@@ -25,7 +25,39 @@ export interface GoogleSearchOptions {
     stealth?: boolean;
 }
 
+export class GoogleSerpSetupError extends Error {
+    public readonly code: string;
+    public readonly statusCode: number;
+
+    constructor(message: string, code: string, statusCode = 412) {
+        super(message);
+        this.name = 'GoogleSerpSetupError';
+        this.code = code;
+        this.statusCode = statusCode;
+    }
+}
+
 export class GoogleSerpService {
+    public assertSearchReady(): void {
+        const cookieStatus = browserService.getGoogleCookieBootstrapStatus();
+
+        if (cookieStatus.running) {
+            throw new GoogleSerpSetupError(
+                'Google cookie browser is still open. Stop Browser after solving Google prompts, then rerun the search.',
+                'GOOGLE_COOKIE_BOOTSTRAP_ACTIVE',
+                409
+            );
+        }
+
+        if (cookieStatus.required) {
+            throw new GoogleSerpSetupError(
+                'Build Cookies once before running Google AI Search so the shared browser profile looks trusted to Google.',
+                'GOOGLE_COOKIE_BOOTSTRAP_REQUIRED',
+                412
+            );
+        }
+    }
+
     private async solveCaptcha(page: Page): Promise<boolean> {
         try {
             const { captchaSolverService } = await import('../CaptchaSolverService');
@@ -96,6 +128,7 @@ export class GoogleSerpService {
         options: GoogleSearchOptions,
         onProgress: (progress: { step: number; total: number; message: string; status: 'active' | 'completed' | 'pending' }) => void
     ): Promise<SearchResponse> {
+        this.assertSearchReady();
         const searchOptions = this.normalizeOptions(options);
         const homeUrl = this.buildGoogleHomeUrl(searchOptions);
         const startUrl = this.buildGoogleStartUrl(query, searchOptions);
@@ -438,6 +471,7 @@ export class GoogleSerpService {
     }
 
     public async search(query: string, options?: GoogleSearchOptions): Promise<SearchResponse> {
+        this.assertSearchReady();
         const searchOptions = this.normalizeOptions(options);
         const homeUrl = this.buildGoogleHomeUrl(searchOptions);
         const startUrl = this.buildGoogleStartUrl(query, searchOptions);

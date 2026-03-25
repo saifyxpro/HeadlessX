@@ -30,3 +30,18 @@ export interface GoogleSerpConfig {
     timeFilter: string;
     timeout: number;
 }
+
+export interface GoogleCookieStatus {
+    status: 'required' | 'running' | 'ready';
+    ready: boolean;
+    required: boolean;
+    running: boolean;
+    launchMode: 'headless' | 'interactive' | 'virtual' | null;
+    hasDisplay: boolean;
+    usingVirtualDisplay: boolean;
+    activePages: number;
+    profileDir: string;
+    usesSharedProfile: true;
+    startedAt: string | null;
+    message: string;
+}

@@ -131,6 +131,8 @@ Default behavior:
 - uses `--branch <name>` only when you explicitly want another branch
 - keeps the existing env files and generated domain config in place
 
+That env reconciliation now covers missing values such as `YT_ENGINE_URL`, `INTERNAL_API_URL`, and `DASHBOARD_INTERNAL_API_KEY`.
+
 Recommended update flow:
 
 ```bash
@@ -340,6 +342,12 @@ Supported fields:
 - `tbs`
 - `stealth`
 
+Important:
+
+- before the first Google search, open the dashboard Google operator and click `Build Cookies` once
+- that launches the shared browser profile used by the API
+- after you solve any Google or reCAPTCHA prompt, click `Stop Browser` so the shared profile is saved for later CLI and dashboard searches
+
 ## Tavily
 
 ```bash
@@ -367,6 +375,11 @@ headlessx youtube subtitles https://www.youtube.com/watch?v=VIDEO_ID
 headlessx youtube save https://www.youtube.com/watch?v=VIDEO_ID --quality-preset 720p
 headlessx youtube status
 ```
+
+Important:
+
+- the YouTube workspace and CLI routes stay inactive until `YT_ENGINE_URL` is configured
+- CLI `self-host` and `production` init flows write it automatically
 
 ## Jobs
 

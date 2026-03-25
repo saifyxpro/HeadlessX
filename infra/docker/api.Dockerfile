@@ -10,6 +10,7 @@ RUN corepack enable
 # Install required dependencies for Camoufox/Playwright
 RUN apt-get update && apt-get install -y \
     build-essential \
+    xvfb \
     libnss3 \
     libnspr4 \
     libatk1.0-0 \

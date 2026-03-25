@@ -126,6 +126,35 @@ headlessx doctor
 `headlessx init update` keeps the saved mode, reconciles missing env keys for that mode, updates `~/.headlessx/repo`, and pulls `main` by default unless you pass `--branch`.
 For `self-host` and `production`, `headlessx restart` rebuilds Docker images before starting the stack again.
 
+Important:
+
+- update now resyncs missing env keys for the saved mode instead of leaving older workspaces partially configured
+- that includes values such as `YT_ENGINE_URL`, `INTERNAL_API_URL`, and `DASHBOARD_INTERNAL_API_KEY`
+
+## Google AI Search Cookie Bootstrap
+
+Google AI Search now uses the shared persistent browser profile managed by the API.
+
+The first time you use the Google operator:
+
+1. Open `/playground/operators/google/ai-search`
+2. Click `Build Cookies`
+3. If a real display is available, Headfox JS opens there. Otherwise the API starts a virtual display.
+4. Browse Google normally and solve any Google or reCAPTCHA prompt once.
+5. Click `Stop Browser` to save the updated shared profile.
+
+What gets persisted:
+
+- Docker and VPS installs keep the shared profile inside the `browser_profile` volume
+- local repo runs keep it under `apps/api/data/browser-profile/default`
+- there is no longer a seeded browser profile under `apps/api/default-data/browser-profile`
+
+Until the cookie bootstrap has been completed once:
+
+- the Google config panel stays locked
+- the Google results panel stays locked
+- Google search endpoints return a setup error instead of a fake scrape failure
+
 ## AI Models Setup
 
 The API CAPTCHA solver needs local model files under [apps/api/models](/home/saifyxpro/CODE/Crawl/HeadlessX/apps/api/models).
@@ -186,6 +215,8 @@ HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:38081
 YT_ENGINE_URL=http://localhost:38090
 ```
 
+`YT_ENGINE_URL` is required to activate the YouTube workspace.
+
 Then start the workspace:
 
 ```bash
@@ -203,6 +234,7 @@ Important:
 - `pnpm dev` starts the API, worker, web, HTML-to-Markdown service, and yt-engine
 - `pnpm` does not install or start PostgreSQL or Redis for you
 - Website Crawl still requires Redis because it is queue-backed
+- YouTube stays disabled until `YT_ENGINE_URL` points at a healthy `yt-engine` service
 - if you do not want Docker, local PostgreSQL and local Redis must already be installed and running
 
 ## Mixed Local Setup
