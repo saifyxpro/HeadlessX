@@ -20,6 +20,12 @@ export interface PlaygroundOperator {
     reason: string | null;
 }
 
+export interface PlaygroundOperatorAvailability {
+    available: boolean;
+    state: PlaygroundOperatorState;
+    reason: string | null;
+}
+
 type PlaygroundOperatorsPayload = {
     success?: boolean;
     data?: {
@@ -83,6 +89,33 @@ export async function getExaAvailability() {
 export async function getYoutubeAvailability() {
     const operators = await fetchOperators();
     return operators.find((operator) => operator.id === 'youtube')?.available ?? false;
+}
+
+export async function getYoutubeAvailabilityState(): Promise<PlaygroundOperatorAvailability> {
+    const operators = await fetchOperators();
+    const youtube = operators.find((operator) => operator.id === 'youtube');
+
+    if (youtube) {
+        return {
+            available: youtube.available,
+            state: youtube.state,
+            reason: youtube.reason,
+        };
+    }
+
+    if (!backendApiUrl || !dashboardInternalApiKey) {
+        return {
+            available: false,
+            state: 'configuration_required',
+            reason: 'The dashboard internal API is not configured. Check INTERNAL_API_URL and DASHBOARD_INTERNAL_API_KEY.',
+        };
+    }
+
+    return {
+        available: false,
+        state: 'offline',
+        reason: 'The dashboard could not read operator availability from the internal API. Check API reachability and internal auth.',
+    };
 }
 
 export async function getPlaygroundAvailability() {

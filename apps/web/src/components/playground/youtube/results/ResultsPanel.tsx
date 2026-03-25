@@ -30,6 +30,7 @@ import { SaveVideoDialog } from './SaveVideoDialog';
 
 interface ResultsPanelProps {
     available: boolean;
+    unavailableReason?: string | null;
     url: string;
     result: YoutubeEngineResponse | null;
     steps: YoutubeProgressStep[];
@@ -54,6 +55,7 @@ function formatCount(value?: number | null) {
 
 export function ResultsPanel({
     available,
+    unavailableReason,
     url,
     result,
     steps,
@@ -248,7 +250,9 @@ export function ResultsPanel({
                 }
                 bodyClassName="min-h-[640px]"
             >
-                {!hasResult && !isPending && !error && <EmptyState available={available} />}
+                {!hasResult && !isPending && !error && (
+                    <EmptyState available={available} unavailableReason={unavailableReason} />
+                )}
 
                 {isPending && !hasResult && (
                     <div className="flex h-full min-h-[640px] flex-col justify-center p-8">

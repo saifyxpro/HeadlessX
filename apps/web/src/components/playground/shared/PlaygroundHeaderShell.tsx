@@ -50,7 +50,11 @@ export function PlaygroundHeaderShell({
                     </div>
                 </div>
 
-                {controls ? <div className="flex flex-wrap items-center gap-3 xl:justify-end">{controls}</div> : null}
+                {controls ? (
+                    <div className="flex w-full flex-wrap items-center justify-end gap-3 xl:w-auto">
+                        {controls}
+                    </div>
+                ) : null}
             </div>
         </div>
     );

@@ -4,7 +4,7 @@
 
 ### Self-hosted operators for website extraction, search, and agent workflows powered by Headfox JS and Camoufox
 
-[![Version](https://img.shields.io/badge/Version-v2.1.1-blue?style=for-the-badge)](docs/setup-guide.md)
+[![Version](https://img.shields.io/badge/Version-v2.1.2-blue?style=for-the-badge)](docs/setup-guide.md)
 [![Runtime](https://img.shields.io/badge/Node.js-22+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![License](https://img.shields.io/badge/License-MIT-black?style=for-the-badge)](LICENSE)
@@ -41,7 +41,7 @@ Important operator setup notes:
 - the saved Google session is kept in the shared persistent browser profile and reused later
 - the YouTube workspace is active only when `YT_ENGINE_URL` points at a healthy `yt-engine` service
 
-## What Changed In v2.1.1
+## What Changed In v2.1.2
 
 - Added the published HeadlessX CLI bootstrap flow with `headlessx init`, `start`, `logs`, `stop`, `restart`, `status`, and `doctor`
 - Upgraded the CLI prompt UX with guided modern setup and login prompts

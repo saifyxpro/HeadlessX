@@ -140,16 +140,12 @@ export function GoogleSerpHeader({
                         {buildButtonLabel}
                     </button>
 
-                    <div
-                        className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium font-mono transition-all ${
-                            elapsedTime !== null
-                                ? 'border-slate-200 bg-slate-50 text-slate-700'
-                                : 'pointer-events-none opacity-0'
-                        }`}
-                    >
-                        <HugeiconsIcon icon={Clock03Icon} className="h-4 w-4 text-slate-400" />
-                        {elapsedTime !== null ? (elapsedTime / 1000).toFixed(1) : '0.0'}s
-                    </div>
+                    {elapsedTime !== null ? (
+                        <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium font-mono text-slate-700">
+                            <HugeiconsIcon icon={Clock03Icon} className="h-4 w-4 text-slate-400" />
+                            {(elapsedTime / 1000).toFixed(1)}s
+                        </div>
+                    ) : null}
                 </>
             }
         />

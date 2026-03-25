@@ -20,7 +20,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HeadlessX v2.1.1",
+  title: "HeadlessX v2.1.2",
   description: "Advanced Stealth Scraping Engine",
   icons: {
     icon: "/favicon.svg",

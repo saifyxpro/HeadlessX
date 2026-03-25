@@ -1,6 +1,6 @@
 {
   "name": "headlessx-api",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "HeadlessX - Anti-detect browser scraping API with headfox-js and Camoufox-compatible browser bundles",
   "main": "dist/server_entry.js",
   "type": "module",
