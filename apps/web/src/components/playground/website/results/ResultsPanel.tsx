@@ -4,6 +4,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import type { ProgressStep, ScrapeResult, WebsiteTool } from '../types';
 import { useWebsiteResultState } from '../hooks/useWebsiteResultState';
 import { CrawlResults } from './CrawlResults';
+import { CrawlPageDialog } from './CrawlPageDialog';
 import { EmptyState } from './EmptyState';
 import { MapResults } from './MapResults';
 import { ProgressState } from './ProgressState';
@@ -82,6 +83,7 @@ export function ResultsPanel({
     onRetry,
 }: ResultsPanelProps) {
     const [copyTimer, setCopyTimer] = useState<number | null>(null);
+    const [crawlDialogPageKey, setCrawlDialogPageKey] = useState<string | null>(null);
     const latestStep = steps.length > 0 ? steps[steps.length - 1] : null;
     const {
         expanded,
@@ -127,6 +129,9 @@ export function ResultsPanel({
     const canToggleRaw = result?.type === 'html' || result?.type === 'html-js' || result?.type === 'markdown' || result?.type === 'crawl';
     const canCopy = Boolean(result && result.type !== 'error' && result.type !== 'image' && copyText);
     const canSave = Boolean(result && result.type !== 'error');
+    const activeCrawlDialogKey = result?.type === 'crawl' && selectedCrawlPage
+        ? `${result.data.summary.generatedAt}:${selectedCrawlPage.url}`
+        : null;
 
     const handleCopy = async () => {
         if (!copyText) {
@@ -239,13 +244,36 @@ export function ResultsPanel({
                 )}
 
                 {result && !isStreaming && !isPending && result.type === 'crawl' && (
-                    <CrawlResults
-                        data={result.data}
-                        selectedPage={selectedCrawlPage}
-                        onSelectPage={(page) => setSelectedCrawlPageUrl(page.url)}
-                        viewRaw={viewRaw}
-                        expanded={expanded}
-                    />
+                    <>
+                        <CrawlResults
+                            data={result.data}
+                            selectedPage={selectedCrawlPage}
+                            onOpenPage={(page) => {
+                                setSelectedCrawlPageUrl(page.url);
+                                setCrawlDialogPageKey(`${result.data.summary.generatedAt}:${page.url}`);
+                            }}
+                            expanded={expanded}
+                        />
+                        <CrawlPageDialog
+                            open={activeCrawlDialogKey !== null && crawlDialogPageKey === activeCrawlDialogKey}
+                            onOpenChange={(open) => {
+                                if (!open) {
+                                    setCrawlDialogPageKey(null);
+                                }
+                            }}
+                            pages={result.data.pages}
+                            selectedPage={selectedCrawlPage}
+                            onSelectPage={(page) => {
+                                setSelectedCrawlPageUrl(page.url);
+                                setCrawlDialogPageKey(`${result.data.summary.generatedAt}:${page.url}`);
+                            }}
+                            viewRaw={viewRaw}
+                            onToggleRaw={() => setViewRaw((current) => !current)}
+                            copied={copied}
+                            onCopy={handleCopy}
+                            onSave={handleDownload}
+                        />
+                    </>
                 )}
 
                 {result && !isStreaming && !isPending && result.type === 'map' && (
