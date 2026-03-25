@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { startTransition, useEffect, useState } from 'react';
 import {
     Globe02Icon,
     ArrowRight01Icon,
@@ -10,6 +10,7 @@ import {
     CommandLineIcon,
     LockKeyIcon,
     SparklesIcon,
+    ReloadIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,6 +29,14 @@ type PlaygroundOperatorVisual = {
 interface PlaygroundClientProps {
     operators: PlaygroundOperator[];
 }
+
+type PlaygroundOperatorsPayload = {
+    success?: boolean;
+    data?: {
+        operators?: PlaygroundOperator[];
+    };
+    error?: string | { message?: string };
+};
 
 const OPERATOR_VISUALS: Record<string, PlaygroundOperatorVisual> = {
     website: {
@@ -103,6 +112,10 @@ function getOperatorVisual(id: string): PlaygroundOperatorVisual {
 export function PlaygroundClient({ operators }: PlaygroundClientProps) {
     const router = useRouter();
     const [searchUrl, setSearchUrl] = useState('');
+    const [resolvedOperators, setResolvedOperators] = useState(operators);
+    const [isRefreshingOperators, setIsRefreshingOperators] = useState(operators.length === 0);
+    const [operatorsLoadError, setOperatorsLoadError] = useState<string | null>(null);
+    const [operatorsReloadKey, setOperatorsReloadKey] = useState(0);
 
     const getInactiveMessage = (operator: PlaygroundOperator) => {
         if (operator.reason) {
@@ -121,6 +134,120 @@ export function PlaygroundClient({ operators }: PlaygroundClientProps) {
         if (searchUrl.trim()) {
             router.push(`/playground/operators/website/scrape?url=${encodeURIComponent(searchUrl.trim())}`);
         }
+    };
+
+    const readOperatorCatalogError = async (response: Response) => {
+        const fallbackMessage = `Operator catalog returned ${response.status}`;
+        const contentType = response.headers.get('content-type') || '';
+
+        if (!contentType.includes('application/json')) {
+            return fallbackMessage;
+        }
+
+        const payload = (await response.json().catch(() => null)) as PlaygroundOperatorsPayload | null;
+
+        if (typeof payload?.error === 'string' && payload.error.trim()) {
+            return payload.error;
+        }
+
+        if (payload?.error && typeof payload.error === 'object' && typeof payload.error.message === 'string') {
+            return payload.error.message;
+        }
+
+        return fallbackMessage;
+    };
+
+    useEffect(() => {
+        startTransition(() => {
+            setResolvedOperators(operators);
+            setIsRefreshingOperators(operators.length === 0);
+            setOperatorsLoadError(null);
+        });
+    }, [operators]);
+
+    useEffect(() => {
+        if (resolvedOperators.length > 0) {
+            return;
+        }
+
+        const controller = new AbortController();
+        let disposed = false;
+
+        const loadOperators = async () => {
+            setIsRefreshingOperators(true);
+            setOperatorsLoadError(null);
+
+            for (let attempt = 0; attempt < 4; attempt += 1) {
+                try {
+                    const response = await fetch('/api/operators/status', {
+                        method: 'GET',
+                        cache: 'no-store',
+                        signal: controller.signal,
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(await readOperatorCatalogError(response));
+                    }
+
+                    const payload = (await response.json()) as PlaygroundOperatorsPayload;
+                    const nextOperators = payload.success ? (payload.data?.operators ?? []) : [];
+
+                    if (disposed) {
+                        return;
+                    }
+
+                    if (nextOperators.length > 0) {
+                        startTransition(() => {
+                            setResolvedOperators(nextOperators);
+                            setIsRefreshingOperators(false);
+                            setOperatorsLoadError(null);
+                        });
+                        return;
+                    }
+                } catch (error) {
+                    if (controller.signal.aborted || disposed) {
+                        return;
+                    }
+
+                    if (attempt === 3) {
+                        startTransition(() => {
+                            setIsRefreshingOperators(false);
+                            setOperatorsLoadError(
+                                error instanceof Error
+                                    ? error.message
+                                    : 'Operators are still warming up. Try again in a moment.'
+                            );
+                        });
+                        return;
+                    }
+                }
+
+                await new Promise((resolve) => setTimeout(resolve, 900 * (attempt + 1)));
+            }
+
+            if (!disposed) {
+                startTransition(() => {
+                    setIsRefreshingOperators(false);
+                    setOperatorsLoadError('Operators are still warming up. Try again in a moment.');
+                });
+            }
+        };
+
+        void loadOperators();
+
+        return () => {
+            disposed = true;
+            controller.abort();
+        };
+    }, [operatorsReloadKey, resolvedOperators.length]);
+
+    const retryOperators = () => {
+        startTransition(() => {
+            setResolvedOperators([]);
+            setIsRefreshingOperators(true);
+            setOperatorsLoadError(null);
+            setOperatorsReloadKey((current) => current + 1);
+        });
     };
 
     return (
@@ -189,8 +316,40 @@ export function PlaygroundClient({ operators }: PlaygroundClientProps) {
                 </div>
             </div>
 
+            {resolvedOperators.length === 0 ? (
+                <Card className="border-slate-200 bg-white">
+                    <CardContent className="flex flex-col items-center justify-center gap-4 px-6 py-12 text-center">
+                        <div className={cn(
+                            "flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 text-slate-500",
+                            isRefreshingOperators && "animate-pulse"
+                        )}>
+                            <HugeiconsIcon icon={ReloadIcon} size={24} className={cn(isRefreshingOperators && "animate-spin")} />
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-xl font-semibold text-slate-900">
+                                {isRefreshingOperators ? 'Loading operators' : 'Operators not available yet'}
+                            </h3>
+                            <p className="max-w-xl text-sm leading-relaxed text-slate-500">
+                                {isRefreshingOperators
+                                    ? 'HeadlessX is checking the operator catalog. This can take a moment right after the stack starts.'
+                                    : operatorsLoadError || 'The operator catalog is still warming up. Retry once the API is fully ready.'}
+                            </p>
+                        </div>
+                        {!isRefreshingOperators ? (
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={retryOperators}
+                                className="rounded-xl border-slate-300 bg-white text-slate-900 hover:bg-slate-50"
+                            >
+                                Retry operators
+                            </Button>
+                        ) : null}
+                    </CardContent>
+                </Card>
+            ) : (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {operators.map((operator) => {
+                        {resolvedOperators.map((operator) => {
                     const visual = getOperatorVisual(operator.id);
                     return operator.available ? (
                         <Link href={operator.playgroundHref} key={operator.id} className="group block h-full">
@@ -278,6 +437,7 @@ export function PlaygroundClient({ operators }: PlaygroundClientProps) {
                     );
                 })}
             </div>
+            )}
         </div>
     );
 }
