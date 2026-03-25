@@ -112,6 +112,18 @@ services:
       - QUEUE_STREAM_POLL_MS=${QUEUE_STREAM_POLL_MS:-1000}
     ports:
       - "${API_HOST_PORT:-38473}:${PORT:-8000}"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8000/api/health').then((res)=>process.exit(res.ok?0:1)).catch(()=>process.exit(1))"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
     volumes:
       - ../../apps/api/models:/app/apps/api/models
       - browser_profile:/app/apps/api/data/browser-profile
@@ -164,7 +176,8 @@ services:
       dockerfile: infra/docker/web.Dockerfile
     container_name: headlessx-web
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     environment:
       - WEB_PORT=${WEB_PORT:-3000}
       - INTERNAL_API_URL=${INTERNAL_API_URL:-http://api:8000}

@@ -31,27 +31,39 @@ const backendApiUrl =
     process.env.INTERNAL_API_URL?.trim() || process.env.NEXT_PUBLIC_API_URL?.trim();
 const dashboardInternalApiKey = process.env.DASHBOARD_INTERNAL_API_KEY?.trim();
 
+function delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function fetchOperators(): Promise<PlaygroundOperator[]> {
     if (!backendApiUrl || !dashboardInternalApiKey) {
         return [];
     }
 
-    try {
-        const response = await fetch(new URL('/api/operators/status', backendApiUrl), {
-            method: 'GET',
-            headers: { 'x-api-key': dashboardInternalApiKey },
-            cache: 'no-store',
-        });
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+            const response = await fetch(new URL('/api/operators/status', backendApiUrl), {
+                method: 'GET',
+                headers: { 'x-api-key': dashboardInternalApiKey },
+                cache: 'no-store',
+            });
 
-        if (!response.ok) {
-            return [];
+            if (!response.ok) {
+                return [];
+            }
+
+            const payload = (await response.json()) as PlaygroundOperatorsPayload;
+            return payload.success ? (payload.data?.operators ?? []) : [];
+        } catch {
+            if (attempt === 2) {
+                return [];
+            }
+
+            await delay(750 * (attempt + 1));
         }
-
-        const payload = (await response.json()) as PlaygroundOperatorsPayload;
-        return payload.success ? (payload.data?.operators ?? []) : [];
-    } catch {
-        return [];
     }
+
+    return [];
 }
 
 export async function getPlaygroundOperators() {
