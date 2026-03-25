@@ -2,9 +2,9 @@
 
 ![HeadlessX Logo](assets/logo-hr.svg)
 
-### Self-hosted operators for website extraction, search, and agent workflows powered by Camoufox
+### Self-hosted operators for website extraction, search, and agent workflows powered by Headfox JS and Camoufox
 
-[![Version](https://img.shields.io/badge/Version-v2.1.0-blue?style=for-the-badge)](docs/setup-guide.md)
+[![Version](https://img.shields.io/badge/Version-v2.1.2-blue?style=for-the-badge)](docs/setup-guide.md)
 [![Runtime](https://img.shields.io/badge/Node.js-22+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![License](https://img.shields.io/badge/License-MIT-black?style=for-the-badge)](LICENSE)
@@ -35,13 +35,19 @@ Current live operator surfaces:
 - Queue jobs, logs, API keys, proxy management, and config management
 - Remote MCP over `/mcp`
 
-## What Changed In v2.1.0
+Important operator setup notes:
 
-- Simplified the dashboard around one global browser/runtime model
-- Added Tavily, Exa, and YouTube operators
-- Added queued crawl and job flows with Redis + worker support
-- Added remote MCP secured with normal dashboard-created API keys
-- Added setup and API guides aligned with the current route tree
+- Google AI Search requires a one-time `Build Cookies` run in the dashboard before the first search
+- the saved Google session is kept in the shared persistent browser profile and reused later
+- the YouTube workspace is active only when `YT_ENGINE_URL` points at a healthy `yt-engine` service
+
+## What Changed In v2.1.2
+
+- Added the published HeadlessX CLI bootstrap flow with `headlessx init`, `start`, `logs`, `stop`, `restart`, `status`, and `doctor`
+- Upgraded the CLI prompt UX with guided modern setup and login prompts
+- Added Docker plus Caddy production domain scaffolding under `infra/domain-setup`
+- Moved local and Docker host defaults to rarer ports to avoid conflicts with common `3000` and `8000` stacks
+- Refreshed setup, CLI, and self-hosting docs around the current operator-first platform layout
 
 ## Sponsors
 
@@ -145,147 +151,101 @@ This installs the HeadlessX CLI skill from this repository so the agent can use 
 
 ## Quick Start
 
-### Requirements
+### System Requirements
+
+| Item | Minimum | Recommended |
+| --- | --- | --- |
+| OS | macOS, Linux, or Windows 11 with WSL2 | Ubuntu 22.04+/24.04, Debian 12, or Windows 11 with WSL2 |
+| CPU | 2 cores | 4+ cores |
+| RAM | 4 GB | 8-16 GB |
+| Disk | 10 GB free | 20+ GB SSD |
+| Network | outbound internet for installs, browser downloads, and APIs | stable broadband |
+
+### Runtime Dependencies
 
 - Node.js 22+
-- pnpm 9+
+- pnpm 10.32.1+
+- Git
+- Docker + Compose v2 for self-host or production mode
 - PostgreSQL
 - Redis
 - Python/uv for `yt-engine`
 - Go for the HTML-to-Markdown sidecar
 
-### Recommended Development Setup
-
-Recommended for most developers:
-
-- PostgreSQL: Supabase or Docker
-- Redis: Docker
-- App runtime: `pnpm dev` or `mise run dev`
-
-This keeps infrastructure simple while still running the app locally.
-
-### Local Development
-
-1. Clone and install:
+If your machine does not already use the pinned pnpm release, align it with:
 
 ```bash
-git clone https://github.com/saifyxpro/HeadlessX.git
-cd HeadlessX
-pnpm install
+corepack enable
+corepack use pnpm@10.32.1
 ```
 
-2. Create root `.env` from the full example:
+### Practical Sizing Notes
+
+- 4 GB RAM is enough for light local testing
+- 8 GB RAM is the better baseline for the web, API, worker, Redis, and browser runtime together
+- 16 GB RAM is safer for heavier crawl jobs, YouTube flows, or multiple concurrent browser tasks
+
+### CLI Bootstrap
+
+HeadlessX is now CLI-first for installation and local lifecycle management.
 
 ```bash
-cp .env.example .env
+npm install -g @headlessx-cli/core
+headlessx init
+headlessx status
+headlessx doctor
 ```
 
-Current root `.env.example`:
+The CLI bootstraps HeadlessX into `~/.headlessx` by default and supports three setup modes:
 
-```env
-# HeadlessX v2.1.0
-# Local development environment
+- `developer`: clone the repo, keep app services local, and use Docker only where needed for infrastructure
+- `self-host`: run the full HeadlessX stack on rare localhost ports with Docker
+- `production`: run the Docker app stack plus the Caddy/domain layer for `dashboard.yourdomain.com` and `api.yourdomain.com`
 
-# Database
-DATABASE_URL="postgresql://postgres.xxxxx:YOUR_PASSWORD@aws-0-region.pooler.supabase.com:5432/postgres"
-
-# API server
-PORT=8000
-HOST=0.0.0.0
-NODE_ENV=development
-
-# Required security
-# Used by the Next.js dashboard server to authenticate against the API.
-DASHBOARD_INTERNAL_API_KEY=replace-with-a-long-random-string
-
-# Used to encrypt stored credentials at rest.
-CREDENTIAL_ENCRYPTION_KEY=replace-with-a-different-long-random-string
-
-# Queue and Redis
-REDIS_URL=redis://localhost:6379
-
-# Search providers
-TAVILY_API_KEY=
-EXA_API_KEY=
-
-# Local engines
-YT_ENGINE_URL=http://localhost:8090
-YT_ENGINE_PORT=8090
-YT_ENGINE_TIMEOUT_MS=45000
-YT_ENGINE_TEMP_DIR=./tmp/yt-engine
-YT_ENGINE_JOB_TTL_HOURS=12
-
-HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:8081
-HTML_TO_MARKDOWN_PORT=8081
-HTML_TO_MARKDOWN_TIMEOUT_MS=60000
-
-# Browser and stealth defaults are managed in the dashboard settings UI.
-
-# Web dashboard
-WEB_PORT=3000
-NEXT_PUBLIC_API_URL=http://localhost:8000
-
-# Set this for Docker or custom internal networking.
-# INTERNAL_API_URL=http://localhost:8000
-
-# Set this only when the dashboard is hosted on a custom origin.
-# FRONTEND_URL=https://dashboard.example.com
-```
-
-If you are using Docker instead of local services, start from the complete Docker env too:
+Useful examples:
 
 ```bash
-cp infra/docker/.env.example infra/docker/.env
+headlessx init --mode developer
+headlessx init --mode self-host
+headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx init update
+headlessx init update --branch develop
+headlessx start
+headlessx logs
+headlessx restart
+headlessx stop
 ```
 
-3. Prepare services:
+For existing VPS or Docker installs, use `headlessx init update` to pull the latest repo state into `~/.headlessx/repo`, reconcile missing env keys for the saved mode, then run `headlessx restart`.
+For `self-host` and `production`, `headlessx restart` rebuilds Docker images before bringing the stack back up.
 
-```bash
-pnpm db:push
-pnpm camoufox:fetch
-```
+HeadlessX intentionally uses uncommon localhost defaults to avoid conflicts with other tools:
+`web=34872`, `api=38473`, `postgres=35432`, `redis=36379`, `html-to-md=38081`, `yt-engine=38090`.
 
-4. Start the local stack:
+For deeper setup details, direct repo development, env files, Docker internals, and MCP/client notes, see [docs/setup-guide.md](docs/setup-guide.md).
 
-```bash
-pnpm dev
-```
+### Google AI Search First Run
 
-This starts:
+The first Google AI Search run now uses a shared persistent browser profile instead of a seeded browser profile committed into the repo.
 
-- web
-- api
-- worker
-- HTML-to-Markdown service
-- yt-engine
+1. Open `/playground/operators/google/ai-search`
+2. Click `Build Cookies`
+3. Let the shared browser open Google
+4. Browse normally and solve any Google or reCAPTCHA prompt once
+5. Click `Stop Browser` to save the profile
 
-Important:
+After that, the saved shared profile is reused for later Google searches.
 
-- `pnpm dev` does not provision PostgreSQL or Redis
-- Website Crawl requires both Redis and the worker
+- Docker and VPS installs persist it in the `browser_profile` volume
+- local repo runs persist it under `apps/api/data/browser-profile/default`
+- the old tracked `apps/api/default-data/browser-profile` bundle has been removed
 
-## Docker
+### YouTube Workspace
 
-For the current Docker path:
+The YouTube operator is live only when `YT_ENGINE_URL` is configured.
 
-```bash
-cp infra/docker/.env.example infra/docker/.env
-cd infra/docker
-docker compose --profile all up --build -d
-```
-
-Important notes:
-
-- use `--profile all`
-- partial profile runs are not currently reliable because of `depends_on` relationships
-- full Docker now includes `yt-engine`, so YouTube works inside the same compose stack
-
-See [docs/setup-guide.md](docs/setup-guide.md) for the full matrix:
-
-- no-Docker setup
-- mixed local setup
-- full Docker setup
-- MCP client configuration
+- CLI `self-host` and `production` init flows write it automatically
+- custom local setups must point `YT_ENGINE_URL` at a reachable `yt-engine` instance
 
 ## API Summary
 
@@ -314,7 +274,7 @@ See the full route reference in [docs/api-endpoints.md](docs/api-endpoints.md).
 HeadlessX exposes a remote MCP endpoint from the API:
 
 ```text
-http://localhost:8000/mcp
+http://localhost:38473/mcp
 ```
 
 Use a normal API key created from the dashboard API Keys page.
@@ -328,7 +288,7 @@ Example client config:
   "mcpServers": {
     "headlessx": {
       "transport": "http",
-      "url": "http://localhost:8000/mcp",
+      "url": "http://localhost:38473/mcp",
       "headers": {
         "x-api-key": "hx_your_dashboard_created_key"
       }
@@ -358,12 +318,17 @@ infra/docker/
 | @headlessx-cli/core | Published CLI package for HeadlessX operators, jobs, and search workflows. Command: `headlessx` | Available |
 | HeadlessX Agent Skills | Installable agent skill pack from this repository for Cursor, Claude Code, Warp, Windsurf, OpenCode, OpenClaw, Antigravity, and similar tools. | Available |
 
+### Available
+
+| Package | Description | Status |
+| --- | --- | --- |
+| headfox-js | Published TypeScript launcher and Playwright helper for Headfox, currently powered by Camoufox-compatible browser bundles. | Available |
+
 ### Coming Soon
 
 | Package | Description | Status |
 | --- | --- | --- |
 | headfox | HeadlessX-maintained Firefox-based anti-detect browser engine that will power the platform's next-generation browser runtime. | Planned |
-| headfox-js | TypeScript package for launching, managing, and integrating Headfox in Node.js automation and scraping flows. | Planned |
 
 ## Notes
 

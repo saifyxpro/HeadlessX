@@ -2,7 +2,12 @@
 
 This document describes the `@headlessx-cli/core` package and its `headlessx` command for HeadlessX.
 
-`headlessx` is an API-first terminal client for:
+`headlessx` is both:
+
+- a lifecycle bootstrap CLI for local HeadlessX installs
+- an API/operator terminal client for a running HeadlessX backend
+
+The operator side covers:
 
 - website scraping
 - site mapping
@@ -14,12 +19,12 @@ This document describes the `@headlessx-cli/core` package and its `headlessx` co
 - job inspection
 - operator status
 
-It does not handle MCP setup, browser login, or editor skill installation.
+It does not handle MCP setup or editor skill installation.
 
 ## Current Version
 
 - package: `@headlessx-cli/core`
-- version: `0.1.0`
+- version: `0.1.24`
 - primary command: `headlessx`
 
 ## Installation
@@ -40,6 +45,106 @@ pnpm add -g @headlessx-cli/core
 headlessx --help
 ```
 
+### CLI Requirements
+
+- macOS, Linux, or Windows 11 with WSL2
+- Node.js 18+ for the published CLI itself
+- Git for `headlessx init`
+- Docker for `self-host` and `production` modes
+- Node.js 22+ and pnpm 10.32.1+ if you use `developer` mode, because the cloned HeadlessX repo uses those versions
+
+If you need the repo-pinned pnpm release:
+
+```bash
+corepack enable
+corepack use pnpm@10.32.1
+```
+
+## Lifecycle Bootstrap
+
+The primary onboarding flow is:
+
+```bash
+headlessx init
+```
+
+Default behavior:
+
+- installs into `~/.headlessx`
+- prefers branch `main`
+- uses `.env` files only
+- keeps the existing operator/API commands intact
+- uses guided modern prompts for setup and login when the terminal is interactive
+
+Useful examples:
+
+```bash
+headlessx init
+headlessx init --mode self-host
+headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx init update
+headlessx init update --branch develop
+headlessx init --branch develop
+headlessx start
+headlessx logs
+headlessx status
+headlessx stop
+headlessx restart
+headlessx doctor
+```
+
+## Workspace Layout
+
+By default, the bootstrap flow uses:
+
+- workspace root: `~/.headlessx`
+- cloned repo: `~/.headlessx/repo`
+- runtime metadata directory: `~/.headlessx/runtime/`
+- last start state: `~/.headlessx/runtime/last-start.json`
+- self-host env: `~/.headlessx/repo/infra/docker/.env`
+- production env: `~/.headlessx/repo/infra/domain-setup/.env`
+- production Caddy config: `~/.headlessx/repo/infra/domain-setup/Caddyfile`
+
+Recommended verification after `headlessx init` or `headlessx start`:
+
+```bash
+headlessx status
+headlessx doctor
+```
+
+Use `headlessx stop` to tear down the Docker stack started by the lifecycle commands.
+
+## Updating An Existing Workspace
+
+Use:
+
+```bash
+headlessx init update
+```
+
+Default behavior:
+
+- reuses the saved setup mode
+- updates the repo under `~/.headlessx/repo`
+- reconciles missing env keys for the saved mode
+- pulls `main` by default
+- uses `--branch <name>` only when you explicitly want another branch
+- keeps the existing env files and generated domain config in place
+
+That env reconciliation now covers missing values such as `YT_ENGINE_URL`, `INTERNAL_API_URL`, and `DASHBOARD_INTERNAL_API_KEY`.
+
+Recommended update flow:
+
+```bash
+headlessx init update
+headlessx restart
+headlessx logs --tail 200 --no-follow
+headlessx status
+headlessx doctor
+```
+
+For `self-host` and `production`, `headlessx restart` rebuilds Docker images before bringing the stack back up.
+
 ## Authentication
 
 The `headlessx` command uses HeadlessX API keys only.
@@ -55,27 +160,27 @@ Environment variables:
 
 ```bash
 export HX_API_KEY=your_headlessx_api_key
-export HX_API_URL=http://localhost:8000
+export HX_API_URL=http://localhost:38473
 ```
 
 Alternative variable names also work:
 
 ```bash
 export HEADLESSX_API_KEY=your_headlessx_api_key
-export HEADLESSX_API_URL=http://localhost:8000
+export HEADLESSX_API_URL=http://localhost:38473
 ```
 
 Store credentials locally:
 
 ```bash
-headlessx login --api-key your_headlessx_api_key --api-url http://localhost:8000
+headlessx login --api-key your_headlessx_api_key --api-url http://localhost:38473
 ```
 
 Prompt only for the missing field:
 
 ```bash
 headlessx login --api-key your_headlessx_api_key
-headlessx login --api-url http://localhost:8000
+headlessx login --api-url http://localhost:38473
 ```
 
 Interactive login:
@@ -83,6 +188,8 @@ Interactive login:
 ```bash
 headlessx login
 ```
+
+`headlessx login` now uses a guided prompt flow with masked API key entry.
 
 Show current config:
 
@@ -94,7 +201,7 @@ headlessx config view
 Update stored config:
 
 ```bash
-headlessx config set --api-url http://localhost:8000
+headlessx config set --api-url http://localhost:38473
 headlessx config set --api-key your_headlessx_api_key
 ```
 
@@ -118,8 +225,8 @@ headlessx logout
 For local development, `--api-url` overrides the stored or environment URL:
 
 ```bash
-headlessx --api-url http://localhost:8000 status
-headlessx --api-url http://127.0.0.1:8000 google "latest ai news"
+headlessx --api-url http://localhost:38473 status
+headlessx --api-url http://127.0.0.1:38473 google "latest ai news"
 ```
 
 ### Status
@@ -130,12 +237,49 @@ headlessx status --json --pretty
 headlessx -o status.json --json --pretty status
 ```
 
+`status` now includes:
+
+- CLI package version
+- auth state and runtime targets
+- backend health, reachability, and operator integrations
+- local `~/.headlessx` runtime state when the bootstrap workspace exists
+
+### Doctor
+
+```bash
+headlessx doctor
+headlessx doctor --json --pretty
+headlessx doctor -o doctor.json --json --pretty
+```
+
+`doctor` checks:
+
+- Git, Docker, Node.js, and pnpm, with pnpm treated as optional outside `developer` mode
+- bootstrap env files
+- model file presence
+- local API and web reachability with loopback fallback for `localhost`
+
+### Logs
+
+```bash
+headlessx logs
+headlessx logs api
+headlessx logs web --tail 100 --no-follow
+headlessx logs caddy --tail 100 --no-follow
+```
+
+`logs` tails the saved runtime:
+
+- `developer`: the detached `pnpm dev` log file under `~/.headlessx/logs`
+- `self-host`: Docker Compose logs from `~/.headlessx/repo/infra/docker`
+- `production`: the active Docker Compose logs from the initialized workspace, including `headlessx logs caddy` for the domain proxy
+
 ### Config
 
 ```bash
 headlessx config
 headlessx config view
-headlessx config set --api-url http://localhost:8000
+headlessx config set --api-url http://localhost:38473
 headlessx config set --api-key your_headlessx_api_key
 ```
 
@@ -198,6 +342,12 @@ Supported fields:
 - `tbs`
 - `stealth`
 
+Important:
+
+- before the first Google search, open the dashboard Google operator and click `Build Cookies` once
+- that launches the shared browser profile used by the API
+- after you solve any Google or reCAPTCHA prompt, click `Stop Browser` so the shared profile is saved for later CLI and dashboard searches
+
 ## Tavily
 
 ```bash
@@ -225,6 +375,11 @@ headlessx youtube subtitles https://www.youtube.com/watch?v=VIDEO_ID
 headlessx youtube save https://www.youtube.com/watch?v=VIDEO_ID --quality-preset 720p
 headlessx youtube status
 ```
+
+Important:
+
+- the YouTube workspace and CLI routes stay inactive until `YT_ENGINE_URL` is configured
+- CLI `self-host` and `production` init flows write it automatically
 
 ## Jobs
 

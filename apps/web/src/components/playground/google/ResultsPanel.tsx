@@ -12,7 +12,7 @@ import {
     SourceCodeSquareIcon,
 } from '@hugeicons/core-free-icons';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { SearchResponse, ProgressStep } from './types';
+import { ProgressStep, SearchResponse, GoogleCookieStatus } from './types';
 import { PlaygroundEmptyState, ResultsPanelShell } from '../shared';
 
 interface ResultsPanelProps {
@@ -23,6 +23,12 @@ interface ResultsPanelProps {
     steps: ProgressStep[];
     elapsedTime: number | null;
     onRetry: () => void;
+    cookieStatus: GoogleCookieStatus | null;
+    isCookieStatusPending: boolean;
+    isCookieActionPending: boolean;
+    cookieError: string | null;
+    onBuildCookies: () => void;
+    onStopCookies: () => void;
 }
 
 function ResultStat({
@@ -105,6 +111,116 @@ function ProgressState({ steps }: { steps: ProgressStep[] }) {
     );
 }
 
+function CookieSetupState({
+    cookieStatus,
+    isCookieStatusPending,
+    isCookieActionPending,
+    cookieError,
+    onBuildCookies,
+    onStopCookies,
+}: {
+    cookieStatus: GoogleCookieStatus | null;
+    isCookieStatusPending: boolean;
+    isCookieActionPending: boolean;
+    cookieError: string | null;
+    onBuildCookies: () => void;
+    onStopCookies: () => void;
+}) {
+    const running = cookieStatus?.running;
+    const title = isCookieStatusPending
+        ? 'Checking the shared Google profile'
+        : running
+            ? 'Finish the cookie session in the browser'
+            : 'Build Google cookies before searching';
+    const body = cookieError
+        ?? cookieStatus?.message
+        ?? 'Open the shared browser profile, interact with Google once, solve any CAPTCHA, then stop the browser to save the session.';
+
+    return (
+        <div className="absolute inset-0 overflow-auto bg-[linear-gradient(180deg,rgba(255,255,255,1),rgba(248,250,252,1))] px-6 py-8">
+            <div className="mx-auto flex h-full max-w-3xl items-center justify-center">
+                <div className="w-full rounded-[2rem] border border-slate-200 bg-white p-8 shadow-[0_30px_70px_-40px_rgba(15,23,42,0.32)]">
+                    <div className="flex items-start gap-4">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.35rem] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(66,133,244,0.2),_transparent_55%),radial-gradient(circle_at_bottom_right,_rgba(251,188,5,0.16),_transparent_50%),linear-gradient(135deg,rgba(255,255,255,1),rgba(248,250,252,1))] text-slate-900">
+                            <HugeiconsIcon
+                                icon={isCookieStatusPending || isCookieActionPending || running ? Loading03Icon : Search01Icon}
+                                className={`h-6 w-6 ${isCookieStatusPending || isCookieActionPending || running ? 'animate-spin text-blue-500' : 'text-slate-700'}`}
+                            />
+                        </div>
+                        <div className="min-w-0">
+                            <div className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">Google Trust Bootstrap</div>
+                            <h3 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{title}</h3>
+                            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">{body}</p>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap gap-2">
+                        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                            Shared Profile
+                        </span>
+                        <span className={`rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] ${
+                            cookieStatus?.usingVirtualDisplay
+                                ? 'border-blue-200 bg-blue-50 text-blue-700'
+                                : cookieStatus
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                    : 'border-slate-200 bg-white text-slate-500'
+                        }`}>
+                            {cookieStatus?.usingVirtualDisplay ? 'Virtual Display' : cookieStatus ? 'Display Attached' : 'Profile Unknown'}
+                        </span>
+                        {cookieStatus?.ready && !running && (
+                            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                                Saved
+                            </span>
+                        )}
+                    </div>
+
+                    <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                        <div className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">How It Works</div>
+                        <div className="mt-3 grid gap-3 md:grid-cols-3">
+                            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                                <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">1. Open</div>
+                                <div className="mt-2 text-sm font-semibold leading-6 text-slate-800">Start the shared browser profile on Google.</div>
+                            </div>
+                            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                                <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">2. Solve</div>
+                                <div className="mt-2 text-sm font-semibold leading-6 text-slate-800">Browse Google normally and clear any reCAPTCHA once.</div>
+                            </div>
+                            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                                <div className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400">3. Save</div>
+                                <div className="mt-2 text-sm font-semibold leading-6 text-slate-800">Stop the browser to keep the updated session inside the shared profile.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex flex-wrap items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={running ? onStopCookies : onBuildCookies}
+                            disabled={isCookieStatusPending || isCookieActionPending}
+                            className={`inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
+                                running
+                                    ? 'border border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+                                    : 'bg-[#1a73e8] text-white hover:bg-[#1765cb]'
+                            }`}
+                        >
+                            <HugeiconsIcon
+                                icon={isCookieActionPending ? Loading03Icon : running ? Cancel01Icon : Search01Icon}
+                                className={`h-4 w-4 ${isCookieActionPending ? 'animate-spin' : ''}`}
+                            />
+                            {isCookieActionPending ? 'Working' : running ? 'Stop Browser' : 'Build Cookies'}
+                        </button>
+                        <div className="text-sm text-slate-500">
+                            {running
+                                ? 'Search stays locked until the browser session is stopped.'
+                                : 'The Google search config unlocks after the shared profile has a saved cookie session.'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function renderOverviewContent(content: string) {
     const normalized = content
         .replace(/\r/g, '\n')
@@ -138,7 +254,9 @@ function renderOverviewContent(content: string) {
 
                     try {
                         hostname = new URL(block).hostname.replace(/^www\./, '');
-                    } catch { }
+                    } catch {
+                        // Ignore malformed URLs in the overview formatting.
+                    }
 
                     return (
                         <a
@@ -194,6 +312,12 @@ export function ResultsPanel({
     steps,
     elapsedTime,
     onRetry,
+    cookieStatus,
+    isCookieStatusPending,
+    isCookieActionPending,
+    cookieError,
+    onBuildCookies,
+    onStopCookies,
 }: ResultsPanelProps) {
     const [viewMode, setViewMode] = useState<'visual' | 'raw'>('visual');
     const [copied, setCopied] = useState(false);
@@ -218,6 +342,27 @@ export function ResultsPanel({
             return {
                 label: 'Ready',
                 tone: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+            };
+        }
+
+        if (isCookieStatusPending) {
+            return {
+                label: 'Checking Profile',
+                tone: 'border-slate-200 bg-white text-slate-500',
+            };
+        }
+
+        if (cookieStatus?.running) {
+            return {
+                label: 'Cookie Session Active',
+                tone: 'border-blue-200 bg-blue-50 text-blue-700',
+            };
+        }
+
+        if (cookieStatus?.required) {
+            return {
+                label: 'Cookie Setup Required',
+                tone: 'border-amber-200 bg-amber-50 text-amber-700',
             };
         }
 
@@ -254,6 +399,8 @@ export function ResultsPanel({
         URL.revokeObjectURL(url);
     };
 
+    const shouldShowCookieSetup = isCookieStatusPending || Boolean(cookieStatus?.required || cookieStatus?.running);
+
     return (
         <ResultsPanelShell
             header={
@@ -272,9 +419,15 @@ export function ResultsPanel({
                                     Search Results
                                 </div>
                                 <div className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold ${runState.tone}`}>
-                                    {(isStreaming || isPending) && <HugeiconsIcon icon={Loading03Icon} className="h-3.5 w-3.5 animate-spin" />}
-                                    {!(isStreaming || isPending) && error && <HugeiconsIcon icon={Cancel01Icon} className="h-3.5 w-3.5" />}
-                                    {!(isStreaming || isPending) && data && !error && <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-3.5 w-3.5" />}
+                                    {(isStreaming || isPending || isCookieStatusPending || cookieStatus?.running) && (
+                                        <HugeiconsIcon icon={Loading03Icon} className="h-3.5 w-3.5 animate-spin" />
+                                    )}
+                                    {!(isStreaming || isPending || isCookieStatusPending || cookieStatus?.running) && error && (
+                                        <HugeiconsIcon icon={Cancel01Icon} className="h-3.5 w-3.5" />
+                                    )}
+                                    {!(isStreaming || isPending || isCookieStatusPending || cookieStatus?.running) && data && !error && (
+                                        <HugeiconsIcon icon={CheckmarkCircle02Icon} className="h-3.5 w-3.5" />
+                                    )}
                                     {runState.label}
                                 </div>
                                 {elapsedTime !== null && (
@@ -287,155 +440,165 @@ export function ResultsPanel({
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
-                    {data && (
-                        <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1">
-                            <button
-                                type="button"
-                                onClick={() => setViewMode('visual')}
-                                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${viewMode === 'visual' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
-                            >
-                                <span className="inline-flex items-center gap-1.5">
-                                    <HugeiconsIcon icon={File01Icon} className="h-3.5 w-3.5" />
-                                    Visual
-                                </span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setViewMode('raw')}
-                                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${viewMode === 'raw' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
-                            >
-                                <span className="inline-flex items-center gap-1.5">
-                                    <HugeiconsIcon icon={CodeSquareIcon} className="h-3.5 w-3.5" />
-                                    Raw
-                                </span>
-                            </button>
-                        </div>
-                    )}
+                        {data && (
+                            <div className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white p-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setViewMode('visual')}
+                                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${viewMode === 'visual' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+                                >
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <HugeiconsIcon icon={File01Icon} className="h-3.5 w-3.5" />
+                                        Visual
+                                    </span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setViewMode('raw')}
+                                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${viewMode === 'raw' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+                                >
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <HugeiconsIcon icon={CodeSquareIcon} className="h-3.5 w-3.5" />
+                                        Raw
+                                    </span>
+                                </button>
+                            </div>
+                        )}
 
-                    {data && (
-                        <>
-                            <button
-                                type="button"
-                                onClick={handleCopy}
-                                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-100"
-                            >
-                                <HugeiconsIcon icon={copied ? CheckmarkCircle02Icon : Copy01Icon} className={`h-3.5 w-3.5 ${copied ? 'text-emerald-500' : ''}`} />
-                                {copied ? 'Copied' : 'Copy'}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleDownload}
-                                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
-                            >
-                                <HugeiconsIcon icon={Download01Icon} className="h-3.5 w-3.5" />
-                                Save
-                            </button>
-                        </>
-                    )}
+                        {data && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={handleCopy}
+                                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:bg-slate-100"
+                                >
+                                    <HugeiconsIcon icon={copied ? CheckmarkCircle02Icon : Copy01Icon} className={`h-3.5 w-3.5 ${copied ? 'text-emerald-500' : ''}`} />
+                                    {copied ? 'Copied' : 'Copy'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleDownload}
+                                    className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
+                                >
+                                    <HugeiconsIcon icon={Download01Icon} className="h-3.5 w-3.5" />
+                                    Save
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             }
             bodyClassName="min-h-[640px]"
         >
-                {!data && !isStreaming && !isPending && !error && <EmptyState />}
+            {shouldShowCookieSetup && (
+                <CookieSetupState
+                    cookieStatus={cookieStatus}
+                    isCookieStatusPending={isCookieStatusPending}
+                    isCookieActionPending={isCookieActionPending}
+                    cookieError={cookieError}
+                    onBuildCookies={onBuildCookies}
+                    onStopCookies={onStopCookies}
+                />
+            )}
 
-                {(isStreaming || isPending) && <ProgressState steps={steps} />}
+            {!shouldShowCookieSetup && !data && !isStreaming && !isPending && !error && <EmptyState />}
 
-                {error && !isStreaming && !isPending && (
-                    <div className="flex h-full min-h-[640px] flex-col items-center justify-center px-8 text-center">
-                        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-50 ring-1 ring-red-100">
-                            <HugeiconsIcon icon={Cancel01Icon} className="h-10 w-10 text-red-500" />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900">Search failed</h3>
-                        <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">{error}</p>
-                        <button
-                            type="button"
-                            onClick={onRetry}
-                            className="mt-8 rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
-                        >
-                            Try Again
-                        </button>
+            {!shouldShowCookieSetup && (isStreaming || isPending) && <ProgressState steps={steps} />}
+
+            {!shouldShowCookieSetup && error && !isStreaming && !isPending && (
+                <div className="flex h-full min-h-[640px] flex-col items-center justify-center px-8 text-center">
+                    <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-50 ring-1 ring-red-100">
+                        <HugeiconsIcon icon={Cancel01Icon} className="h-10 w-10 text-red-500" />
                     </div>
-                )}
+                    <h3 className="text-xl font-bold text-slate-900">Search failed</h3>
+                    <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">{error}</p>
+                    <button
+                        type="button"
+                        onClick={onRetry}
+                        className="mt-8 rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            )}
 
-                {data && !isStreaming && !isPending && !error && (
-                    <div className="overflow-auto bg-white p-6">
-                        {viewMode === 'visual' ? (
-                            <div className="space-y-6">
-                                <section className="rounded-3xl border border-slate-200 bg-white p-5">
-                                    <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Query Summary</div>
-                                    <div className="mt-3 text-2xl font-bold tracking-tight text-slate-900">{data.query}</div>
-                                    <div className="mt-4 grid gap-3 md:grid-cols-3">
-                                        <ResultStat label="Sites" value={sites.length} />
-                                        <ResultStat label="AI Overview" value={data.results.ai_overview ? 'Yes' : 'No'} />
-                                        <ResultStat label="Timestamp" value={new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
+            {!shouldShowCookieSetup && data && !isStreaming && !isPending && !error && (
+                <div className="overflow-auto bg-white p-6">
+                    {viewMode === 'visual' ? (
+                        <div className="space-y-6">
+                            <section className="rounded-3xl border border-slate-200 bg-white p-5">
+                                <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Query Summary</div>
+                                <div className="mt-3 text-2xl font-bold tracking-tight text-slate-900">{data.query}</div>
+                                <div className="mt-4 grid gap-3 md:grid-cols-3">
+                                    <ResultStat label="Sites" value={sites.length} />
+                                    <ResultStat label="AI Overview" value={data.results.ai_overview ? 'Yes' : 'No'} />
+                                    <ResultStat label="Timestamp" value={new Date(data.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
+                                </div>
+                            </section>
+
+                            <section className="rounded-3xl border border-slate-200 bg-white p-5">
+                                <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">AI Overview</div>
+                                <div className="mt-3">
+                                    {data.results.ai_overview
+                                        ? renderOverviewContent(data.results.ai_overview)
+                                        : 'No AI overview was returned for this search.'}
+                                </div>
+                            </section>
+
+                            <section className="rounded-3xl border border-slate-200 bg-white p-5">
+                                <div className="mb-4 flex items-center justify-between gap-3">
+                                    <div>
+                                        <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Organic Results</div>
+                                        <div className="mt-1 text-sm text-slate-500">Top sources captured from the Google results page.</div>
                                     </div>
-                                </section>
+                                </div>
 
-                                <section className="rounded-3xl border border-slate-200 bg-white p-5">
-                                    <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">AI Overview</div>
-                                    <div className="mt-3">
-                                        {data.results.ai_overview
-                                            ? renderOverviewContent(data.results.ai_overview)
-                                            : 'No AI overview was returned for this search.'}
-                                    </div>
-                                </section>
-
-                                <section className="rounded-3xl border border-slate-200 bg-white p-5">
-                                    <div className="mb-4 flex items-center justify-between gap-3">
-                                        <div>
-                                            <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Organic Results</div>
-                                            <div className="mt-1 text-sm text-slate-500">Top sources captured from the Google results page.</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-3">
-                                        {sites.length > 0 ? (
-                                            sites.map((site, index) => (
-                                                <div
-                                                    key={`${site.url || site.title || 'result'}-${index}`}
-                                                    className="rounded-2xl border border-slate-200 bg-white px-4 py-4"
-                                                >
-                                                    <div className="flex items-start justify-between gap-3">
-                                                        <div className="min-w-0">
-                                                            <div className="text-sm font-semibold text-slate-900">{site.title}</div>
-                                                            <div className="mt-1 text-sm leading-6 text-slate-500">{site.description}</div>
-                                                        </div>
-                                                        <a
-                                                            href={site.url}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
-                                                            className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
-                                                        >
-                                                            <HugeiconsIcon icon={LinkSquare01Icon} className="h-4 w-4" />
-                                                        </a>
+                                <div className="space-y-3">
+                                    {sites.length > 0 ? (
+                                        sites.map((site, index) => (
+                                            <div
+                                                key={`${site.url || site.title || 'result'}-${index}`}
+                                                className="rounded-2xl border border-slate-200 bg-white px-4 py-4"
+                                            >
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="min-w-0">
+                                                        <div className="text-sm font-semibold text-slate-900">{site.title}</div>
+                                                        <div className="mt-1 text-sm leading-6 text-slate-500">{site.description}</div>
                                                     </div>
-                                                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                                                        <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
-                                                            {site.source}
-                                                        </span>
-                                                        <span className="truncate rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500">
-                                                            {site.url}
-                                                        </span>
-                                                    </div>
+                                                    <a
+                                                        href={site.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="rounded-xl border border-slate-200 bg-white p-2 text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
+                                                    >
+                                                        <HugeiconsIcon icon={LinkSquare01Icon} className="h-4 w-4" />
+                                                    </a>
                                                 </div>
-                                            ))
-                                        ) : (
-                                            <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500">
-                                                No site results were returned for this search.
+                                                <div className="mt-3 flex flex-wrap items-center gap-2">
+                                                    <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-white">
+                                                        {site.source}
+                                                    </span>
+                                                    <span className="truncate rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-500">
+                                                        {site.url}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        )}
-                                    </div>
-                                </section>
-
-                            </div>
-                        ) : (
-                            <pre className="overflow-auto rounded-3xl border border-slate-200 bg-white p-5 text-xs leading-6 text-slate-700">
-                                {data.markdown}
-                            </pre>
-                        )}
-                    </div>
-                )}
+                                        ))
+                                    ) : (
+                                        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-6 py-10 text-center text-sm text-slate-500">
+                                            No site results were returned for this search.
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        </div>
+                    ) : (
+                        <pre className="overflow-auto rounded-3xl border border-slate-200 bg-white p-5 text-xs leading-6 text-slate-700">
+                            {data.markdown}
+                        </pre>
+                    )}
+                </div>
+            )}
         </ResultsPanelShell>
     );
 }

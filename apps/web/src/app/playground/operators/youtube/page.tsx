@@ -1,6 +1,13 @@
 import { YoutubeWorkbench } from '@/components/playground/youtube';
-import { getYoutubeAvailability } from '@/lib/playgroundAvailability';
+import { getYoutubeAvailabilityState } from '@/lib/playgroundAvailability';
 
 export default async function YoutubeOperatorPage() {
-    return <YoutubeWorkbench available={await getYoutubeAvailability()} />;
+    const availability = await getYoutubeAvailabilityState();
+
+    return (
+        <YoutubeWorkbench
+            available={availability.available}
+            unavailableReason={availability.reason}
+        />
+    );
 }

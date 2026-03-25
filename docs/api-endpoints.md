@@ -10,7 +10,7 @@ It is based on the operator-first route tree mounted in `apps/api/src/app.ts`.
 - Persistence: PostgreSQL via Prisma
 - Auth: `x-api-key` guard on all non-health routes
 - Async jobs: BullMQ with Redis and a separate worker process
-- Browser scraping: Camoufox and Playwright services
+- Browser scraping: Headfox JS with Camoufox-compatible browser bundles plus Playwright services
 - External integrations: Tavily, Exa, yt-engine, HTML-to-Markdown service
 
 ## Auth And Transport
@@ -37,9 +37,10 @@ Google AI Search currently ends its stream with `end` instead of `done`.
 | `/api/jobs/*` | Redis plus the queue worker |
 | `/api/operators/website/crawl` | Redis plus the queue worker |
 | `/api/operators/website/scrape/content` | Uses `HTML_TO_MARKDOWN_SERVICE_URL` when available, then falls back locally |
+| `/api/operators/google/ai-search/*` | Shared browser profile must be cookie-bootstrapped once before search |
 | `/api/operators/tavily/*` | `TAVILY_API_KEY` |
 | `/api/operators/exa/*` | `EXA_API_KEY` |
-| `/api/operators/youtube/*` | `YT_ENGINE_URL` |
+| `/api/operators/youtube/*` | `YT_ENGINE_URL` to activate the yt-engine-backed workspace |
 | most protected routes | PostgreSQL for API keys, logs, settings, proxies, and persisted data |
 
 Only the queue-backed website crawl flow requires Redis. The other website operator endpoints such as `/api/operators/website/scrape/html`, `/api/operators/website/scrape/html-js`, `/api/operators/website/scrape/content`, `/api/operators/website/scrape/screenshot`, and `/api/operators/website/map` do not depend on Redis.
@@ -99,6 +100,9 @@ Only the queue-backed website crawl flow requires Redis. The other website opera
 | `POST` | `/api/operators/google/ai-search/search` | Standard Google AI Search scrape | JSON response, accepts `query` plus optional `gl`, `hl`, `tbs`, and `stealth` |
 | `GET` | `/api/operators/google/ai-search/stream` | Stream Google AI Search progress | SSE, expects `query` and optional `timeout`, `gl`, `hl`, `tbs`, and `stealth` |
 | `GET` | `/api/operators/google/ai-search/status` | Service status | Lightweight availability check |
+| `GET` | `/api/operators/google/ai-search/cookies/status` | Read shared-profile cookie bootstrap state | Returns `required`, `running`, or `ready` |
+| `POST` | `/api/operators/google/ai-search/cookies/build` | Start the shared browser for manual Google cookie setup | Opens Google in the shared profile, uses a virtual display when needed |
+| `POST` | `/api/operators/google/ai-search/cookies/stop` | Stop the shared cookie bootstrap browser and persist the profile | Saves the shared session for later searches |
 
 Google AI Search request fields:
 
@@ -109,6 +113,12 @@ Google AI Search request fields:
 | `hl` | `string` | Two-letter Google language code such as `en` or `ur` |
 | `tbs` | `qdr:h \\| qdr:d \\| qdr:w` | Optional time filter for past hour, day, or week |
 | `stealth` | `boolean` | Optional stealth toggle, where `false` uses a faster less-humanized input path |
+
+Google bootstrap behavior:
+
+- before the shared profile is ready, search endpoints return `412` with code `GOOGLE_COOKIE_BOOTSTRAP_REQUIRED`
+- while the cookie browser is still open, search endpoints return `409` with code `GOOGLE_COOKIE_BOOTSTRAP_ACTIVE`
+- the shared profile is persisted under `apps/api/data/browser-profile/default` for local repo runs and in the Docker `browser_profile` volume for self-hosted stacks
 
 ## Tavily Endpoints
 

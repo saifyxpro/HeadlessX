@@ -1,6 +1,6 @@
 ---
 name: cli
-description: Use when an agent needs to operate HeadlessX through the published `headlessx` CLI instead of calling files or APIs directly. Covers installing the CLI package, logging in with API URL and API key, using markdown-first terminal output, and running commands for website scraping, map, crawl, Google AI Search, Tavily, Exa, YouTube, jobs, and operators. Trigger for requests like "use the CLI", "test the CLI", "show the command", "log in with the CLI", "run HeadlessX from terminal", or "smoke test the CLI".
+description: Use when an agent needs to operate HeadlessX through the published `headlessx` CLI instead of calling files or APIs directly. Covers installing the CLI package, bootstrapping local HeadlessX with `headlessx init`, updating an existing workspace with `headlessx init update`, using the guided modern setup/login prompts, logging in with API URL and API key, reading runtime logs with `headlessx logs`, using markdown-first terminal output, and running commands for website scraping, map, crawl, Google AI Search, Tavily, Exa, YouTube, jobs, and operators. Trigger for requests like "use the CLI", "test the CLI", "show the command", "log in with the CLI", "run HeadlessX from terminal", "bootstrap HeadlessX", "update HeadlessX", "show logs", or "smoke test the CLI".
 ---
 
 # HeadlessX CLI
@@ -26,6 +26,20 @@ npm install -g @headlessx-cli/core
 headlessx --help
 ```
 
+Bootstrap a local workspace:
+
+```bash
+headlessx init
+```
+
+Update an existing workspace:
+
+```bash
+headlessx init update
+headlessx restart
+headlessx logs --tail 200 --no-follow
+```
+
 ## Authentication Workflow
 
 Use HeadlessX API credentials only. Prefer:
@@ -34,10 +48,12 @@ Use HeadlessX API credentials only. Prefer:
 headlessx login
 ```
 
+The CLI now uses guided modern prompts for `headlessx init` and `headlessx login` when interactive input is available.
+
 Use flags when the user already has both values:
 
 ```bash
-headlessx login --api-key your_headlessx_api_key --api-url http://localhost:8000
+headlessx login --api-key your_headlessx_api_key --api-url http://localhost:38473
 ```
 
 Use environment variables when the session should stay non-interactive. See `references/auth-and-output.md`.
@@ -52,6 +68,7 @@ Use `--json` only when structured machine-readable output is specifically needed
 
 Read `references/command-matrix.md` before composing multi-step CLI runs. It contains:
 
+- lifecycle bootstrap commands
 - website scrape, map, and crawl examples
 - Google AI Search flags
 - Tavily, Exa, YouTube, jobs, and operators examples
@@ -81,15 +98,18 @@ npm publish --access public
 
 ## Agent Notes
 
-The CLI talks to the HeadlessX API. It does not launch its own separate browser stack.
+The CLI can bootstrap and manage a local HeadlessX workspace under `~/.headlessx`, and the operator commands still talk to the HeadlessX API.
 
 If the backend uses the persistent browser profile under `apps/api/data`, CLI requests share that backend state because they go through the same API instance.
 
 When a user asks to "test the CLI", prefer:
 
 1. `headlessx --help`
-2. `headlessx login --help`
-3. `headlessx status`
-4. operator-specific help or smoke commands
+2. `headlessx init --help`
+3. `headlessx login --help`
+4. `headlessx status`
+5. `headlessx doctor`
+6. `headlessx logs --no-follow`
+7. operator-specific help or smoke commands
 
 Use `scripts/smoke_cli.py` when you need a fast deterministic baseline.

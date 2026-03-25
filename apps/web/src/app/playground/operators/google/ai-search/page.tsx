@@ -1,16 +1,40 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { WorkbenchLayout } from '@/components/playground/shared';
 import { ConfigurationPanel } from '@/components/playground/google/ConfigurationPanel';
 import { GoogleSerpHeader } from '@/components/playground/google/GoogleSerpHeader';
 import { ResultsPanel } from '@/components/playground/google/ResultsPanel';
-import type { ProgressStep, SearchResponse } from '@/components/playground/google/types';
+import type {
+    GoogleCookieStatus,
+    ProgressStep,
+    SearchResponse,
+} from '@/components/playground/google/types';
 
 type ParsedGoogleEvent = {
     event: 'start' | 'progress' | 'result' | 'error' | 'end' | 'message';
-    data: any;
+    data: unknown;
 };
+
+type GoogleApiPayload<T> = {
+    success?: boolean;
+    data?: T;
+    error?: string;
+    code?: string;
+    details?: GoogleCookieStatus;
+};
+
+class GoogleOperatorRequestError extends Error {
+    public readonly code?: string;
+    public readonly details?: GoogleCookieStatus;
+
+    constructor(message: string, code?: string, details?: GoogleCookieStatus) {
+        super(message);
+        this.name = 'GoogleOperatorRequestError';
+        this.code = code;
+        this.details = details;
+    }
+}
 
 function parseSseEvent(rawEvent: string): ParsedGoogleEvent | null {
     let event: ParsedGoogleEvent['event'] = 'message';
@@ -45,6 +69,17 @@ function parseSseEvent(rawEvent: string): ParsedGoogleEvent | null {
     }
 }
 
+async function readGoogleApiPayload<T>(response: Response): Promise<GoogleApiPayload<T>> {
+    try {
+        return (await response.json()) as GoogleApiPayload<T>;
+    } catch {
+        return {
+            success: false,
+            error: `HTTP ${response.status}`,
+        };
+    }
+}
+
 export default function GoogleAiSearchPage() {
     const [query, setQuery] = useState('');
     const [region, setRegion] = useState('');
@@ -59,10 +94,16 @@ export default function GoogleAiSearchPage() {
     const [steps, setSteps] = useState<ProgressStep[]>([]);
     const [startTime, setStartTime] = useState<number | null>(null);
     const [elapsedTime, setElapsedTime] = useState<number | null>(null);
+    const [cookieStatus, setCookieStatus] = useState<GoogleCookieStatus | null>(null);
+    const [isCookieStatusPending, setIsCookieStatusPending] = useState(true);
+    const [isCookieActionPending, setIsCookieActionPending] = useState(false);
+    const [cookieError, setCookieError] = useState<string | null>(null);
 
     const abortControllerRef = useRef<AbortController | null>(null);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const terminalEventReceivedRef = useRef(false);
+
+    const searchEnabled = Boolean(cookieStatus?.ready && !cookieStatus?.running);
 
     useEffect(() => {
         if (!isLoading) {
@@ -104,6 +145,57 @@ export default function GoogleAiSearchPage() {
         };
     }, []);
 
+    const refreshCookieStatus = useCallback(async (silent = false) => {
+        if (!silent) {
+            setIsCookieStatusPending(true);
+        }
+
+        try {
+            const response = await fetch('/api/operators/google/ai-search/cookies/status', {
+                method: 'GET',
+                cache: 'no-store',
+            });
+            const payload = await readGoogleApiPayload<GoogleCookieStatus>(response);
+
+            if (!response.ok || !payload.success || !payload.data) {
+                throw new GoogleOperatorRequestError(
+                    payload.error || `HTTP ${response.status}`,
+                    payload.code,
+                    payload.details
+                );
+            }
+
+            setCookieStatus(payload.data);
+            setCookieError(null);
+        } catch (statusError) {
+            const message = statusError instanceof Error ? statusError.message : 'Failed to check Google cookie status';
+            setCookieError(message);
+            if (statusError instanceof GoogleOperatorRequestError && statusError.details) {
+                setCookieStatus(statusError.details);
+            }
+        } finally {
+            setIsCookieStatusPending(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        void refreshCookieStatus();
+    }, [refreshCookieStatus]);
+
+    useEffect(() => {
+        if (!cookieStatus?.running) {
+            return;
+        }
+
+        const intervalId = window.setInterval(() => {
+            void refreshCookieStatus(true);
+        }, 2500);
+
+        return () => {
+            window.clearInterval(intervalId);
+        };
+    }, [cookieStatus?.running, refreshCookieStatus]);
+
     const finishRun = () => {
         setIsLoading(false);
         setIsStreaming(false);
@@ -133,17 +225,54 @@ export default function GoogleAiSearchPage() {
         });
     };
 
+    const handleCookieAction = useCallback(async (action: 'build' | 'stop') => {
+        setIsCookieActionPending(true);
+        setCookieError(null);
+        setError(null);
+        setData(null);
+        setSteps([]);
+
+        try {
+            const response = await fetch(`/api/operators/google/ai-search/cookies/${action}`, {
+                method: 'POST',
+                cache: 'no-store',
+            });
+            const payload = await readGoogleApiPayload<GoogleCookieStatus>(response);
+
+            if (!response.ok || !payload.success || !payload.data) {
+                throw new GoogleOperatorRequestError(
+                    payload.error || `HTTP ${response.status}`,
+                    payload.code,
+                    payload.details
+                );
+            }
+
+            setCookieStatus(payload.data);
+        } catch (actionError) {
+            const message = actionError instanceof Error ? actionError.message : 'Cookie action failed';
+            setCookieError(message);
+            if (actionError instanceof GoogleOperatorRequestError && actionError.details) {
+                setCookieStatus(actionError.details);
+            }
+        } finally {
+            setIsCookieActionPending(false);
+            await refreshCookieStatus(true);
+        }
+    }, [refreshCookieStatus]);
+
     const handleStreamEvent = (parsedEvent: ParsedGoogleEvent) => {
+        const payload = (parsedEvent.data ?? null) as Record<string, unknown> | null;
+
         if (
             parsedEvent.event === 'progress' ||
-            (parsedEvent.event === 'message' && parsedEvent.data?.status)
+            (parsedEvent.event === 'message' && payload?.status)
         ) {
-            const progress = parsedEvent.data;
+            const progress = payload;
             if (progress?.step !== undefined) {
                 applyProgress({
-                    step: progress.step,
-                    total: progress.total,
-                    message: progress.message,
+                    step: Number(progress.step),
+                    total: Number(progress.total),
+                    message: String(progress.message ?? ''),
                     status: progress.status as ProgressStep['status'],
                 });
             }
@@ -152,17 +281,24 @@ export default function GoogleAiSearchPage() {
 
         if (
             parsedEvent.event === 'result' ||
-            (parsedEvent.event === 'message' && parsedEvent.data?.success && parsedEvent.data?.data)
+            (parsedEvent.event === 'message' && payload?.success && payload?.data)
         ) {
-            const result = parsedEvent.data;
-            setData(result.data);
+            const result = payload as { data?: SearchResponse } | null;
+            if (result?.data) {
+                setData(result.data);
+            }
             terminalEventReceivedRef.current = true;
             finishRun();
             return;
         }
 
-        if (parsedEvent.event === 'error' || (parsedEvent.event === 'message' && parsedEvent.data?.error)) {
-            setError(parsedEvent.data?.error || 'Connection failed');
+        if (parsedEvent.event === 'error' || (parsedEvent.event === 'message' && payload?.error)) {
+            const details = payload?.details as GoogleCookieStatus | undefined;
+            if (details) {
+                setCookieStatus(details);
+            }
+
+            setError(typeof payload?.error === 'string' ? payload.error : 'Connection failed');
             terminalEventReceivedRef.current = true;
             finishRun();
             return;
@@ -177,7 +313,7 @@ export default function GoogleAiSearchPage() {
 
     const handleSearch = async (event?: React.FormEvent) => {
         event?.preventDefault();
-        if (!query.trim()) {
+        if (!query.trim() || !searchEnabled) {
             return;
         }
 
@@ -187,6 +323,7 @@ export default function GoogleAiSearchPage() {
         setIsLoading(true);
         setIsStreaming(true);
         setError(null);
+        setCookieError(null);
         setData(null);
         setSteps([]);
 
@@ -217,7 +354,12 @@ export default function GoogleAiSearchPage() {
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
+                const payload = await readGoogleApiPayload<never>(response);
+                throw new GoogleOperatorRequestError(
+                    payload.error || `HTTP ${response.status}`,
+                    payload.code,
+                    payload.details
+                );
             }
 
             const reader = response.body?.getReader();
@@ -265,6 +407,18 @@ export default function GoogleAiSearchPage() {
             if ((streamError as Error).name === 'AbortError') {
                 setError('Search cancelled');
             } else {
+                if (streamError instanceof GoogleOperatorRequestError && streamError.details) {
+                    setCookieStatus(streamError.details);
+                }
+
+                if (
+                    streamError instanceof GoogleOperatorRequestError &&
+                    (streamError.code === 'GOOGLE_COOKIE_BOOTSTRAP_REQUIRED' ||
+                        streamError.code === 'GOOGLE_COOKIE_BOOTSTRAP_ACTIVE')
+                ) {
+                    await refreshCookieStatus(true);
+                }
+
                 setError(streamError instanceof Error ? streamError.message : 'Request failed');
             }
 
@@ -278,8 +432,15 @@ export default function GoogleAiSearchPage() {
                 <GoogleSerpHeader
                     elapsedTime={elapsedTime}
                     isLoading={isLoading}
-                    hasResult={Boolean(data)}
-                    error={error}
+                    cookieStatus={cookieStatus}
+                    isCookieStatusPending={isCookieStatusPending}
+                    isCookieActionPending={isCookieActionPending}
+                    onBuildCookies={() => {
+                        void handleCookieAction('build');
+                    }}
+                    onStopCookies={() => {
+                        void handleCookieAction('stop');
+                    }}
                 />
             }
             config={
@@ -299,6 +460,9 @@ export default function GoogleAiSearchPage() {
                     onSearch={handleSearch}
                     onStop={stopSearch}
                     isLoading={isLoading}
+                    searchEnabled={searchEnabled}
+                    cookieStatus={cookieStatus}
+                    isCookieStatusPending={isCookieStatusPending}
                 />
             }
             results={
@@ -310,6 +474,16 @@ export default function GoogleAiSearchPage() {
                     steps={steps}
                     elapsedTime={elapsedTime}
                     onRetry={handleSearch}
+                    cookieStatus={cookieStatus}
+                    isCookieStatusPending={isCookieStatusPending}
+                    isCookieActionPending={isCookieActionPending}
+                    cookieError={cookieError}
+                    onBuildCookies={() => {
+                        void handleCookieAction('build');
+                    }}
+                    onStopCookies={() => {
+                        void handleCookieAction('stop');
+                    }}
                 />
             }
         />

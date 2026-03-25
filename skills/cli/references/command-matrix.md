@@ -1,5 +1,37 @@
 # Command Matrix
 
+## Lifecycle
+
+Bootstrap:
+
+```bash
+headlessx init
+headlessx init --mode self-host
+headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx init update
+headlessx init update --branch develop
+headlessx init --branch develop
+```
+
+Interactive `headlessx init` now uses guided modern prompts for mode selection, required values, and confirmations.
+`headlessx init update` reuses the saved mode, fills any missing env keys needed by that mode, and updates the repo.
+
+Runtime:
+
+```bash
+headlessx start
+headlessx logs
+headlessx logs api
+headlessx logs web --tail 100 --no-follow
+headlessx logs caddy --tail 100 --no-follow
+headlessx stop
+headlessx restart
+headlessx status
+headlessx doctor
+```
+
+For `self-host` and `production`, `headlessx restart` rebuilds Docker images before bringing the stack back up.
+
 ## Website
 
 Scrape:

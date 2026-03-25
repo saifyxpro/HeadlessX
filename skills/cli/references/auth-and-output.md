@@ -34,14 +34,14 @@ Primary names:
 
 ```bash
 export HX_API_KEY=your_headlessx_api_key
-export HX_API_URL=http://localhost:8000
+export HX_API_URL=http://localhost:38473
 ```
 
 Alternative names:
 
 ```bash
 export HEADLESSX_API_KEY=your_headlessx_api_key
-export HEADLESSX_API_URL=http://localhost:8000
+export HEADLESSX_API_URL=http://localhost:38473
 ```
 
 ## Login Patterns
@@ -52,17 +52,19 @@ Interactive:
 headlessx login
 ```
 
+Interactive `headlessx login` now uses a guided modern prompt with masked API key entry.
+
 Prompt only for the missing field:
 
 ```bash
 headlessx login --api-key your_headlessx_api_key
-headlessx login --api-url http://localhost:8000
+headlessx login --api-url http://localhost:38473
 ```
 
 Direct login:
 
 ```bash
-headlessx login --api-key your_headlessx_api_key --api-url http://localhost:8000
+headlessx login --api-key your_headlessx_api_key --api-url http://localhost:38473
 ```
 
 Inspect config:
@@ -109,3 +111,6 @@ Python helper:
 ```bash
 python3 scripts/smoke_cli.py
 ```
+
+Status and doctor do not require an API key for local reachability checks.
+When the CLI is not logged in, auth-dependent operator checks are reported as skipped instead of failed.

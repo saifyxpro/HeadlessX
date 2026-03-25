@@ -7,6 +7,14 @@ import { handleCrawlCommand } from './commands/crawl';
 import { handleExaSearchCommand, handleExaStatusCommand } from './commands/exa';
 import { handleGoogleCommand } from './commands/google';
 import {
+  handleDoctorCommand,
+  handleInitCommand,
+  handleLogsCommand,
+  handleRestartCommand,
+  handleStartCommand,
+  handleStopCommand,
+} from './commands/lifecycle';
+import {
   handleJobsActiveCommand,
   handleJobsCancelCommand,
   handleJobsGetCommand,
@@ -83,11 +91,53 @@ program.hook('preAction', (thisCommand) => {
 });
 
 program
+  .command('init [action]')
+  .description('Clone, update, and configure HeadlessX under ~/.headlessx.')
+  .option('--mode <mode>', 'developer, self-host, or production')
+  .option('--branch <name>', 'Git branch to clone or update')
+  .option('--yes', 'Accept recommended defaults and skip confirmation prompts')
+  .option('--no-start', 'Prepare the workspace but do not start services')
+  .option('--api-domain <domain>', 'Production API domain')
+  .option('--web-domain <domain>', 'Production dashboard domain')
+  .option('--caddy-email <email>', 'Production Caddy email')
+  .action((action, options) => handleInitCommand({ ...options, action }));
+
+program
+  .command('start')
+  .description('Start the initialized HeadlessX runtime.')
+  .action(handleStartCommand);
+
+program
+  .command('stop')
+  .description('Stop the initialized HeadlessX runtime without deleting data.')
+  .action(handleStopCommand);
+
+program
+  .command('restart')
+  .description('Restart the initialized HeadlessX runtime.')
+  .action(handleRestartCommand);
+
+program
+  .command('logs [service]')
+  .description('Show runtime logs for the initialized HeadlessX workspace.')
+  .option('--tail <lines>', 'Number of lines to show', '200')
+  .option('--no-follow', 'Print logs and exit without streaming')
+  .action((service, options) => handleLogsCommand({ ...options, service }));
+
+program
+  .command('doctor')
+  .description('Inspect local HeadlessX prerequisites, env files, models, and reachability.')
+  .option('--json', 'Output JSON')
+  .option('--pretty', 'Pretty-print JSON')
+  .option('-o, --output <path>', 'Write output to a file')
+  .action(handleDoctorCommand);
+
+program
   .command('login')
   .description('Store HeadlessX API credentials locally.')
   .option('-k, --api-key <key>', 'HeadlessX API key')
   .option('--api-url <url>', 'HeadlessX API URL')
-  .action(handleLoginCommand);
+  .action((options, command) => handleLoginCommand(command.optsWithGlobals?.() ?? options));
 
 program
   .command('logout')
@@ -101,7 +151,7 @@ config
   .description('Update stored API URL and/or API key.')
   .option('-k, --api-key <key>', 'HeadlessX API key')
   .option('--api-url <url>', 'HeadlessX API URL')
-  .action(handleSetConfigCommand);
+  .action((options, command) => handleSetConfigCommand(command.optsWithGlobals?.() ?? options));
 config.action(handleViewConfigCommand);
 
 program

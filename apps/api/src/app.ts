@@ -99,8 +99,8 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         memory: process.memoryUsage(),
-        service: 'HeadlessX V2 Pro Backend (Camoufox)',
-        browser: 'Camoufox (Anti-detect Firefox)',
+        service: 'HeadlessX V2 Pro Backend (Headfox JS)',
+        browser: 'Headfox JS (Camoufox-powered Firefox)',
         endpoints: {
             operators: '/api/operators/status',
             website: '/api/operators/website/*',

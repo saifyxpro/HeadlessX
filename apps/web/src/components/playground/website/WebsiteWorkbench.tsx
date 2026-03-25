@@ -37,7 +37,7 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
     const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
     const abortControllerRef = useRef<AbortController | null>(null);
-    const streamCompletedRef = useRef(false);
+    const streamSettledRef = useRef(false);
     const { lastUsedUrl } = useWebsiteStorage({
         tool,
         url,
@@ -73,12 +73,6 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
     });
 
     useEffect(() => {
-        if (tool === 'map') {
-            setCrawlLimit((current) => (current === 10 ? 75 : current));
-        }
-    }, [tool]);
-
-    useEffect(() => {
         let interval: ReturnType<typeof setInterval> | undefined;
 
         if (startTime) {
@@ -110,7 +104,7 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
     const beginRun = () => {
         abortControllerRef.current?.abort();
         abortControllerRef.current = new AbortController();
-        streamCompletedRef.current = false;
+        streamSettledRef.current = false;
         setResult(null);
         setSteps([]);
         setElapsedTime(0);
@@ -135,16 +129,16 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
     };
 
     const setErrorResult = (message: string) => {
-        streamCompletedRef.current = true;
+        streamSettledRef.current = true;
         setResult({
             type: 'error',
             data: message,
         });
     };
 
-    const applyResultPayload = (payload: any) => {
+    const applyResultPayload = (payload: unknown) => {
         const nextResult = mapPayloadToResult(payload);
-        streamCompletedRef.current = true;
+        streamSettledRef.current = true;
         setResult(nextResult);
     };
 
@@ -173,9 +167,10 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
                 setErrorResult('Job cancelled');
                 break;
             case 'done':
-                if (data?.cancelled && !streamCompletedRef.current) {
+                if (data?.cancelled && !streamSettledRef.current) {
                     setErrorResult('Job cancelled');
                 }
+                streamSettledRef.current = true;
                 finishRun();
                 break;
             default:
@@ -228,20 +223,51 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
                 handleStreamEvent(event);
             }
         }
+
+        if (!abortControllerRef.current?.signal.aborted && !streamSettledRef.current) {
+            throw new Error('Streaming connection closed before the request finished');
+        }
     };
 
     const streamQueuedJob = async (jobId: string) => {
-        abortControllerRef.current = new AbortController();
-        const response = await fetch(`/api/jobs/${jobId}/stream`, {
-            method: 'GET',
-            headers: {
-                Accept: 'text/event-stream',
-            },
-            cache: 'no-store',
-            signal: abortControllerRef.current.signal,
-        });
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+            try {
+                abortControllerRef.current = new AbortController();
+                const response = await fetch(`/api/jobs/${jobId}/stream`, {
+                    method: 'GET',
+                    headers: {
+                        Accept: 'text/event-stream',
+                    },
+                    cache: 'no-store',
+                    signal: abortControllerRef.current.signal,
+                });
 
-        await consumeSseResponse(response);
+                await consumeSseResponse(response);
+                finishRun();
+                return;
+            } catch (error) {
+                const abortController = abortControllerRef.current;
+                if ((error as Error).name === 'AbortError' || abortController?.signal.aborted) {
+                    throw error;
+                }
+
+                if (streamSettledRef.current) {
+                    finishRun();
+                    return;
+                }
+
+                if (attempt === 2) {
+                    throw error;
+                }
+
+                pushProgress({
+                    step: 2,
+                    total: Math.max(crawlLimit, 2),
+                    message: `Connection dropped, reconnecting to crawl updates (${attempt + 1}/2)`,
+                    status: 'active',
+                });
+            }
+        }
     };
 
     const runScrapeWithUrl = async (targetUrl: string) => {
@@ -267,6 +293,7 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
         });
 
         await consumeSseResponse(response);
+        finishRun();
     };
 
     const parsePatternInput = (value: string) => value
@@ -350,6 +377,7 @@ export function WebsiteWorkbench({ tool }: WebsiteWorkbenchProps) {
             signal: abortControllerRef.current?.signal,
         });
         await consumeSseResponse(response);
+        finishRun();
     };
 
     const handleRun = async () => {

@@ -1,0 +1,94 @@
+{
+	"name": "headfox-js",
+	"version": "0.1.12",
+	"description": "TypeScript launcher and Playwright tooling for Headfox, currently powered by Camoufox-compatible browser bundles.",
+	"license": "MPL-2.0",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./package.json": "./package.json"
+	},
+	"bin": {
+		"headfox-js": "./bin/headfox-js.mjs",
+		"camoufox-js": "./bin/headfox-js.mjs"
+	},
+	"files": [
+		"dist",
+		"bin",
+		"README.md",
+		"LICENSE.md"
+	],
+	"keywords": [
+		"headfox",
+		"firefox",
+		"camoufox",
+		"camoufox-js",
+		"playwright",
+		"fingerprinting",
+		"browser-automation",
+		"headlessx"
+	],
+	"author": "saifyxpro (https://saify.me)",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/saifyxpro/HeadlessX.git",
+		"directory": "packages/headfox-js"
+	},
+	"bugs": {
+		"url": "https://github.com/saifyxpro/HeadlessX/issues"
+	},
+	"homepage": "https://github.com/saifyxpro/HeadlessX/tree/develop/packages/headfox-js",
+	"engines": {
+		"node": ">=20"
+	},
+	"packageManager": "pnpm@10.32.1",
+	"publishConfig": {
+		"access": "public"
+	},
+	"scripts": {
+		"clean": "rimraf dist",
+		"copy-files": "node ./copy-data-files.mjs",
+		"build": "pnpm run clean && tsc -p tsconfig.json && pnpm run copy-files",
+		"check": "biome check .",
+		"prepack": "pnpm run build",
+		"typecheck": "tsc -p tsconfig.json --noEmit",
+		"test": "vitest"
+	},
+	"dependencies": {
+		"adm-zip": "^0.5.16",
+		"cli-progress": "^3.12.0",
+		"commander": "^14.0.0",
+		"fingerprint-generator": "^2.1.66",
+		"glob": "^13.0.0",
+		"impit": "^0.11.0",
+		"language-tags": "^2.0.1",
+		"maxmind": "^5.0.0",
+		"pretty-bytes": "^7.1.0",
+		"ua-parser-js": "^2.0.2",
+		"xml2js": "^0.6.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.7",
+		"@types/adm-zip": "^0.5.7",
+		"@types/better-sqlite3": "^7.6.13",
+		"@types/cli-progress": "^3.11.6",
+		"@types/language-tags": "^1.0.4",
+		"@types/node": "^24.0.0",
+		"@types/xml2js": "^0.4.14",
+		"playwright-core": "^1.58.2",
+		"rimraf": "^6.0.1",
+		"typescript": "^5.8.3",
+		"vitest": "^4.0.0"
+	},
+	"optionalDependencies": {
+		"better-sqlite3": "^12.2.0"
+	},
+	"peerDependencies": {
+		"playwright-core": ">=1.53.0"
+	}
+}

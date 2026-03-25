@@ -22,11 +22,20 @@ def main() -> None:
     run("headlessx binary", ["headlessx", "--help"])
     print("ok: headlessx --help")
 
+    run("init help", ["headlessx", "init", "--help"])
+    print("ok: headlessx init --help")
+
     run("login help", ["headlessx", "login", "--help"])
     print("ok: headlessx login --help")
 
     run("config help", ["headlessx", "config", "--help"])
     print("ok: headlessx config --help")
+
+    run("doctor help", ["headlessx", "doctor", "--help"])
+    print("ok: headlessx doctor --help")
+
+    run("logs help", ["headlessx", "logs", "--help"])
+    print("ok: headlessx logs --help")
 
     run("status", ["headlessx", "status"], allow_failure=True)
     run("operators", ["headlessx", "operators", "list"], allow_failure=True)

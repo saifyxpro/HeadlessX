@@ -1,211 +1,127 @@
-name: ✨ Feature Request
-description: Suggest a new feature or enhancement for HeadlessX
-title: '[Feature]: '
-labels: ['enhancement', 'feature-request']
-assignees: ['saifyxpro']
+name: Feature Request
+description: Propose a focused improvement for HeadlessX
+title: "[Feature]: "
+labels: ["enhancement", "feature-request"]
+assignees: ["saifyxpro"]
 
 body:
   - type: markdown
     attributes:
       value: |
-        ## ✨ Feature Request
-        
-        Thank you for suggesting a feature! Your ideas help make HeadlessX better.
-        
-        **Before submitting:** Please search existing issues to see if someone has already suggested this feature.
+        Thanks for the idea.
+
+        Keep this request concrete. The best feature reports explain the problem first, then the shape of the solution.
 
   - type: checkboxes
-    id: preliminary-checks
+    id: checks
     attributes:
-      label: Preliminary Checks
-      description: Please confirm you have completed these steps
+      label: Before You Submit
       options:
-        - label: I have searched existing issues for similar feature requests
+        - label: I searched existing issues and discussions first
           required: true
-        - label: I have checked the roadmap documentation
+        - label: This request fits HeadlessX as a self-hosted operators platform
           required: true
-        - label: This feature aligns with HeadlessX's purpose and ethics
 
   - type: dropdown
-    id: affected-app
+    id: area
     attributes:
-      label: Affected App/Package
-      description: Which part of the monorepo does this feature target?
+      label: Target Area
       options:
-        - apps/web (Frontend Dashboard)
-        - apps/api (Backend API)
-        - scripts (Utility Scripts)
-        - infrastructure (Docker, CI/CD)
-        - global/monorepo
+        - apps/web
+        - apps/api
+        - apps/yt-engine
+        - packages/cli
+        - infra/docker
+        - infra/domain-setup
+        - docs
+        - global platform
     validations:
       required: true
 
   - type: dropdown
-    id: feature-category
+    id: category
     attributes:
       label: Feature Category
-      description: What category does this feature fall into?
       options:
-        - Anti-detection/Fingerprinting
-        - Browser automation
-        - API endpoints
-        - Security/Privacy
-        - Performance optimization
-        - Developer experience
+        - Operator capability
+        - CLI and install UX
+        - Dashboard UX
+        - API design
+        - Docker or deployment
+        - Performance
         - Documentation
-        - Configuration/Setup
-        - Monitoring/Analytics
-        - Other (specify below)
+        - Security
+        - Developer experience
+        - Other
     validations:
       required: true
 
   - type: textarea
-    id: feature-summary
+    id: summary
     attributes:
-      label: Feature Summary
-      description: A brief, clear summary of the feature
-      placeholder: What feature would you like to see added?
+      label: Summary
+      placeholder: "Add a first-class `headlessx update` command for existing VPS installs."
     validations:
       required: true
 
   - type: textarea
-    id: problem-description
+    id: problem
     attributes:
-      label: Problem Description
-      description: What problem does this feature solve?
+      label: Problem To Solve
+      description: Explain the real workflow pain or missing capability.
       placeholder: |
-        Describe the problem you're trying to solve:
-        - What limitations are you encountering?
-        - What use cases are not currently supported?
-        - How does this impact your workflow?
+        Today I have to manually pull the repo, rebuild Docker, and restart services.
+        This makes updates slower and easier to get wrong.
     validations:
       required: true
 
   - type: textarea
-    id: proposed-solution
+    id: proposed_solution
     attributes:
       label: Proposed Solution
-      description: Describe your preferred solution in detail
+      description: Describe how this should work from a user point of view.
       placeholder: |
-        How should this feature work?
-        - What API endpoints would be needed?
-        - What configuration options should be available?
-        - How should it integrate with existing features?
+        `headlessx update` should:
+        - reuse the saved mode
+        - pull the selected branch
+        - preserve existing env files
+        - tell me whether I need `headlessx restart`
     validations:
       required: true
 
   - type: textarea
-    id: alternatives-considered
+    id: alternatives
     attributes:
-      label: Alternatives Considered
-      description: What alternative solutions have you considered?
+      label: Alternatives Or Workarounds
+      placeholder: "Current manual steps, alternative command design, or other tools."
+
+  - type: textarea
+    id: use_cases
+    attributes:
+      label: Use Cases
       placeholder: |
-        What other approaches have you considered?
-        - Workarounds you've tried
-        - Other tools that provide this functionality
-        - Different implementation approaches
+        1. Update a VPS running `self-host`
+        2. Refresh a production install without losing domain config
+        3. Keep a local developer workspace aligned with `develop`
+    validations:
+      required: true
 
   - type: dropdown
     id: priority
     attributes:
       label: Priority
-      description: How important is this feature to you?
       options:
-        - Critical (blocking current projects)
-        - High (significantly improves workflow)
-        - Medium (nice to have)
-        - Low (would use occasionally)
+        - High
+        - Medium
+        - Low
     validations:
       required: true
 
-  - type: dropdown
-    id: complexity
-    attributes:
-      label: Estimated Complexity
-      description: How complex do you think this feature would be to implement?
-      options:
-        - Simple (configuration change, minor addition)
-        - Medium (new endpoint, moderate code changes)
-        - Complex (major architectural changes)
-        - Unsure
-
-  - type: textarea
-    id: use-cases
-    attributes:
-      label: Use Cases
-      description: Provide specific use cases for this feature
-      placeholder: |
-        1. As a privacy researcher, I want to... so that I can...
-        2. As a developer, I need to... in order to...
-        3. When testing websites, this feature would help me...
-
-  - type: textarea
-    id: technical-requirements
-    attributes:
-      label: Technical Requirements
-      description: Any specific technical requirements or constraints?
-      placeholder: |
-        - Performance requirements
-        - Compatibility considerations
-        - Security implications
-        - Dependencies needed
-
   - type: checkboxes
-    id: ethical-considerations
-    attributes:
-      label: Ethical Considerations
-      description: Please confirm this feature aligns with HeadlessX's ethical guidelines
-      options:
-        - label: This feature supports legitimate use cases (research, testing, privacy protection)
-        - label: This feature does not enable fraud, abuse, or illegal activities
-        - label: I have considered the privacy implications of this feature
-        - label: This feature respects website terms of service and robots.txt
-
-  - type: textarea
-    id: examples
-    attributes:
-      label: Examples
-      description: Provide examples of how this feature would be used
-      placeholder: |
-        Example API calls, configuration snippets, or code examples:
-        
-        ```bash
-        # Example usage
-        curl -X POST http://localhost:3000/api/new-feature \
-          -H "Authorization: Bearer token" \
-          -d '{"parameter": "value"}'
-        ```
-
-  - type: dropdown
-    id: breaking-changes
-    attributes:
-      label: Breaking Changes
-      description: Would this feature require breaking changes?
-      options:
-        - No breaking changes expected
-        - Minor breaking changes acceptable
-        - Major breaking changes required
-        - Unsure about breaking changes
-
-  - type: checkboxes
-    id: contribution-offer
+    id: contribution
     attributes:
       label: Contribution
-      description: How can you help with this feature?
       options:
-        - label: I can help design the feature
-        - label: I can contribute code implementation
-        - label: I can help with testing
-        - label: I can assist with documentation
-        - label: I can provide ongoing feedback
-
-  - type: textarea
-    id: additional-context
-    attributes:
-      label: Additional Context
-      description: Any other information about this feature request
-      placeholder: |
-        - Links to relevant research or documentation
-        - Screenshots or mockups
-        - Related issues or discussions
-        - Timeline considerations
+        - label: I can help test this
+        - label: I can help refine the UX
+        - label: I can open a PR

@@ -227,7 +227,7 @@ export function Sidebar() {
                                     </h1>
                                     <div className="mt-2">
                                         <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-600">
-                                            v2.1.1
+                                            v2.1.2
                                         </span>
                                     </div>
                                 </div>

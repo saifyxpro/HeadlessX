@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
-import { googleSerpService } from '../../services/scrape/GoogleSerpService';
 import { z } from 'zod';
 import { prisma } from '../../database/client';
+import { browserService } from '../../services/scrape/BrowserService';
+import { GoogleSerpSetupError, googleSerpService } from '../../services/scrape/GoogleSerpService';
 
 const SearchSchema = z.object({
     query: z.string().min(1),
@@ -11,18 +12,35 @@ const SearchSchema = z.object({
     stealth: z.boolean().optional(),
 });
 
+function buildErrorPayload(error: unknown) {
+    if (error instanceof GoogleSerpSetupError) {
+        return {
+            status: error.statusCode,
+            payload: {
+                success: false,
+                error: error.message,
+                code: error.code,
+                details: browserService.getGoogleCookieBootstrapStatus(),
+            },
+        };
+    }
+
+    return {
+        status: 500,
+        payload: {
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+        },
+    };
+}
+
 export class GoogleSerpController {
     static async search(req: Request, res: Response) {
         const startTime = Date.now();
         try {
             const { query, gl, hl, tbs, stealth } = SearchSchema.parse(req.body);
-
-            // Set headers for long polling/streaming if needed, but for now standard JSON response
-            // The scraping might take 10-20s, so ensure client timeout is high enough.
-
             const data = await googleSerpService.search(query, { gl, hl, tbs, stealth });
 
-            // Log successful request
             const duration = Date.now() - startTime;
             prisma.requestLog.create({
                 data: {
@@ -42,30 +60,26 @@ export class GoogleSerpController {
         } catch (error) {
             console.error('SERP Search error:', error);
 
-            // Log failed request
             const duration = Date.now() - startTime;
+            const normalized = buildErrorPayload(error);
             prisma.requestLog.create({
                 data: {
                     api_key_id: (req as any).apiKeyId || null,
                     url: `google-ai-search://${req.body?.query || 'unknown'}`,
                     method: 'POST',
-                    status_code: 500,
+                    status_code: normalized.status,
                     duration_ms: duration,
-                    error_message: error instanceof Error ? error.message : 'Unknown error',
+                    error_message: normalized.payload.error,
                 }
             }).catch(err => console.error('Log failed:', err));
 
-            res.status(500).json({
-                success: false,
-                error: error instanceof Error ? error.message : 'Unknown error'
-            });
+            res.status(normalized.status).json(normalized.payload);
         }
     }
 
     static async searchStream(req: Request, res: Response) {
         const apiKeyId = (req as any).apiKeyId;
         const query = req.query.query as string;
-        // Clamp timeout to the range exposed by the UI.
         const parsedTimeoutSeconds = parseInt(req.query.timeout as string, 10);
         const timeoutSeconds = Number.isFinite(parsedTimeoutSeconds)
             ? Math.max(30, Math.min(120, parsedTimeoutSeconds))
@@ -100,29 +114,34 @@ export class GoogleSerpController {
 
         const tbs = rawTbs as 'qdr:h' | 'qdr:d' | 'qdr:w' | undefined;
 
-        // Set headers for SSE
+        try {
+            googleSerpService.assertSearchReady();
+        } catch (error) {
+            const normalized = buildErrorPayload(error);
+            res.status(normalized.status).json(normalized.payload);
+            return;
+        }
+
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
-        res.setHeader('X-Accel-Buffering', 'no'); // Disable proxy buffering
+        res.setHeader('X-Accel-Buffering', 'no');
         res.flushHeaders();
 
         const startTime = Date.now();
 
-        // Helper to send SSE event (matching website stream format)
         const sendEvent = (event: string, data: any) => {
             console.log(`📤 Sending SSE: ${event}`, JSON.stringify(data).slice(0, 150));
             res.write(`event: ${event}\n`);
             res.write(`data: ${JSON.stringify(data)}\n\n`);
         };
 
-        // Send start event
         sendEvent('start', { query, timestamp: Date.now() });
 
         try {
             const result = await googleSerpService.scrapeWithProgress(
                 query,
-                timeoutMs, // Pass timeout here
+                timeoutMs,
                 { gl, hl, tbs, stealth },
                 (progress) => {
                     console.log('⏳ Progress:', progress);
@@ -130,10 +149,8 @@ export class GoogleSerpController {
                 }
             );
 
-            // Send final result
             sendEvent('result', { success: true, data: result });
 
-            // Log successful request
             const duration = Date.now() - startTime;
             prisma.requestLog.create({
                 data: {
@@ -145,21 +162,20 @@ export class GoogleSerpController {
                     error_message: null,
                 }
             }).catch(err => console.error('Log failed:', err));
-
         } catch (error) {
             console.error('SERP Stream error:', error);
-            sendEvent('error', { success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+            const normalized = buildErrorPayload(error);
+            sendEvent('error', normalized.payload);
 
-            // Log failed request
             const duration = Date.now() - startTime;
             prisma.requestLog.create({
                 data: {
                     api_key_id: apiKeyId || null,
                     url: `google-ai-search://${query}`,
                     method: 'GET_SSE',
-                    status_code: 500,
+                    status_code: normalized.status,
                     duration_ms: duration,
-                    error_message: error instanceof Error ? error.message : 'Unknown error',
+                    error_message: normalized.payload.error,
                 }
             }).catch(err => console.error('Log failed:', err));
         } finally {
@@ -168,10 +184,40 @@ export class GoogleSerpController {
         }
     }
 
-    static async getStatus(req: Request, res: Response) {
+    static async getStatus(_req: Request, res: Response) {
         res.json({
             status: 'online',
-            service: 'google-ai-search-v1'
+            service: 'google-ai-search-v1',
+            cookies: browserService.getGoogleCookieBootstrapStatus(),
         });
+    }
+
+    static async getCookieStatus(_req: Request, res: Response) {
+        res.json({
+            success: true,
+            data: browserService.getGoogleCookieBootstrapStatus(),
+        });
+    }
+
+    static async buildCookies(_req: Request, res: Response) {
+        try {
+            const data = await browserService.startGoogleCookieBootstrap();
+            res.json({ success: true, data });
+        } catch (error) {
+            console.error('Google cookie bootstrap error:', error);
+            const normalized = buildErrorPayload(error);
+            res.status(normalized.status).json(normalized.payload);
+        }
+    }
+
+    static async stopCookies(_req: Request, res: Response) {
+        try {
+            const data = await browserService.stopGoogleCookieBootstrap();
+            res.json({ success: true, data });
+        } catch (error) {
+            console.error('Google cookie stop error:', error);
+            const normalized = buildErrorPayload(error);
+            res.status(normalized.status).json(normalized.payload);
+        }
     }
 }

@@ -1,27 +1,19 @@
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { ArrowRight01Icon } from '@hugeicons/core-free-icons';
+import { HugeiconsIcon } from '@hugeicons/react';
 import type { CrawlPageData, CrawlResultData } from '../types';
 import { ResultStat } from './ResultStat';
-
-const RAW_CODE_BLOCK_CLASSNAME =
-    'custom-scrollbar overflow-auto rounded-3xl border border-slate-200 bg-white p-5 font-mono text-xs leading-6 text-slate-700';
-
-const MARKDOWN_PROSE_CLASSNAME =
-    'prose prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-blue-600 prose-code:rounded-md prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:text-slate-800 prose-code:before:content-none prose-code:after:content-none prose-pre:custom-scrollbar prose-pre:overflow-auto prose-pre:rounded-3xl prose-pre:border prose-pre:border-slate-200 prose-pre:bg-white prose-pre:p-5 prose-pre:text-slate-700 prose-img:rounded-2xl';
 
 interface CrawlResultsProps {
     data: CrawlResultData;
     selectedPage: CrawlPageData | null;
-    onSelectPage: (page: CrawlPageData) => void;
-    viewRaw: boolean;
+    onOpenPage: (page: CrawlPageData) => void;
     expanded: boolean;
 }
 
 export function CrawlResults({
     data,
     selectedPage,
-    onSelectPage,
-    viewRaw,
+    onOpenPage,
     expanded,
 }: CrawlResultsProps) {
     return (
@@ -33,14 +25,26 @@ export function CrawlResults({
                 <ResultStat label="Discovered" value={data.summary.discoveredCount} />
             </div>
 
-            <div className="grid gap-5 xl:grid-cols-[340px_minmax(0,1fr)]">
-                <div className={`rounded-3xl border border-slate-200 bg-slate-50 p-3 ${expanded ? '' : 'max-h-[52rem] overflow-auto'}`}>
-                    <div className="mb-3 px-2">
-                        <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Pages</div>
-                        <div className="mt-1 text-sm text-slate-500">Select a crawled page to inspect its markdown.</div>
+            <div className={`rounded-3xl border border-slate-200 bg-slate-50 ${expanded ? '' : 'max-h-[56rem] overflow-auto'}`}>
+                <div className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50/95 px-5 py-4 backdrop-blur">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Pages</div>
+                            <div className="mt-1 text-sm text-slate-500">
+                                Click any crawled page to inspect it in a focused overlay.
+                            </div>
+                        </div>
+                        <div className="flex max-w-full items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                            <span className="shrink-0 text-slate-400">Seed</span>
+                            <span className="max-w-[18rem] truncate normal-case tracking-normal text-slate-600">
+                                {data.summary.seedUrl}
+                            </span>
+                        </div>
                     </div>
+                </div>
 
-                    <div className="space-y-2">
+                {data.pages.length > 0 ? (
+                    <div className="grid gap-3 p-4 lg:grid-cols-2">
                         {data.pages.map((page) => {
                             const isActive = selectedPage?.url === page.url;
 
@@ -48,76 +52,71 @@ export function CrawlResults({
                                 <button
                                     key={page.url}
                                     type="button"
-                                    onClick={() => onSelectPage(page)}
-                                    className={`w-full rounded-2xl border px-4 py-3 text-left transition-colors ${
+                                    onClick={() => onOpenPage(page)}
+                                    className={`group flex h-full flex-col rounded-[1.5rem] border px-4 py-4 text-left transition-colors ${
                                         isActive
                                             ? 'border-slate-900 bg-slate-900 text-white'
-                                            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                                            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                                     }`}
                                 >
-                                    <div className="text-sm font-semibold">{page.title}</div>
-                                    <div className={`mt-1 line-clamp-2 text-xs leading-5 ${isActive ? 'text-slate-300' : 'text-slate-500'}`}>
-                                        {page.url}
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0 flex-1">
+                                            <div className="text-base font-semibold leading-7">
+                                                {page.title || 'Untitled page'}
+                                            </div>
+                                            <div className={`mt-1 break-all text-xs leading-5 ${isActive ? 'text-white/75' : 'text-slate-500'}`}>
+                                                {page.url}
+                                            </div>
+                                        </div>
+                                        <div className={`rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.16em] ${
+                                            isActive ? 'border-white/15 bg-white/10 text-white' : 'border-slate-200 bg-slate-50 text-slate-500'
+                                        }`}>
+                                            Depth {page.depth}
+                                        </div>
                                     </div>
-                                    <div className={`mt-2 flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] ${isActive ? 'text-slate-300' : 'text-slate-400'}`}>
-                                        <span>Depth {page.depth}</span>
-                                        <span>{page.linkCount} links</span>
+
+                                    <div className={`mt-3 line-clamp-3 text-sm leading-6 ${isActive ? 'text-white/85' : 'text-slate-600'}`}>
+                                        {page.excerpt?.trim() || 'No excerpt available for this page.'}
+                                    </div>
+
+                                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                                        <div className={`flex flex-wrap gap-2 text-[11px] font-bold uppercase tracking-[0.16em] ${
+                                            isActive ? 'text-white/70' : 'text-slate-400'
+                                        }`}>
+                                            <span>{page.linkCount} links</span>
+                                            <span>Status {page.statusCode ?? 'n/a'}</span>
+                                        </div>
+                                        <div className={`inline-flex items-center text-xs font-semibold ${
+                                            isActive ? 'text-white' : 'text-slate-700'
+                                        }`}>
+                                            Open page
+                                            <HugeiconsIcon icon={ArrowRight01Icon} className="ml-1.5 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                        </div>
                                     </div>
                                 </button>
                             );
                         })}
                     </div>
-                </div>
-
-                <div className="space-y-4">
-                    {selectedPage ? (
-                        <>
-                            <div className="grid gap-3 sm:grid-cols-3">
-                                <ResultStat label="Title" value={selectedPage.title || 'Untitled'} />
-                                <ResultStat label="Depth" value={selectedPage.depth} />
-                                <ResultStat label="Links" value={selectedPage.linkCount} />
-                            </div>
-
-                            <div className="rounded-3xl border border-slate-200 bg-white p-5">
-                                <div className="mb-4">
-                                    <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Selected Page</div>
-                                    <div className="mt-1 break-all text-sm text-slate-500">{selectedPage.url}</div>
-                                </div>
-
-                                {viewRaw ? (
-                                    <pre className={`${RAW_CODE_BLOCK_CLASSNAME} ${expanded ? 'max-h-none' : 'max-h-[42rem]'} rounded-2xl`}>
-                                        {selectedPage.markdown}
-                                    </pre>
-                                ) : (
-                                    <div className={`${expanded ? 'max-h-none' : 'max-h-[42rem] overflow-auto'} rounded-2xl border border-slate-200 p-5`}>
-                                        <div className={MARKDOWN_PROSE_CLASSNAME}>
-                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedPage.markdown}</ReactMarkdown>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    ) : (
-                        <div className="rounded-3xl border border-slate-200 bg-white px-6 py-10 text-center text-sm text-slate-500">
-                            No crawl pages were captured.
-                        </div>
-                    )}
-
-                    {data.failures.length > 0 && (
-                        <div className={`rounded-3xl border border-red-200 bg-red-50 p-5 ${expanded ? '' : 'max-h-[22rem] overflow-auto'}`}>
-                            <div className="text-xs font-bold uppercase tracking-[0.2em] text-red-400">Failures</div>
-                            <div className="mt-3 space-y-2">
-                                {data.failures.map((failure) => (
-                                    <div key={`${failure.url}-${failure.depth}`} className="rounded-2xl border border-red-200 bg-white px-4 py-3">
-                                        <div className="text-sm font-semibold text-slate-900">{failure.url}</div>
-                                        <div className="mt-1 text-xs text-red-600">{failure.error}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                ) : (
+                    <div className="px-6 py-10 text-center text-sm text-slate-500">
+                        No crawl pages were captured.
+                    </div>
+                )}
             </div>
+
+            {data.failures.length > 0 && (
+                <div className={`rounded-3xl border border-red-200 bg-red-50 p-5 ${expanded ? '' : 'max-h-[22rem] overflow-auto'}`}>
+                    <div className="text-xs font-bold uppercase tracking-[0.2em] text-red-400">Failures</div>
+                    <div className="mt-3 space-y-2">
+                        {data.failures.map((failure) => (
+                            <div key={`${failure.url}-${failure.depth}`} className="rounded-2xl border border-red-200 bg-white px-4 py-3">
+                                <div className="text-sm font-semibold text-slate-900">{failure.url}</div>
+                                <div className="mt-1 text-xs text-red-600">{failure.error}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

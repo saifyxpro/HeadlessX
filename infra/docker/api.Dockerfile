@@ -3,10 +3,14 @@ FROM node:22-slim AS base
 # Install pnpm
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV HEADFOX_JS_RELEASE_REPO="daijro/camoufox"
+ENV HEADFOX_JS_RELEASE_TAG="v135.0.1-beta.24"
 RUN corepack enable
 
 # Install required dependencies for Camoufox/Playwright
 RUN apt-get update && apt-get install -y \
+    build-essential \
+    xvfb \
     libnss3 \
     libnspr4 \
     libatk1.0-0 \
@@ -41,11 +45,12 @@ COPY infra/docker/worker-entrypoint.sh /usr/local/bin/headlessx-worker-entrypoin
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
+RUN pnpm rebuild better-sqlite3
 
-# Generate Prisma Client and fetch Camoufox
+# Generate Prisma Client and fetch the managed browser bundle
 WORKDIR /app/apps/api
 RUN pnpm exec prisma generate
-RUN pnpm exec camoufox-js fetch
+RUN pnpm exec headfox-js fetch
 
 # Build the API
 WORKDIR /app

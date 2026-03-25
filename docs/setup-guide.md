@@ -1,20 +1,50 @@
 # Setup Guide
 
-This document explains how to run HeadlessX with Docker, without Docker, or with a mixed setup.
+This document explains the three supported HeadlessX setup modes: `developer`, `self-host`, and `production`.
 
-## Recommendation
+## Mode Summary
 
-Recommended order:
+Use the CLI for all three modes:
 
-1. Docker for infrastructure plus local app runtime for development
-2. Full Docker for the full runtime stack when you want repeatable services
-3. Fully local only if you already manage PostgreSQL and Redis yourself
+1. `developer` for contributors who want the repo locally and only need Docker for infrastructure where it helps
+2. `self-host` for a full local or VPS Docker stack on HeadlessX's rare default ports
+3. `production` for the Docker app stack plus the Caddy/domain layer
 
-For most developers, the best path is:
+HeadlessX intentionally defaults to uncommon localhost ports to avoid collisions with typical `3000` and `8000` stacks.
 
-- PostgreSQL: Supabase or Docker
-- Redis: Docker
-- App runtime: `pnpm dev` or `mise run dev`
+## System Requirements
+
+### General host requirements
+
+| Item | Minimum | Recommended |
+| --- | --- | --- |
+| OS | macOS, Linux, or Windows 11 with WSL2 | Ubuntu 22.04+/24.04, Debian 12, or Windows 11 with WSL2 |
+| CPU | 2 cores | 4+ cores |
+| RAM | 4 GB | 8-16 GB |
+| Disk | 10 GB free | 20+ GB SSD |
+| Network | outbound internet for installs and downloads | stable broadband |
+
+### Tooling requirements by mode
+
+| Mode | Required tools |
+| --- | --- |
+| Developer | Git, Docker, Node.js 22+, pnpm 10.32.1+, Python/uv, Go |
+| Self-host | Git, Docker, Docker Compose v2 |
+| Production | Linux server recommended, Git, Docker, Docker Compose v2, DNS control for your domains |
+
+### Practical sizing guidance
+
+- Developer mode is comfortable at 8 GB RAM
+- Self-host Docker on a local machine or VPS is better at 8 GB minimum
+- Production is safer at 8 GB minimum and 16 GB recommended if you expect crawl-heavy or browser-heavy workloads
+- Open ports `80` and `443` for production domain setup with Caddy
+
+If you need to align your local pnpm version with the repo:
+
+```bash
+corepack enable
+corepack use pnpm@10.32.1
+```
 
 ## CLI Setup
 
@@ -38,10 +68,12 @@ Then log in:
 headlessx login
 ```
 
+The published CLI now uses guided modern prompts for `headlessx init` and `headlessx login` when your terminal is interactive.
+
 Or set credentials directly:
 
 ```bash
-headlessx login --api-url http://localhost:8000 --api-key hx_your_dashboard_created_key
+headlessx login --api-url http://localhost:38473 --api-key hx_your_dashboard_created_key
 ```
 
 Important:
@@ -49,6 +81,79 @@ Important:
 - command name is `headlessx`
 - package name is `@headlessx-cli/core`
 - the CLI talks to the same backend API used by the web app
+
+Bootstrap the local workspace with the CLI:
+
+```bash
+headlessx init
+```
+
+Useful variants:
+
+```bash
+headlessx init --mode self-host
+headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+headlessx init update
+headlessx init update --branch develop
+headlessx start
+headlessx logs
+headlessx status
+headlessx stop
+headlessx restart
+headlessx doctor
+```
+
+The CLI uses `~/.headlessx` as the default workspace root.
+
+- cloned repo: `~/.headlessx/repo`
+- self-host env: `~/.headlessx/repo/infra/docker/.env`
+- production env: `~/.headlessx/repo/infra/domain-setup/.env`
+- production Caddy config: `~/.headlessx/repo/infra/domain-setup/Caddyfile`
+- after `headlessx init` or `headlessx start`, run `headlessx status` and `headlessx doctor`
+- use `headlessx stop` to tear down the Docker stack started by the CLI
+
+To update an existing CLI-managed install:
+
+```bash
+headlessx init update
+headlessx restart
+headlessx logs --tail 200 --no-follow
+headlessx logs caddy --tail 100 --no-follow
+headlessx status
+headlessx doctor
+```
+
+`headlessx init update` keeps the saved mode, reconciles missing env keys for that mode, updates `~/.headlessx/repo`, and pulls `main` by default unless you pass `--branch`.
+For `self-host` and `production`, `headlessx restart` rebuilds Docker images before starting the stack again.
+
+Important:
+
+- update now resyncs missing env keys for the saved mode instead of leaving older workspaces partially configured
+- that includes values such as `YT_ENGINE_URL`, `INTERNAL_API_URL`, and `DASHBOARD_INTERNAL_API_KEY`
+
+## Google AI Search Cookie Bootstrap
+
+Google AI Search now uses the shared persistent browser profile managed by the API.
+
+The first time you use the Google operator:
+
+1. Open `/playground/operators/google/ai-search`
+2. Click `Build Cookies`
+3. If a real display is available, Headfox JS opens there. Otherwise the API starts a virtual display.
+4. Browse Google normally and solve any Google or reCAPTCHA prompt once.
+5. Click `Stop Browser` to save the updated shared profile.
+
+What gets persisted:
+
+- Docker and VPS installs keep the shared profile inside the `browser_profile` volume
+- local repo runs keep it under `apps/api/data/browser-profile/default`
+- there is no longer a seeded browser profile under `apps/api/default-data/browser-profile`
+
+Until the cookie bootstrap has been completed once:
+
+- the Google config panel stays locked
+- the Google results panel stays locked
+- Google search endpoints return a setup error instead of a fake scrape failure
 
 ## AI Models Setup
 
@@ -104,11 +209,13 @@ Install them first:
 Then configure your root `.env`:
 
 ```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/headlessx?schema=public
-REDIS_URL=redis://localhost:6379
-HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:8081
-YT_ENGINE_URL=http://localhost:8090
+DATABASE_URL=postgresql://postgres:postgres@localhost:35432/headlessx?schema=public
+REDIS_URL=redis://localhost:36379
+HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:38081
+YT_ENGINE_URL=http://localhost:38090
 ```
+
+`YT_ENGINE_URL` is required to activate the YouTube workspace.
 
 Then start the workspace:
 
@@ -127,6 +234,7 @@ Important:
 - `pnpm dev` starts the API, worker, web, HTML-to-Markdown service, and yt-engine
 - `pnpm` does not install or start PostgreSQL or Redis for you
 - Website Crawl still requires Redis because it is queue-backed
+- YouTube stays disabled until `YT_ENGINE_URL` points at a healthy `yt-engine` service
 - if you do not want Docker, local PostgreSQL and local Redis must already be installed and running
 
 ## Mixed Local Setup
@@ -146,7 +254,7 @@ This avoids local Redis installation while still keeping the app runtime fast an
 HeadlessX now exposes a remote MCP endpoint from the backend:
 
 ```text
-http://localhost:8000/mcp
+http://localhost:38473/mcp
 ```
 
 Use a normal API key created from the dashboard `API Keys` page.
@@ -160,7 +268,7 @@ Example JSON client config:
   "mcpServers": {
     "headlessx": {
       "transport": "http",
-      "url": "http://localhost:8000/mcp",
+      "url": "http://localhost:38473/mcp",
       "headers": {
         "x-api-key": "hx_your_dashboard_created_key"
       }
@@ -174,7 +282,7 @@ Example TOML client config:
 ```toml
 [mcp_servers.headlessx]
 transport = "http"
-url = "http://localhost:8000/mcp"
+url = "http://localhost:38473/mcp"
 
 [mcp_servers.headlessx.headers]
 x-api-key = "hx_your_dashboard_created_key"
@@ -208,14 +316,14 @@ Use this when:
 Required:
 
 - root `.env` configured with your Supabase `DATABASE_URL`
-- `REDIS_URL=redis://localhost:6379`
+- `REDIS_URL=redis://localhost:36379`
 
 Start Redis with Docker:
 
 ```bash
 docker run -d \
   --name headlessx-redis \
-  -p 6379:6379 \
+  -p 36379:6379 \
   redis:7-alpine
 ```
 
@@ -257,7 +365,7 @@ docker run -d \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=headlessx \
-  -p 5432:5432 \
+  -p 35432:5432 \
   postgres:15-alpine
 ```
 
@@ -266,17 +374,17 @@ Start Redis:
 ```bash
 docker run -d \
   --name headlessx-redis \
-  -p 6379:6379 \
+  -p 36379:6379 \
   redis:7-alpine
 ```
 
 Then set your root `.env`:
 
 ```env
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/headlessx?schema=public
-REDIS_URL=redis://localhost:6379
-HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:8081
-YT_ENGINE_URL=http://localhost:8090
+DATABASE_URL=postgresql://postgres:postgres@localhost:35432/headlessx?schema=public
+REDIS_URL=redis://localhost:36379
+HTML_TO_MARKDOWN_SERVICE_URL=http://localhost:38081
+YT_ENGINE_URL=http://localhost:38090
 ```
 
 Run the workspace:
@@ -351,13 +459,13 @@ Default ports in this repo:
 
 | Service | Default |
 | --- | --- |
-| Web | `3000` |
-| API | `8000` |
-| PostgreSQL | `5432` |
-| Redis | `6379` |
-| HTML-to-Markdown host port | `8081` |
+| Web | `34872` |
+| API | `38473` |
+| PostgreSQL | `35432` |
+| Redis | `36379` |
+| HTML-to-Markdown host port | `38081` |
 | HTML-to-Markdown container port | `8080` |
-| yt-engine | `8090` |
+| yt-engine | `38090` |
 
 ## Environment Files
 

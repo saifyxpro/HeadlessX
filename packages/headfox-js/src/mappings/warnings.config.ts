@@ -1,0 +1,52 @@
+export default {
+	navigator:
+		"Manually setting navigator properties is not recommended." +
+		" Device information is automatically generated within Headfox" +
+		" based on the provided `os`.",
+
+	locale:
+		"Use the `locale` parameter in Headfox instead of setting the config manually.",
+
+	geolocation:
+		"Please use the `geoip` parameter in Headfox instead of setting your geolocation manually." +
+		" This can lead to detection if your target geolocation does not match your IP." +
+		" Pass `geoip=True` or a target IP (ex: geoip='123.45.67.89') to let Headfox populate this data for you.",
+
+	"header-ua":
+		"Do not set the header.User-Agent manually. Headfox will generate a User-Agent for you.",
+
+	viewport:
+		"Manually setting screen & window properties is not recommended." +
+		" Screen dimensions are randomly generated within Headfox" +
+		" based on the provided screen constraints.",
+
+	custom_fingerprint:
+		"Passing your own fingerprint is not recommended." +
+		" BrowserForge fingerprints are automatically generated within Headfox" +
+		" based on the provided `os` and `screen` constraints.",
+
+	proxy_without_geoip:
+		"When using a proxy, it is heavily recommended that you pass `geoip=True`.",
+
+	ff_version:
+		"Spoofing the Firefox version will likely lead to detection." +
+		" If rotating the Firefox version is absolutely necessary, it would be more advisable to" +
+		" rotate between older versions of Headfox instead.",
+
+	no_region:
+		"Because you did not pass in a locale region, Headfox will generate one for you." +
+		" This can cause suspicion if your IP does not match your locale region.",
+
+	block_webgl:
+		"Disabling WebGL is not recommended. Many WAFs will check if WebGL is enabled.",
+
+	block_images:
+		"Blocking image requests has been reported to cause detection issues on major WAFs.",
+
+	custom_fonts_only:
+		"Disabling OS-specific fonts while spoofing your OS will make your browser fingerprint inconsistent." +
+		" WAFs can detect this mismatch between your claimed OS and available system fonts.",
+
+	disable_coop:
+		"Disabling Cross-Origin-Opener-Policy (COOP) handling can potentially be detected by sophisticated WAFs.",
+};

@@ -10,6 +10,7 @@ import { WorkbenchLayout } from '../shared';
 
 interface YoutubeWorkbenchProps {
     available: boolean;
+    unavailableReason?: string | null;
 }
 
 type YoutubeStorageState = {
@@ -30,7 +31,7 @@ function sanitizePlayerClientProfile(value?: string): YoutubePlayerClientProfile
     return value === 'default' ? 'default' : 'mobile';
 }
 
-export function YoutubeWorkbench({ available }: YoutubeWorkbenchProps) {
+export function YoutubeWorkbench({ available, unavailableReason }: YoutubeWorkbenchProps) {
     const [url, setUrl] = useState('');
     const [includeFormats, setIncludeFormats] = useState(true);
     const [includeSubtitles, setIncludeSubtitles] = useState(true);
@@ -243,6 +244,7 @@ export function YoutubeWorkbench({ available }: YoutubeWorkbenchProps) {
             config={
                 <ConfigurationPanel
                     available={available}
+                    unavailableReason={unavailableReason}
                     url={url}
                     onUrlChange={setUrl}
                     includeFormats={includeFormats}
@@ -269,6 +271,7 @@ export function YoutubeWorkbench({ available }: YoutubeWorkbenchProps) {
             results={
                 <ResultsPanel
                     available={available}
+                    unavailableReason={unavailableReason}
                     url={url}
                     result={result}
                     steps={steps}

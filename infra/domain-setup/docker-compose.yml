@@ -1,0 +1,29 @@
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    container_name: headlessx-caddy
+    restart: unless-stopped
+    environment:
+      CADDY_EMAIL: ${CADDY_EMAIL}
+      HEADLESSX_WEB_DOMAIN: ${HEADLESSX_WEB_DOMAIN}
+      HEADLESSX_API_DOMAIN: ${HEADLESSX_API_DOMAIN}
+      HEADLESSX_WEB_UPSTREAM: ${HEADLESSX_WEB_UPSTREAM}
+      HEADLESSX_API_UPSTREAM: ${HEADLESSX_API_UPSTREAM}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - headlessx-core
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  headlessx-core:
+    external: true
+    name: ${HEADLESSX_DOCKER_NETWORK:-docker_headlessx-network}

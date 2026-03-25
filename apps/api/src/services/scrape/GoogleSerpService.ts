@@ -1,6 +1,5 @@
 import { Page, BrowserContext } from 'playwright-core';
 import { browserService } from './BrowserService';
-import { captchaSolverService } from '../CaptchaSolverService';
 
 export interface SerpResult {
     ai_overview: string | null;
@@ -26,7 +25,49 @@ export interface GoogleSearchOptions {
     stealth?: boolean;
 }
 
+export class GoogleSerpSetupError extends Error {
+    public readonly code: string;
+    public readonly statusCode: number;
+
+    constructor(message: string, code: string, statusCode = 412) {
+        super(message);
+        this.name = 'GoogleSerpSetupError';
+        this.code = code;
+        this.statusCode = statusCode;
+    }
+}
+
 export class GoogleSerpService {
+    public assertSearchReady(): void {
+        const cookieStatus = browserService.getGoogleCookieBootstrapStatus();
+
+        if (cookieStatus.running) {
+            throw new GoogleSerpSetupError(
+                'Google cookie browser is still open. Stop Browser after solving Google prompts, then rerun the search.',
+                'GOOGLE_COOKIE_BOOTSTRAP_ACTIVE',
+                409
+            );
+        }
+
+        if (cookieStatus.required) {
+            throw new GoogleSerpSetupError(
+                'Build Cookies once before running Google AI Search so the shared browser profile looks trusted to Google.',
+                'GOOGLE_COOKIE_BOOTSTRAP_REQUIRED',
+                412
+            );
+        }
+    }
+
+    private async solveCaptcha(page: Page): Promise<boolean> {
+        try {
+            const { captchaSolverService } = await import('../CaptchaSolverService');
+            return await captchaSolverService.solve(page);
+        } catch (error) {
+            console.error('Captcha solver is unavailable:', error);
+            return false;
+        }
+    }
+
     private normalizeOptions(options?: GoogleSearchOptions): GoogleSearchOptions {
         return {
             gl: options?.gl?.trim().toLowerCase() || undefined,
@@ -87,6 +128,7 @@ export class GoogleSerpService {
         options: GoogleSearchOptions,
         onProgress: (progress: { step: number; total: number; message: string; status: 'active' | 'completed' | 'pending' }) => void
     ): Promise<SearchResponse> {
+        this.assertSearchReady();
         const searchOptions = this.normalizeOptions(options);
         const homeUrl = this.buildGoogleHomeUrl(searchOptions);
         const startUrl = this.buildGoogleStartUrl(query, searchOptions);
@@ -131,7 +173,7 @@ export class GoogleSerpService {
                             message: `CAPTCHA detected at ${location}. Solving...`,
                             status: 'active'
                         });
-                        await captchaSolverService.solve(page);
+                        await this.solveCaptcha(page);
                         await page.waitForTimeout(3000);
 
                         // If still on sorry page, navigate back to Google
@@ -277,7 +319,7 @@ export class GoogleSerpService {
                         message: 'CAPTCHA detected while waiting. Solving...',
                         status: 'active'
                     });
-                    await captchaSolverService.solve(page);
+                    await this.solveCaptcha(page);
                     await page.waitForTimeout(3000);
                 }
 
@@ -429,6 +471,7 @@ export class GoogleSerpService {
     }
 
     public async search(query: string, options?: GoogleSearchOptions): Promise<SearchResponse> {
+        this.assertSearchReady();
         const searchOptions = this.normalizeOptions(options);
         const homeUrl = this.buildGoogleHomeUrl(searchOptions);
         const startUrl = this.buildGoogleStartUrl(query, searchOptions);
@@ -453,7 +496,7 @@ export class GoogleSerpService {
 
                 if (captchaFrame || isSorryPage) {
                     console.log("   ⚠️ reCAPTCHA/Block detected! Attempting to solve...");
-                    const solved = await captchaSolverService.solve(page);
+                    const solved = await this.solveCaptcha(page);
                     if (solved) {
                         console.log("   ✅ reCAPTCHA solved, proceeding...");
                         // If we were on sorry page, we might need to navigate back or it auto-redirects
@@ -494,7 +537,7 @@ export class GoogleSerpService {
                 const captchaFrame = page.frames().find(f => f.url().includes('recaptcha/api2/anchor'));
                 if (captchaFrame) {
                     console.log("   ⚠️ reCAPTCHA detected! Attempting to solve...");
-                    const solved = await captchaSolverService.solve(page);
+                    const solved = await this.solveCaptcha(page);
                     if (solved) {
                         console.log("   ✅ reCAPTCHA solved, proceeding...");
                         await page.waitForTimeout(2000);
@@ -527,7 +570,7 @@ export class GoogleSerpService {
 
                     if (captchaFrame || isSorryPage) {
                         console.log("   ⚠️ CAPTCHA detected after AI Mode click! Attempting to solve...");
-                        const solved = await captchaSolverService.solve(page);
+                        const solved = await this.solveCaptcha(page);
                         if (solved) {
                             console.log("   ✅ reCAPTCHA solved, proceeding...");
                             await page.waitForTimeout(2000);
@@ -579,7 +622,7 @@ export class GoogleSerpService {
 
                     if (captchaFrame || isSorryPage) {
                         console.log("   ⚠️ Blocking reCAPTCHA detected! Attempting to solve...");
-                        const solved = await captchaSolverService.solve(page);
+                        const solved = await this.solveCaptcha(page);
                         if (solved) {
                             console.log("   ✅ reCAPTCHA solved, retrying search input discovery...");
                             await page.waitForTimeout(3000);
@@ -685,7 +728,7 @@ export class GoogleSerpService {
 
                     if (isSorryPage || captchaFrame) {
                         console.log("   ⚠️ Post-search reCAPTCHA/Block detected! Attempting to solve...");
-                        const solved = await captchaSolverService.solve(page);
+                        const solved = await this.solveCaptcha(page);
                         if (solved) {
                             console.log("   ✅ reCAPTCHA solved, waiting for redirection...");
                             await page.waitForTimeout(3000);

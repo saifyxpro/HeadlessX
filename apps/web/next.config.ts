@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
 const webRoot = path.dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = path.resolve(webRoot, '../..');
 
-// API URL from environment (defaults to localhost:8000 for local dev)
+// API URL from environment (defaults to localhost:38473 for local dev)
 const nextConfig: NextConfig = {
   /* config options here */
 

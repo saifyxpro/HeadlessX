@@ -17,6 +17,9 @@ router.use(ApiKeyGuard);
 router.post('/search', GoogleSerpController.search);
 router.get('/stream', GoogleSerpController.searchStream);
 router.get('/status', GoogleSerpController.getStatus);
+router.get('/cookies/status', GoogleSerpController.getCookieStatus);
+router.post('/cookies/build', GoogleSerpController.buildCookies);
+router.post('/cookies/stop', GoogleSerpController.stopCookies);
 
 
 export default router;

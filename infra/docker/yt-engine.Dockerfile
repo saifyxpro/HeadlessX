@@ -17,11 +17,10 @@ RUN python -m pip install --no-cache-dir --upgrade pip uv
 
 WORKDIR /app
 
-COPY packages/yt-dude ./packages/yt-dude
 COPY apps/yt-engine ./apps/yt-engine
 
 RUN mkdir -p /app/tmp/yt-engine \
-    && uv pip install --system "./packages/yt-dude[default,curl-cffi]" "./apps/yt-engine"
+    && uv pip install --system "./apps/yt-engine"
 
 EXPOSE 8090
 

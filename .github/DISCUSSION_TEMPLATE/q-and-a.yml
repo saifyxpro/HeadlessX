@@ -4,16 +4,13 @@ body:
   - type: markdown
     attributes:
       value: |
-        ## ❓ Q&A Template
-        
-        Ask questions about HeadlessX usage, features, deployment, or troubleshooting.
+        Ask usage, setup, deployment, or troubleshooting questions here.
 
   - type: input
     id: topic
     attributes:
-      label: Question Topic
-      description: What area does your question relate to?
-      placeholder: "e.g., API Usage, Docker Deployment, Anti-Detection Features"
+      label: Topic
+      placeholder: "CLI self-host install on Ubuntu 24.04"
     validations:
       required: true
 
@@ -21,15 +18,14 @@ body:
     id: category
     attributes:
       label: Category
-      description: Select the category that best fits your question
       options:
-        - Installation & Setup
-        - API Usage
-        - Anti-Detection Features
-        - Docker Deployment
-        - Performance & Optimization
+        - Installation and setup
+        - CLI
+        - Dashboard
+        - API
+        - Docker and VPS
+        - Operators
         - Troubleshooting
-        - Feature Requests
         - Other
     validations:
       required: true
@@ -37,40 +33,20 @@ body:
   - type: textarea
     id: question
     attributes:
-      label: Your Question
-      description: What do you need help with?
-      placeholder: |
-        Please be as specific as possible:
-        - What are you trying to achieve?
-        - What have you tried so far?
-        - What error or issue are you experiencing?
+      label: Question
+      placeholder: "What are you trying to do, what have you already tried, and where is it failing?"
     validations:
       required: true
 
   - type: textarea
     id: environment
     attributes:
-      label: Environment Details
-      description: Help us understand your setup
-      placeholder: |
-        - HeadlessX Version: v1.3.0
-        - Node.js Version: v18.x
-        - Deployment: Docker/PM2/Development
-        - OS: Ubuntu 22.04 / Windows 11 / macOS
-    validations:
-      required: false
+      label: Environment
+      placeholder: "HeadlessX version, install mode, OS, Node, pnpm, Docker, and any relevant URLs or ports."
 
   - type: textarea
-    id: code
+    id: logs
     attributes:
-      label: Code Sample (if applicable)
-      description: Share relevant code or configuration
-      render: javascript
-      placeholder: |
-        const response = await fetch('http://localhost:3000/api/render', {
-          method: 'POST',
-          headers: { 'Authorization': 'Bearer YOUR_TOKEN' },
-          body: JSON.stringify({ url: 'https://example.com' })
-        });
-    validations:
-      required: false
+      label: Commands Or Logs
+      render: shell
+      placeholder: "Paste the relevant command, status output, or error log."

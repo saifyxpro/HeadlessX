@@ -5,7 +5,7 @@ export interface GlobalConfig {
   apiUrl: string;
 }
 
-export const DEFAULT_API_URL = 'http://localhost:8000';
+export const DEFAULT_API_URL = 'http://localhost:38473';
 
 let globalConfig: GlobalConfig = {
   apiUrl: DEFAULT_API_URL,
