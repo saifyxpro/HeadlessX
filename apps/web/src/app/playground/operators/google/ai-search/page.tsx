@@ -92,7 +92,6 @@ export default function GoogleAiSearchPage() {
     const [data, setData] = useState<SearchResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [steps, setSteps] = useState<ProgressStep[]>([]);
-    const [startTime, setStartTime] = useState<number | null>(null);
     const [elapsedTime, setElapsedTime] = useState<number | null>(null);
     const [cookieStatus, setCookieStatus] = useState<GoogleCookieStatus | null>(null);
     const [isCookieStatusPending, setIsCookieStatusPending] = useState(true);
@@ -100,6 +99,7 @@ export default function GoogleAiSearchPage() {
     const [cookieError, setCookieError] = useState<string | null>(null);
 
     const abortControllerRef = useRef<AbortController | null>(null);
+    const startTimeRef = useRef<number | null>(null);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const terminalEventReceivedRef = useRef(false);
 
@@ -112,14 +112,14 @@ export default function GoogleAiSearchPage() {
                 timerRef.current = null;
             }
 
-            if (startTime) {
-                setElapsedTime(Date.now() - startTime);
+            if (startTimeRef.current !== null) {
+                setElapsedTime(Date.now() - startTimeRef.current);
             }
             return;
         }
 
         const currentStartTime = Date.now();
-        setStartTime(currentStartTime);
+        startTimeRef.current = currentStartTime;
         setElapsedTime(0);
         timerRef.current = setInterval(() => {
             setElapsedTime(Date.now() - currentStartTime);
@@ -131,7 +131,7 @@ export default function GoogleAiSearchPage() {
                 timerRef.current = null;
             }
         };
-    }, [isLoading, startTime]);
+    }, [isLoading]);
 
     useEffect(() => {
         return () => {
@@ -140,6 +140,7 @@ export default function GoogleAiSearchPage() {
                 timerRef.current = null;
             }
 
+            startTimeRef.current = null;
             abortControllerRef.current?.abort();
             abortControllerRef.current = null;
         };
