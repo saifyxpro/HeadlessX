@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/saifyxpro-headlessx-badge.png)](https://mseep.ai/app/saifyxpro-headlessx)
+
 <div align="center">
 
 ![HeadlessX Logo](assets/logo-hr.svg)
