@@ -6,7 +6,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { cn } from '@/lib/utils';
 
 const DISMISS_KEY = 'headlessx-nodemaven-callout-dismissed';
-const NODEMAVEN_URL = 'https://go.nodemaven.com/Saifyxprowebsite';
+const NODEMAVEN_URL = 'https://go.nodemaven.com/Saifyxprotool';
 
 const PROMO_CODES = [
     { code: 'HEADLESSX35', label: '35% off Mobile & Residential' },
@@ -73,9 +73,9 @@ export function NodeMavenProxyCallout() {
 
             <div className="flex flex-col gap-4 pr-8 sm:flex-row sm:items-start">
                 <img
-                    src="/nodemaven-banner.png"
+                    src="/nodemaven-square-icon.png"
                     alt="NodeMaven"
-                    className="h-10 w-auto shrink-0 object-contain object-left"
+                    className="h-10 w-10 shrink-0 rounded-lg border border-teal-100 bg-white object-contain p-1"
                 />
                 <div className="min-w-0 flex-1 space-y-3">
                     <div>

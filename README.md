@@ -81,14 +81,14 @@ Important operator setup notes:
   </tr>
   <tr>
     <td width="440" align="center" valign="middle">
-      <a href="https://go.nodemaven.com/Saifyxproreadme">
+      <a href="https://go.nodemaven.com/Saifyxproread">
         <img src="assets/nodemaven-banner.png" alt="NodeMaven banner" width="420" />
       </a>
     </td>
     <td valign="top">
       <strong>NodeMaven</strong> — The most reliable proxy provider with the highest quality IP on the market. Best for automation, web scraping, SEO research, and social media management. 99.9% uptime, sticky sessions up to 7 days, fraud score &lt;97%, no KYC. Use <strong>HEADLESSX35</strong> for 35% off Mobile/Residential or <strong>HEADLESSX40</strong> for 40% off ISP proxies.
       <br />
-      <a href="https://go.nodemaven.com/Saifyxproreadme"><strong>Try NodeMaven now</strong></a>
+      <a href="https://go.nodemaven.com/Saifyxproread"><strong>Try NodeMaven now</strong></a>
     </td>
   </tr>
 </table>
