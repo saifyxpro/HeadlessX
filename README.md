@@ -273,6 +273,8 @@ For deeper setup details, direct repo development, env files, Docker internals, 
 
 The first Google AI Search run now uses a shared persistent browser profile instead of a seeded browser profile committed into the repo.
 
+For Docker and VPS installs without a real display, the API container can expose that browser session through noVNC at `https://your-vnc-host/vnc.html`.
+
 1. Open `/playground/operators/google/ai-search`
 2. Click `Build Cookies`
 3. Let the shared browser open Google

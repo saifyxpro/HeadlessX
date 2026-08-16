@@ -11,6 +11,12 @@ RUN corepack enable
 RUN apt-get update && apt-get install -y \
     build-essential \
     xvfb \
+    x11vnc \
+    novnc \
+    websockify \
+    openbox \
+    x11-utils \
+    xauth \
     libnss3 \
     libnspr4 \
     libatk1.0-0 \
