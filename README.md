@@ -7,7 +7,7 @@
 [![Version](https://img.shields.io/badge/Version-v2.1.2-blue?style=for-the-badge)](docs/setup-guide.md)
 [![Runtime](https://img.shields.io/badge/Node.js-22+-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
-[![License](https://img.shields.io/badge/License-MIT-black?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-blue?style=for-the-badge)](LICENSE)
 
 [Setup Guide](https://headlessx.saify.me/docs/self-hosting/overview) • [API Reference](https://headlessx.saify.me/docs/api-reference/overview) • [MCP](https://headlessx.saify.me/docs/get-started/mcp-setup)
 
@@ -18,6 +18,25 @@
 <div align="center">
 
 ![HeadlessX Demo](assets/demo.gif)
+
+</div>
+
+## What's next (v2.5)
+
+I'm working on HeadlessX v2.5. I know the current dashboard and a lot of the system need a real redesign — cleaner UI, better UX, and a setup that actually fits how people use this with agents. That's what I'm building now.
+
+v2.1.2 is still what you run today. v2.5 will replace the playground-style UI, add a proper agent chat, and a live Camoufox interact session with **KasmVNC** embedded in the dashboard so keyboard and mouse go into the real browser window. Postgres will ship in Docker only (no Supabase). CLI setup will be two modes — **`developer`** (apps on the host, Postgres/Redis in Docker) and **`production`** (full stack in Docker + Caddy/domains). `self-host` goes away. Watch this repo and the releases; I'll post there when it's ready to try.
+
+### Inspired by
+
+<div align="center">
+
+[![Firecrawl](https://img.shields.io/badge/Firecrawl-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/firecrawl/firecrawl)
+[![zquestz/s](https://img.shields.io/badge/zquestz%2Fs-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/zquestz/s)
+[![Steel Browser](https://img.shields.io/badge/Steel%20Browser-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/steel-dev/steel-browser)
+[![pdf--inspector](https://img.shields.io/badge/pdf--inspector-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/firecrawl/pdf-inspector)
+[![obscura](https://img.shields.io/badge/obscura-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/h4ckf0r0day/obscura)
+[![agent-browser](https://img.shields.io/badge/agent--browser-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/vercel-labs/agent-browser)
 
 </div>
 
@@ -50,6 +69,8 @@ Important operator setup notes:
 - Refreshed setup, CLI, and self-hosting docs around the current operator-first platform layout
 
 ## Sponsors
+
+I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swiftproxy, and NodeMaven have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
 
 <details open>
 <summary>View</summary>
@@ -367,4 +388,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the current contribution workflow, lo
 
 ## License
 
-MIT
+HeadlessX is open source under the [GNU Affero General Public License v3.0](LICENSE). Anyone may use, study, modify, and share it — individuals, teams, and companies. If you run a modified version as a network service, you must also share the source.
+
+## Credits
+
+HeadlessX is powered by [Camoufox](https://camoufox.com/) — a Firefox-based anti-detect browser with C++ fingerprint injection, built for AI agents.
+
+### Crypto scam warning
+
+Sketchy people are doing sketchy things with crypto tokens named "Camofox" now that this project is getting attention. Camofox is not a crypto project and will never be one. Any token, coin, or NFT using the Camofox name has nothing to do with us.

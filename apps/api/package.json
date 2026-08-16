@@ -32,7 +32,7 @@
     "browser"
   ],
   "author": "SaifyXPRO",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
     "@mozilla/readability": "^0.6.0",

@@ -96,8 +96,9 @@ __pycache__/
 local.json
 config.local.js
 
-# Local planning docs
+# Local planning / product docs (not published)
 docs/plans/
+docs/prd/
 
 # Local package development
 packages/yt-dude/
