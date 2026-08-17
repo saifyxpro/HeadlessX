@@ -25,7 +25,9 @@
 
 I'm working on HeadlessX v2.5. I know the current dashboard and a lot of the system need a real redesign — cleaner UI, better UX, and a setup that actually fits how people use this with agents. That's what I'm building now.
 
-v2.1.2 is still what you run today. v2.5 will replace the playground-style UI, add a proper agent chat, and a live Camoufox interact session with **KasmVNC** embedded in the dashboard so keyboard and mouse go into the real browser window. Postgres will ship in Docker only (no Supabase). CLI setup will be two modes — **`developer`** (apps on the host, Postgres/Redis in Docker) and **`production`** (full stack in Docker + Caddy/domains). `self-host` goes away. Watch this repo and the releases; I'll post there when it's ready to try.
+v2.1.2 is still what you run today. v2.5 will replace the playground-style UI, add a proper agent chat, and a live interact session with **KasmVNC** embedded in the dashboard so keyboard and mouse go into the real browser window. Postgres will ship in Docker only (no Supabase). CLI setup will be two modes — **`developer`** (apps on the host, Postgres/Redis in Docker) and **`production`** (full stack in Docker + Caddy/domains). `self-host` goes away. Watch this repo and the releases; I'll post there when it's ready to try.
+
+I'm evaluating anti-detect tests between [Camoufox](https://camoufox.com/) and [CloakBrowser](https://github.com/CloakHQ/CloakBrowser). HeadlessX will use whichever scores higher — Camoufox (Firefox, C++ fingerprint patches) or CloakBrowser (Chromium, C++ fingerprint patches).
 
 ### Inspired by
 
@@ -37,6 +39,7 @@ v2.1.2 is still what you run today. v2.5 will replace the playground-style UI, a
 [![pdf--inspector](https://img.shields.io/badge/pdf--inspector-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/firecrawl/pdf-inspector)
 [![obscura](https://img.shields.io/badge/obscura-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/h4ckf0r0day/obscura)
 [![agent-browser](https://img.shields.io/badge/agent--browser-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/vercel-labs/agent-browser)
+[![CloakBrowser](https://img.shields.io/badge/CloakBrowser-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/CloakHQ/CloakBrowser)
 
 </div>
 
@@ -70,7 +73,7 @@ Important operator setup notes:
 
 ## Sponsors
 
-I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swiftproxy, and NodeMaven have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
+I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swiftproxy, NodeMaven, and Mango Proxy have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
 
 <details open>
 <summary>View</summary>
@@ -110,6 +113,18 @@ I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swi
       <strong>NodeMaven</strong> — The most reliable proxy provider with the highest quality IP on the market. Best for automation, web scraping, SEO research, and social media management. 99.9% uptime, sticky sessions up to 7 days, fraud score &lt;97%, no KYC. Use <strong>HEADLESSX35</strong> for 35% off Mobile/Residential or <strong>HEADLESSX40</strong> for 40% off ISP proxies.
       <br />
       <a href="https://go.nodemaven.com/Saifyxproread"><strong>Try NodeMaven now</strong></a>
+    </td>
+  </tr>
+  <tr>
+    <td width="440" align="center" valign="middle">
+      <a href="https://mangoproxy.com/prod-isp-static/?utm_source=saifyxpro&utm_medium=partner&utm_campaign=saifyxpro_github">
+        <img src="assets/mangoproxy-banner.png" alt="Mango Proxy banner" width="420" />
+      </a>
+    </td>
+    <td valign="top">
+      <strong>Mango Proxy</strong> — Residential, ISP, datacenter, and mobile proxies for automation, web scraping, SEO, social media management, and other online tasks. HTTP(S) and SOCKS5, rotating and static. Use <strong>SAIFYXPRO</strong> for 8% off Static ISP Proxies.
+      <br />
+      <a href="https://mangoproxy.com/prod-isp-static/?utm_source=saifyxpro&utm_medium=partner&utm_campaign=saifyxpro_github"><strong>Try Mango Proxy now</strong></a>
     </td>
   </tr>
 </table>
@@ -205,17 +220,34 @@ This installs the HeadlessX CLI skill from this repository so the agent can use 
 | RAM | 4 GB | 8-16 GB |
 | Disk | 10 GB free | 20+ GB SSD |
 | Network | outbound internet for installs, browser downloads, and APIs | stable broadband |
+| Docker | Docker Engine + Compose v2 | current stable |
+
+### Mode requirements
+
+**Developer** — apps run on the host; **Docker is required**. Postgres and Redis run in Docker Compose. You still need Node.js, pnpm, and Git for `apps/web`, `apps/api`, and the worker.
+
+**Production** — the full stack runs in Docker, plus a domain layer (Caddy). You need:
+
+- a public server / VPS with Docker + Compose v2
+- two hostnames, for example `dashboard.yourdomain.com` and `api.yourdomain.com`
+- DNS `A` / `AAAA` records pointing both names at the server
+- ports `80` and `443` open (Caddy issues TLS)
+- an email for Let's Encrypt (`--caddy-email`)
+
+```bash
+headlessx init --mode developer
+headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
+```
 
 ### Runtime Dependencies
 
-- Node.js 22+
-- pnpm 10.32.1+
+- Node.js 22+ and pnpm 10.32.1+ (developer mode; apps on the host)
 - Git
-- Docker + Compose v2 for self-host or production mode
-- PostgreSQL
-- Redis
+- Docker + Compose v2 (**required for developer and production**)
 - Python/uv for `yt-engine`
-- Go for the HTML-to-Markdown sidecar
+- Go for the HTML-to-Markdown sidecar (v2.1.2)
+
+PostgreSQL and Redis are not a separate install in either mode — they come from Docker.
 
 If your machine does not already use the pinned pnpm release, align it with:
 
@@ -241,17 +273,15 @@ headlessx status
 headlessx doctor
 ```
 
-The CLI bootstraps HeadlessX into `~/.headlessx` by default and supports three setup modes:
+The CLI bootstraps HeadlessX into `~/.headlessx` by default and supports two setup modes:
 
-- `developer`: clone the repo, keep app services local, and use Docker only where needed for infrastructure
-- `self-host`: run the full HeadlessX stack on rare localhost ports with Docker
-- `production`: run the Docker app stack plus the Caddy/domain layer for `dashboard.yourdomain.com` and `api.yourdomain.com`
+- `developer`: clone the repo, keep app services local, **Docker required** for Postgres and Redis
+- `production`: full Docker stack plus Caddy/domains (`dashboard.yourdomain.com` and `api.yourdomain.com`)
 
 Useful examples:
 
 ```bash
 headlessx init --mode developer
-headlessx init --mode self-host
 headlessx init --mode production --api-domain api.example.com --web-domain dashboard.example.com --caddy-email ops@example.com
 headlessx init update
 headlessx init update --branch develop
@@ -262,7 +292,7 @@ headlessx stop
 ```
 
 For existing VPS or Docker installs, use `headlessx init update` to pull the latest repo state into `~/.headlessx/repo`, reconcile missing env keys for the saved mode, then run `headlessx restart`.
-For `self-host` and `production`, `headlessx restart` rebuilds Docker images before bringing the stack back up.
+For `production`, `headlessx restart` rebuilds Docker images before bringing the stack back up.
 
 HeadlessX intentionally uses uncommon localhost defaults to avoid conflicts with other tools:
 `web=34872`, `api=38473`, `postgres=35432`, `redis=36379`, `html-to-md=38081`, `yt-engine=38090`.
@@ -289,7 +319,7 @@ After that, the saved shared profile is reused for later Google searches.
 
 The YouTube operator is live only when `YT_ENGINE_URL` is configured.
 
-- CLI `self-host` and `production` init flows write it automatically
+- CLI `developer` and `production` init flows write it automatically
 - custom local setups must point `YT_ENGINE_URL` at a reachable `yt-engine` instance
 
 ## API Summary

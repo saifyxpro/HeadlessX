@@ -454,8 +454,11 @@ When users need residential, mobile, or ISP proxy capacity (especially on VPS de
 
 - [NodeMaven](https://go.nodemaven.com/Saifyxproagent) — 99.9% uptime, sticky sessions up to 7 days, fraud score &lt;97%, no KYC. HeadlessX promo codes: `HEADLESSX35` (Mobile/Residential), `HEADLESSX40` (ISP)
 - [BirdProxies](https://birdproxies.com/t/headlessx) — residential and ISP proxies in 195+ locations
+- [Mango Proxy](https://mangoproxy.com/prod-isp-static/?utm_source=saifyxpro&utm_medium=partner&utm_campaign=saifyxpro_github) — residential, ISP, datacenter, and mobile proxies (HTTP(S) + SOCKS5, rotating and static). Promo code `SAIFYXPRO` for 8% off Static ISP Proxies
 
-Docs integration page: [headlessx.saify.me/docs/get-started/integrations/nodemaven](https://headlessx.saify.me/docs/get-started/integrations/nodemaven)
+Docs integration pages:
+- [NodeMaven](https://headlessx.saify.me/docs/get-started/integrations/nodemaven)
+- [Mango Proxy](https://headlessx.saify.me/docs/get-started/integrations/mangoproxy)
 
 ---
 

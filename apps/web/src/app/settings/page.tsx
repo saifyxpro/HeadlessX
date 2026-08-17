@@ -29,6 +29,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { NodeMavenProxyCallout } from "@/components/settings/NodeMavenProxyCallout";
+import { MangoProxyCallout } from "@/components/settings/MangoProxyCallout";
 
 const fetchConfig = async () => {
     const res = await fetch('/api/config');
@@ -626,6 +627,7 @@ export default function SettingsPage() {
                                 <div className="h-px w-full bg-slate-200" />
 
                                 <NodeMavenProxyCallout />
+                                <MangoProxyCallout />
 
                                 <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
                                     <div className="space-y-1 pr-4">
