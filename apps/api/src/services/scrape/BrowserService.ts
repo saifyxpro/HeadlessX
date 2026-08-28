@@ -93,6 +93,14 @@ class BrowserService {
         return Boolean(process.env.DISPLAY?.trim());
     }
 
+    private isManagedVirtualDisplay(): boolean {
+        if (process.platform !== 'linux') {
+            return false;
+        }
+
+        return process.env.HEADLESSX_VIRTUAL_DISPLAY_ACTIVE?.trim() === '1';
+    }
+
     private readCookieReadyMarker(): CookieReadyMarker | null {
         try {
             if (!fs.existsSync(this.cookieReadyMarkerPath)) {
@@ -349,7 +357,8 @@ class BrowserService {
         if (options?.cookieBootstrap) {
             this.cookieBootstrapActive = true;
             this.cookieBootstrapStartedAt = new Date().toISOString();
-            this.cookieBootstrapUsingVirtualDisplay = launchMode === 'virtual';
+            this.cookieBootstrapUsingVirtualDisplay =
+                launchMode === 'virtual' || this.isManagedVirtualDisplay();
         }
 
         context.browser()?.once('disconnected', () => {
@@ -480,6 +489,7 @@ class BrowserService {
         const running = this.cookieBootstrapActive && this.isContextReady(this.persistentContext);
         const required = !ready;
         const hasDisplay = this.hasSystemDisplay();
+        const usingManagedVirtualDisplay = this.isManagedVirtualDisplay();
         const launchMode = running ? this.currentLaunchMode : null;
 
         let message = 'Shared Google profile is ready for automated searches.';
@@ -498,7 +508,9 @@ class BrowserService {
             running,
             launchMode,
             hasDisplay,
-            usingVirtualDisplay: running ? this.cookieBootstrapUsingVirtualDisplay : !hasDisplay,
+            usingVirtualDisplay: running
+                ? this.cookieBootstrapUsingVirtualDisplay
+                : usingManagedVirtualDisplay || !hasDisplay,
             activePages: this.activePages,
             profileDir: this.profileDir,
             usesSharedProfile: true,
