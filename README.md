@@ -25,9 +25,11 @@
 
 I'm working on HeadlessX v2.5. I know the current dashboard and a lot of the system need a real redesign — cleaner UI, better UX, and a setup that actually fits how people use this with agents. That's what I'm building now.
 
-v2.1.2 is still what you run today. v2.5 will replace the playground-style UI and add a proper agent chat that calls operators. Live agentic browser sessions and taught recipes stay in **Helium CLI** — HeadlessX will not ship Interact or YAML workflows. Headed operator work (Google cookie setup, later logins) will still embed **KasmVNC** in the dashboard so keyboard and mouse go into the real browser window. Postgres will ship in Docker only (no Supabase). Platform install will be **`headlessx-setup`**: pick self-host or VPS, auto-detect OS (self-host on Linux/macOS/Windows; VPS Linux only), check Docker/npm/Bun, then on VPS validate DNS before start and print the Dashboard/API links. There is no developer mode. Watch this repo and the releases; I'll post there when it's ready to try.
+v2.1.2 is still what you run today. v2.5 will replace the playground-style UI and add a proper agent chat that calls operators. Live agentic browser sessions and taught recipes stay in **Helium CLI** — HeadlessX will not ship Interact or YAML workflows. Headed operator work (Google cookie setup, later logins) will still embed **KasmVNC** in the dashboard so keyboard and mouse go into the real browser window. Postgres will ship in Docker only (no Supabase). Platform install will be **`headlessx-setup`**: pick self-host or VPS, auto-detect OS (self-host on Linux/macOS/Windows; VPS Linux only), check Docker/npm/Bun, then on VPS validate DNS before start and print the Dashboard/API links. There is no developer mode.
 
-I'm evaluating anti-detect tests between [Camoufox](https://camoufox.com/) and [CloakBrowser](https://github.com/CloakHQ/CloakBrowser). HeadlessX will use whichever scores higher — Camoufox (Firefox, C++ fingerprint patches) or CloakBrowser (Chromium, C++ fingerprint patches).
+**v2.5 launches [Hexium](https://github.com/HeadlessXLabs/hexium-browser)** (`hexium-browser` / Playwright `launch()` → Chrome 151). Not Camoufox. Not CloakBrowser.
+
+v2.5 will live under **[HeadlessXLabs](https://github.com/HeadlessXLabs)**. This repo stays **v2.1** on [@saifyxpro](https://github.com/saifyxpro) until that ship. Watch [HeadlessXLabs](https://github.com/HeadlessXLabs) and the releases here until the move.
 
 ### Inspired by
 
@@ -39,7 +41,7 @@ I'm evaluating anti-detect tests between [Camoufox](https://camoufox.com/) and [
 [![pdf--inspector](https://img.shields.io/badge/pdf--inspector-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/firecrawl/pdf-inspector)
 [![obscura](https://img.shields.io/badge/obscura-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/h4ckf0r0day/obscura)
 [![agent-browser](https://img.shields.io/badge/agent--browser-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/vercel-labs/agent-browser)
-[![CloakBrowser](https://img.shields.io/badge/CloakBrowser-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/CloakHQ/CloakBrowser)
+[![hexium-browser](https://img.shields.io/badge/hexium--browser-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/HeadlessXLabs/hexium-browser)
 
 </div>
 
@@ -441,7 +443,7 @@ infra/docker/
 
 | Package | Description | Status |
 | --- | --- | --- |
-| headfox | HeadlessX-maintained Firefox-based anti-detect browser engine that will power the platform's next-generation browser runtime. | Planned |
+| hexium-browser | Playwright `launch()` for Hexium (Chrome 151). HeadlessX **v2.5** will use this. Lives in [HeadlessXLabs](https://github.com/HeadlessXLabs/hexium-browser). | Public now |
 
 ## Notes
 
@@ -460,7 +462,9 @@ HeadlessX is open source under the [GNU Affero General Public License v3.0](LICE
 
 ## Credits
 
-HeadlessX is powered by [Camoufox](https://camoufox.com/) — a Firefox-based anti-detect browser with C++ fingerprint injection, built for AI agents.
+v2.1.2 is powered by [Camoufox](https://camoufox.com/) — a Firefox-based anti-detect browser with C++ fingerprint patches.
+
+**v2.5** will run [Hexium](https://github.com/HeadlessXLabs/hexium-browser) under [HeadlessXLabs](https://github.com/HeadlessXLabs).
 
 ### Crypto scam warning
 
