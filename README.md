@@ -179,7 +179,7 @@ I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swi
         <li>28M real P2P residential IPs in 195 countries</li>
         <li>Country, city, ZIP, ISP and ASN targeting</li>
         <li>Rotating or sticky sessions up to 72h</li>
-        <li>Unlimited connections via HTTP, HTTPS, SOCKS5</li>
+        <li>HTTP, HTTPS, SOCKS5, unlimited connections</li>
         <li>From $2/GB, traffic never expires</li>
         <li>No KYC, pay by card or crypto</li>
       </ul>
