@@ -75,7 +75,7 @@ Important operator setup notes:
 
 ## Sponsors
 
-I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swiftproxy, NodeMaven, Mango Proxy, and Thordata have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
+I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swiftproxy, NodeMaven, Mango Proxy, Thordata, and ProxyLane have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
 
 <details open>
 <summary>View</summary>
@@ -165,6 +165,32 @@ I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swi
       <strong>Thordata</strong> — Premium residential proxies with 100M+ real IPs across 195+ countries, geo targeting, 99.99% uptime, and rotating &amp; sticky sessions. Built for headless browsers, scraping tools, and AI workflows so your HeadlessX jobs look like real users. 3-day free trial · <strong>10% off</strong>.
       <br /><br />
       <a href="https://dashboard.thordata.com/register?invitation_code=HQIUNLWP"><strong>Try Thordata now</strong></a>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2"><hr /></td>
+  </tr>
+  <tr>
+    <td valign="middle">
+      <a href="https://proxylane.dev/?utm_source=headlessx&amp;utm_medium=partnership&amp;utm_campaign=headlessx_sponsor_202610&amp;utm_content=github_readme"><strong>ProxyLane</strong></a> — Clean residential proxies for HeadlessX scraping and browser automation. 28M real P2P IPs, pay only for the traffic you use, and it never expires.
+      <br /><br />
+      <strong>Why <a href="https://proxylane.dev/?utm_source=headlessx&amp;utm_medium=partnership&amp;utm_campaign=headlessx_sponsor_202610&amp;utm_content=github_readme">ProxyLane</a>?</strong>
+      <ul>
+        <li>28M real P2P residential IPs in 195 countries</li>
+        <li>Country, city, ISP and ASN targeting</li>
+        <li>Rotate per request or keep a sticky IP for up to 72h</li>
+        <li>Unlimited concurrent connections over HTTP and SOCKS5</li>
+        <li>From $2/GB, traffic never expires</li>
+        <li>No KYC, pay by card or crypto</li>
+      </ul>
+      Test it on your HeadlessX jobs: <strong>350 MB for $1.95</strong>.
+      <br /><br />
+      <a href="https://proxylane.dev/?utm_source=headlessx&amp;utm_medium=partnership&amp;utm_campaign=headlessx_sponsor_202610&amp;utm_content=github_readme"><strong>Try ProxyLane now</strong></a>
+    </td>
+    <td width="440" align="center" valign="middle">
+      <a href="https://proxylane.dev/?utm_source=headlessx&amp;utm_medium=partnership&amp;utm_campaign=headlessx_sponsor_202610&amp;utm_content=github_readme">
+        <img src="assets/proxylane-banner.png" alt="ProxyLane residential proxies for HeadlessX" width="420" />
+      </a>
     </td>
   </tr>
 </table>
