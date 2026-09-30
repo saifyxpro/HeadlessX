@@ -177,15 +177,15 @@ I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swi
       <strong>Why <a href="https://proxylane.dev/?utm_source=headlessx&amp;utm_medium=partnership&amp;utm_campaign=headlessx_sponsor_202610&amp;utm_content=github_readme">ProxyLane</a>?</strong>
       <ul>
         <li>28M real P2P residential IPs in 195 countries</li>
-        <li>Country, city, ISP and ASN targeting</li>
-        <li>Rotate per request or keep a sticky IP for up to 72h</li>
-        <li>Unlimited concurrent connections over HTTP and SOCKS5</li>
+        <li>Country, city, ZIP, ISP and ASN targeting</li>
+        <li>Rotating or sticky sessions up to 72h</li>
+        <li>Unlimited concurrent connections over HTTP, HTTPS and SOCKS5</li>
         <li>From $2/GB, traffic never expires</li>
         <li>No KYC, pay by card or crypto</li>
       </ul>
       Special code for HeadlessX users:
       <br />
-      <strong>PROXYLANE35</strong> — 35% off any Residential package, including the 350 MB trial
+      <strong>PROXYLANE35</strong> — 35% off any Residential package
       <br /><br />
       <a href="https://proxylane.dev/?utm_source=headlessx&amp;utm_medium=partnership&amp;utm_campaign=headlessx_sponsor_202610&amp;utm_content=github_readme"><strong>Try ProxyLane now</strong></a>
     </td>
