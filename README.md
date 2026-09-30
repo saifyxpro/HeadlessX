@@ -185,7 +185,7 @@ I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swi
       </ul>
       Special code for HeadlessX users:
       <br />
-      <strong>PROXYLANE35</strong> — 35% off any Residential package
+      <strong>headlessx35</strong> — 35% off any Residential package
       <br /><br />
       <a href="https://proxylane.dev/?utm_source=headlessx&amp;utm_medium=partnership&amp;utm_campaign=headlessx_sponsor_202610&amp;utm_content=github_readme"><strong>Try ProxyLane now</strong></a>
     </td>
