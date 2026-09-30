@@ -183,7 +183,9 @@ I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swi
         <li>From $2/GB, traffic never expires</li>
         <li>No KYC, pay by card or crypto</li>
       </ul>
-      Test it on your HeadlessX jobs: <strong>350 MB for $1.95</strong>.
+      Special code for HeadlessX users:
+      <br />
+      <strong>PROXYLANE35</strong> — 35% off any Residential package, including the 350 MB trial
       <br /><br />
       <a href="https://proxylane.dev/?utm_source=headlessx&amp;utm_medium=partnership&amp;utm_campaign=headlessx_sponsor_202610&amp;utm_content=github_readme"><strong>Try ProxyLane now</strong></a>
     </td>
