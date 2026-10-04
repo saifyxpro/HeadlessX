@@ -113,14 +113,14 @@ I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swi
   </tr>
   <tr>
     <td width="440" align="center" valign="middle">
-      <a href="https://go.nodemaven.com/Saifyxproreadmeaugust">
+      <a href="https://go.nodemaven.com/Saifyxproreadmesept">
         <img src="assets/nodemaven-banner.png" alt="NodeMaven — Best proxy for web scraping and automation with the highest quality IP" width="420" />
       </a>
     </td>
     <td valign="middle">
-      <a href="https://go.nodemaven.com/Saifyxproreadmeaugust"><strong>NodeMaven</strong></a> — The most efficient proxy provider for Web Scraping and Automation with the Highest Quality IP on the market.
+      <a href="https://go.nodemaven.com/Saifyxproreadmesept"><strong>NodeMaven</strong></a> — The most efficient proxy provider for Web Scraping and Automation with the Highest Quality IP on the market.
       <br /><br />
-      <strong>Why <a href="https://go.nodemaven.com/Saifyxproreadmeaugust">NodeMaven</a>?</strong>
+      <strong>Why <a href="https://go.nodemaven.com/Saifyxproreadmesept">NodeMaven</a>?</strong>
       <ul>
         <li>ZIP targeting</li>
         <li>99.9% uptime</li>
@@ -134,7 +134,7 @@ I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swi
       <br />
       <strong>HEADLESSX40</strong> — 40% off ISP (Static) Proxies
       <br /><br />
-      <a href="https://go.nodemaven.com/Saifyxproreadmeaugust"><strong>Try NodeMaven now</strong></a>
+      <a href="https://go.nodemaven.com/Saifyxproreadmesept"><strong>Try NodeMaven now</strong></a>
     </td>
   </tr>
   <tr>

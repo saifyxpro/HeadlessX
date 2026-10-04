@@ -6,7 +6,7 @@ import { HugeiconsIcon } from '@hugeicons/react';
 import { cn } from '@/lib/utils';
 
 const DISMISS_KEY = 'headlessx-nodemaven-callout-dismissed';
-const NODEMAVEN_URL = 'https://go.nodemaven.com/Saifyxprotoolsugust';
+const NODEMAVEN_URL = 'https://go.nodemaven.com/Saifyxprotoolsept';
 
 const PROMO_CODES = [
     { code: 'HEADLESSX35', label: '35% off Mobile & Residential' },
