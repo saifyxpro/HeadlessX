@@ -75,42 +75,12 @@ Important operator setup notes:
 
 ## Sponsors
 
-I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swiftproxy, NodeMaven, Mango Proxy, Thordata, and ProxyLane have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
+I'm thankful to the people and companies who support HeadlessX. NodeMaven, Thordata, Mango Proxy, and ProxyLane have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
 
 <details open>
 <summary>View</summary>
 
 <table>
-  <tr>
-    <td width="440" align="center" valign="middle">
-      <a href="https://birdproxies.com/t/headlessx">
-        <img src="assets/bird-proxy.png" alt="BirdProxies banner" width="420" />
-      </a>
-    </td>
-    <td valign="middle">
-      Hey, we built <a href="https://birdproxies.com/t/headlessx">BirdProxies</a> because proxies shouldn't be complicated or overpriced. Fast residential and ISP proxies in 195+ locations, fair pricing, and real support. Try our FlappyBird game on the landing page for free data!
-      <br /><br />
-      <a href="https://birdproxies.com/t/headlessx"><strong>Try BirdProxies now</strong></a> &nbsp;|&nbsp; <a href="https://discord.com/invite/birdproxies"><strong>Join the Discord</strong></a>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2"><hr /></td>
-  </tr>
-  <tr>
-    <td valign="middle">
-      <strong>Swiftproxy</strong> — Reliable residential proxies optimized for HeadlessX automation and anti-bot workflows. Access 80M+ rotating residential IPs across 190+ countries with non-expiring traffic, high anonymity, sticky sessions, and free trials. Get 10% off with code <strong>PROXY90</strong>.
-      <br /><br />
-      <a href="https://www.swiftproxy.net/?ref=HeadlessX"><strong>Try Swiftproxy now</strong></a> &nbsp;|&nbsp; <a href="https://t.me/Swiftproxy_Support"><strong>Contact us</strong></a>
-    </td>
-    <td width="440" align="center" valign="middle">
-      <a href="https://www.swiftproxy.net/?ref=HeadlessX">
-        <img src="assets/swiftproxy.png" alt="Swiftproxy banner" width="420" />
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2"><hr /></td>
-  </tr>
   <tr>
     <td width="440" align="center" valign="middle">
       <a href="https://go.nodemaven.com/Saifyxproreadmesept">
@@ -141,21 +111,6 @@ I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swi
     <td colspan="2"><hr /></td>
   </tr>
   <tr>
-    <td valign="middle">
-      <strong>Mango Proxy</strong> — Residential, ISP, datacenter, and mobile proxies for automation, web scraping, SEO, social media management, and other online tasks. HTTP(S) and SOCKS5, rotating and static. Use <strong>SAIFYXPRO</strong> for 8% off Static ISP Proxies.
-      <br /><br />
-      <a href="https://mangoproxy.com/prod-isp-static/?utm_source=saifyxpro&utm_medium=partner&utm_campaign=saifyxpro_github"><strong>Try Mango Proxy now</strong></a>
-    </td>
-    <td width="440" align="center" valign="middle">
-      <a href="https://mangoproxy.com/prod-isp-static/?utm_source=saifyxpro&utm_medium=partner&utm_campaign=saifyxpro_github">
-        <img src="assets/mangoproxy-banner.png" alt="Mango Proxy banner" width="420" />
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2"><hr /></td>
-  </tr>
-  <tr>
     <td width="440" align="center" valign="middle">
       <a href="https://dashboard.thordata.com/register?invitation_code=HQIUNLWP">
         <img src="assets/thordata-banner.jpeg" alt="Thordata banner" width="420" />
@@ -165,6 +120,21 @@ I'm thankful to the people and companies who support HeadlessX. BirdProxies, Swi
       <strong>Thordata</strong> — Premium residential proxies with 100M+ real IPs across 195+ countries, geo targeting, 99.99% uptime, and rotating &amp; sticky sessions. Built for headless browsers, scraping tools, and AI workflows so your HeadlessX jobs look like real users. 3-day free trial · <strong>10% off</strong>.
       <br /><br />
       <a href="https://dashboard.thordata.com/register?invitation_code=HQIUNLWP"><strong>Try Thordata now</strong></a>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2"><hr /></td>
+  </tr>
+  <tr>
+    <td valign="middle">
+      <strong>Mango Proxy</strong> — Residential, ISP, datacenter, and mobile proxies for automation, web scraping, SEO, social media management, and other online tasks. HTTP(S) and SOCKS5, rotating and static. Use <strong>SAIFYXPRO</strong> for 8% off Static ISP Proxies.
+      <br /><br />
+      <a href="https://mangoproxy.com/prod-isp-static/?utm_source=saifyxpro&utm_medium=partner&utm_campaign=saifyxpro_github"><strong>Try Mango Proxy now</strong></a>
+    </td>
+    <td width="440" align="center" valign="middle">
+      <a href="https://mangoproxy.com/prod-isp-static/?utm_source=saifyxpro&utm_medium=partner&utm_campaign=saifyxpro_github">
+        <img src="assets/mangoproxy-banner.png" alt="Mango Proxy banner" width="420" />
+      </a>
     </td>
   </tr>
   <tr>
