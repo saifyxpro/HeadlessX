@@ -1,3 +1,5 @@
+FROM node:22-slim AS node
+
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -9,9 +11,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     ffmpeg \
-    nodejs \
-    npm \
     && rm -rf /var/lib/apt/lists/*
+
+# yt-dlp only needs the node binary as its JS runtime. Copy it from the official
+# node image (patched 22.x) instead of Debian's nodejs package, which lags behind.
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
 
 RUN python -m pip install --no-cache-dir --upgrade pip uv
 
