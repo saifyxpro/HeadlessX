@@ -11,6 +11,7 @@ const NODEMAVEN_URL = 'https://go.nodemaven.com/Saifyxprotoolsept';
 const PROMO_CODES = [
     { code: 'HEADLESSX35', label: '35% off Mobile & Residential' },
     { code: 'HEADLESSX40', label: '40% off ISP (Static)' },
+    { code: 'HEADLESSX2X', label: '2X traffic for Black Friday' },
 ] as const;
 
 function PromoCodePill({ code, label }: { code: string; label: string }) {
