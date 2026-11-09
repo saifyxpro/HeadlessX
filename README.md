@@ -221,6 +221,10 @@ This installs the HeadlessX CLI skill from this repository so the agent can use 
   </tr>
 </table>
 
+## One-Click Deploy
+
+<a href="https://repocloud.io/details/HeadlessX/"><img src="https://d16t0pc4846x52.cloudfront.net/deploylobe.svg" alt="Deploy on RepoCloud" height="42"></a>
+
 ## Quick Start
 
 ### System Requirements
