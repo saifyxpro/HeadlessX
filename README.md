@@ -75,7 +75,7 @@ Important operator setup notes:
 
 ## Sponsors
 
-I'm thankful to the people and companies who support HeadlessX. NodeMaven, Thordata, Mango Proxy, and Proxy-Seller have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
+I'm thankful to the people and companies who support HeadlessX. NodeMaven, Mango Proxy, and Proxy-Seller have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
 
 <details open>
 <summary>View</summary>
@@ -107,21 +107,6 @@ I'm thankful to the people and companies who support HeadlessX. NodeMaven, Thord
       <strong>HEADLESSX2X</strong> — 2X traffic for Black Friday
       <br /><br />
       <a href="https://go.nodemaven.com/Saifyxproreadmesept"><strong>Try NodeMaven now</strong></a>
-    </td>
-  </tr>
-  <tr>
-    <td colspan="2"><hr /></td>
-  </tr>
-  <tr>
-    <td width="440" align="center" valign="middle">
-      <a href="https://dashboard.thordata.com/register?invitation_code=HQIUNLWP">
-        <img src="assets/thordata-banner.jpeg" alt="Thordata banner" width="420" />
-      </a>
-    </td>
-    <td valign="middle">
-      <strong>Thordata</strong> — Premium residential proxies with 100M+ real IPs across 195+ countries, geo targeting, 99.99% uptime, and rotating &amp; sticky sessions. Built for headless browsers, scraping tools, and AI workflows so your HeadlessX jobs look like real users. 3-day free trial · <strong>10% off</strong>.
-      <br /><br />
-      <a href="https://dashboard.thordata.com/register?invitation_code=HQIUNLWP"><strong>Try Thordata now</strong></a>
     </td>
   </tr>
   <tr>

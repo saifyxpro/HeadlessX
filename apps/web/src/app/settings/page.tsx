@@ -30,7 +30,6 @@ import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { NodeMavenProxyCallout } from "@/components/settings/NodeMavenProxyCallout";
 import { MangoProxyCallout } from "@/components/settings/MangoProxyCallout";
-import { ThordataProxyCallout } from "@/components/settings/ThordataProxyCallout";
 import { ProxySellerProxyCallout } from "@/components/settings/ProxySellerProxyCallout";
 
 const fetchConfig = async () => {
@@ -630,7 +629,6 @@ export default function SettingsPage() {
 
                                 <NodeMavenProxyCallout />
                                 <MangoProxyCallout />
-                                <ThordataProxyCallout />
                                 <ProxySellerProxyCallout />
 
                                 <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
