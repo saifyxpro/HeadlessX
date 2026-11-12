@@ -75,7 +75,7 @@ Important operator setup notes:
 
 ## Sponsors
 
-I'm thankful to the people and companies who support HeadlessX. NodeMaven, Thordata, and Mango Proxy have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
+I'm thankful to the people and companies who support HeadlessX. NodeMaven, Thordata, Mango Proxy, and Proxy-Seller have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
 
 <details open>
 <summary>View</summary>
@@ -137,6 +137,33 @@ I'm thankful to the people and companies who support HeadlessX. NodeMaven, Thord
       <a href="https://mangoproxy.com/prod-isp-static/?utm_source=saifyxpro&utm_medium=partner&utm_campaign=saifyxpro_github">
         <img src="assets/mangoproxy-banner.png" alt="Mango Proxy banner" width="420" />
       </a>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2"><hr /></td>
+  </tr>
+  <tr>
+    <td width="440" align="center" valign="middle">
+      <a href="https://proxy-seller.com/?partner=E5FB3EA69BA34208">
+        <img src="assets/proxyseller-banner.png" alt="Proxy-Seller — residential, ISP, IPv4, and IPv6 proxies" width="420" />
+      </a>
+    </td>
+    <td valign="middle">
+      <a href="https://proxy-seller.com/?partner=E5FB3EA69BA34208"><strong>Proxy-Seller</strong></a> — Residential, ISP, IPv4, and IPv6 proxies for scraping, automation, and ad verification. 220+ locations, HTTPS and SOCKS5, rotating or sticky sessions, and 24/7 support.
+      <br /><br />
+      <strong>Why <a href="https://proxy-seller.com/?partner=E5FB3EA69BA34208">Proxy-Seller</a>?</strong>
+      <ul>
+        <li>Residential, ISP, IPv4, and IPv6</li>
+        <li>220+ locations</li>
+        <li>Rotating or sticky sessions</li>
+        <li>HTTPS and SOCKS5</li>
+        <li>24/7 support</li>
+      </ul>
+      Special code for HeadlessX users:
+      <br />
+      <strong>HEADLESSX</strong> — 15% off ISP, IPv4, and residential
+      <br /><br />
+      <a href="https://proxy-seller.com/?partner=E5FB3EA69BA34208"><strong>Try Proxy-Seller now</strong></a>
     </td>
   </tr>
 </table>
