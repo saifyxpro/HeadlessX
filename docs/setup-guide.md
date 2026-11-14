@@ -135,6 +135,13 @@ Important:
 
 Google AI Search now uses the shared persistent browser profile managed by the API.
 
+For Docker and VPS installs, the API container can now host its own managed X display plus a noVNC web client.
+
+- set `VNC_HOST` to publish the browser session through Traefik
+- open `https://your-vnc-host/vnc.html`
+- sign in with `HEADLESSX_VNC_PASSWORD`
+- leave `HEADLESSX_VNC_ALLOW_NO_PASSWORD=0` unless the route is private and temporary
+
 The first time you use the Google operator:
 
 1. Open `/playground/operators/google/ai-search`
