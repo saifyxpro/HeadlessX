@@ -75,7 +75,7 @@ Important operator setup notes:
 
 ## Sponsors
 
-I'm thankful to the people and companies who support HeadlessX. NodeMaven, Mango Proxy, and Proxy-Seller have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
+I'm thankful to the people and companies who support HeadlessX. NodeMaven, Mango Proxy, Proxy-Seller, and CyberYozh App have been solid partners — that support is a big part of why this project can keep moving. If you need proxies for scraping or automation, start with them.
 
 <details open>
 <summary>View</summary>
@@ -83,14 +83,14 @@ I'm thankful to the people and companies who support HeadlessX. NodeMaven, Mango
 <table>
   <tr>
     <td width="440" align="center" valign="middle">
-      <a href="https://go.nodemaven.com/Saifyxproreadmesept">
+      <a href="https://go.nodemaven.com/Saifyxproreadmeoct">
         <img src="assets/nodemaven-banner.png" alt="NodeMaven — Best proxy for web scraping and automation with the highest quality IP" width="420" />
       </a>
     </td>
     <td valign="middle">
-      <a href="https://go.nodemaven.com/Saifyxproreadmesept"><strong>NodeMaven</strong></a> — The most efficient proxy provider for Web Scraping and Automation with the Highest Quality IP on the market.
+      <a href="https://go.nodemaven.com/Saifyxproreadmeoct"><strong>NodeMaven</strong></a> — The most efficient proxy provider for Web Scraping and Automation with the Highest Quality IP on the market.
       <br /><br />
-      <strong>Why <a href="https://go.nodemaven.com/Saifyxproreadmesept">NodeMaven</a>?</strong>
+      <strong>Why <a href="https://go.nodemaven.com/Saifyxproreadmeoct">NodeMaven</a>?</strong>
       <ul>
         <li>ZIP targeting</li>
         <li>99.9% uptime</li>
@@ -106,7 +106,7 @@ I'm thankful to the people and companies who support HeadlessX. NodeMaven, Mango
       <br />
       <strong>HEADLESSX2X</strong> — 2X traffic for Black Friday
       <br /><br />
-      <a href="https://go.nodemaven.com/Saifyxproreadmesept"><strong>Try NodeMaven now</strong></a>
+      <a href="https://go.nodemaven.com/Saifyxproreadmeoct"><strong>Try NodeMaven now</strong></a>
     </td>
   </tr>
   <tr>
@@ -149,6 +149,29 @@ I'm thankful to the people and companies who support HeadlessX. NodeMaven, Mango
       <strong>HEADLESSX</strong> — 15% off ISP, IPv4, and residential
       <br /><br />
       <a href="https://proxy-seller.com/?partner=E5FB3EA69BA34208"><strong>Try Proxy-Seller now</strong></a>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2"><hr /></td>
+  </tr>
+  <tr>
+    <td valign="middle">
+      <a href="https://app.cyberyozh.com/"><strong>CyberYozh App</strong></a> — Operational proxy infrastructure for web scraping, browser automation, SEO, and multi-account workflows.
+      <br /><br />
+      <strong>Why <a href="https://app.cyberyozh.com/">CyberYozh App</a>?</strong>
+      <ul>
+        <li>Mobile LTE/5G (unlimited traffic), Residential, Static ISP, and Datacenter proxies</li>
+        <li>100M+ IPs across 195+ countries with free geo-targeting</li>
+        <li>24-hour sticky sessions, per-request rotation, and traffic rollover</li>
+        <li>99.9% proxy uptime with HTTP(S), SOCKS5, UDP, VLESS, and OpenVPN support</li>
+        <li>Built-in tools: Fraud Score checks (IP, phone, card), SMS activation, virtual cards, and Android Cloud Phones</li>
+      </ul>
+      <a href="https://app.cyberyozh.com/"><strong>Try CyberYozh App now</strong></a>
+    </td>
+    <td width="440" align="center" valign="middle">
+      <a href="https://app.cyberyozh.com/">
+        <img src="assets/cyberyozh-banner.png" alt="CyberYozh App — Operational proxy infrastructure for web scraping and automation" width="420" />
+      </a>
     </td>
   </tr>
 </table>
